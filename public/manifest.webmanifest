@@ -1,0 +1,11 @@
+{
+  "name":"Enterprise Capacity Mapper",
+  "short_name":"Capacity Mapper",
+  "description":"Cartographie des capacités métier et applications SI.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#020617",
+  "theme_color":"#4f46e5",
+  "icons":[{"src":"./icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
