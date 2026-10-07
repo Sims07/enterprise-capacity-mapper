@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {DEMO_MODEL} from './data/demoData.js';
 import {exportModel,importModel,loadModel,saveModel} from './services/storage.js';
+import {loadRemoteModel,normalizeJsonUrl} from './services/remote.js';
 
 const uid=p=>`${p}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
 const emptyForm={name:'',code:'',description:'',status:'Actif',type:'SaaS',vendor:'',domainId:'',capabilityIds:[]};
@@ -9,6 +10,7 @@ function Modal({title,children,onClose}){return <div className="modal-backdrop">
 function Field({label,...p}){return <label className="field"><span>{label}</span><input {...p}/></label>}
 function App(){
  const [model,setModel]=useState(()=>loadModel(DEMO_MODEL)); const [mode,setMode]=useState('editor');
+ const [sourceUrl,setSourceUrl]=useState(()=>localStorage.getItem('enterprise-capacity-mapper:source-url')||'');
  const [selected,setSelected]=useState([]); const [query,setQuery]=useState(''); const [status,setStatus]=useState('');
  const [modal,setModal]=useState(null); const [form,setForm]=useState(emptyForm);
  useEffect(()=>saveModel(model),[model]);
@@ -35,7 +37,7 @@ function App(){
  const importJson=async e=>{const f=e.target.files?.[0];if(!f)return;try{update(await importModel(f));notify('Cartographie importée');}catch(err){notify(err.message)}e.target.value=''};
  return <div className="app">
   <header><div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
-   <div className="toolbar"><button className={mode==='editor'?'active':''} onClick={()=>setMode('editor')}>▦ Cartographie</button><button className={mode==='impact'?'active':''} onClick={()=>setMode('impact')}>⚡ Impact</button><button onClick={()=>openNew('domain')}>＋ Domaine</button><button onClick={()=>openNew('app')}>＋ Application</button><button onClick={()=>exportModel(model)}>↓ Export</button><label className="button">↑ Import<input hidden type="file" accept=".json,application/json" onChange={importJson}/></label></div>
+   <div className="toolbar"><button className={mode==='editor'?'active':''} onClick={()=>setMode('editor')}>▦ Cartographie</button><button className={mode==='impact'?'active':''} onClick={()=>setMode('impact')}>⚡ Impact</button><button onClick={()=>openNew('domain')}>＋ Domaine</button><button onClick={()=>openNew('app')}>＋ Application</button><button onClick={()=>exportModel(model)}>↓ Export</button><button onClick={async()=>{const u=prompt('URL du fichier JSON public (GitHub raw ou URL HTTPS)',sourceUrl);if(u===null)return;const n=normalizeJsonUrl(u);if(!n)return;try{const remote=await loadRemoteModel(n);setModel(remote);setSourceUrl(n);localStorage.setItem('enterprise-capacity-mapper:source-url',n);notify('Source JSON distante chargée');}catch(e){notify(e.message)}}}>↗ JSON distant</button><label className="button">↑ Import<input hidden type="file" accept=".json,application/json" onChange={importJson}/></label></div>
   </header>
   <div className="workspace">
    <aside><div className="panel-title">Inventaire SI <span>{apps.length}</span></div><input className="search" placeholder="Rechercher une application…" value={query} onChange={e=>setQuery(e.target.value)}/><div className="hint">Glissez une application vers une capacité pour créer une relation.</div>
