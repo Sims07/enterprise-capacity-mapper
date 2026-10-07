@@ -1,7 +1,9 @@
 name: Deploy PWA to GitHub Pages
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,8 +28,9 @@ jobs:
         with:
           path: ./dist
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
-      name: ${{ startsWith(github.ref, 'refs/heads/feature/') && 'github-pages-preview' || 'github-pages' }}
+      name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
