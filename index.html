@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditeur Graphique de Capacités SI & Impact Mapper</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- React & ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel CDN for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Font Family -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .canvas-grid {
+            background-size: 24px 24px;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+        }
+        .drag-over-active {
+            border-color: #6366f1 !important;
+            background-color: rgba(99, 102, 241, 0.15) !important;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3) !important;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // Dataset initial de démonstration
+        const initialL0 = [
+            { id: 'l0-1', code: 'CAP-CRM', name: 'Relation & Engagement Client', description: 'Gestion du cycle de vie client, prospection et service client.', color: 'indigo' },
+            { id: 'l0-2', code: 'CAP-FIN', name: 'Finance, Gestion & Comptabilité', description: 'Pilotage financier, facturation et trésorerie.', color: 'emerald' },
+            { id: 'l0-3', code: 'CAP-SCM', name: 'Supply Chain & Logistique', description: 'Stocks, approvisionnements et distribution.', color: 'amber' },
+            { id: 'l0-4', code: 'CAP-RH',  name: 'Ressources Humaines & Talent', description: 'Gestion du personnel, paie et compétences.', color: 'rose' }
+        ];
+
+        const initialL1 = [
+            // CRM
+            { id: 'l1-1', l0Id: 'l0-1', code: 'CRM-01', name: 'Gestion des Prospects & Leads', description: 'Acquisition et qualification commerciale.' },
+            { id: 'l1-2', l0Id: 'l0-1', code: 'CRM-02', name: 'Gestion des Offres & Devis', description: 'Élaboration des prix et devis B2B.' },
+            { id: 'l1-3', l0Id: 'l0-1', code: 'CRM-03', name: 'Support & Service Client (SAV)', description: 'Helpdesk, ticketing et réclamations.' },
+            
+            // FIN
+            { id: 'l1-4', l0Id: 'l0-2', code: 'FIN-01', name: 'Comptabilité Générale', description: 'Grand livre, bilan et comptes sociaux.' },
+            { id: 'l1-5', l0Id: 'l0-2', code: 'FIN-02', name: 'Facturation & Recouvrement', description: 'Émission des factures et suivi encaissements.' },
+            { id: 'l1-6', l0Id: 'l0-2', code: 'FIN-03', name: 'Gestion de Trésorerie', description: 'Flux bancaires et prévisions de cash.' },
+
+            // SCM
+            { id: 'l1-7', l0Id: 'l0-3', code: 'SCM-01', name: 'Gestion des Stocks & Entrepôt (WMS)', description: 'Mouvements d\'inventaire et valorisation.' },
+            { id: 'l1-8', l0Id: 'l0-3', code: 'SCM-02', name: 'Achats Fournisseurs', description: 'Portail commandes et contrats d\'achats.' },
+
+            // RH
+            { id: 'l1-9', l0Id: 'l0-4', code: 'RH-01', name: 'Gestion de la Paie', description: 'Calcul mensuel et cotisations.' },
+            { id: 'l1-10', l0Id: 'l0-4', code: 'RH-02', name: 'Congés & Suivi des Temps', description: 'Planning d\'équipe et absences.' }
+        ];
+
+        const initialApps = [
+            { id: 'app-1', name: 'Salesforce CRM', code: 'APP-SFC', type: 'SaaS', status: 'Actif', vendor: 'Salesforce', l1Id: 'l1-1', description: 'Gestion des pistes commerciales.' },
+            { id: 'app-2', name: 'Zendesk Service', code: 'APP-ZND', type: 'SaaS', status: 'Actif', vendor: 'Zendesk', l1Id: 'l1-3', description: 'Support client et helpdesk.' },
+            { id: 'app-3', name: 'SAP S/4HANA Finance', code: 'APP-SAP', type: 'ERP', status: 'Actif', vendor: 'SAP', l1Id: 'l1-4', description: 'Comptabilité et bilan groupe.' },
+            { id: 'app-4', name: 'Odoo Invoice', code: 'APP-ODO', type: 'SaaS', status: 'Cible', vendor: 'Odoo', l1Id: 'l1-5', description: 'Solution cible pour la facturation.' },
+            { id: 'app-5', name: 'Manhattan WMS', code: 'APP-WMS', type: 'On-Premise', status: 'Actif', vendor: 'Manhattan', l1Id: 'l1-7', description: 'Gestion des stocks entrepôt.' },
+            { id: 'app-6', name: 'ADP Decidium', code: 'APP-ADP', type: 'SaaS', status: 'Actif', vendor: 'ADP', l1Id: 'l1-9', description: 'Logiciel de paie.' },
+            { id: 'app-7', name: 'Excel Devis Ventes', code: 'APP-EXC', type: 'Shadow IT', status: 'Obsolète', vendor: 'Microsoft', l1Id: 'l1-2', description: 'Macro historique pour chiffrage devis.' }
+        ];
+
+        function App() {
+            // Data states
+            const [l0List, setL0List] = useState(() => JSON.parse(localStorage.getItem('ea_canvas_l0')) || initialL0);
+            const [l1List, setL1List] = useState(() => JSON.parse(localStorage.getItem('ea_canvas_l1')) || initialL1);
+            const [appList, setAppList] = useState(() => JSON.parse(localStorage.getItem('ea_canvas_apps')) || initialApps);
+
+            // Drag state
+            const [draggedAppId, setDraggedAppId] = useState(null);
+            const [dragOverZoneId, setDragOverZoneId] = useState(null);
+
+            // View Mode & Simulation States
+            const [viewMode, setViewMode] = useState('editor'); // 'editor' or 'impact'
+            const [featureName, setFeatureName] = useState('Portail Client B2B & Saisie Autonome Devis');
+            const [featureDesc, setFeatureDesc] = useState('Permettre aux clients de saisir leurs devis et régler leurs factures en direct.');
+            const [impactedL1Ids, setImpactedL1Ids] = useState(['l1-2', 'l1-5']); // Selected L1s for impact analysis
+            
+            // Modals & Panels
+            const [modalType, setModalType] = useState(null); // 'addL0', 'addL1', 'addApp', 'editApp'
+            const [editingItem, setEditingItem] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [toast, setToast] = useState(null);
+
+            // Save to localStorage
+            useEffect(() => {
+                localStorage.setItem('ea_canvas_l0', JSON.stringify(l0List));
+                localStorage.setItem('ea_canvas_l1', JSON.stringify(l1List));
+                localStorage.setItem('ea_canvas_apps', JSON.stringify(appList));
+            }, [l0List, l1List, appList]);
+
+            const triggerToast = (msg) => {
+                setToast(msg);
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            const handleDragStart = (e, appId) => {
+                setDraggedAppId(appId);
+                e.dataTransfer.setData('text/plain', appId);
+                e.dataTransfer.effectAllowed = 'move';
+            };
+
+            const handleDragOver = (e, targetL1Id) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (dragOverZoneId !== targetL1Id) {
+                    setDragOverZoneId(targetL1Id);
+                }
+            };
+
+            const handleDragLeave = (e, targetL1Id) => {
+                e.preventDefault();
+                if (dragOverZoneId === targetL1Id) {
+                    setDragOverZoneId(null);
+                }
+            };
+
+            const handleDrop = (e, targetL1Id) => {
+                e.preventDefault();
+                setDragOverZoneId(null);
+                const appId = e.dataTransfer.getData('text/plain') || draggedAppId;
+
+                if (!appId) return;
+
+                setAppList(prev => prev.map(app => {
+                    if (app.id === appId) {
+                        return { ...app, l1Id: targetL1Id };
+                    }
+                    return app;
+                }));
+
+                const targetL1 = l1List.find(l => l.id === targetL1Id);
+                const appObj = appList.find(a => a.id === appId);
+                triggerToast(`Application "${appObj?.name || 'Sélectionnée'}" déplacée vers ${targetL1 ? targetL1.name : 'le bac d\'attente'}`);
+                setDraggedAppId(null);
+            };
+
+            // Calculate impact summary
+            const impactAnalysis = useMemo(() => {
+                const touchedApps = appList.filter(app => impactedL1Ids.includes(app.l1Id));
+                const uncoveredGaps = impactedL1Ids.filter(l1Id => {
+                    return !appList.some(app => app.l1Id === l1Id);
+                }).map(l1Id => l1List.find(l => l.id === l1Id));
+
+                return { touchedApps, uncoveredGaps };
+            }, [impactedL1Ids, appList, l1List]);
+
+            const toggleImpactL1 = (l1Id) => {
+                if (impactedL1Ids.includes(l1Id)) {
+                    setImpactedL1Ids(impactedL1Ids.filter(id => id !== l1Id));
+                } else {
+                    setImpactedL1Ids([...impactedL1Ids, l1Id]);
+                }
+            };
+
+            return (
+                <div className="flex flex-col h-screen overflow-hidden bg-slate-950 text-slate-100">
+                    {/* Top Control Header */}
+                    <header className="bg-slate-900 border-b border-slate-800 px-6 py-3 flex-none flex items-center justify-between z-20 shadow-lg">
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                                <div className="p-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-xl text-white font-black text-sm shadow-md shadow-indigo-500/20">
+                                    EA
+                                </div>
+                                <div>
+                                    <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
+                                        Planche de Cartographie Capacités & Applications
+                                        <span className="text-[10px] font-mono px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded border border-indigo-800/60">
+                                            Canvas Drag & Drop
+                                        </span>
+                                    </h1>
+                                    <p className="text-xs text-slate-400">Glissez-déposez les applications dans les domaines et capacités métier</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mode Switcher Buttons */}
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center space-x-1">
+                                <button
+                                    onClick={() => setViewMode('editor')}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+                                        viewMode === 'editor'
+                                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                                    }`}
+                                >
+                                    🎨 Éditeur & Composition Canvas
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('impact')}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 relative ${
+                                        viewMode === 'impact'
+                                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                                    }`}
+                                >
+                                    ⚡ Mode Analyse d'Impact
+                                    {impactAnalysis.uncoveredGaps.length > 0 && (
+                                        <span className="flex h-2 w-2 relative">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Canvas Creation Toolbar */}
+                            <div className="h-6 w-px bg-slate-800"></div>
+
+                            <button
+                                onClick={() => setModalType('addL0')}
+                                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5"
+                            >
+                                <span>+ Domaine (L0)</span>
+                            </button>
+
+                            <button
+                                onClick={() => { setEditingItem(null); setModalType('addApp'); }}
+                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
+                            >
+                                <span>+ Application</span>
+                            </button>
+
+                            {/* Export Data */}
+                            <button
+                                onClick={() => {
+                                    const data = { l0: l0List, l1: l1List, apps: appList };
+                                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                                    const a = document.createElement('a');
+                                    a.href = URL.createObjectURL(blob);
+                                    a.download = `cartographie_capacites_si_${new Date().toISOString().slice(0,10)}.json`;
+                                    a.click();
+                                }}
+                                title="Exporter en JSON"
+                                className="p-1.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs"
+                            >
+                                💾
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Notification Toast */}
+                    {toast && (
+                        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-indigo-500/50 text-indigo-200 px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-medium animate-bounce">
+                            <span>ℹ️</span>
+                            <span>{toast}</span>
+                        </div>
+                    )}
+
+                    {/* Simulation Sub-Header Bar (Visible in Impact Mode) */}
+                    {viewMode === 'impact' && (
+                        <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-950 border-b border-indigo-900/50 px-6 py-3 flex-none flex items-center justify-between z-10">
+                            <div className="flex items-center space-x-4 flex-1">
+                                <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1">
+                                    <span>⚡ SIMULATION DE PROJET :</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={featureName}
+                                    onChange={(e) => setFeatureName(e.target.value)}
+                                    placeholder="Nom du projet ou de la fonctionnalité..."
+                                    className="bg-slate-900/90 border border-indigo-500/30 rounded-lg px-3 py-1 text-xs text-white w-72 focus:outline-none focus:border-indigo-400 font-medium"
+                                />
+                                <input
+                                    type="text"
+                                    value={featureDesc}
+                                    onChange={(e) => setFeatureDesc(e.target.value)}
+                                    placeholder="Description..."
+                                    className="bg-slate-900/90 border border-indigo-500/20 rounded-lg px-3 py-1 text-xs text-slate-300 flex-1 focus:outline-none focus:border-indigo-400"
+                                />
+                            </div>
+
+                            <div className="flex items-center space-x-4 ml-4">
+                                <div className="text-xs bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg flex items-center gap-3">
+                                    <span className="text-slate-400">Capacités visées: <strong className="text-white">{impactedL1Ids.length}</strong></span>
+                                    <span className="text-slate-400">Apps touchées: <strong className="text-indigo-300">{impactAnalysis.touchedApps.length}</strong></span>
+                                    {impactAnalysis.uncoveredGaps.length > 0 ? (
+                                        <span className="text-rose-400 font-bold bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/50 animate-pulse">
+                                            🚨 {impactAnalysis.uncoveredGaps.length} Gap(s) non couvert(s)
+                                        </span>
+                                    ) : (
+                                        <span className="text-emerald-400 font-semibold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/50">
+                                            ✅ 100% Couvert
+                                        </span>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => setImpactedL1Ids([])}
+                                    className="text-xs text-slate-400 hover:text-rose-400 underline"
+                                >
+                                    Effacer sélection
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Main Workspace Layout */}
+                    <div className="flex-1 flex overflow-hidden relative">
+                        
+                        {/* Left Drawer / Unassigned Apps & Quick Toolbox */}
+                        <SidebarToolbox 
+                            appList={appList}
+                            l1List={l1List}
+                            l0List={l0List}
+                            handleDragStart={handleDragStart}
+                            handleDrop={handleDrop}
+                            handleDragOver={handleDragOver}
+                            dragOverZoneId={dragOverZoneId}
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            onEditApp={(app) => { setEditingItem(app); setModalType('editApp'); }}
+                            onDeleteApp={(appId) => {
+                                setAppList(appList.filter(a => a.id !== appId));
+                                triggerToast('Application supprimée');
+                            }}
+                            viewMode={viewMode}
+                        />
+
+                        {/* Main Graphical Interactive Canvas Board */}
+                        {}
+                        <main className="flex-1 overflow-auto custom-scrollbar p-8 canvas-grid relative">
+                            {viewMode === 'impact' && (
+                                <div className="mb-4 bg-indigo-950/40 border border-indigo-800/40 p-3 rounded-xl text-xs text-indigo-200 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span>💡 <strong>Instructions Simulation :</strong> Cliquez directement sur les cartes de capacités L1 ci-dessous pour les sélectionner/décocher.</span>
+                                    </div>
+                                    <div className="flex items-center gap-4 text-[11px]">
+                                        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Capacité sollicitée</span>
+                                        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Manque d'application (Gap)</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="space-y-8 max-w-[1600px] mx-auto pb-24">
+                                {l0List.map(l0 => {
+                                    const l1Children = l1List.filter(l1 => l1.l0Id === l0.id);
+
+                                    return (
+                                        <L0ContainerCard 
+                                            key={l0.id}
+                                            l0={l0}
+                                            l1List={l1Children}
+                                            appList={appList}
+                                            handleDragStart={handleDragStart}
+                                            handleDragOver={handleDragOver}
+                                            handleDragLeave={handleDragLeave}
+                                            handleDrop={handleDrop}
+                                            dragOverZoneId={dragOverZoneId}
+                                            viewMode={viewMode}
+                                            impactedL1Ids={impactedL1Ids}
+                                            toggleImpactL1={toggleImpactL1}
+                                            onAddL1={() => { setEditingItem({ l0Id: l0.id }); setModalType('addL1'); }}
+                                            onEditL0={() => { setEditingItem(l0); setModalType('editL0'); }}
+                                            onEditApp={(app) => { setEditingItem(app); setModalType('editApp'); }}
+                                            onDeleteL0={() => {
+                                                setL0List(l0List.filter(item => item.id !== l0.id));
+                                                triggerToast('Domaine L0 supprimé');
+                                            }}
+                                        />
+                                    );
+                                })}
+
+                                {l0List.length === 0 && (
+                                    <div className="text-center py-20 border-2 border-dashed border-slate-800 rounded-2xl">
+                                        <p className="text-slate-500 text-sm">Aucun domaine L0 présent sur la planche.</p>
+                                        <button 
+                                            onClick={() => setModalType('addL0')}
+                                            className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold"
+                                        >
+                                            + Créer un premier Domaine
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+
+                    {/* Modals rendering */}
+                    {modalType && (
+                        <ModalForm 
+                            modalType={modalType}
+                            onClose={() => setModalType(null)}
+                            editingItem={editingItem}
+                            l0List={l0List}
+                            l1List={l1List}
+                            appList={appList}
+                            setL0List={setL0List}
+                            setL1List={setL1List}
+                            setAppList={setAppList}
+                            triggerToast={triggerToast}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        function L0ContainerCard({ l0, l1List, appList, handleDragStart, handleDragOver, handleDragLeave, handleDrop, dragOverZoneId, viewMode, impactedL1Ids, toggleImpactL1, onAddL1, onEditL0, onEditApp, onDeleteL0 }) {
+            
+            const colorStyles = {
+                indigo: 'border-indigo-500/30 bg-slate-900/80 header-indigo',
+                emerald: 'border-emerald-500/30 bg-slate-900/80 header-emerald',
+                amber: 'border-amber-500/30 bg-slate-900/80 header-amber',
+                rose: 'border-rose-500/30 bg-slate-900/80 header-rose',
+                sky: 'border-sky-500/30 bg-slate-900/80 header-sky'
+            }[l0.color] || 'border-indigo-500/30 bg-slate-900/80';
+
+            const headerBadgeColor = {
+                indigo: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+                emerald: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+                amber: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                rose: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+                sky: 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+            }[l0.color] || 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
+
+            return (
+                <div className={`rounded-2xl border ${colorStyles} shadow-2xl backdrop-blur-md overflow-hidden transition-all duration-200`}>
+                    {/* Header Zone for L0 Domain */}
+                    <div className="bg-slate-900/90 border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <span className={`font-mono text-xs font-bold px-2.5 py-1 rounded-md border ${headerBadgeColor}`}>
+                                {l0.code}
+                            </span>
+                            <div>
+                                <h2 className="text-base font-bold text-white tracking-tight">{l0.name}</h2>
+                                <p className="text-xs text-slate-400">{l0.description}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={onAddL1}
+                                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition"
+                            >
+                                + Capacité (L1)
+                            </button>
+                            <button
+                                onClick={onEditL0}
+                                title="Modifier Domaine"
+                                className="p-1 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-800 text-xs"
+                            >
+                                ✏️
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Grid of L1 Capability Drop Zones */}
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 bg-slate-950/40">
+                        {l1List.map(l1 => {
+                            const appsInL1 = appList.filter(a => a.l1Id === l1.id);
+                            const isImpacted = impactedL1Ids.includes(l1.id);
+                            const isDropTarget = dragOverZoneId === l1.id;
+                            const isGap = isImpacted && appsInL1.length === 0;
+
+                            return (
+                                <L1CapabilityZone 
+                                    key={l1.id}
+                                    l1={l1}
+                                    apps={appsInL1}
+                                    handleDragStart={handleDragStart}
+                                    handleDragOver={(e) => handleDragOver(e, l1.id)}
+                                    handleDragLeave={(e) => handleDragLeave(e, l1.id)}
+                                    handleDrop={(e) => handleDrop(e, l1.id)}
+                                    isDropTarget={isDropTarget}
+                                    viewMode={viewMode}
+                                    isImpacted={isImpacted}
+                                    isGap={isGap}
+                                    toggleImpact={() => toggleImpactL1(l1.id)}
+                                    onEditApp={onEditApp}
+                                />
+                            );
+                        })}
+
+                        {l1List.length === 0 && (
+                            <div className="col-span-full py-8 text-center border border-dashed border-slate-800/80 rounded-xl">
+                                <p className="text-slate-500 text-xs">Aucune capacité L1 dans ce domaine.</p>
+                                <button 
+                                    onClick={onAddL1}
+                                    className="mt-2 text-xs text-indigo-400 hover:underline font-semibold"
+                                >
+                                    + Ajouter une sous-capacité L1
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function L1CapabilityZone({ l1, apps, handleDragStart, handleDragOver, handleDragLeave, handleDrop, isDropTarget, viewMode, isImpacted, isGap, toggleImpact, onEditApp }) {
+            
+            return (
+                <div 
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => {
+                        if (viewMode === 'impact') toggleImpact();
+                    }}
+                    className={`relative rounded-xl p-4 border transition-all duration-200 flex flex-col justify-between min-h-[170px] ${
+                        viewMode === 'impact' ? 'cursor-pointer' : ''
+                    } ${
+                        isDropTarget 
+                            ? 'drag-over-active' 
+                            : isGap
+                            ? 'border-rose-500/80 bg-rose-950/20 ring-2 ring-rose-500/40 animate-pulse shadow-lg shadow-rose-900/20'
+                            : isImpacted
+                            ? 'border-indigo-500/80 bg-indigo-950/30 ring-2 ring-indigo-500/50 shadow-xl shadow-indigo-950/50'
+                            : apps.length === 0
+                            ? 'border-slate-800/80 bg-slate-900/40 hover:border-slate-700'
+                            : 'border-slate-800 bg-slate-900/70 hover:border-slate-700'
+                    }`}
+                >
+                    {/* Top Bar inside L1 */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="font-mono text-[11px] font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">
+                                {l1.code}
+                            </span>
+
+                            {/* Status Indicator Badges */}
+                            {viewMode === 'impact' ? (
+                                isGap ? (
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500 text-white shadow">
+                                        🚨 GAP : AUCUNE APP
+                                    </span>
+                                ) : isImpacted ? (
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500 text-white shadow">
+                                        ⚡ IMPACTÉE
+                                    </span>
+                                ) : (
+                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                                        Cliquer p/ simuler
+                                    </span>
+                                )
+                            ) : (
+                                apps.length === 0 ? (
+                                    <span className="text-[10px] font-semibold text-amber-400/90 bg-amber-950/50 border border-amber-800/50 px-2 py-0.5 rounded">
+                                        Zone vide
+                                    </span>
+                                ) : apps.length > 1 ? (
+                                    <span className="text-[10px] font-semibold text-amber-300 bg-amber-950/60 border border-amber-800/60 px-2 py-0.5 rounded" title="Plusieurs applications couvrent cette capacité">
+                                        ⚡ {apps.length} Apps (Redondance)
+                                    </span>
+                                ) : (
+                                    <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/50 border border-emerald-800/50 px-2 py-0.5 rounded">
+                                        ✅ 1 App
+                                    </span>
+                                )
+                            )}
+                        </div>
+
+                        <h3 className="font-bold text-sm text-slate-100 mb-1">{l1.name}</h3>
+                        <p className="text-xs text-slate-400 line-clamp-2 mb-3">{l1.description}</p>
+                    </div>
+
+                    {/* Draggable Applications Container inside L1 */}
+                    <div className="pt-3 border-t border-slate-800/80 mt-2">
+                        <span className="text-[10px] uppercase font-bold text-slate-500 block mb-2 tracking-wider">
+                            Applications dans cette capacité ({apps.length}) :
+                        </span>
+
+                        <div className="flex flex-wrap gap-1.5 min-h-[32px] items-center">
+                            {apps.length === 0 ? (
+                                <span className="text-xs text-slate-600 italic">Déposez une application ici...</span>
+                            ) : (
+                                apps.map(app => (
+                                    <DraggableAppCard 
+                                        key={app.id} 
+                                        app={app} 
+                                        handleDragStart={handleDragStart} 
+                                        isImpacted={isImpacted}
+                                        onEditApp={() => onEditApp(app)}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function DraggableAppCard({ app, handleDragStart, isImpacted, onEditApp }) {
+            const statusStyles = {
+                'Actif': 'bg-indigo-950/80 text-indigo-200 border-indigo-700/60 hover:bg-indigo-900',
+                'Cible': 'bg-sky-950/80 text-sky-200 border-sky-700/60 hover:bg-sky-900',
+                'Obsolète': 'bg-rose-950/50 text-rose-300 border-rose-800/60 line-through hover:bg-rose-900/60'
+            }[app.status] || 'bg-slate-800 text-slate-200 border-slate-700';
+
+            return (
+                <div
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, app.id)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEditApp();
+                    }}
+                    className={`group px-2.5 py-1 rounded-lg border text-xs font-semibold cursor-grab active:cursor-grabbing transition-all flex items-center space-x-1.5 shadow-sm hover:scale-105 ${statusStyles} ${
+                        isImpacted ? 'ring-2 ring-indigo-400 shadow-indigo-500/50 font-bold' : ''
+                    }`}
+                    title={`Glisser-déposer pour déplacer. Éditeur: ${app.vendor || 'N/A'}`}
+                >
+                    <span className="opacity-70 text-[10px]">🖥️</span>
+                    <span>{app.name}</span>
+                    <span className="text-[9px] font-mono px-1 bg-black/30 rounded text-slate-300">
+                        {app.code}
+                    </span>
+                </div>
+            );
+        }
+
+        function SidebarToolbox({ appList, l1List, l0List, handleDragStart, handleDrop, handleDragOver, dragOverZoneId, searchQuery, setSearchQuery, onEditApp, onDeleteApp, viewMode }) {
+            const [activeFilter, setActiveFilter] = useState('all');
+
+            const unassignedApps = appList.filter(app => !app.l1Id);
+
+            const filteredApps = appList.filter(app => {
+                const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      app.code.toLowerCase().includes(searchQuery.toLowerCase());
+                if (!matchesSearch) return false;
+                if (activeFilter === 'unassigned') return !app.l1Id;
+                if (activeFilter === 'actif') return app.status === 'Actif';
+                if (activeFilter === 'cible') return app.status === 'Cible';
+                return true;
+            });
+
+            return (
+                <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col flex-none z-10">
+                    {/* Header Side */}
+                    <div className="p-4 border-b border-slate-800">
+                        <h3 className="font-bold text-sm text-slate-200 flex items-center justify-between">
+                            <span>📦 Bac d'Applications SI</span>
+                            <span className="text-xs bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800">
+                                {appList.length} Apps
+                            </span>
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                            Glissez les applications vers les capacités métier L1 sur la droite.
+                        </p>
+
+                        {/* Search Input */}
+                        <input 
+                            type="text"
+                            placeholder="🔍 Rechercher application..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="mt-3 w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                        />
+
+                        {/* Filters */}
+                        <div className="flex gap-1 mt-2">
+                            <button 
+                                onClick={() => setActiveFilter('all')}
+                                className={`text-[10px] px-2 py-1 rounded font-medium ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+                            >
+                                Toutes
+                            </button>
+                            <button 
+                                onClick={() => setActiveFilter('unassigned')}
+                                className={`text-[10px] px-2 py-1 rounded font-medium ${activeFilter === 'unassigned' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+                            >
+                                Non assignées ({unassignedApps.length})
+                            </button>
+                            <button 
+                                onClick={() => setActiveFilter('actif')}
+                                className={`text-[10px] px-2 py-1 rounded font-medium ${activeFilter === 'actif' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+                            >
+                                Actives
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Unassigned Drop Target Box */}
+                    <div 
+                        onDragOver={(e) => handleDragOver(e, null)}
+                        onDrop={(e) => handleDrop(e, null)}
+                        className={`m-3 p-3 rounded-xl border-2 border-dashed transition-all text-center ${
+                            dragOverZoneId === null 
+                                ? 'border-indigo-500/50 bg-indigo-950/20' 
+                                : 'border-slate-800 bg-slate-950/40'
+                        }`}
+                    >
+                        <span className="text-[11px] text-indigo-300 font-semibold block">
+                            📥 Déposer ici pour désassigner
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                            Retire l'application de sa capacité actuelle
+                        </span>
+                    </div>
+
+                    {/* App List Scrollable */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+                        {filteredApps.map(app => {
+                            const assignedL1 = l1List.find(l1 => l1.id === app.l1Id);
+
+                            return (
+                                <div
+                                    key={app.id}
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, app.id)}
+                                    className="p-3 bg-slate-950 rounded-xl border border-slate-800 hover:border-indigo-500/50 transition cursor-grab active:cursor-grabbing group shadow-sm"
+                                >
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-center space-x-1.5">
+                                            <span className="font-mono text-[10px] font-bold text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                                                {app.code}
+                                            </span>
+                                            <span className="font-bold text-xs text-white">{app.name}</span>
+                                        </div>
+                                        <button 
+                                            onClick={() => onEditApp(app)}
+                                            className="text-slate-500 hover:text-slate-200 text-xs opacity-0 group-hover:opacity-100 transition"
+                                        >
+                                            ✏️
+                                        </button>
+                                    </div>
+
+                                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{app.description}</p>
+
+                                    <div className="mt-2.5 pt-2 border-t border-slate-900 flex items-center justify-between text-[10px]">
+                                        <span className={`px-2 py-0.5 rounded font-semibold ${
+                                            app.status === 'Actif' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                                            app.status === 'Cible' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
+                                            'bg-rose-950 text-rose-400 border border-rose-800'
+                                        }`}>
+                                            {app.status}
+                                        </span>
+
+                                        {assignedL1 ? (
+                                            <span className="text-slate-400 font-medium truncate max-w-[120px]" title={`Rattachée à ${assignedL1.name}`}>
+                                                🎯 {assignedL1.code}
+                                            </span>
+                                        ) : (
+                                            <span className="text-amber-400/90 italic">
+                                                Non assignée
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {filteredApps.length === 0 && (
+                            <div className="text-center py-8 text-slate-500 text-xs">
+                                Aucune application ne correspond au filtre.
+                            </div>
+                        )}
+                    </div>
+                </aside>
+            );
+        }
+
+        function ModalForm({ modalType, onClose, editingItem, l0List, l1List, appList, setL0List, setL1List, setAppList, triggerToast }) {
+            const [code, setCode] = useState('');
+            const [name, setName] = useState('');
+            const [desc, setDesc] = useState('');
+            const [color, setColor] = useState('indigo');
+            const [vendor, setVendor] = useState('');
+            const [status, setStatus] = useState('Actif');
+            const [l1Id, setL1Id] = useState('');
+
+            useEffect(() => {
+                if (editingItem) {
+                    setCode(editingItem.code || '');
+                    setName(editingItem.name || '');
+                    setDesc(editingItem.description || '');
+                    setColor(editingItem.color || 'indigo');
+                    setVendor(editingItem.vendor || '');
+                    setStatus(editingItem.status || 'Actif');
+                    setL1Id(editingItem.l1Id || '');
+                }
+            }, [editingItem]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+
+                if (modalType === 'addL0') {
+                    const newL0 = { id: `l0-${Date.now()}`, code, name, description: desc, color };
+                    setL0List([...l0List, newL0]);
+                    triggerToast('Domaine L0 créé');
+                } else if (modalType === 'editL0') {
+                    setL0List(l0List.map(item => item.id === editingItem.id ? { ...item, code, name, description: desc, color } : item));
+                    triggerToast('Domaine L0 mis à jour');
+                } else if (modalType === 'addL1') {
+                    const newL1 = { id: `l1-${Date.now()}`, l0Id: editingItem?.l0Id || l0List[0]?.id, code, name, description: desc };
+                    setL1List([...l1List, newL1]);
+                    triggerToast('Sous-capacité L1 créée');
+                } else if (modalType === 'addApp' || modalType === 'editApp') {
+                    if (modalType === 'editApp' && editingItem) {
+                        setAppList(appList.map(a => a.id === editingItem.id ? { ...a, code, name, description: desc, vendor, status, l1Id } : a));
+                        triggerToast('Application mise à jour');
+                    } else {
+                        const newApp = { id: `app-${Date.now()}`, code, name, description: desc, vendor, status, l1Id };
+                        setAppList([...appList, newApp]);
+                        triggerToast('Application ajoutée');
+                    }
+                }
+
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+                        <div className="bg-slate-950 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                            <h3 className="font-bold text-sm text-white">
+                                {modalType === 'addL0' && '➕ Nouveau Domaine (Niveau 0)'}
+                                {modalType === 'editL0' && '✏️ Modifier Domaine (Niveau 0)'}
+                                {modalType === 'addL1' && '➕ Nouvelle Capacité (Niveau 1)'}
+                                {modalType === 'addApp' && '➕ Nouvelle Application'}
+                                {modalType === 'editApp' && '✏️ Éditer l\'Application'}
+                            </h3>
+                            <button onClick={onClose} className="text-slate-400 hover:text-white font-bold">✕</button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block font-semibold text-slate-300 mb-1">Code :</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        placeholder="ex: CAP-FIN, APP-SAP"
+                                        value={code}
+                                        onChange={e => setCode(e.target.value)}
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-semibold text-slate-300 mb-1">Nom :</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        placeholder="ex: Finance & Comptabilité"
+                                        value={name}
+                                        onChange={e => setName(e.target.value)}
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block font-semibold text-slate-300 mb-1">Description :</label>
+                                <textarea 
+                                    rows={2}
+                                    value={desc}
+                                    onChange={e => setDesc(e.target.value)}
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                                />
+                            </div>
+
+                            {(modalType === 'addL0' || modalType === 'editL0') && (
+                                <div>
+                                    <label className="block font-semibold text-slate-300 mb-1">Couleur :</label>
+                                    <select value={color} onChange={e => setColor(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white">
+                                        <option value="indigo">Indigo / Bleu</option>
+                                        <option value="emerald">Émeraude / Vert</option>
+                                        <option value="amber">Ambre / Orange</option>
+                                        <option value="rose">Rose / Rouge</option>
+                                        <option value="sky">Ciel / Cyan</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {(modalType === 'addApp' || modalType === 'editApp') && (
+                                <>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block font-semibold text-slate-300 mb-1">Statut :</label>
+                                            <select value={status} onChange={e => setStatus(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white">
+                                                <option value="Actif">Actif (Production)</option>
+                                                <option value="Cible">Cible (Projet)</option>
+                                                <option value="Obsolète">Obsolète</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block font-semibold text-slate-300 mb-1">Éditeur / Techno :</label>
+                                            <input type="text" placeholder="SAP, Salesforce..." value={vendor} onChange={e => setVendor(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block font-semibold text-slate-300 mb-1">Rattacher directement à une capacité L1 :</label>
+                                        <select value={l1Id} onChange={e => setL1Id(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white">
+                                            <option value="">-- Conserver dans le bac non assigné --</option>
+                                            {l1List.map(l1 => (
+                                                <option key={l1.id} value={l1.id}>
+                                                    {l1.code} - {l1.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="pt-4 border-t border-slate-800 flex justify-end space-x-2">
+                                <button type="button" onClick={onClose} className="px-4 py-2 border border-slate-800 rounded-lg text-slate-400 hover:bg-slate-800">
+                                    Annuler
+                                </button>
+                                <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold shadow-md shadow-indigo-600/30">
+                                    Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
