@@ -20,6 +20,12 @@ describe('Application smoke test', () => {
     });
   };
 
+  const openWizard = () => {
+    cy.visit('/');
+    cy.contains('button', 'Nouvelle cartographie').click();
+    cy.get('[data-testid="wizard-step-1"]').should('be.visible');
+  };
+
   beforeEach(() => {
     cy.on('uncaught:exception', (err) => {
       throw err;
@@ -36,42 +42,102 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
-  it('permet de créer une cartographie vierge avec des L0, colonnes et layers personnalisés', () => {
-    cy.on('window:confirm', () => true);
-    cy.visit('/');
-    cy.contains('button', 'Nouvelle cartographie').click();
+  it('crée une cartographie vierge avec l’assistant, ajoute des domaines depuis les cellules et les déplace', () => {
+    openWizard();
+
+    // Étape 1 : point de départ
+    cy.get('[data-testid="template-blank"]').click();
+    cy.get('[data-testid="wizard-name"]').clear().type('Ma cartographie');
+    cy.contains('button', 'Suivant').click();
+
+    // Étape 2 : structure
+    cy.get('[data-testid="wizard-step-2"]').should('be.visible');
+    cy.get('[data-testid="structure-columns-input"]').first().clear().type('Métier');
+    cy.get('[data-testid="structure-layers-input"]').first().clear().type('Stratégique');
+    cy.get('[data-testid="structure-add-layers"]').click();
+    cy.get('[data-testid="structure-layers-input"]').eq(1).clear().type('Opérationnel');
+    cy.get('[data-testid="wizard-preview"]').should('contain.text', 'Métier').and('contain.text', 'Opérationnel');
+    cy.contains('button', 'Suivant').click();
+
+    // Étape 3 : récapitulatif, avec avertissement de remplacement
+    cy.get('[data-testid="wizard-warning"]').should('contain.text', '4 domaines L0');
+    cy.get('[data-testid="wizard-backup"]').should('be.checked').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+
     cy.get('.stats').should('contain.text', '0 L0');
+    cy.get('.axis-label').should('contain.text', 'Stratégique').and('contain.text', 'Opérationnel');
+    cy.get('.map-cell[data-zone-key="default:default"] .cell-label').should('have.text', 'Métier');
 
-    cy.contains('button', '⚙ Structure').click();
-    cy.get('.structure-section').eq(0).find('input').first().clear().type('Métier');
-    cy.get('.structure-section').eq(1).find('input').first().clear().type('Stratégique');
-    cy.get('.structure-section').eq(1).contains('button', 'Ajouter un layer').click();
-    cy.get('.structure-section').eq(1).find('input').eq(1).clear().type('Opérationnel');
-    cy.get('[data-zone-key="customer:strategic"] input').clear().type('Zone métier stratégique');
-    cy.get('[data-zone-key="customer:core"] input').clear().type('Zone métier opérationnelle');
-    cy.contains('button', 'Enregistrer').click();
-    cy.get('.map-cell[data-zone-key="customer:strategic"] .cell-label').should('have.text', 'Zone métier stratégique');
-    cy.get('.map-cell[data-zone-key="customer:core"] .cell-label').should('have.text', 'Zone métier opérationnelle');
-    cy.get('.axis-label').should('contain.text', 'Stratégique');
-    cy.get('.axis-label').should('contain.text', 'Opérationnel');
-
-    cy.contains('button', '＋ Domaine L0').click();
+    // Ajout depuis la cellule de la première ligne
+    cy.get('.map-cell[data-zone-key="default:default"] .cell-add').click();
     cy.get('.modal .field input').eq(0).type('Domaine personnalisé');
     cy.get('.modal .field input').eq(1).type('CUSTOM');
-    cy.get('.modal .field input').eq(2).type('Créé depuis une cartographie vierge.');
+    cy.get('.modal .field input').eq(2).type('Créé depuis une cellule.');
     cy.contains('.modal button', 'Créer').click();
-    cy.contains('.domain h3', 'Domaine personnalisé').should('be.visible');
+    cy.get('.map-row').eq(0).contains('.domain h3', 'Domaine personnalisé').should('be.visible');
 
+    // Ajout depuis la cellule de la seconde ligne
+    cy.get('.map-row').eq(1).find('.cell-add').click();
+    cy.get('.modal .field input').eq(0).type('Domaine ligne 2');
+    cy.contains('.modal button', 'Créer').click();
+    cy.get('.map-row').eq(1).contains('.domain h3', 'Domaine ligne 2').should('be.visible');
+
+    // Déplacement sans glisser-déposer, via les sélecteurs de la modale
+    cy.contains('.domain', 'Domaine ligne 2').contains('button', 'Modifier').click();
+    cy.get('.modal select').eq(1).select('Stratégique');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.get('.map-row').eq(0).should('contain.text', 'Domaine ligne 2');
+    cy.get('.map-row').eq(1).should('not.contain.text', 'Domaine ligne 2');
+
+    // Renommage
     cy.contains('.domain', 'Domaine personnalisé').contains('button', 'Modifier').click();
     cy.get('.modal .field input').eq(0).clear().type('Domaine renommé');
     cy.contains('.modal button', 'Enregistrer').click();
     cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
 
+    // Persistance
     cy.reload();
-    cy.get('.map-cell[data-zone-key="customer:strategic"] .cell-label').should('have.text', 'Zone métier stratégique');
-    cy.get('.map-cell[data-zone-key="customer:core"] .cell-label').should('have.text', 'Zone métier opérationnelle');
     cy.get('.axis-label').should('contain.text', 'Opérationnel');
+    cy.get('.map-cell[data-zone-key="default:default"] .cell-label').should('have.text', 'Métier');
     cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
+  });
+
+  it('ne modifie rien tant que l’assistant n’est pas validé', () => {
+    openWizard();
+    cy.contains('button', 'Annuler').click();
+    cy.get('[data-testid="wizard-step-1"]').should('not.exist');
+    cy.get('.stats').should('contain.text', '4 L0');
+
+    cy.contains('button', 'Nouvelle cartographie').click();
+    cy.get('body').type('{esc}');
+    cy.get('[data-testid="wizard-step-1"]').should('not.exist');
+    cy.get('.stats').should('contain.text', '4 L0');
+  });
+
+  it('valide les champs obligatoires et permet de reprendre la structure actuelle', () => {
+    openWizard();
+    cy.get('[data-testid="wizard-name"]').clear();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-error"]').should('be.visible');
+    cy.get('[data-testid="wizard-step-2"]').should('not.exist');
+
+    cy.get('[data-testid="wizard-name"]').type('Copie de structure');
+    cy.get('[data-testid="template-current"]').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="structure-columns-input"]').should('have.length', 4);
+    cy.get('[data-testid="structure-layers-input"]').should('have.length', 3);
+
+    cy.get('[data-testid="structure-columns-input"]').first().clear();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-error"]').should('be.visible');
+    cy.get('[data-testid="structure-columns-input"]').first().type('Client');
+    cy.contains('button', 'Suivant').click();
+
+    cy.get('[data-testid="wizard-backup"]').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+    cy.get('.stats').should('contain.text', '0 L0').and('contain.text', '0 Apps');
+    cy.get('.axis-label').should('contain.text', 'Core / Value');
+    cy.get('.map-cell[data-zone-key="customer:strategic"]').should('exist');
   });
 
   it('enregistre le service worker PWA', () => {
