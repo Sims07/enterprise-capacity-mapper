@@ -218,12 +218,12 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
               <span>Description (facultative)</span>
               <input data-testid="wizard-description" value={description} onChange={e => setDescription(e.target.value)} />
             </label>
-            <div className="wizard-label">Nombre de niveaux de profondeur</div>
+            <div className="wizard-label">Profondeur de la cartographie</div><p className="structure-hint"><b>N0</b> = domaine métier large (ex. « Relation client »). <b>N1</b> = capacité métier plus précise (ex. « Gestion des réclamations »). Choisissez 1 niveau pour rester synthétique, 2 niveaux pour détailler les capacités.</p>
             <div className="template-grid depth-choice">
               <button type="button" className="template-card" data-testid="depth-1" aria-pressed={depth===1} onClick={() => setDepth(1)}><b>1 niveau</b><p>Domaines N0 directement cartographiés, sans détail N1.</p><small>Vue synthétique</small></button>
               <button type="button" className="template-card" data-testid="depth-2" aria-pressed={depth===2} onClick={() => setDepth(2)}><b>2 niveaux</b><p>Domaines N0 + capacités N1, pour une cartographie détaillée.</p><small>Recommandé pour l’analyse d’impact</small></button>
             </div>
-            <div className="wizard-label">Choisissez une structure de départ</div>
+            <div className="wizard-label">Choisissez une structure de départ</div><p className="structure-hint">Les modèles proposent seulement un point de départ : adaptez les termes à votre métier. Une colonne ou une ligne est un axe de lecture, pas une capacité.</p>
             <div className="template-grid">
               {options.map(t => (
                 <button
@@ -245,7 +245,7 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
 
         {step === 1 && (
           <div data-testid="wizard-step-2">
-            <p className="structure-hint">Les colonnes se lisent de gauche à droite, les lignes de haut en bas. Vous pourrez encore modifier la structure plus tard avec le bouton « Structure ».</p>
+            <p className="structure-hint"><b>À retenir :</b> les axes servent à organiser la carte ; les capacités décrivent les savoir-faire métier. Nommez les capacités avec des groupes nominaux, par exemple « Gestion des commandes », plutôt qu’avec des verbes comme « Gérer les commandes ». Vous pourrez encore modifier la structure plus tard.</p>
             <div className="wizard-structure">
               <AxisEditor kind="columns" title="Colonnes" addLabel="＋ Ajouter une colonne" items={columns} onRename={(id, v) => rename('columns', id, v)} onMove={(id, d) => move('columns', id, d)} onRemove={id => remove('columns', id)} onAdd={() => add('columns')} />
               <AxisEditor kind="layers" title="Lignes" addLabel="＋ Ajouter une ligne" items={layers} onRename={(id, v) => rename('layers', id, v)} onMove={(id, d) => move('layers', id, d)} onRemove={id => remove('layers', id)} onAdd={() => add('layers')} />
