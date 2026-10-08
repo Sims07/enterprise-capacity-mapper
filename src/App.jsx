@@ -1,9 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {DEMO_MODEL} from './data/demoData.js';
 import {exportModel,importModel,loadModel,saveModel} from './services/storage.js';
-import {loadRemoteModel,normalizeJsonUrl} from './services/remote.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
-import './wizard.css';
 
 const SOURCE_URL_KEY='enterprise-capacity-mapper:source-url';
 const uid=p=>`${p}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
