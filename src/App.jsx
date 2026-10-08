@@ -101,7 +101,13 @@ function App(){
  const openNew=(kind,parent,place)=>{setEditingDomainId(null);setFormErrors({});setForm({...emptyForm,domainId:parent||'',capabilityIds:parent?[parent]:[],columnId:place?.columnId||columns[0].id,layerId:place?.layerId||layers[0].id});setModal(kind)};
  const openEditDomain=d=>{setEditingDomainId(d.id);setFormErrors({});setForm({...emptyForm,name:d.name,code:d.code,description:d.description||'',columnId:d.layout?.columnId||columns[0].id,layerId:d.layout?.layerId||layers[0].id});setModal('edit-domain')};
  const save=()=>{
-   if(!form.name.trim()){notify('Le nom est obligatoire');return}
+   const errors={};
+   if(!form.name.trim())errors.name='Le nom est obligatoire.';
+   if(!form.code.trim())errors.code='Le code est obligatoire.';
+   if(modal==='capability'&&!form.domainId)errors.domainId='Le domaine est obligatoire.';
+   if(modal==='app'&&!form.vendor.trim())errors.vendor='L’éditeur / fournisseur est obligatoire.';
+   if(Object.keys(errors).length){setFormErrors(errors);notify('Complétez les champs obligatoires.');return}
+   setFormErrors({});
    if(modal==='domain')update({domains:[...model.domains,{id:uid('l0'),code:form.code||'CAP',name:form.name,description:form.description,color:'indigo',layout:{columnId:form.columnId||columns[0].id,layerId:form.layerId||layers[0].id}}]});
    if(modal==='edit-domain')update({domains:model.domains.map(d=>d.id===editingDomainId?{...d,name:form.name.trim(),code:form.code.trim()||d.code,description:form.description,layout:{...(d.layout||{}),columnId:form.columnId||d.layout?.columnId||columns[0].id,layerId:form.layerId||d.layout?.layerId||layers[0].id}}:d)});
    if(modal==='capability')update({capabilities:[...model.capabilities,{id:uid('l1'),domainId:form.domainId,code:form.code||'CAP-01',name:form.name,description:form.description}]});
