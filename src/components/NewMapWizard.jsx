@@ -125,6 +125,7 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
   const [layers, setLayers] = useState(() => cloneItems(initial.layers));
   const [zones, setZones] = useState([]);
   const [backup, setBackup] = useState(true);
+  const [depth, setDepth] = useState(2);
   const [error, setError] = useState('');
 
   const options = [...TEMPLATES, fromLayout(model.layout)];
@@ -177,6 +178,7 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
     const layIds = new Set(lys.map(x => x.id));
     return {
       mode: 'matrix',
+      depth,
       columns: cols,
       layers: lys,
       zones: zones.filter(z => colIds.has(z.columnId) && layIds.has(z.layerId))
@@ -216,6 +218,11 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
               <span>Description (facultative)</span>
               <input data-testid="wizard-description" value={description} onChange={e => setDescription(e.target.value)} />
             </label>
+            <div className="wizard-label">Nombre de niveaux de profondeur</div>
+            <div className="template-grid depth-choice">
+              <button type="button" className="template-card" data-testid="depth-1" aria-pressed={depth===1} onClick={() => setDepth(1)}><b>1 niveau</b><p>Domaines N0 directement cartographiés, sans détail N1.</p><small>Vue synthétique</small></button>
+              <button type="button" className="template-card" data-testid="depth-2" aria-pressed={depth===2} onClick={() => setDepth(2)}><b>2 niveaux</b><p>Domaines N0 + capacités N1, pour une cartographie détaillée.</p><small>Recommandé pour l’analyse d’impact</small></button>
+            </div>
             <div className="wizard-label">Choisissez une structure de départ</div>
             <div className="template-grid">
               {options.map(t => (
