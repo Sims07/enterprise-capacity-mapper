@@ -79,7 +79,11 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="wizard-create"]').click();
 
     cy.get('.stats').should('contain.text', '0 N0').and('not.contain.text', 'N1');
-    cy.get('.domain').first().within(() => {
+    cy.get('.cell-add').first().click();
+    cy.get('.modal .field input').eq(0).type('Domaine niveau 1');
+    cy.get('.modal .field input').eq(1).type('N0-01');
+    cy.contains('.modal button', 'Créer').click();
+    cy.contains('.domain', 'Domaine niveau 1').within(() => {
       cy.get('.primary-soft').should('not.exist');
     });
   });
