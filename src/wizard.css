@@ -37,3 +37,5 @@
 .cell-add:hover{background:#eef2ff}
 .cell-add.empty{padding:22px 8px;background:white}
 @media(max-width:700px){.template-grid,.wizard-structure{grid-template-columns:1fr}.wizard-steps li{font-size:11px;padding:6px}.recap{grid-template-columns:1fr}}
+.map-head{position:sticky;top:0;z-index:2;background:#eef2f7}
+.col-head{font-size:12px;font-weight:800;color:#334155;padding:6px 8px;border-bottom:2px solid #c7d2fe}

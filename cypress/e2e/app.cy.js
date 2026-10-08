@@ -66,7 +66,8 @@ describe('Application smoke test', () => {
 
     cy.get('.stats').should('contain.text', '0 L0');
     cy.get('.axis-label').should('contain.text', 'Stratégique').and('contain.text', 'Opérationnel');
-    cy.get('.map-cell[data-zone-key="default:default"] .cell-label').should('have.text', 'Métier');
+    cy.get('.map-head').should('contain.text', 'Métier');
+    cy.get('.cell-label').should('not.exist');
 
     // Ajout depuis la cellule de la première ligne
     cy.get('.map-cell[data-zone-key="default:default"] .cell-add').click();
@@ -95,10 +96,17 @@ describe('Application smoke test', () => {
     cy.contains('.modal button', 'Enregistrer').click();
     cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
 
+    // Nom de zone facultatif : affiché uniquement s’il diffère du nom de la colonne
+    cy.contains('button', '⚙ Structure').click();
+    cy.get('.modal [data-zone-key="default:default"] input').clear().type('Zone métier stratégique');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.get('.map-cell[data-zone-key="default:default"] .cell-label').should('have.text', 'Zone métier stratégique');
+    cy.get('.map-cell').not('[data-zone-key="default:default"]').find('.cell-label').should('not.exist');
+
     // Persistance
     cy.reload();
     cy.get('.axis-label').should('contain.text', 'Opérationnel');
-    cy.get('.map-cell[data-zone-key="default:default"] .cell-label').should('have.text', 'Métier');
+    cy.get('.map-cell[data-zone-key="default:default"] .cell-label').should('have.text', 'Zone métier stratégique');
     cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
   });
 
