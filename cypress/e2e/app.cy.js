@@ -75,20 +75,20 @@ describe('Application smoke test', () => {
     cy.get('.modal .field input').eq(1).type('CUSTOM');
     cy.get('.modal .field input').eq(2).type('Créé depuis une cellule.');
     cy.contains('.modal button', 'Créer').click();
-    cy.get('.map-row').eq(0).contains('.domain h3', 'Domaine personnalisé').should('be.visible');
+    cy.get('.map-row:not(.map-head)').eq(0).contains('.domain h3', 'Domaine personnalisé').should('be.visible');
 
     // Ajout depuis la cellule de la seconde ligne
-    cy.get('.map-row').eq(1).find('.cell-add').click();
+    cy.get('.map-row:not(.map-head)').eq(1).find('.cell-add').click();
     cy.get('.modal .field input').eq(0).type('Domaine ligne 2');
     cy.contains('.modal button', 'Créer').click();
-    cy.get('.map-row').eq(1).contains('.domain h3', 'Domaine ligne 2').should('be.visible');
+    cy.get('.map-row:not(.map-head)').eq(1).contains('.domain h3', 'Domaine ligne 2').should('be.visible');
 
     // Déplacement sans glisser-déposer, via les sélecteurs de la modale
     cy.contains('.domain', 'Domaine ligne 2').contains('button', 'Modifier').click();
     cy.get('.modal select').eq(1).select('Stratégique');
     cy.contains('.modal button', 'Enregistrer').click();
-    cy.get('.map-row').eq(0).should('contain.text', 'Domaine ligne 2');
-    cy.get('.map-row').eq(1).should('not.contain.text', 'Domaine ligne 2');
+    cy.get('.map-row:not(.map-head)').eq(0).should('contain.text', 'Domaine ligne 2');
+    cy.get('.map-row:not(.map-head)').eq(1).should('not.contain.text', 'Domaine ligne 2');
 
     // Renommage
     cy.contains('.domain', 'Domaine personnalisé').contains('button', 'Modifier').click();
