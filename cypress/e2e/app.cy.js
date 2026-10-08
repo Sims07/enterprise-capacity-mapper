@@ -50,7 +50,7 @@ describe('Application smoke test', () => {
     cy.get('.stats').should('contain.text', '10 N1');
     cy.contains('.domain', 'Relation & Engagement Client').contains('button', '＋ N1').should('be.visible');
     cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
-      cy.contains('button', 'Renommer').click();
+      cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').should('be.visible').click();
     });
     cy.get('.modal h2').should('contain.text', 'Renommer la capacité N1');
     cy.get('.modal .field input').clear().type('Qualification des prospects');
