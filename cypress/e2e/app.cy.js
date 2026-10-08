@@ -42,6 +42,24 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
+  it('renomme une capacité L1 sans perdre ses applications associées', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
+      cy.contains('button', 'Renommer').click();
+    });
+    cy.get('.modal h2').should('contain.text', 'Renommer la capacité L1');
+    cy.get('.modal .field input').clear().type('Qualification des prospects');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.contains('.cap', 'Qualification des prospects').should('contain.text', 'Salesforce CRM');
+    cy.reload();
+    cy.contains('.cap', 'Qualification des prospects').should('contain.text', 'Salesforce CRM');
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('not.exist');
+  });
+
   it('crée une cartographie vierge avec l’assistant, ajoute des domaines depuis les cellules et les déplace', () => {
     openWizard();
 
