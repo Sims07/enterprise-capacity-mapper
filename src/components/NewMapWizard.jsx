@@ -188,7 +188,7 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
             {hasContent ? (
               <>
                 <div className="warn-box" data-testid="wizard-warning">
-                  <b>La cartographie actuelle sera remplacée.</b> Seront supprimés : {plural(counts.domains, 'domaine L0', 'domaines L0')}, {plural(counts.capabilities, 'capacité N1', 'capacités N1')} et {plural(counts.applications, 'application', 'applications')}.
+                  <b>La cartographie actuelle sera remplacée.</b> Seront supprimés : {plural(counts.domains, 'domaine N0', 'domaines N0')}, {plural(counts.capabilities, 'capacité N1', 'capacités N1')} et {plural(counts.applications, 'application', 'applications')}.
                 </div>
                 <label className="check">
                   <input type="checkbox" data-testid="wizard-backup" checked={backup} onChange={e => setBackup(e.target.checked)} />

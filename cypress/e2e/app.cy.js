@@ -80,11 +80,11 @@ describe('Application smoke test', () => {
     cy.contains('button', 'Suivant').click();
 
     // Étape 3 : récapitulatif, avec avertissement de remplacement
-    cy.get('[data-testid="wizard-warning"]').should('contain.text', '4 domaines L0');
+    cy.get('[data-testid="wizard-warning"]').should('contain.text', '4 domaines N0');
     cy.get('[data-testid="wizard-backup"]').should('be.checked').uncheck();
     cy.get('[data-testid="wizard-create"]').click();
 
-    cy.get('.stats').should('contain.text', '0 L0');
+    cy.get('.stats').should('contain.text', '0 N0');
     cy.get('.axis-label').should('contain.text', 'Stratégique').and('contain.text', 'Opérationnel');
     cy.get('.map-head').should('contain.text', 'Métier');
     cy.get('.cell-label').should('not.exist');
@@ -135,12 +135,12 @@ describe('Application smoke test', () => {
     openWizard();
     cy.contains('button', 'Annuler').click();
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
-    cy.get('.stats').should('contain.text', '4 L0');
+    cy.get('.stats').should('contain.text', '4 N0');
 
     cy.contains('button', 'Nouvelle cartographie').click();
     cy.get('body').type('{esc}');
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
-    cy.get('.stats').should('contain.text', '4 L0');
+    cy.get('.stats').should('contain.text', '4 N0');
   });
 
   it('valide les champs obligatoires et permet de reprendre la structure actuelle', () => {
@@ -164,7 +164,7 @@ describe('Application smoke test', () => {
 
     cy.get('[data-testid="wizard-backup"]').uncheck();
     cy.get('[data-testid="wizard-create"]').click();
-    cy.get('.stats').should('contain.text', '0 L0').and('contain.text', '0 Apps');
+    cy.get('.stats').should('contain.text', '0 N0').and('contain.text', '0 Apps');
     cy.get('.axis-label').should('contain.text', 'Core / Value');
     cy.get('.map-cell[data-zone-key="customer:strategic"]').should('exist');
   });
