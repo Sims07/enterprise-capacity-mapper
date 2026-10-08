@@ -137,7 +137,7 @@ function App(){
      <div className="cap-head"><div><span className="code">{c.code}</span><b>{c.name}</b></div><span className="count">{apps.filter(a=>(a.capabilityIds||[]).includes(c.id)).length}</span><button className="cap-edit" type="button" title="Renommer" aria-label={`Renommer ${c.name}`} onClick={()=>openEditCapability(c)}>✎</button></div>
      <p>{c.description}</p>
      <div className="relations">{apps.filter(a=>(a.capabilityIds||[]).includes(c.id)).map(a=><div className="rel" key={a.id} draggable onDragStart={e=>e.dataTransfer.setData('app',a.id)}><span>◈</span>{a.name}<button onClick={()=>unassign(a.id,c.id)}>×</button></div>)}<div className="drop">Déposer une application ici</div></div>
-   </div>)}</div>
+   </div>)}</div>}
  </section>;
 
  const matrixView=<div className="map map-matrix">
