@@ -50,4 +50,3 @@ Dans GitHub : **Settings → Pages → Source: GitHub Actions**.
 ## Licence
 
 MIT.
-
