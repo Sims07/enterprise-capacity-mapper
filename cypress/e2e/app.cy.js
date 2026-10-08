@@ -39,8 +39,20 @@ describe('Application smoke test', () => {
   it('enregistre le service worker PWA', () => {
     cy.visit('/enterprise-capacity-mapper/');
     cy.window().then((win) => {
-      cy.wrap(win.navigator.serviceWorker.getRegistrations()).should((registrations) => {
-        expect(registrations.length, 'service worker registrations').to.be.greaterThan(0);
+      return new Cypress.Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const poll = () => {
+          win.navigator.serviceWorker.getRegistrations().then((registrations) => {
+            if (registrations.length > 0) {
+              resolve(registrations);
+            } else if (Date.now() < deadline) {
+              setTimeout(poll, 100);
+            } else {
+              reject(new Error('Aucun service worker PWA enregistré après 5 secondes'));
+            }
+          });
+        };
+        poll();
       });
     });
   });
