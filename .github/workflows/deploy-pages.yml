@@ -22,7 +22,12 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run build
-      - run: npm run preview -- --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
+      - name: Prepare GitHub Pages preview paths
+        run: |
+          mkdir -p /tmp/github-pages-preview/enterprise-capacity-mapper
+          cp -a dist/. /tmp/github-pages-preview/
+          cp -a dist/. /tmp/github-pages-preview/enterprise-capacity-mapper/
+      - run: npm run preview -- --outDir /tmp/github-pages-preview --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3
         with:
