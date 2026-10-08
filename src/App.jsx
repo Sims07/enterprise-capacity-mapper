@@ -34,16 +34,42 @@ function App(){
  const layout=model.layout||{mode:'matrix',columns:DEFAULT_LAYOUTS.columns,layers:DEFAULT_LAYOUTS.layers};
  const columns=layout.columns?.length?layout.columns:DEFAULT_LAYOUTS.columns;
  const layers=layout.layers?.length?layout.layers:DEFAULT_LAYOUTS.layers;
+ const zones=columns.flatMap(column=>layers.map(layer=>layout.zones?.find(zone=>zone.columnId===column.id&&zone.layerId===layer.id)||{id:`${column.id}:${layer.id}`,columnId:column.id,layerId:layer.id,name:column.name}));
  const setLayoutView=m=>{setLayoutMode(m);update({layout:{...layout,mode:m}})};
- const openLayoutEditor=()=>{setLayoutDraft({columns:columns.map(x=>({...x})),layers:layers.map(x=>({...x}))});setModal('layout')};
- const updateLayoutDraft=(kind,id,name)=>setLayoutDraft(d=>({...d,[kind]:d[kind].map(x=>x.id===id?{...x,name}:x)}));
- const addLayoutItem=kind=>setLayoutDraft(d=>({...d,[kind]:[...d[kind],{id:uid(kind==='columns'?'column':'layer'),name:kind==='columns'?'Nouvelle colonne':'Nouvelle layer',order:d[kind].length}]}));
- const removeLayoutItem=(kind,id)=>setLayoutDraft(d=>d[kind].length>1?{...d,[kind]:d[kind].filter(x=>x.id!==id).map((x,i)=>({...x,order:i}))}:d);
+ const openLayoutEditor=()=>{setLayoutDraft({columns:columns.map(x=>({...x})),layers:layers.map(x=>({...x})),zones:zones.map(x=>({...x}))});setModal('layout')};
+ const completeZones=(nextColumns,nextLayers,currentZones)=>nextColumns.flatMap(column=>nextLayers.map(layer=>currentZones.find(zone=>zone.columnId===column.id&&zone.layerId===layer.id)||{id:`${column.id}:${layer.id}`,columnId:column.id,layerId:layer.id,name:column.name}));
+ const updateLayoutDraft=(kind,id,name)=>setLayoutDraft(d=>{
+   const items=d[kind].map(x=>x.id===id?{...x,name}:x);
+   const nextColumns=kind==='columns'?items:d.columns;
+   const nextLayers=kind==='layers'?items:d.layers;
+   return {...d,[kind]:items,zones:completeZones(nextColumns,nextLayers,d.zones)};
+ });
+ const updateZoneDraft=(columnId,layerId,name)=>setLayoutDraft(d=>({...d,zones:d.zones.map(zone=>zone.columnId===columnId&&zone.layerId===layerId?{...zone,name}:zone)}));
+ const addLayoutItem=kind=>setLayoutDraft(d=>{
+   const items=[...d[kind],{id:uid(kind==='columns'?'column':'layer'),name:kind==='columns'?'Nouvelle colonne':'Nouvelle layer',order:d[kind].length}];
+   const nextColumns=kind==='columns'?items:d.columns;
+   const nextLayers=kind==='layers'?items:d.layers;
+   return {...d,[kind]:items,zones:completeZones(nextColumns,nextLayers,d.zones)};
+ });
+ const removeLayoutItem=(kind,id)=>setLayoutDraft(d=>{
+   if(d[kind].length<=1)return d;
+   const items=d[kind].filter(x=>x.id!==id).map((x,i)=>({...x,order:i}));
+   const nextColumns=kind==='columns'?items:d.columns;
+   const nextLayers=kind==='layers'?items:d.layers;
+   return {...d,[kind]:items,zones:completeZones(nextColumns,nextLayers,d.zones)};
+ });
  const saveLayout=()=>{
-   if(!layoutDraft.columns.length||!layoutDraft.layers.length||[...layoutDraft.columns,...layoutDraft.layers].some(x=>!x.name.trim())){notify('Chaque colonne et layer doit avoir un nom');return}
+   if(!layoutDraft.columns.length||!layoutDraft.layers.length||[...layoutDraft.columns,...layoutDraft.layers,...layoutDraft.zones].some(x=>!x.name.trim())){notify('Chaque colonne, layer et zone doit avoir un nom');return}
    const columnIds=new Set(layoutDraft.columns.map(x=>x.id));
    const layerIds=new Set(layoutDraft.layers.map(x=>x.id));
-   update({layout:{...layout,columns:layoutDraft.columns.map((x,i)=>({...x,name:x.name.trim(),order:i})),layers:layoutDraft.layers.map((x,i)=>({...x,name:x.name.trim(),order:i}))},domains:model.domains.map((d,i)=>({...d,layout:{...(d.layout||{}),columnId:columnIds.has(d.layout?.columnId)?d.layout.columnId:layoutDraft.columns[i%layoutDraft.columns.length].id,layerId:layerIds.has(d.layout?.layerId)?d.layout.layerId:layoutDraft.layers[0].id}}))});
+   const nextColumns=layoutDraft.columns.map((x,i)=>({...x,name:x.name.trim(),order:i}));
+   const nextLayers=layoutDraft.layers.map((x,i)=>({...x,name:x.name.trim(),order:i}));
+   const validZones=layoutDraft.zones.filter(zone=>columnIds.has(zone.columnId)&&layerIds.has(zone.layerId)).map(zone=>({...zone,name:zone.name.trim()}));
+   const zoneKeys=new Set(validZones.map(zone=>`${zone.columnId}:${zone.layerId}`));
+   nextColumns.forEach(column=>nextLayers.forEach(layer=>{
+     if(!zoneKeys.has(`${column.id}:${layer.id}`))validZones.push({id:`${column.id}:${layer.id}`,columnId:column.id,layerId:layer.id,name:column.name});
+   }));
+   update({layout:{...layout,columns:nextColumns,layers:nextLayers,zones:validZones},domains:model.domains.map((d,i)=>({...d,layout:{...(d.layout||{}),columnId:columnIds.has(d.layout?.columnId)?d.layout.columnId:nextColumns[i%nextColumns.length].id,layerId:layerIds.has(d.layout?.layerId)?d.layout.layerId:nextLayers[0].id}}))});
    setModal(null);
    notify('Structure de la cartographie enregistrée');
  };
@@ -90,8 +116,8 @@ function App(){
 
  const matrixView=<div className="map map-matrix">{layers.map(layer=><div className="map-row" key={layer.id} style={{gridTemplateColumns:`120px repeat(${columns.length}, minmax(220px, 1fr))`}}>
    <div className="axis-label">{layer.name}</div>
-   {columns.map(col=><div className="map-cell" key={col.id} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();placeDomain(e.dataTransfer.getData('domain'),col.id,layer.id)}}>
-     <div className="cell-label">{col.name}</div>
+   {columns.map(col=><div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();placeDomain(e.dataTransfer.getData('domain'),col.id,layer.id)}}>
+     <div className="cell-label">{zones.find(zone=>zone.columnId===col.id&&zone.layerId===layer.id)?.name||col.name}</div>
      {model.domains.filter(d=>(d.layout?.columnId||columns[0].id)===col.id&&(d.layout?.layerId||layers[0].id)===layer.id).map(d=><DomainCard d={d} key={d.id}/>)}
    </div>)}
  </div>)}</div>;
@@ -113,7 +139,7 @@ function App(){
    </>}</main>
   </div>
   {status&&<div className="toast">{status}</div>}
-  {modal==='layout'&&layoutDraft&&<Modal title="Personnaliser la structure" onClose={()=>setModal(null)}><p className="structure-hint">Renommez les axes de votre cartographie ou ajoutez/supprimez des colonnes et layers. Les domaines restent placés sur un axe existant.</p>{[['columns','Colonnes'],['layers','Layers']].map(([kind,title])=><section className="structure-section" key={kind}><h3>{title}</h3>{layoutDraft[kind].map((item,index)=><div className="structure-row" key={item.id}><label className="field"><span>{title.slice(0,-1)} {index+1}</span><input value={item.name} onChange={e=>updateLayoutDraft(kind,item.id,e.target.value)}/></label><button className="structure-remove" disabled={layoutDraft[kind].length===1} onClick={()=>removeLayoutItem(kind,item.id)}>Supprimer</button></div>)}<button className="structure-add" onClick={()=>addLayoutItem(kind)}>＋ Ajouter {kind==='columns'?'une colonne':'un layer'}</button></section>)}<div className="modal-actions"><button onClick={()=>setModal(null)}>Annuler</button><button className="primary" onClick={saveLayout}>Enregistrer</button></div></Modal>}
+  {modal==='layout'&&layoutDraft&&<Modal title="Personnaliser la structure" onClose={()=>setModal(null)}><p className="structure-hint">Renommez les axes et donnez un nom différent à chaque zone, au croisement d’une colonne et d’un layer.</p>{[['columns','Colonnes'],['layers','Layers']].map(([kind,title])=><section className="structure-section" key={kind}><h3>{title}</h3>{layoutDraft[kind].map((item,index)=><div className="structure-row" key={item.id}><label className="field"><span>{title.slice(0,-1)} {index+1}</span><input value={item.name} onChange={e=>updateLayoutDraft(kind,item.id,e.target.value)}/></label><button className="structure-remove" disabled={layoutDraft[kind].length===1} onClick={()=>removeLayoutItem(kind,item.id)}>Supprimer</button></div>)}<button className="structure-add" onClick={()=>addLayoutItem(kind)}>＋ Ajouter {kind==='columns'?'une colonne':'un layer'}</button></section>)}<section className="structure-section zone-editor"><h3>Zones de la matrice</h3>{layoutDraft.zones.map(zone=>{const column=layoutDraft.columns.find(x=>x.id===zone.columnId);const layer=layoutDraft.layers.find(x=>x.id===zone.layerId);return <label className="field zone-row" data-zone-key={`${zone.columnId}:${zone.layerId}`} key={`${zone.columnId}:${zone.layerId}`}><span>{column.name} · {layer.name}</span><input value={zone.name} onChange={e=>updateZoneDraft(zone.columnId,zone.layerId,e.target.value)}/></label>})}</section><div className="modal-actions"><button onClick={()=>setModal(null)}>Annuler</button><button className="primary" onClick={saveLayout}>Enregistrer</button></div></Modal>}
   {modal&&modal!=='layout'&&<Modal title={modal==='domain'?'Nouveau domaine L0':modal==='edit-domain'?'Modifier le domaine L0':modal==='capability'?'Nouvelle capacité L1':'Nouvelle application'} onClose={()=>setModal(null)}><Field label="Nom" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/><Field label="Code" value={form.code} onChange={e=>setForm({...form,code:e.target.value})}/>{modal==='capability'&&<label className="field"><span>Domaine</span><select value={form.domainId} onChange={e=>setForm({...form,domainId:e.target.value})}>{model.domains.map(d=><option value={d.id} key={d.id}>{d.code} — {d.name}</option>)}</select></label>}{modal==='app'&&<><Field label="Éditeur / fournisseur" value={form.vendor} onChange={e=>setForm({...form,vendor:e.target.value})}/><label className="field"><span>Statut</span><select value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option>Actif</option><option>Cible</option><option>Obsolète</option></select></label><label className="field"><span>Type</span><select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}><option>SaaS</option><option>ERP</option><option>On-Premise</option><option>Shadow IT</option></select></label></>}<Field label="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><div className="modal-actions"><button onClick={()=>setModal(null)}>Annuler</button><button className="primary" onClick={save}>{modal==='edit-domain'?'Enregistrer':'Créer'}</button></div></Modal>}
  </div>
 }

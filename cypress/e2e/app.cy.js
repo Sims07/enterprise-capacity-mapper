@@ -47,8 +47,11 @@ describe('Application smoke test', () => {
     cy.get('.structure-section').eq(1).find('input').first().clear().type('Stratégique');
     cy.get('.structure-section').eq(1).contains('button', 'Ajouter un layer').click();
     cy.get('.structure-section').eq(1).find('input').eq(1).clear().type('Opérationnel');
+    cy.get('[data-zone-key="customer:strategic"] input').clear().type('Zone métier stratégique');
+    cy.get('[data-zone-key="customer:core"] input').clear().type('Zone métier opérationnelle');
     cy.contains('button', 'Enregistrer').click();
-    cy.get('.cell-label').should('contain.text', 'Métier');
+    cy.get('.map-cell[data-zone-key="customer:strategic"] .cell-label').should('have.text', 'Zone métier stratégique');
+    cy.get('.map-cell[data-zone-key="customer:core"] .cell-label').should('have.text', 'Zone métier opérationnelle');
     cy.get('.axis-label').should('contain.text', 'Stratégique');
     cy.get('.axis-label').should('contain.text', 'Opérationnel');
 
@@ -65,7 +68,8 @@ describe('Application smoke test', () => {
     cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
 
     cy.reload();
-    cy.get('.cell-label').should('contain.text', 'Métier');
+    cy.get('.map-cell[data-zone-key="customer:strategic"] .cell-label').should('have.text', 'Zone métier stratégique');
+    cy.get('.map-cell[data-zone-key="customer:core"] .cell-label').should('have.text', 'Zone métier opérationnelle');
     cy.get('.axis-label').should('contain.text', 'Opérationnel');
     cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
   });
