@@ -39,3 +39,21 @@ function normalizeModel(model){
  const columns=layout.columns?.length?layout.columns:[{id:'default',name:'Général',order:0}]; const layers=layout.layers?.length?layout.layers:[{id:'default',name:'Principal',order:0}];
  return {...model,schemaVersion:3,layout:{...layout,mode:layout.mode||'matrix',columns,layers},domains:(model.domains||[]).map((d,i)=>({...d,layout:{...(d.layout||{}),columnId:d.layout?.columnId||columns[i%columns.length].id,layerId:d.layout?.layerId||layers[0].id}}))};
 }
+
+
+// Chargement optionnel d'un modèle JSON distant (GitHub Pages / dépôt GitHub).
+export async function loadRemoteModel(url){
+  const response=await fetch(url,{cache:'no-store'});
+  if(!response.ok)throw new Error(`Impossible de charger le JSON distant (${response.status}).`);
+  return validateModel(await response.json());
+}
+export function normalizeJsonUrl(input){
+  const value=input.trim();
+  if(!value)return '';
+  if(value.includes('github.com')&&value.includes('/blob/')){
+    const u=new URL(value);
+    const parts=u.pathname.split('/').filter(Boolean);
+    if(parts.length>=5)return `https://raw.githubusercontent.com/${parts[0]}/${parts[1]}/${parts.slice(3).join('/')}`;
+  }
+  return value;
+}
