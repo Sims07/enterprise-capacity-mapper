@@ -1,11 +1,12 @@
 export const DEMO_MODEL = {
-  schemaVersion: 2,
+  schemaVersion: 3,
+  layout:{mode:'matrix',columns:[{id:'customer',name:'Client',order:0},{id:'product',name:'Produit',order:1},{id:'operations',name:'Opérations',order:2},{id:'support',name:'Support',order:3}],layers:[{id:'strategic',name:'Stratégique',order:0},{id:'core',name:'Core / Value',order:1},{id:'support',name:'Support',order:2}]},
   metadata:{name:'Cartographie SI de démonstration',description:'Modèle de capacités et applications Enterprise Architecture',updatedAt:new Date().toISOString()},
   domains:[
-    {id:'l0-1',code:'CAP-CRM',name:'Relation & Engagement Client',description:'Gestion du cycle de vie client, prospection et service client.',color:'indigo'},
-    {id:'l0-2',code:'CAP-FIN',name:'Finance, Gestion & Comptabilité',description:'Pilotage financier, facturation et trésorerie.',color:'emerald'},
-    {id:'l0-3',code:'CAP-SCM',name:'Supply Chain & Logistique',description:'Stocks, approvisionnements et distribution.',color:'amber'},
-    {id:'l0-4',code:'CAP-RH',name:'Ressources Humaines & Talent',description:'Gestion du personnel, paie et compétences.',color:'rose'}
+    {id:'l0-1',code:'CAP-CRM',name:'Relation & Engagement Client',description:'Gestion du cycle de vie client, prospection et service client.',color:'indigo',layout:{columnId:'customer',layerId:'core'}},
+    {id:'l0-2',code:'CAP-FIN',name:'Finance, Gestion & Comptabilité',description:'Pilotage financier, facturation et trésorerie.',color:'emerald',layout:{columnId:'support',layerId:'support'}},
+    {id:'l0-3',code:'CAP-SCM',name:'Supply Chain & Logistique',description:'Stocks, approvisionnements et distribution.',color:'amber',layout:{columnId:'operations',layerId:'core'}},
+    {id:'l0-4',code:'CAP-RH',name:'Ressources Humaines & Talent',description:'Gestion du personnel, paie et compétences.',color:'rose',layout:{columnId:'support',layerId:'support'}}
   ],
   capabilities:[
     {id:'l1-1',domainId:'l0-1',code:'CRM-01',name:'Gestion des Prospects & Leads',description:'Acquisition et qualification commerciale.'},
