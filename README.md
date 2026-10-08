@@ -9,6 +9,7 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 - **Données locales** : LocalStorage V2 par défaut, avec migration automatique des anciennes clés `ea_canvas_*`.
 - **Échange** : import/export JSON versionné (`schemaVersion: 2`).
 - **Modèle** : Domaines L0 → Capacités L1 → Applications, avec une relation application-capacité **N↔N**.
+- **Personnalisation** : édition des domaines L0, renommage/gestion des colonnes et layers, nom distinct pour chaque zone à leur croisement, et création d'une cartographie vierge.
 - **Analyse d'impact** : capacités sollicitées, applications impactées, gaps et redondances.
 - **Déploiement** : GitHub Actions → GitHub Pages.
 - **Backend** : aucun backend requis.

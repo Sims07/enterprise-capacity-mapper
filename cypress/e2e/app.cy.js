@@ -36,6 +36,44 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
+  it('permet de créer une cartographie vierge avec des L0, colonnes et layers personnalisés', () => {
+    cy.on('window:confirm', () => true);
+    cy.visit('/');
+    cy.contains('button', 'Nouvelle cartographie').click();
+    cy.get('.stats').should('contain.text', '0 L0');
+
+    cy.contains('button', '⚙ Structure').click();
+    cy.get('.structure-section').eq(0).find('input').first().clear().type('Métier');
+    cy.get('.structure-section').eq(1).find('input').first().clear().type('Stratégique');
+    cy.get('.structure-section').eq(1).contains('button', 'Ajouter un layer').click();
+    cy.get('.structure-section').eq(1).find('input').eq(1).clear().type('Opérationnel');
+    cy.get('[data-zone-key="customer:strategic"] input').clear().type('Zone métier stratégique');
+    cy.get('[data-zone-key="customer:core"] input').clear().type('Zone métier opérationnelle');
+    cy.contains('button', 'Enregistrer').click();
+    cy.get('.map-cell[data-zone-key="customer:strategic"] .cell-label').should('have.text', 'Zone métier stratégique');
+    cy.get('.map-cell[data-zone-key="customer:core"] .cell-label').should('have.text', 'Zone métier opérationnelle');
+    cy.get('.axis-label').should('contain.text', 'Stratégique');
+    cy.get('.axis-label').should('contain.text', 'Opérationnel');
+
+    cy.contains('button', '＋ Domaine L0').click();
+    cy.get('.modal .field input').eq(0).type('Domaine personnalisé');
+    cy.get('.modal .field input').eq(1).type('CUSTOM');
+    cy.get('.modal .field input').eq(2).type('Créé depuis une cartographie vierge.');
+    cy.contains('.modal button', 'Créer').click();
+    cy.contains('.domain h3', 'Domaine personnalisé').should('be.visible');
+
+    cy.contains('.domain', 'Domaine personnalisé').contains('button', 'Modifier').click();
+    cy.get('.modal .field input').eq(0).clear().type('Domaine renommé');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
+
+    cy.reload();
+    cy.get('.map-cell[data-zone-key="customer:strategic"] .cell-label').should('have.text', 'Zone métier stratégique');
+    cy.get('.map-cell[data-zone-key="customer:core"] .cell-label').should('have.text', 'Zone métier opérationnelle');
+    cy.get('.axis-label').should('contain.text', 'Opérationnel');
+    cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
+  });
+
   it('enregistre le service worker PWA', () => {
     cy.visit('/enterprise-capacity-mapper/');
     cy.window().then((win) => {
