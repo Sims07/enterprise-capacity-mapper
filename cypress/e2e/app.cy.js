@@ -42,15 +42,17 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
-  it('renomme une capacité L1 sans perdre ses applications associées', () => {
+  it('renomme une capacité N1 sans perdre ses applications associées', () => {
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
 
+    cy.get('.stats').should('contain.text', '10 N1');
+    cy.contains('.domain', 'Relation & Engagement Client').contains('button', '＋ N1').should('be.visible');
     cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
       cy.contains('button', 'Renommer').click();
     });
-    cy.get('.modal h2').should('contain.text', 'Renommer la capacité L1');
+    cy.get('.modal h2').should('contain.text', 'Renommer la capacité N1');
     cy.get('.modal .field input').clear().type('Qualification des prospects');
     cy.contains('.modal button', 'Enregistrer').click();
 
