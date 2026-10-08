@@ -62,6 +62,28 @@ describe('Application smoke test', () => {
     cy.contains('.cap', 'Gestion des Prospects & Leads').should('not.exist');
   });
 
+
+  it('permet de choisir une cartographie à 1 ou 2 niveaux', () => {
+    openWizard();
+
+    cy.get('[data-testid="depth-1"]').should('have.attr', 'aria-pressed', 'false').click();
+    cy.get('[data-testid="depth-1"]').should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="depth-2"]').should('have.attr', 'aria-pressed', 'false').click();
+    cy.get('[data-testid="depth-2"]').should('have.attr', 'aria-pressed', 'true');
+
+    cy.get('[data-testid="template-blank"]').click();
+    cy.get('[data-testid="wizard-name"]').clear().type('Cartographie 1 niveau');
+    cy.get('[data-testid="depth-1"]').click();
+    cy.contains('button', 'Suivant').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-create"]').click();
+
+    cy.get('.stats').should('contain.text', '0 N0').and('not.contain.text', 'N1');
+    cy.get('.domain').first().within(() => {
+      cy.get('.primary-soft').should('not.exist');
+    });
+  });
+
   it('crée une cartographie vierge avec l’assistant, ajoute des domaines depuis les cellules et les déplace', () => {
     openWizard();
 
