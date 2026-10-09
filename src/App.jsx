@@ -72,6 +72,7 @@ function App() {
 
   const apps = model.applications || [];
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
+  const visibleDomains = useMemo(() => model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), [model.domains, mapQuery]);
   const touched = apps.filter(a => relationIds(a).some(id => selected.includes(id)));
   const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
@@ -303,9 +304,9 @@ function App() {
             <span className="domain-meta">{d.code} · {caps.length} N1</span>
           </div>
           <div className="domain-actions">
-            <button type="button" className="icon-action" title="Modifier le domaine N0" onClick={e => { e.stopPropagation(); openEditDomain(d); }}>✎</button>
+            <button type="button" className="icon-action" title="Modifier le domaine N0" onClick={e => { e.stopPropagation(); openEditDomain(d); }}>Modifier</button>
             {depth === 2 && <button type="button" className="icon-action" title="Ajouter une capacité N1" onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
-            <button type="button" className="icon-action danger-text" title="Supprimer le domaine" onClick={e => { e.stopPropagation(); removeDomain(d.id); }}>×</button>
+            <button type="button" className="icon-action danger-text" title="Supprimer le domaine" onClick={e => { e.stopPropagation(); removeDomain(d.id); }}>Supprimer</button>
           </div>
         </div>
 
@@ -323,8 +324,7 @@ function App() {
           <div className="caps-list">
             {caps.map(c => {
               const coverage = getCapCoverageState(c.id);
-              const isExpanded = expandedCapId === c.id;
-              const capItemClass = `cap-tile ${mapViewMode === 'coverage' ? `cov-${coverage.state}` : ''}`;
+              const capItemClass = `cap ${mapViewMode === 'coverage' ? `cov-${coverage.state}` : ''}`;
 
               return (
                 <div
@@ -332,33 +332,28 @@ function App() {
                   key={c.id}
                   onDragOver={e => e.preventDefault()}
                   onDrop={e => onDrop(e, c.id)}
-                  onClick={() => setExpandedCapId(isExpanded ? null : c.id)}
                 >
-                  <div className="cap-tile-header">
-                    <span className="cap-tile-title">{c.name}</span>
-                    <div className="cap-tile-badge">
-                      {mapViewMode === 'coverage' && <span className="cov-symbol">{coverage.symbol}</span>}
-                      <span className="app-count">{coverage.count}</span>
-                    </div>
+                  <div className="cap-head">
+                    <b>{c.name}</b>
+                    <button type="button" aria-label={`Renommer ${c.name}`} onClick={e => { e.stopPropagation(); openEditCapability(c); }}>Renommer</button>
                   </div>
 
-                  {isExpanded && (
-                    <div className="cap-tile-detail" onClick={e => e.stopPropagation()}>
-                      <p className="cap-desc">{c.description || 'Aucune description'}</p>
-                      <div className="cap-detail-actions">
-                        <button type="button" className="cap-edit-btn" onClick={e => { e.stopPropagation(); openEditCapability(c); }}>✎ Renommer N1</button>
+                  <div className="cap-meta">
+                    {mapViewMode === 'coverage' && <span className="cov-symbol">{coverage.symbol}</span>}
+                    <span className="app-count">{coverage.count}</span>
+                  </div>
+
+                  <p className="cap-desc">{c.description || 'Aucune description'}</p>
+
+                  <div className="relations">
+                    {coverage.apps.map(a => (
+                      <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
+                        <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
+                        <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>
                       </div>
-                      <div className="relations">
-                        {coverage.apps.map(a => (
-                          <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
-                            <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
-                            <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>
-                          </div>
-                        ))}
-                        <div className="drop">Déposer une application ici</div>
-                      </div>
-                    </div>
-                  )}
+                    ))}
+                    <div className="drop">Déposer une application ici</div>
+                  </div>
                 </div>
               );
             })}
@@ -502,7 +497,7 @@ function App() {
                   type="button"
                   className="secondary inventory-toggle inventory-toggle-rail"
                   onClick={() => setInventoryCollapsed(v => !v)}
-                  aria-label="Afficher/Masquer inventaire"
+                  aria-label={inventoryCollapsed ? 'Afficher l’inventaire des applications' : 'Masquer l’inventaire des applications'}
                 >
                   <span className="menu-glyph"></span>
                 </button>
@@ -510,6 +505,19 @@ function App() {
                   <div className="eyebrow">CAPABILITY MAP · V3</div>
                   <h2>Cartographie des capacités</h2>
                 </div>
+
+                {depth === 1 ? (
+                  <div className="stats" aria-label="Statistiques de la cartographie">
+                    <span>{model.domains.length} N0</span>
+                    <span>{model.applications.length} Apps</span>
+                  </div>
+                ) : (
+                  <div className="stats" aria-label="Statistiques de la cartographie">
+                    <span>{model.domains.length} N0</span>
+                    <span>{model.capabilities.length} N1</span>
+                    <span>{model.applications.length} Apps</span>
+                  </div>
+                )}
 
                 <div className="map-view-toggle">
                   <button
@@ -532,8 +540,39 @@ function App() {
                   <button type="button" className="primary" onClick={() => openNew('domain')}>＋ Domaine N0</button>
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
+                  <button type="button" data-testid="presentation-toggle" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↩ Retour' : '⛶ Présentation'}</button>
                 </div>
               </div>
+
+              <details className="visual-settings">
+                <summary>Options d’affichage</summary>
+                <div className="visual-toolbar">
+                  <label>
+                    Thème
+                    <select data-testid="visual-theme" value={visualPrefs.theme} onChange={e => setVisualPrefs(p => ({ ...p, theme: e.target.value }))}>
+                      <option value="classic">Classic</option>
+                      <option value="executive">Executive</option>
+                    </select>
+                  </label>
+                  <label>
+                    Densité
+                    <select data-testid="visual-density" value={visualPrefs.density} onChange={e => setVisualPrefs(p => ({ ...p, density: e.target.value }))}>
+                      <option value="comfortable">Confortable</option>
+                      <option value="compact">Compact</option>
+                    </select>
+                  </label>
+                  <label>
+                    Filtre
+                    <input
+                      data-testid="map-filter"
+                      value={mapQuery}
+                      onChange={e => setMapQuery(e.target.value)}
+                      placeholder="Filtrer les domaines…"
+                    />
+                  </label>
+                </div>
+                <div className="filter-count">{visibleDomains.length} / {model.domains.length} domaines</div>
+              </details>
 
               {mapViewMode === 'coverage' && (
                 <div className="coverage-legend">
@@ -577,7 +616,7 @@ function App() {
               const column = layoutDraft.columns.find(x => x.id === zone.columnId);
               const layer = layoutDraft.layers.find(x => x.id === zone.layerId);
               return (
-                <label className="field zone-row" key={`${zone.columnId}:${zone.layerId}`}>
+                <label className="field zone-row" key={`${zone.columnId}:${zone.layerId}`} data-zone-key={`${zone.columnId}:${zone.layerId}`}>
                   <span>{column?.name} · {layer?.name}</span>
                   <input value={zone.name} onChange={e => updateZoneDraft(zone.columnId, zone.layerId, e.target.value)} />
                 </label>
