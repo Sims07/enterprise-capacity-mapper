@@ -5,9 +5,16 @@ import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
-const VISUAL_PREFS_KEY = 'enterprise-capacity-mapper:visual-preferences';
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1' };
+const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
+const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
+const domainTextColor = color => {
+  const hex = resolveDomainColor(color).slice(1);
+  const [r, g, b] = [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16) / 255);
+  const luminance = [r, g, b].map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+  return luminance > 0.42 ? '#0f172a' : '#ffffff';
+};
+const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
 
 function Modal({ title, children, onClose }) {
@@ -37,22 +44,15 @@ function Field({ label, required = false, error, ...p }) {
 function App() {
   const [model, setModel] = useState(() => loadModel(DEMO_MODEL));
   const [mode, setMode] = useState('editor'); // 'editor' ou 'impact'
-  const [mapViewMode, setMapViewMode] = useState('domain'); // 'domain' ou 'coverage'
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
   const [inventoryCollapsed, setInventoryCollapsed] = useState(false);
-  const [visualPrefs, setVisualPrefs] = useState(() => {
-    try {
-      return { theme: 'classic', density: 'comfortable', ...JSON.parse(localStorage.getItem(VISUAL_PREFS_KEY) || '{}') };
-    } catch {
-      return { theme: 'classic', density: 'comfortable' };
-    }
-  });
   const [mapQuery, setMapQuery] = useState('');
   const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
   const [selected, setSelected] = useState([]);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
+  const [contextMenu, setContextMenu] = useState(null);
   const [modal, setModal] = useState(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -68,7 +68,6 @@ function App() {
   const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
 
   useEffect(() => saveModel(model), [model]);
-  useEffect(() => { localStorage.setItem(VISUAL_PREFS_KEY, JSON.stringify(visualPrefs)); }, [visualPrefs]);
 
   const apps = model.applications || [];
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
@@ -78,6 +77,41 @@ function App() {
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
   const update = patch => setModel(m => ({ ...m, ...patch }));
+  const openContextMenu = (event, menu) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const menuWidth = 180;
+    const menuHeight = menu.type === 'domain' ? 132 : 58;
+    setContextMenu({
+      ...menu,
+      x: Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8)),
+      y: Math.max(8, Math.min(event.clientY, window.innerHeight - menuHeight - 8))
+    });
+  };
+  const closeContextMenu = () => setContextMenu(null);
+
+  useEffect(() => {
+    if (!contextMenu) return undefined;
+
+    const handlePointerDown = event => {
+      const menuNode = document.querySelector('.context-menu');
+      if (!menuNode || menuNode.contains(event.target)) return;
+      closeContextMenu();
+    };
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') closeContextMenu();
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [contextMenu]);
+
   const layout = model.layout || { mode: 'matrix', columns: DEFAULT_LAYOUTS.columns, layers: DEFAULT_LAYOUTS.layers };
   const columns = layout.columns?.length ? layout.columns : DEFAULT_LAYOUTS.columns;
   const layers = layout.layers?.length ? layout.layers : DEFAULT_LAYOUTS.layers;
@@ -201,6 +235,7 @@ function App() {
       name: d.name,
       code: d.code,
       description: d.description || '',
+      color: resolveDomainColor(d.color),
       columnId: d.layout?.columnId || columns[0].id,
       layerId: d.layout?.layerId || layers[0].id,
       columnSpan: String(d.layout?.columnSpan || 1)
@@ -221,6 +256,7 @@ function App() {
     if (modal !== 'edit-capability' && !form.code.trim()) errors.code = 'Le code est obligatoire.';
     if (modal === 'capability' && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
     if (modal === 'app' && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
+    if ((modal === 'domain' || modal === 'edit-domain') && !/^#[\da-f]{6}$/i.test(form.color)) errors.color = 'Saisissez une couleur hexadécimale au format #RRGGBB.';
     if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue chevauche un autre domaine.';
 
     if (Object.keys(errors).length) {
@@ -231,11 +267,12 @@ function App() {
 
     setFormErrors({});
     if (modal === 'domain') {
-      update({ domains: [...model.domains, { id: uid('l0'), code: form.code || 'CAP', name: form.name.trim(), description: form.description, color: 'indigo', layout: { columnId: form.columnId || columns[0].id, layerId: form.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } }] });
+      update({ domains: [...model.domains, { id: uid('l0'), code: form.code || 'CAP', name: form.name.trim(), description: form.description, color: resolveDomainColor(form.color), layout: { columnId: form.columnId || columns[0].id, layerId: form.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } }] });
+      setMapQuery('');
       notify('Domaine N0 créé');
     }
     if (modal === 'edit-domain') {
-      update({ domains: model.domains.map(d => d.id === editingDomainId ? { ...d, name: form.name.trim(), code: form.code.trim() || d.code, description: form.description, layout: { ...(d.layout || {}), columnId: form.columnId || d.layout?.columnId || columns[0].id, layerId: form.layerId || d.layout?.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } } : d) });
+      update({ domains: model.domains.map(d => d.id === editingDomainId ? { ...d, name: form.name.trim(), code: form.code.trim() || d.code, description: form.description, color: resolveDomainColor(form.color), layout: { ...(d.layout || {}), columnId: form.columnId || d.layout?.columnId || columns[0].id, layerId: form.layerId || d.layout?.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } } : d) });
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
@@ -287,26 +324,32 @@ function App() {
 
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
-    const domainClass = `domain domain-card domain-color-${d.code?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'default'}`;
+    const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}`;
 
     return (
       <section
         className={domainClass}
+        style={{ '--domain-color': resolveDomainColor(d.color) }}
         draggable
+        onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
         onDragStart={e => e.dataTransfer.setData('domain', d.id)}
         onDragOver={e => depth === 1 && e.preventDefault()}
         onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
         key={d.id}
       >
-        <div className="domain-banner">
+        <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color) }}>
           <div className="domain-banner-title">
             <h3>{d.name}</h3>
             <span className="domain-meta">{d.code} · {caps.length} N1</span>
           </div>
           <div className="domain-actions">
-            <button type="button" className="icon-action" title="Modifier le domaine N0" onClick={e => { e.stopPropagation(); openEditDomain(d); }}>Modifier</button>
-            {depth === 2 && <button type="button" className="icon-action" title="Ajouter une capacité N1" onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
-            <button type="button" className="icon-action danger-text" title="Supprimer le domaine" onClick={e => { e.stopPropagation(); removeDomain(d.id); }}>Supprimer</button>
+            <button
+              type="button"
+              className="mini-action-trigger"
+              aria-label={`Actions pour ${d.name}`}
+              title="Actions du domaine"
+              onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}
+            >⋮</button>
           </div>
         </div>
 
@@ -324,22 +367,28 @@ function App() {
           <div className="caps-list">
             {caps.map(c => {
               const coverage = getCapCoverageState(c.id);
-              const capItemClass = `cap ${mapViewMode === 'coverage' ? `cov-${coverage.state}` : ''}`;
+              const capItemClass = `cap${selected.includes(c.id) ? ' impact-selected' : ''}`;
 
               return (
                 <div
                   className={capItemClass}
                   key={c.id}
+                  onContextMenu={e => openContextMenu(e, { type: 'capability', item: c })}
                   onDragOver={e => e.preventDefault()}
                   onDrop={e => onDrop(e, c.id)}
                 >
                   <div className="cap-head">
                     <b>{c.name}</b>
-                    <button type="button" aria-label={`Renommer ${c.name}`} onClick={e => { e.stopPropagation(); openEditCapability(c); }}>Renommer</button>
+                    <button
+                      type="button"
+                      className="mini-action-trigger"
+                      aria-label={`Renommer ${c.name}`}
+                      title="Actions de la capacité"
+                      onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'capability', item: c }); }}
+                    >⋮</button>
                   </div>
 
                   <div className="cap-meta">
-                    {mapViewMode === 'coverage' && <span className="cov-symbol">{coverage.symbol}</span>}
                     <span className="app-count">{coverage.count}</span>
                   </div>
 
@@ -365,12 +414,12 @@ function App() {
 
   const matrixView = (
     <div className="map map-matrix">
-      <div className="map-row map-head" style={{ gridTemplateColumns: `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
+      <div className="map-row map-head" style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
         <div />
         {columns.map(col => <div className="col-head" key={col.id}>{col.name}</div>)}
       </div>
       {layers.map(layer => (
-        <div className="map-row" key={layer.id} style={{ gridTemplateColumns: `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
+        <div className="map-row" key={layer.id} style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
           <div className="axis-label">{layer.name}</div>
           {columns.map((col, index) => {
             const coveredByPrevious = model.domains.some(d => (d.layout?.layerId || layers[0].id) === layer.id && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) < index && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) + Math.max(1, Number(d.layout?.columnSpan) || 1) > index);
@@ -394,12 +443,12 @@ function App() {
   );
 
   return (
-    <div className={'app theme-' + visualPrefs.theme + ' density-' + visualPrefs.density + (presentation ? ' presentation-mode' : '')}>
+    <div className={'app' + (presentation ? ' presentation-mode' : '')}>
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
           <div className="toolbar-switch">
-            <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => setMode('editor')}>▦ Cartographie</button>
+            <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
             <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
           </div>
           <div className="toolbar-actions">
@@ -459,6 +508,7 @@ function App() {
                       key={c.id}
                       type="button"
                       className={'cap-select ' + (selected.includes(c.id) ? 'selected' : '')}
+                      aria-pressed={selected.includes(c.id)}
                       onClick={() => toggleCap(c.id)}
                     >
                       {selected.includes(c.id) ? '✓' : '○'} {c.code} — {c.name}
@@ -492,7 +542,7 @@ function App() {
             </section>
           ) : (
             <>
-              <div className="canvas-head">
+              <div className="map-controls-row">
                 <button
                   type="button"
                   className="secondary inventory-toggle inventory-toggle-rail"
@@ -501,92 +551,51 @@ function App() {
                 >
                   <span className="menu-glyph"></span>
                 </button>
-                <div className="canvas-title">
-                  <div className="eyebrow">CAPABILITY MAP · V3</div>
-                  <h2>Cartographie des capacités</h2>
-                </div>
-
-                {depth === 1 ? (
-                  <div className="stats" aria-label="Statistiques de la cartographie">
-                    <span>{model.domains.length} N0</span>
-                    <span>{model.applications.length} Apps</span>
-                  </div>
-                ) : (
-                  <div className="stats" aria-label="Statistiques de la cartographie">
-                    <span>{model.domains.length} N0</span>
-                    <span>{model.capabilities.length} N1</span>
-                    <span>{model.applications.length} Apps</span>
-                  </div>
-                )}
-
-                <div className="map-view-toggle">
-                  <button
-                    type="button"
-                    className={mapViewMode === 'domain' ? 'active' : ''}
-                    onClick={() => setMapViewMode('domain')}
-                  >
-                    Par domaine
-                  </button>
-                  <button
-                    type="button"
-                    className={mapViewMode === 'coverage' ? 'active' : ''}
-                    onClick={() => setMapViewMode('coverage')}
-                  >
-                    Par couverture
-                  </button>
-                </div>
-
-                <div className="canvas-actions">
-                  <button type="button" className="primary" onClick={() => openNew('domain')}>＋ Domaine N0</button>
-                  <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
-                  <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
-                  <button type="button" data-testid="presentation-toggle" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↩ Retour' : '⛶ Présentation'}</button>
-                </div>
-              </div>
-
-              <details className="visual-settings">
-                <summary>Options d’affichage</summary>
-                <div className="visual-toolbar">
-                  <label>
-                    Thème
-                    <select data-testid="visual-theme" value={visualPrefs.theme} onChange={e => setVisualPrefs(p => ({ ...p, theme: e.target.value }))}>
-                      <option value="classic">Classic</option>
-                      <option value="executive">Executive</option>
-                    </select>
-                  </label>
-                  <label>
-                    Densité
-                    <select data-testid="visual-density" value={visualPrefs.density} onChange={e => setVisualPrefs(p => ({ ...p, density: e.target.value }))}>
-                      <option value="comfortable">Confortable</option>
-                      <option value="compact">Compact</option>
-                    </select>
-                  </label>
-                  <label>
-                    Filtre
+                <div className="map-filter-bar">
+                  <label className="map-filter-control">
+                    <span>Filtrer les domaines</span>
                     <input
                       data-testid="map-filter"
+                      aria-label="Filtrer les domaines"
                       value={mapQuery}
                       onChange={e => setMapQuery(e.target.value)}
-                      placeholder="Filtrer les domaines…"
+                      placeholder="Nom, code ou description"
                     />
                   </label>
+                  <span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span>
                 </div>
-                <div className="filter-count">{visibleDomains.length} / {model.domains.length} domaines</div>
-              </details>
-
-              {mapViewMode === 'coverage' && (
-                <div className="coverage-legend">
-                  <span className="legend-item legend-ok"><span className="cov-symbol">✓</span> Couvert (1 app)</span>
-                  <span className="legend-item legend-redundant"><span className="cov-symbol">⇄</span> Redondance (&gt;1 app)</span>
-                  <span className="legend-item legend-gap"><span className="cov-symbol">✕</span> Gap (0 app)</span>
+                <div className="canvas-actions">
+                  <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
+                  <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
-              )}
+              </div>
 
               {matrixView}
             </>
           )}
         </main>
       </div>
+
+      {contextMenu && (
+        <div
+          className="context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={() => setContextMenu(null)}
+        >
+          {contextMenu.type === 'domain' && (
+            <>
+              {depth === 2 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('capability', contextMenu.item.id); }}>＋ Ajouter N1</button>}
+              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditDomain(contextMenu.item); }}>Modifier</button>
+              <button type="button" className="danger" onClick={e => { e.stopPropagation(); closeContextMenu(); removeDomain(contextMenu.item.id); }}>Supprimer</button>
+            </>
+          )}
+          {contextMenu.type === 'capability' && (
+            <>
+              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditCapability(contextMenu.item); }}>Renommer</button>
+            </>
+          )}
+        </div>
+      )}
 
       {status && <div className="toast">{status}</div>}
       {modal === 'wizard' && <NewMapWizard model={model} onCancel={closeWizard} onCreate={createMap} />}
@@ -701,6 +710,31 @@ function App() {
               )}
               <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
             </>
+          )}
+
+          {(modal === 'domain' || modal === 'edit-domain') && (
+            <label className={'field domain-color-field ' + (formErrors.color ? 'has-error' : '')}>
+              <span>Couleur du domaine N0</span>
+              <span className="domain-color-control">
+                <input
+                  type="color"
+                  data-testid="domain-color"
+                  aria-label="Couleur du domaine N0"
+                  value={resolveDomainColor(form.color)}
+                  onChange={e => setForm({ ...form, color: e.target.value })}
+                />
+                <input
+                  type="text"
+                  data-testid="domain-color-hex"
+                  aria-label="Code couleur hexadécimal"
+                  aria-invalid={!!formErrors.color}
+                  maxLength="7"
+                  value={form.color}
+                  onChange={e => setForm({ ...form, color: e.target.value })}
+                />
+              </span>
+              {formErrors.color && <small className="field-error">{formErrors.color}</small>}
+            </label>
           )}
 
           <div className="modal-actions">
