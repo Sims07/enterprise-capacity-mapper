@@ -309,3 +309,179 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 }
 .menu-glyph::before{top:-5px}
 .menu-glyph::after{top:5px}
+
+/* --- B. Poster & Heatmap de couverture --- */
+
+/* Basculeur Par domaine / Par couverture */
+.map-view-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.map-view-toggle button {
+  border: 0;
+  background: transparent;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.map-view-toggle button.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Légende de couverture */
+.coverage-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.legend-item { display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; }
+.legend-ok { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.legend-redundant { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.legend-gap { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* Conteneur Domaine N0 */
+.domain-card {
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  margin-bottom: 8px;
+}
+
+/* Bandeau coloré N0 (exemples basés sur les codes de la démo) */
+.domain-banner {
+  padding: 10px 12px;
+  color: #ffffff;
+  background: #3b82f6; /* Couleur par défaut */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.domain-color-capcrm .domain-banner { background: #5b46be; } /* Relation Client (Violet) */
+.domain-color-capscm .domain-banner { background: #a43a18; } /* Supply Chain (Brun/Orange) */
+.domain-color-capfin .domain-banner { background: #0d6e53; } /* Finance (Vert Sombre) */
+.domain-color-caprh .domain-banner  { background: #9d2b52; } /* RH (Prune/Rouge) */
+
+.domain-banner h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.domain-meta {
+  font-size: 10px;
+  opacity: 0.85;
+  font-weight: 600;
+  display: block;
+}
+.domain-actions { display: flex; gap: 4px; }
+.icon-action {
+  background: rgba(255, 255, 255, 0.2);
+  border: 0;
+  color: #fff;
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+.icon-action:hover { background: rgba(255, 255, 255, 0.35); }
+
+/* Liste des Tuiles N1 */
+.caps-list {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f8fafc;
+}
+
+/* Tuile Capacité N1 */
+.cap-tile {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cap-tile:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+.cap-tile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cap-tile-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.cap-tile-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.app-count {
+  font-size: 11px;
+  font-weight: 800;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+/* Style des tuiles en mode couverture (Heatmap) */
+.cap-tile.cov-ok {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+.cap-tile.cov-ok .app-count { background: #dcfce7; color: #15803d; }
+
+.cap-tile.cov-redundant {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+.cap-tile.cov-redundant .app-count { background: #dbeafe; color: #1d4ed8; }
+
+.cap-tile.cov-gap {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+.cap-tile.cov-gap .app-count { background: #fee2e2; color: #b91c1c; }
+.cov-symbol { font-weight: 900; font-size: 11px; }
+
+/* Panneau déroulant au clic sur une N1 */
+.cap-tile-detail {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 11px;
+}
+.cap-desc { color: #64748b; margin: 0 0 6px 0; }
+.cap-edit-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 10px;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
