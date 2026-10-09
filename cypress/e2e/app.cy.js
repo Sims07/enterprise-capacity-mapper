@@ -218,7 +218,6 @@ describe('Application smoke test', () => {
 
   it('permet à un domaine de couvrir deux colonnes adjacentes et conserve cette étendue', () => {
     openWizard();
-    cy.get('[data-testid="template-blank"]').click();
     cy.get('[data-testid="wizard-name"]').clear().type('Cartographie multi-colonnes');
     cy.contains('button', 'Suivant').click();
     cy.contains('button', 'Suivant').click();
