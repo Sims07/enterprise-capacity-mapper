@@ -140,3 +140,80 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
  .map-head{position:static!important}
 }
 @media(max-width:900px){.visual-toolbar{align-items:stretch}.visual-toolbar label{flex:1;min-width:120px}.visual-toolbar .map-filter input{min-width:0;width:100%}.filter-count{align-self:center}}
+
+/* Cartographie prioritaire : le canvas est l'espace de travail principal. */
+.workspace{grid-template-columns:280px minmax(0,1fr);gap:0}
+.workspace>main{min-width:0;padding:18px 22px 24px}
+.workspace>aside{min-width:0;transition:width .18s ease,padding .18s ease}
+.workspace.inventory-collapsed{grid-template-columns:minmax(0,1fr)}
+.workspace.inventory-collapsed>aside{display:none}
+.canvas-head{align-items:center;gap:18px;margin-bottom:12px}
+.canvas-title{min-width:0;flex:1}
+.canvas-title h2{font-size:21px;letter-spacing:-.025em;margin:3px 0}
+.canvas-subtitle{max-width:760px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;margin:3px 0!important;color:#64748b}
+.canvas-title .inline-guidance{padding:0;margin:4px 0 0;background:transparent;color:#64748b;font-size:10px;line-height:1.4}
+.canvas-title .inline-guidance b{color:#4338ca}
+.canvas-actions{flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.canvas-actions button{white-space:nowrap;padding:7px 9px;font-size:11px}
+.inventory-toggle{color:#475569!important;background:#fff!important;border-color:#dce3ec!important}
+.visual-toolbar{margin-bottom:8px;padding:6px 9px;gap:8px;border-radius:8px}
+.visual-toolbar select,.visual-toolbar input{height:29px;min-height:29px}
+.layout-tools{align-items:center;margin:0 0 9px;gap:10px}
+.layout-tools label{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.layout-tools select{display:inline-block;margin:0}
+.stats{gap:5px;flex-wrap:wrap}
+.stats span{padding:5px 8px;font-size:10px}
+.map{min-height:calc(100vh - 245px);padding:8px;border-radius:9px}
+.map-matrix{align-content:start;gap:6px}
+.map-row{gap:6px;min-width:0}
+.map-row .map-cell{min-width:0;padding:7px;min-height:140px}
+.map-row .axis-label{padding:10px 6px;font-size:10px}
+.map-row .col-head{padding:9px 7px;font-size:11px}
+.map-row .domain-head{gap:6px;padding:9px}
+.map-row .domain-head h3{font-size:12px}
+.map-row .domain-head p{font-size:10px}
+.map-row .domain-actions{display:flex;flex-wrap:wrap;gap:4px}
+.map-row .domain-actions button{font-size:9px;padding:4px 6px}
+.map-row .caps{gap:6px;padding:7px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.map-row .cap{min-height:0;padding:8px}
+.map-row .cap p{margin:5px 0;font-size:10px;min-height:0}
+.map-row .relations{padding-top:4px}
+.map-row .rel{font-size:10px;padding:3px 0}
+.map-row .drop{margin-top:3px;padding:4px;font-size:9px}
+.map-row .cell-add{padding:6px;font-size:10px}
+.density-compact .map{min-height:calc(100vh - 225px)}
+.density-compact .map-row .map-cell{min-height:100px}
+@media(min-width:1500px){
+ .workspace>main{padding:20px 28px 26px}
+ .map{min-height:calc(100vh - 250px)}
+ .map-row .caps{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+}
+@media(max-width:1100px){
+ .workspace{grid-template-columns:240px minmax(0,1fr)}
+ .workspace>main{padding:16px}
+ .canvas-head{align-items:flex-start;flex-direction:column;gap:10px}
+ .canvas-actions{justify-content:flex-start;margin-left:0}
+ .canvas-subtitle{white-space:normal}
+ .map{min-height:480px}
+ .map-row{min-width:max-content}
+ .map-row .map-cell{min-width:220px}
+ .map-row .axis-label{min-width:90px}
+}
+@media(max-width:700px){
+ .workspace{grid-template-columns:minmax(0,1fr)}
+ .workspace>aside{max-height:220px}
+ .workspace.inventory-collapsed>aside{display:none}
+ .workspace>main{padding:12px}
+ .canvas-title h2{font-size:19px}
+ .canvas-actions{width:100%}
+ .canvas-actions button{flex:1}
+ .visual-toolbar{gap:6px}
+ .visual-toolbar label{min-width:100%;justify-content:space-between}
+ .visual-toolbar .map-filter{min-width:100%}
+ .filter-count{width:100%}
+ .layout-tools{align-items:flex-start;flex-direction:column}
+ .map{min-height:420px}
+}
+.presentation-mode .workspace>main{padding:12px 18px 18px}
+.presentation-mode .map{min-height:calc(100vh - 175px)}
+.presentation-mode .canvas-title .inline-guidance{display:none}
