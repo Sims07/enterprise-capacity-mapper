@@ -43,6 +43,19 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
+  it('conserve le style et la lisibilité du bouton Nouvelle cartographie dans la barre compacte', () => {
+    cy.viewport(1000, 660);
+    cy.visit('/');
+    cy.get('[data-testid="new-map-button"]')
+      .should('be.visible')
+      .and('have.css', 'white-space', 'nowrap')
+      .and('have.css', 'border-radius', '8px')
+      .then(button => {
+        expect(button[0].scrollWidth).to.be.at.most(button[0].clientWidth);
+      });
+    cy.viewport(1280, 720);
+  });
+
   it('ferme le menu contextuel quand on clique hors du menu', () => {
     cy.visit('/');
     cy.clearLocalStorage();
@@ -100,6 +113,38 @@ describe('Application smoke test', () => {
     cy.contains('.cap', 'Gestion des Prospects & Leads').should('exist');
     cy.get('[data-testid="redo-button"]').click();
     cy.contains('.cap', 'Qualification des prospects').should('exist');
+  });
+
+  it('enregistre une cartographie localement et permet de la rouvrir après rechargement', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('[data-testid="save-local-map"]').click();
+    cy.get('[data-testid="local-map-name"]').clear().type('Cartographie locale QA');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.window().then(window => {
+      const savedMaps = JSON.parse(window.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1'));
+      expect(savedMaps.map(map => map.name)).to.include('Cartographie locale QA');
+    });
+
+    cy.reload();
+    cy.get('[data-testid="open-local-maps"]').click();
+    cy.get('[data-testid="recent-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
+    cy.get('[data-testid="saved-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
+    cy.get('.modal-head button').click();
+    cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
+      cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').click();
+    });
+    cy.get('.context-menu').contains('button', 'Renommer').click();
+    cy.get('.modal .field input').clear().type('Modification non sauvegardée');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.get('[data-testid="open-local-maps"]').click();
+    cy.get('[data-testid="saved-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').contains('button', 'Ouvrir').click();
+    cy.get('[data-testid="confirm-load-local-map"]').click();
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('exist');
+    cy.contains('.cap', 'Modification non sauvegardée').should('not.exist');
   });
 
 

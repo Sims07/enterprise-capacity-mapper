@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
-import { exportModel, importModel, loadModel, saveModel } from './services/storage.js';
+import { exportModel, importModel, loadLocalMaps, loadModel, loadRecentMaps, recordRecentMap, saveLocalMap as persistLocalMap, saveModel, updateRecentMap } from './services/storage.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
+const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
+const ACTIVE_RECENT_MAP_KEY = 'enterprise-capacity-mapper:active-recent-map';
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const DOMAIN_COLOR_PALETTE = [
@@ -67,6 +69,12 @@ function App() {
   const [inventoryCollapsed, setInventoryCollapsed] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
+  const [localMapId, setLocalMapId] = useState(() => localStorage.getItem(ACTIVE_LOCAL_MAP_KEY) || '');
+  const [localMaps, setLocalMaps] = useState([]);
+  const [recentMaps, setRecentMaps] = useState([]);
+  const [activeRecentMapId, setActiveRecentMapId] = useState(() => localStorage.getItem(ACTIVE_RECENT_MAP_KEY) || uid('recent'));
+  const [localMapName, setLocalMapName] = useState('');
+  const [pendingLocalMap, setPendingLocalMap] = useState(null);
   const [selected, setSelected] = useState([]);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
@@ -85,7 +93,11 @@ function App() {
   const relationIds = item => item.capabilityIds || [];
   const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
 
-  useEffect(() => saveModel(model), [model]);
+  useEffect(() => {
+    saveModel(model);
+    updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
+    localStorage.setItem(ACTIVE_RECENT_MAP_KEY, activeRecentMapId);
+  }, [model, activeRecentMapId]);
 
   const apps = model.applications || [];
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
@@ -94,6 +106,65 @@ function App() {
   const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
+  const openLocalMaps = () => {
+    try {
+      setLocalMaps(loadLocalMaps());
+      setRecentMaps(loadRecentMaps());
+      setModal('local-maps');
+    } catch (error) {
+      notify(`Impossible de lire la bibliothèque locale : ${error.message}`);
+    }
+  };
+  const saveCurrentLocalMap = () => {
+    try {
+      const entries = loadLocalMaps();
+      const current = entries.find(entry => entry.id === localMapId);
+      if (!current) {
+        setLocalMapName(modelRef.current.metadata?.name || '');
+        setModal('save-local-map');
+        return;
+      }
+      const saved = persistLocalMap({ id: current.id, name: current.name, model: modelRef.current });
+      setLocalMaps(entries.map(entry => entry.id === saved.id ? saved : entry));
+      notify(`Cartographie « ${saved.name} » enregistrée localement`);
+    } catch (error) {
+      notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
+    }
+  };
+  const saveNamedLocalMap = () => {
+    try {
+      const currentModel = modelRef.current;
+      const savedModel = { ...currentModel, metadata: { ...currentModel.metadata, name: localMapName.trim() } };
+      const saved = persistLocalMap({ name: localMapName, model: savedModel });
+      commitModel(savedModel);
+      setLocalMapId(saved.id);
+      localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
+      setLocalMaps(maps => [...maps, saved]);
+      setModal(null);
+      notify(`Cartographie « ${saved.name} » enregistrée localement`);
+    } catch (error) {
+      notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
+    }
+  };
+  const confirmLoadLocalMap = () => {
+    if (!pendingLocalMap) return;
+    try {
+      replaceModel(pendingLocalMap.model);
+      recordRecentMap({ id: pendingLocalMap.id, name: pendingLocalMap.name, model: pendingLocalMap.model });
+      setActiveRecentMapId(pendingLocalMap.id);
+      setLocalMapId(pendingLocalMap.id);
+      localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, pendingLocalMap.id);
+      setSelected([]);
+      setMapQuery('');
+      setMode('editor');
+      setPresentation(false);
+      setModal(null);
+      setPendingLocalMap(null);
+      notify(`Cartographie « ${pendingLocalMap.name} » chargée`);
+    } catch (error) {
+      notify(`Impossible de charger la cartographie : ${error.message}`);
+    }
+  };
   const refreshHistoryState = () => setHistoryState({ canUndo: undoStack.current.length > 0, canRedo: redoStack.current.length > 0 });
   const commitModel = nextModel => {
     const currentModel = modelRef.current;
@@ -241,6 +312,9 @@ function App() {
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
     if (backup) exportModel(model);
     replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
+    setActiveRecentMapId(uid('recent'));
+    setLocalMapId('');
+    localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
     setSelected([]);
     setLayoutMode('matrix');
     setMode('editor');
@@ -373,6 +447,9 @@ function App() {
     if (!f) return;
     try {
       replaceModel(await importModel(f));
+      setActiveRecentMapId(uid('recent'));
+      setLocalMapId('');
+      localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
       notify('Cartographie importée');
     } catch (err) {
       notify(err.message);
@@ -521,7 +598,9 @@ function App() {
             <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶ Annuler</button>
             <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷ Rétablir</button>
             <button type="button" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
-            <button type="button" className="secondary" onClick={openWizard}>＋ Nouvelle cartographie</button>
+            <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>Nouvelle cartographie</button>
+            <button type="button" className="secondary" data-testid="open-local-maps" onClick={openLocalMaps}>▤ Mes cartographies</button>
+            <button type="button" className="primary" data-testid="save-local-map" onClick={saveCurrentLocalMap}>Enregistrer</button>
             <button type="button" className="secondary" onClick={() => exportModel(model)}>↓ Export</button>
             <label className="button secondary">↑ Import<input hidden type="file" accept=".json,application/json" onChange={importJson} /></label>
           </div>
@@ -669,6 +748,70 @@ function App() {
       {modal === 'wizard' && <NewMapWizard model={model} onCancel={closeWizard} onCreate={createMap} />}
       {guideOpen && <TogafGuide onClose={() => setGuideOpen(false)} />}
 
+      {modal === 'save-local-map' && (
+        <Modal title="Enregistrer dans Mes cartographies" onClose={() => setModal(null)}>
+          <p className="structure-hint">Cette cartographie sera conservée dans le navigateur et pourra être ouverte depuis cette application.</p>
+          <Field
+            label="Nom de la cartographie"
+            required
+            data-testid="local-map-name"
+            value={localMapName}
+            onChange={event => setLocalMapName(event.target.value)}
+            onKeyDown={event => { if (event.key === 'Enter' && localMapName.trim()) saveNamedLocalMap(); }}
+          />
+          <div className="modal-actions">
+            <button type="button" onClick={() => setModal(null)}>Annuler</button>
+            <button type="button" className="primary" disabled={!localMapName.trim()} onClick={saveNamedLocalMap}>Enregistrer</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'local-maps' && (
+        <Modal title="Mes cartographies" onClose={() => setModal(null)}>
+          <h3 className="local-map-section-title">Récemment ouvertes</h3>
+          {recentMaps.length ? (
+            <div className="local-map-list" data-testid="recent-maps-list">
+              {recentMaps.map(saved => (
+                <div className="local-map-row" key={saved.id}>
+                  <div>
+                    <strong>{saved.name}</strong>
+                    <span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span>
+                  </div>
+                  <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir</button>
+                </div>
+              ))}
+            </div>
+          ) : <p className="local-map-empty">Aucune cartographie récente.</p>}
+          <h3 className="local-map-section-title">Cartographies enregistrées</h3>
+          {localMaps.length ? (
+            <div className="local-map-list" data-testid="saved-maps-list">
+              {localMaps.map(saved => (
+                <div className="local-map-row" key={saved.id}>
+                  <div>
+                    <strong>{saved.name}</strong>
+                    <span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span>
+                  </div>
+                  <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir</button>
+                </div>
+              ))}
+            </div>
+          ) : <p className="local-map-empty">Aucune sauvegarde nommée. Utilisez « Sauvegarder » pour en ajouter une.</p>}
+          <div className="modal-actions">
+            <button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'confirm-local-map' && pendingLocalMap && (
+        <Modal title="Ouvrir une cartographie" onClose={() => { setModal('local-maps'); setPendingLocalMap(null); }}>
+          <p>Ouvrir « {pendingLocalMap.name} » remplacera la cartographie actuellement affichée. Enregistrez vos dernières modifications avant de continuer si nécessaire.</p>
+          <div className="modal-actions">
+            <button type="button" onClick={() => { setModal('local-maps'); setPendingLocalMap(null); }}>Annuler</button>
+            <button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button>
+          </div>
+        </Modal>
+      )}
+
       {modal === 'layout' && layoutDraft && (
         <Modal title="Personnaliser la structure" onClose={() => setModal(null)}>
           <p className="structure-hint">Renommez les colonnes et les layers.</p>
@@ -707,7 +850,7 @@ function App() {
         </Modal>
       )}
 
-      {modal && modal !== 'layout' && modal !== 'wizard' && (
+      {['domain', 'edit-domain', 'capability', 'edit-capability', 'app'].includes(modal) && (
         <Modal
           title={modal === 'edit-capability' ? 'Renommer la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
           onClose={() => setModal(null)}
