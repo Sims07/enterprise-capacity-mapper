@@ -99,6 +99,8 @@ describe('Application smoke test', () => {
     // Étape 2 : structure
     cy.get('[data-testid="wizard-step-2"]').should('be.visible');
     cy.get('[data-testid="structure-columns-input"]').first().clear().type('Métier');
+    cy.get('[data-testid="structure-add-columns"]').click();
+    cy.get('[data-testid="structure-columns-input"]').eq(1).clear().type('Support');
     cy.get('[data-testid="structure-layers-input"]').first().clear().type('Stratégique');
     cy.get('[data-testid="structure-add-layers"]').click();
     cy.get('[data-testid="structure-layers-input"]').eq(1).clear().type('Opérationnel');
@@ -132,6 +134,8 @@ describe('Application smoke test', () => {
 
     // Déplacement sans glisser-déposer, via les sélecteurs de la modale
     cy.contains('.domain', 'Domaine ligne 2').contains('button', 'Modifier').click();
+    // Déplacer vers une cellule libre pour ne pas chevaucher le premier domaine.
+    cy.get('.modal select').eq(0).select('Support');
     cy.get('.modal select').eq(1).select('Stratégique');
     cy.contains('.modal button', 'Enregistrer').click();
     cy.get('.map-row:not(.map-head)').eq(0).should('contain.text', 'Domaine ligne 2');
@@ -234,10 +238,10 @@ describe('Application smoke test', () => {
     cy.contains('.modal button', 'Enregistrer').click();
 
     cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
-    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 2);
+    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 3);
     cy.reload();
     cy.contains('.domain', 'Capacité transverse').should('be.visible');
-    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 2);
+    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 3);
     cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
   });
 
