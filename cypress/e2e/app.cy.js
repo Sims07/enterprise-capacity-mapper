@@ -303,7 +303,7 @@ describe('Application smoke test', () => {
     cy.visit('/');
     cy.get('#app-inventory').should('be.visible');
     cy.get('.map').should('be.visible');
-    cy.get('.inventory-toggle').click();
+    cy.get('.inventory-toggle-rail').should('be.visible').and('have.attr', 'aria-label', 'Masquer l’inventaire des applications').click();
     cy.get('#app-inventory').should('not.be.visible');
     cy.get('.workspace').should('have.class', 'inventory-collapsed');
     cy.get('.map').should('be.visible');
@@ -314,7 +314,7 @@ describe('Application smoke test', () => {
     cy.get('.help-icon').click();
     cy.get('.togaf-guide').should('be.visible');
     cy.get('.togaf-guide button[aria-label="Fermer"]').click();
-    cy.get('.inventory-toggle').should('contain.text', 'Inventaire').click();
+    cy.get('.inventory-toggle-rail').should('have.attr', 'aria-label', 'Afficher l’inventaire des applications').click();
     cy.get('#app-inventory').should('be.visible');
     cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
   });
