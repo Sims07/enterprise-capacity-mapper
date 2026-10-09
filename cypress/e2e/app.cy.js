@@ -225,8 +225,7 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="wizard-backup"]').uncheck();
     cy.get('[data-testid="wizard-create"]').click();
 
-    cy.get('.map-cell').first().click();
-    cy.get('.map-cell').first().find('.cell-add').click();
+    cy.get('.map-row:not(.map-head)').first().find('.cell-add').first().click();
     cy.get('.modal .field input').eq(0).type('Capacité transverse');
     cy.get('.modal .field input').eq(1).type('TRANSVERSE');
     cy.contains('.modal button', 'Créer').click();
@@ -236,9 +235,10 @@ describe('Application smoke test', () => {
     cy.contains('.modal button', 'Enregistrer').click();
 
     cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
-    cy.get('.map-cell[data-zone-key="operations:strategic"]').should('not.exist');
+    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 2);
     cy.reload();
     cy.contains('.domain', 'Capacité transverse').should('be.visible');
+    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 2);
     cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
   });
 
