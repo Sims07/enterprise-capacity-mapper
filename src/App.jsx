@@ -99,7 +99,14 @@ function App(){
    notify(backup?'Cartographie créée · sauvegarde JSON téléchargée':'Cartographie créée');
  };
 
- const placementAvailable=(domainId,columnId,layerId,columnSpan)=>{\n   const start=columns.findIndex(c=>c.id===columnId);\n   const span=Number(columnSpan)||1;\n   if(start<0||span<1||start+span>columns.length)return false;\n   const occupied=new Set(columns.slice(start,start+span).map(c=>c.id));\n   return !model.domains.some(d=>d.id!==domainId&&(d.layout?.layerId||layers[0].id)===layerId&&occupied.has(d.layout?.columnId||columns[0].id)&&columns.slice(start,start+span).some(c=>{const otherStart=columns.findIndex(x=>x.id===(d.layout?.columnId||columns[0].id));return otherStart>=0&&columns.slice(otherStart,otherStart+Math.max(1,Number(d.layout?.columnSpan)||1)).some(o=>o.id===c.id)}));\n };\n const placeDomain=(domainId,columnId,layerId)=>{
+ const placementAvailable=(domainId,columnId,layerId,columnSpan)=>{
+   const start=columns.findIndex(c=>c.id===columnId);
+   const span=Number(columnSpan)||1;
+   if(start<0||span<1||start+span>columns.length)return false;
+   const occupied=new Set(columns.slice(start,start+span).map(c=>c.id));
+   return !model.domains.some(d=>d.id!==domainId&&(d.layout?.layerId||layers[0].id)===layerId&&columns.slice(start,start+span).some(c=>{const otherStart=columns.findIndex(x=>x.id===(d.layout?.columnId||columns[0].id));return otherStart>=0&&columns.slice(otherStart,otherStart+Math.max(1,Number(d.layout?.columnSpan)||1)).some(o=>o.id===c.id)}));
+ };
+ const placeDomain=(domainId,columnId,layerId)=>{
    if(!domainId)return;
    update({layout:{...layout,mode:layoutMode,columns,layers},domains:model.domains.map(d=>d.id===domainId?{...d,layout:{...(d.layout||{}),columnId:columnId||d.layout?.columnId||columns[0].id,layerId:layerId||d.layout?.layerId||layers[0].id}}:d)});
  };
@@ -112,7 +119,8 @@ function App(){
    if(modal!=='edit-capability'&&!form.code.trim())errors.code='Le code est obligatoire.';
    if(modal==='capability'&&!form.domainId)errors.domainId='Le domaine est obligatoire.';
    if(modal==='app'&&!form.vendor.trim())errors.vendor='L’éditeur / fournisseur est obligatoire.';
-   if((modal==='domain'||modal==='edit-domain')&&!placementAvailable(modal==='edit-domain'?editingDomainId:null,form.columnId||columns[0].id,form.layerId||layers[0].id,form.columnSpan))errors.columnSpan='Cette étendue chevauche un autre domaine ou dépasse les colonnes disponibles.';\n   if(Object.keys(errors).length){setFormErrors(errors);notify('Vérifiez les champs signalés.');return}
+   if((modal==='domain'||modal==='edit-domain')&&!placementAvailable(modal==='edit-domain'?editingDomainId:null,form.columnId||columns[0].id,form.layerId||layers[0].id,form.columnSpan))errors.columnSpan='Cette étendue chevauche un autre domaine ou dépasse les colonnes disponibles.';
+   if(Object.keys(errors).length){setFormErrors(errors);notify('Vérifiez les champs signalés.');return}
    setFormErrors({});
    if(modal==='domain')update({domains:[...model.domains,{id:uid('l0'),code:form.code||'CAP',name:form.name,description:form.description,color:'indigo',layout:{columnId:form.columnId||columns[0].id,layerId:form.layerId||layers[0].id,columnSpan:Number(form.columnSpan)||1}}]});
    if(modal==='edit-domain')update({domains:model.domains.map(d=>d.id===editingDomainId?{...d,name:form.name.trim(),code:form.code.trim()||d.code,description:form.description,layout:{...(d.layout||{}),columnId:form.columnId||d.layout?.columnId||columns[0].id,layerId:form.layerId||d.layout?.layerId||layers[0].id,columnSpan:Number(form.columnSpan)||1}}:d)});
