@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
 import { exportModel, importModel, loadModel, saveModel } from './services/storage.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
@@ -43,6 +43,10 @@ function Field({ label, required = false, error, ...p }) {
 
 function App() {
   const [model, setModel] = useState(() => loadModel(DEMO_MODEL));
+  const modelRef = useRef(model);
+  const undoStack = useRef([]);
+  const redoStack = useRef([]);
+  const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor' ou 'impact'
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
@@ -76,7 +80,55 @@ function App() {
   const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
-  const update = patch => setModel(m => ({ ...m, ...patch }));
+  const refreshHistoryState = () => setHistoryState({ canUndo: undoStack.current.length > 0, canRedo: redoStack.current.length > 0 });
+  const commitModel = nextModel => {
+    const currentModel = modelRef.current;
+    if (nextModel === currentModel) return;
+    undoStack.current = [...undoStack.current.slice(-49), currentModel];
+    redoStack.current = [];
+    modelRef.current = nextModel;
+    setModel(nextModel);
+    refreshHistoryState();
+  };
+  const replaceModel = nextModel => commitModel(nextModel);
+  const update = patch => commitModel({ ...modelRef.current, ...patch });
+  const undo = () => {
+    if (!undoStack.current.length) return;
+    redoStack.current.push(modelRef.current);
+    modelRef.current = undoStack.current.pop();
+    setModel(modelRef.current);
+    refreshHistoryState();
+  };
+  const redo = () => {
+    if (!redoStack.current.length) return;
+    undoStack.current = [...undoStack.current.slice(-49), modelRef.current];
+    modelRef.current = redoStack.current.pop();
+    setModel(modelRef.current);
+    refreshHistoryState();
+  };
+
+  useEffect(() => {
+    const handleKeyDown = event => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || modal) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+
+      const key = event.key.toLowerCase();
+      if (key === 'z' && event.shiftKey && historyState.canRedo) {
+        event.preventDefault();
+        redo();
+      } else if (key === 'z' && !event.shiftKey && historyState.canUndo) {
+        event.preventDefault();
+        undo();
+      } else if (key === 'y' && !event.shiftKey && historyState.canRedo) {
+        event.preventDefault();
+        redo();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [historyState, modal]);
   const openContextMenu = (event, menu) => {
     event.preventDefault();
     event.stopPropagation();
@@ -174,7 +226,7 @@ function App() {
   const closeWizard = () => setModal(null);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
     if (backup) exportModel(model);
-    setModel(m => ({ ...m, metadata: { ...m.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] }));
+    replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
     setSelected([]);
     setLayoutMode('matrix');
     setMode('editor');
@@ -306,7 +358,7 @@ function App() {
     const f = e.target.files?.[0];
     if (!f) return;
     try {
-      update(await importModel(f));
+      replaceModel(await importModel(f));
       notify('Cartographie importée');
     } catch (err) {
       notify(err.message);
@@ -452,6 +504,8 @@ function App() {
             <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
           </div>
           <div className="toolbar-actions">
+            <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶ Annuler</button>
+            <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷ Rétablir</button>
             <button type="button" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
             <button type="button" className="secondary" onClick={openWizard}>＋ Nouvelle cartographie</button>
             <button type="button" className="secondary" onClick={() => exportModel(model)}>↓ Export</button>

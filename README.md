@@ -12,6 +12,7 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 - **Personnalisation** : édition des domaines N0 et renommage des capacités N1, renommage/gestion des colonnes et layers, nom distinct pour chaque zone à leur croisement, et création d'une cartographie vierge.
 - **Étendue multi-colonnes** : un domaine N0 peut couvrir plusieurs colonnes adjacentes sur une même ligne de la matrice.
 - **Analyse d'impact** : capacités sollicitées, applications impactées, gaps et redondances.
+- **Historique** : annulation et rétablissement des modifications du modèle, avec raccourcis clavier.
 - **Déploiement** : GitHub Actions → GitHub Pages.
 - **Backend** : aucun backend requis.
 
@@ -47,6 +48,13 @@ Cette fonction sert à représenter visuellement un domaine transverse qui conce
 - Les capacités N1 restent rattachées à leur domaine N0.
 - Une application peut être associée à plusieurs capacités, et une capacité peut être couverte par plusieurs applications.
 - L'étendue multi-colonnes ne change pas ces associations : elle concerne uniquement la représentation du domaine dans la matrice.
+
+### Annuler et rétablir des modifications
+
+- Utilisez **Annuler** ou **Rétablir** dans la barre d'outils pour parcourir l'historique de la cartographie.
+- Raccourcis : **Ctrl+Z** pour annuler, **Ctrl+Y** ou **Ctrl+Maj+Z** pour rétablir. Sur macOS, utilisez **Cmd** à la place de Ctrl.
+- L'historique porte sur les modifications enregistrées du modèle et conserve jusqu'à **50 étapes**. Une nouvelle modification après une annulation remplace la suite de rétablissement.
+- Dans un champ de formulaire, les raccourcis restent réservés à l'édition du texte.
 
 ### Sauvegarder et partager les données
 

@@ -74,6 +74,34 @@ describe('Application smoke test', () => {
     cy.contains('.cap', 'Gestion des Prospects & Leads').should('not.exist');
   });
 
+  it('annule et rétablit une modification avec les boutons et les raccourcis clavier', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('[data-testid="undo-button"]').should('be.disabled');
+    cy.get('[data-testid="redo-button"]').should('be.disabled');
+    cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
+      cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').click();
+    });
+    cy.get('.context-menu').contains('button', 'Renommer').click();
+    cy.get('.modal .field input').clear().type('Qualification des prospects');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.contains('.cap', 'Qualification des prospects').should('exist');
+    cy.get('[data-testid="undo-button"]').should('be.enabled');
+    cy.get('body').type('{ctrl}z');
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('exist');
+    cy.get('[data-testid="redo-button"]').should('be.enabled');
+
+    cy.get('body').type('{ctrl}{shift}z');
+    cy.contains('.cap', 'Qualification des prospects').should('exist');
+    cy.get('[data-testid="undo-button"]').click();
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('exist');
+    cy.get('[data-testid="redo-button"]').click();
+    cy.contains('.cap', 'Qualification des prospects').should('exist');
+  });
+
 
   it('permet de choisir une cartographie à 1 ou 2 niveaux', () => {
     openWizard();
@@ -178,7 +206,7 @@ describe('Application smoke test', () => {
 
   it('ne modifie rien tant que l’assistant n’est pas validé', () => {
     openWizard();
-    cy.contains('button', 'Annuler').click();
+    cy.contains('.modal button', 'Annuler').click();
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
     cy.get('.domain-card').should('have.length', 4);
 
