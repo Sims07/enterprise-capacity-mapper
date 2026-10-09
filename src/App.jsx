@@ -10,17 +10,44 @@ const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1' };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
 
-function Modal({ title, children, onClose }) { return <div className="modal-backdrop"><div className="modal"><div className="modal-head"><h2>{title}</h2><button onClick={onClose}>×</button></div>{children}</div></div>; }
-function Field({ label, required = false, error, ...p }) { return <label className={'field ' + (error ? 'has-error' : '')}><span>{label}{required && <b className="required" aria-hidden="true"> *</b>}</span><input aria-required={required} aria-invalid={!!error} {...p} />{error && <small className="field-error">{error}</small>}</label>; }
+function Modal({ title, children, onClose }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <h2>{title}</h2>
+          <button type="button" onClick={onClose}>×</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, required = false, error, ...p }) {
+  return (
+    <label className={'field ' + (error ? 'has-error' : '')}>
+      <span>{label}{required && <b className="required" aria-hidden="true"> *</b>}</span>
+      <input aria-required={required} aria-invalid={!!error} {...p} />
+      {error && <small className="field-error">{error}</small>}
+    </label>
+  );
+}
 
 function App() {
   const [model, setModel] = useState(() => loadModel(DEMO_MODEL));
-  const [mode, setMode] = useState('editor');
+  const [mode, setMode] = useState('editor'); // 'editor' ou 'impact'
   const [mapViewMode, setMapViewMode] = useState('domain'); // 'domain' ou 'coverage'
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
   const [inventoryCollapsed, setInventoryCollapsed] = useState(false);
-  const [visualPrefs, setVisualPrefs] = useState(() => { try { return { theme: 'classic', density: 'comfortable', ...JSON.parse(localStorage.getItem(VISUAL_PREFS_KEY) || '{}') }; } catch { return { theme: 'classic', density: 'comfortable' }; } });
+  const [visualPrefs, setVisualPrefs] = useState(() => {
+    try {
+      return { theme: 'classic', density: 'comfortable', ...JSON.parse(localStorage.getItem(VISUAL_PREFS_KEY) || '{}') };
+    } catch {
+      return { theme: 'classic', density: 'comfortable' };
+    }
+  });
   const [mapQuery, setMapQuery] = useState('');
   const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
   const [selected, setSelected] = useState([]);
@@ -56,8 +83,58 @@ function App() {
   const zones = columns.flatMap(column => layers.map(layer => layout.zones?.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
 
   const setLayoutView = m => { setLayoutMode(m); update({ layout: { ...layout, mode: m } }); };
-  const openLayoutEditor = () => { setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })) }); setModal('layout'); };
-  
+  const openLayoutEditor = () => {
+    setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })) });
+    setModal('layout');
+  };
+
+  const completeZones = (nextColumns, nextLayers, currentZones) => nextColumns.flatMap(column => nextLayers.map(layer => currentZones.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
+
+  const updateLayoutDraft = (kind, id, name) => setLayoutDraft(d => {
+    const previous = d[kind].find(x => x.id === id);
+    const items = d[kind].map(x => x.id === id ? { ...x, name } : x);
+    const nextColumns = kind === 'columns' ? items : d.columns;
+    const nextLayers = kind === 'layers' ? items : d.layers;
+    const syncedZones = kind === 'columns' && previous ? d.zones.map(z => z.columnId === id && z.name === previous.name ? { ...z, name } : z) : d.zones;
+    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, syncedZones) };
+  });
+
+  const updateZoneDraft = (columnId, layerId, name) => setLayoutDraft(d => ({ ...d, zones: d.zones.map(zone => zone.columnId === columnId && zone.layerId === layerId ? { ...zone, name } : zone) }));
+
+  const addLayoutItem = kind => setLayoutDraft(d => {
+    const items = [...d[kind], { id: uid(kind === 'columns' ? 'column' : 'layer'), name: kind === 'columns' ? 'Nouvelle colonne' : 'Nouveau layer', order: d[kind].length }];
+    const nextColumns = kind === 'columns' ? items : d.columns;
+    const nextLayers = kind === 'layers' ? items : d.layers;
+    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, d.zones) };
+  });
+
+  const removeLayoutItem = (kind, id) => setLayoutDraft(d => {
+    if (d[kind].length <= 1) return d;
+    const items = d[kind].filter(x => x.id !== id).map((x, i) => ({ ...x, order: i }));
+    const nextColumns = kind === 'columns' ? items : d.columns;
+    const nextLayers = kind === 'layers' ? items : d.layers;
+    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, d.zones) };
+  });
+
+  const saveLayout = () => {
+    if (!layoutDraft.columns.length || !layoutDraft.layers.length || [...layoutDraft.columns, ...layoutDraft.layers, ...layoutDraft.zones].some(x => !x.name.trim())) {
+      notify('Chaque colonne, layer et zone doit avoir un nom');
+      return;
+    }
+    const columnIds = new Set(layoutDraft.columns.map(x => x.id));
+    const layerIds = new Set(layoutDraft.layers.map(x => x.id));
+    const nextColumns = layoutDraft.columns.map((x, i) => ({ ...x, name: x.name.trim(), order: i }));
+    const nextLayers = layoutDraft.layers.map((x, i) => ({ ...x, name: x.name.trim(), order: i }));
+    const validZones = layoutDraft.zones.filter(zone => columnIds.has(zone.columnId) && layerIds.has(zone.layerId)).map(zone => ({ ...zone, name: zone.name.trim() }));
+    const zoneKeys = new Set(validZones.map(zone => `${zone.columnId}:${zone.layerId}`));
+    nextColumns.forEach(column => nextLayers.forEach(layer => {
+      if (!zoneKeys.has(`${column.id}:${layer.id}`)) validZones.push({ id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name });
+    }));
+    update({ layout: { ...layout, columns: nextColumns, layers: nextLayers, zones: validZones }, domains: model.domains.map((d, i) => ({ ...d, layout: { ...(d.layout || {}), columnId: columnIds.has(d.layout?.columnId) ? d.layout.columnId : nextColumns[i % nextColumns.length].id, layerId: layerIds.has(d.layout?.layerId) ? d.layout.layerId : nextLayers[0].id } })) });
+    setModal(null);
+    notify('Structure enregistrée');
+  };
+
   const openWizard = () => setModal('wizard');
   const closeWizard = () => setModal(null);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
@@ -91,13 +168,51 @@ function App() {
     const moving = model.domains.find(d => d.id === domainId);
     const targetColumn = columnId || moving?.layout?.columnId || columns[0].id;
     const targetLayer = layerId || moving?.layout?.layerId || layers[0].id;
-    if (moving && !placementAvailable(domainId, targetColumn, targetLayer, moving.layout?.columnSpan || 1)) { notify('Déplacement impossible : cette étendue chevaucherait un autre domaine ou dépasserait la matrice.'); return; }
+    if (moving && !placementAvailable(domainId, targetColumn, targetLayer, moving.layout?.columnSpan || 1)) {
+      notify('Déplacement impossible : chevauchement de domaine.');
+      return;
+    }
     update({ layout: { ...layout, mode: layoutMode, columns, layers }, domains: model.domains.map(d => d.id === domainId ? { ...d, layout: { ...(d.layout || {}), columnId: targetColumn, layerId: targetLayer } } : d) });
   };
 
-  const openNew = (kind, parent, place) => { setEditingDomainId(null); setEditingCapabilityId(null); setFormErrors({}); setForm({ ...emptyForm, domainId: parent || '', capabilityIds: parent ? [parent] : [], columnId: place?.columnId || columns[0].id, layerId: place?.layerId || layers[0].id, columnSpan: '1' }); setModal(kind); };
-  const openEditDomain = d => { setEditingDomainId(d.id); setEditingCapabilityId(null); setFormErrors({}); setForm({ ...emptyForm, name: d.name, code: d.code, description: d.description || '', columnId: d.layout?.columnId || columns[0].id, layerId: d.layout?.layerId || layers[0].id, columnSpan: String(d.layout?.columnSpan || 1) }); setModal('edit-domain'); };
-  const openEditCapability = c => { setEditingCapabilityId(c.id); setFormErrors({}); setForm({ ...emptyForm, name: c.name }); setModal('edit-capability'); };
+  const openNew = (kind, parent, place) => {
+    setEditingDomainId(null);
+    setEditingCapabilityId(null);
+    setFormErrors({});
+    const defaultDomain = parent || (model.domains[0]?.id || '');
+    setForm({
+      ...emptyForm,
+      domainId: defaultDomain,
+      capabilityIds: parent ? [parent] : [],
+      columnId: place?.columnId || columns[0].id,
+      layerId: place?.layerId || layers[0].id,
+      columnSpan: '1'
+    });
+    setModal(kind);
+  };
+
+  const openEditDomain = d => {
+    setEditingDomainId(d.id);
+    setEditingCapabilityId(null);
+    setFormErrors({});
+    setForm({
+      ...emptyForm,
+      name: d.name,
+      code: d.code,
+      description: d.description || '',
+      columnId: d.layout?.columnId || columns[0].id,
+      layerId: d.layout?.layerId || layers[0].id,
+      columnSpan: String(d.layout?.columnSpan || 1)
+    });
+    setModal('edit-domain');
+  };
+
+  const openEditCapability = c => {
+    setEditingCapabilityId(c.id);
+    setFormErrors({});
+    setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '' });
+    setModal('edit-capability');
+  };
 
   const save = () => {
     const errors = {};
@@ -105,14 +220,35 @@ function App() {
     if (modal !== 'edit-capability' && !form.code.trim()) errors.code = 'Le code est obligatoire.';
     if (modal === 'capability' && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
     if (modal === 'app' && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
-    if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue chevauche un autre domaine ou dépasse les colonnes disponibles.';
-    if (Object.keys(errors).length) { setFormErrors(errors); notify('Vérifiez les champs signalés.'); return; }
+    if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue chevauche un autre domaine.';
+
+    if (Object.keys(errors).length) {
+      setFormErrors(errors);
+      notify('Vérifiez les champs signalés.');
+      return;
+    }
+
     setFormErrors({});
-    if (modal === 'domain') update({ domains: [...model.domains, { id: uid('l0'), code: form.code || 'CAP', name: form.name, description: form.description, color: 'indigo', layout: { columnId: form.columnId || columns[0].id, layerId: form.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } }] });
-    if (modal === 'edit-domain') update({ domains: model.domains.map(d => d.id === editingDomainId ? { ...d, name: form.name.trim(), code: form.code.trim() || d.code, description: form.description, layout: { ...(d.layout || {}), columnId: form.columnId || d.layout?.columnId || columns[0].id, layerId: form.layerId || d.layout?.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } } : d) });
-    if (modal === 'edit-capability') update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim() } : c) });
-    if (modal === 'capability') update({ capabilities: [...model.capabilities, { id: uid('l1'), domainId: form.domainId, code: form.code || 'CAP-01', name: form.name, description: form.description }] });
-    if (modal === 'app') update({ applications: [...apps, { id: uid('app'), name: form.name, code: form.code || 'APP', type: form.type, status: form.status, vendor: form.vendor, capabilityIds: form.capabilityIds, description: form.description }] });
+    if (modal === 'domain') {
+      update({ domains: [...model.domains, { id: uid('l0'), code: form.code || 'CAP', name: form.name.trim(), description: form.description, color: 'indigo', layout: { columnId: form.columnId || columns[0].id, layerId: form.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } }] });
+      notify('Domaine N0 créé');
+    }
+    if (modal === 'edit-domain') {
+      update({ domains: model.domains.map(d => d.id === editingDomainId ? { ...d, name: form.name.trim(), code: form.code.trim() || d.code, description: form.description, layout: { ...(d.layout || {}), columnId: form.columnId || d.layout?.columnId || columns[0].id, layerId: form.layerId || d.layout?.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } } : d) });
+      notify('Domaine N0 modifié');
+    }
+    if (modal === 'edit-capability') {
+      update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim() } : c) });
+      notify('Capacité N1 modifiée');
+    }
+    if (modal === 'capability') {
+      update({ capabilities: [...model.capabilities, { id: uid('l1'), domainId: form.domainId, code: form.code || 'CAP-01', name: form.name.trim(), description: form.description }] });
+      notify('Capacité N1 créée');
+    }
+    if (modal === 'app') {
+      update({ applications: [...apps, { id: uid('app'), name: form.name.trim(), code: form.code || 'APP', type: form.type, status: form.status, vendor: form.vendor, capabilityIds: form.capabilityIds, description: form.description }] });
+      notify('Application créée');
+    }
     setModal(null);
   };
 
@@ -123,12 +259,24 @@ function App() {
     notify('Domaine et dépendances supprimés');
   };
 
+  const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const assign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: Array.from(new Set([...(a.capabilityIds || []), capId])) } : a) });
   const unassign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: (a.capabilityIds || []).filter(x => x !== capId) } : a) });
   const onDrop = (e, capId) => { e.preventDefault(); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
 
-  // Helper pour calculer la couverture d'une capacité N1
-  const getCapCoverageState = (capId) => {
+  const importJson = async e => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    try {
+      update(await importModel(f));
+      notify('Cartographie importée');
+    } catch (err) {
+      notify(err.message);
+    }
+    e.target.value = '';
+  };
+
+  const getCapCoverageState = capId => {
     const assignedApps = apps.filter(a => (a.capabilityIds || []).includes(capId));
     const count = assignedApps.length;
     if (count === 0) return { state: 'gap', label: 'Gap', symbol: '✕', count: 0, apps: assignedApps };
@@ -136,7 +284,6 @@ function App() {
     return { state: 'redundant', label: 'Redondance', symbol: '⇄', count, apps: assignedApps };
   };
 
-  // Composant Carte Domaine N0 (Rendu B - Poster & Heatmap)
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
     const domainClass = `domain domain-card domain-color-${d.code?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'default'}`;
@@ -156,9 +303,9 @@ function App() {
             <span className="domain-meta">{d.code} · {caps.length} N1</span>
           </div>
           <div className="domain-actions">
-            <button className="icon-action" title="Modifier" onClick={() => openEditDomain(d)}>✎</button>
-            {depth === 2 && <button className="icon-action" title="Ajouter N1" onClick={() => openNew('capability', d.id)}>＋</button>}
-            <button className="icon-action danger-text" title="Supprimer" onClick={() => removeDomain(d.id)}>×</button>
+            <button type="button" className="icon-action" title="Modifier le domaine N0" onClick={e => { e.stopPropagation(); openEditDomain(d); }}>✎</button>
+            {depth === 2 && <button type="button" className="icon-action" title="Ajouter une capacité N1" onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
+            <button type="button" className="icon-action danger-text" title="Supprimer le domaine" onClick={e => { e.stopPropagation(); removeDomain(d.id); }}>×</button>
           </div>
         </div>
 
@@ -167,7 +314,7 @@ function App() {
             {apps.filter(a => relationIds(a).includes(d.id)).map(a => (
               <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData("app", a.id)}>
                 <span>◈</span>{a.name}
-                <button onClick={() => unassign(a.id, d.id)}>×</button>
+                <button type="button" onClick={() => unassign(a.id, d.id)}>×</button>
               </div>
             ))}
             <div className="drop">Déposer une application ici</div>
@@ -195,21 +342,20 @@ function App() {
                     </div>
                   </div>
 
-                  {/* Panneau réductible de détail au clic et réceptacle Drag&Drop */}
                   {isExpanded && (
                     <div className="cap-tile-detail" onClick={e => e.stopPropagation()}>
                       <p className="cap-desc">{c.description || 'Aucune description'}</p>
                       <div className="cap-detail-actions">
-                        <button className="cap-edit-btn" onClick={() => openEditCapability(c)}>Renommer N1</button>
+                        <button type="button" className="cap-edit-btn" onClick={e => { e.stopPropagation(); openEditCapability(c); }}>✎ Renommer N1</button>
                       </div>
                       <div className="relations">
                         {coverage.apps.map(a => (
                           <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
                             <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
-                            <button onClick={() => unassign(a.id, c.id)}>×</button>
+                            <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>
                           </div>
                         ))}
-                        <div className="drop">Déposer une application ici pour l'associer</div>
+                        <div className="drop">Déposer une application ici</div>
                       </div>
                     </div>
                   )}
@@ -243,7 +389,7 @@ function App() {
               <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} style={{ gridColumn: span > 1 ? `span ${span}` : undefined }} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
                 {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
                 {here.map(d => <DomainCard d={d} key={d.id} />)}
-                <button className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>
+                <button type="button" className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>
               </div>
             );
           })}
@@ -258,13 +404,14 @@ function App() {
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
           <div className="toolbar-switch">
-            <button className={mode === 'editor' ? 'active' : ''} onClick={() => setMode('editor')}>▦ Cartographie</button>
-            <button className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
+            <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => setMode('editor')}>▦ Cartographie</button>
+            <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
           </div>
           <div className="toolbar-actions">
-            <button className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
-            <button className="secondary" onClick={openWizard}>＋ Nouvelle cartographie</button>
-            <button className="secondary" onClick={() => exportModel(model)}>↓ Export</button>
+            <button type="button" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
+            <button type="button" className="secondary" onClick={openWizard}>＋ Nouvelle cartographie</button>
+            <button type="button" className="secondary" onClick={() => exportModel(model)}>↓ Export</button>
+            <label className="button secondary">↑ Import<input hidden type="file" accept=".json,application/json" onChange={importJson} /></label>
           </div>
         </div>
       </header>
@@ -273,7 +420,7 @@ function App() {
         <aside id="app-inventory">
           <div className="panel-title">
             <span>Inventaire SI <em>{apps.length}</em></span>
-            <button className="side-add" onClick={() => openNew('app')}>＋ Application</button>
+            <button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button>
           </div>
           <input className="search" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} />
           <div className="hint">Glissez une application vers une tuile N1 pour créer une relation.</div>
@@ -286,31 +433,108 @@ function App() {
         </aside>
 
         <main>
-          {mode === 'editor' && (
+          {mode === 'impact' ? (
+            <section className="impact">
+              <div className="hero">
+                <div>
+                  <div className="eyebrow">SIMULATION D'IMPACT</div>
+                  <h2>Projet / fonctionnalité</h2>
+                  <p>Sélectionnez les capacités métier sollicitées : on cherche « ce que l’entreprise doit savoir faire », pas une liste d’applications ou de processus.</p>
+                </div>
+                <div className="metric">
+                  <strong>{selected.length}</strong>
+                  <span>{relationLabel}s</span>
+                </div>
+                <div className="metric">
+                  <strong>{touched.length}</strong>
+                  <span>applications</span>
+                </div>
+                <div className="metric danger">
+                  <strong>{gaps.length}</strong>
+                  <span>gaps</span>
+                </div>
+              </div>
+
+              <div className="impact-grid">
+                <div className="impact-card">
+                  <h3>Éléments sollicités</h3>
+                  <p className="context-help">N0 : grand domaine métier. N1 : capacité détaillée et relativement stable.</p>
+                  {mappedItems.map(c => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={'cap-select ' + (selected.includes(c.id) ? 'selected' : '')}
+                      onClick={() => toggleCap(c.id)}
+                    >
+                      {selected.includes(c.id) ? '✓' : '○'} {c.code} — {c.name}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="impact-card">
+                  <h3>Applications impactées</h3>
+                  {touched.length ? (
+                    touched.map(a => (
+                      <div className="result-row" key={a.id}>
+                        <b>{a.name}</b>
+                        <span>{a.status}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="empty">Aucune application impactée.</p>
+                  )}
+
+                  {gaps.length > 0 && (
+                    <div className="gap-box">
+                      <b>⚠ {gaps.length} gap(s) de couverture</b>
+                      {gaps.map(c => (
+                        <div key={c.id}>{c.code} — {c.name}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          ) : (
             <>
               <div className="canvas-head">
-                <button className="secondary inventory-toggle inventory-toggle-rail" onClick={() => setInventoryCollapsed(v => !v)} aria-label="Afficher/Masquer inventaire">
+                <button
+                  type="button"
+                  className="secondary inventory-toggle inventory-toggle-rail"
+                  onClick={() => setInventoryCollapsed(v => !v)}
+                  aria-label="Afficher/Masquer inventaire"
+                >
                   <span className="menu-glyph"></span>
                 </button>
                 <div className="canvas-title">
                   <div className="eyebrow">CAPABILITY MAP · V3</div>
                   <h2>Cartographie des capacités</h2>
                 </div>
-                
-                {/* Bascule de mode de vue Maquette B */}
+
                 <div className="map-view-toggle">
-                  <button className={mapViewMode === 'domain' ? 'active' : ''} onClick={() => setMapViewMode('domain')}>Par domaine</button>
-                  <button className={mapViewMode === 'coverage' ? 'active' : ''} onClick={() => setMapViewMode('coverage')}>Par couverture</button>
+                  <button
+                    type="button"
+                    className={mapViewMode === 'domain' ? 'active' : ''}
+                    onClick={() => setMapViewMode('domain')}
+                  >
+                    Par domaine
+                  </button>
+                  <button
+                    type="button"
+                    className={mapViewMode === 'coverage' ? 'active' : ''}
+                    onClick={() => setMapViewMode('coverage')}
+                  >
+                    Par couverture
+                  </button>
                 </div>
 
                 <div className="canvas-actions">
-                  <button className="primary" onClick={() => openNew('domain')}>＋ Domaine N0</button>
-                  <button className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
-                  <button className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
+                  <button type="button" className="primary" onClick={() => openNew('domain')}>＋ Domaine N0</button>
+                  <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
+                  <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
               </div>
 
-              {/* Légende en mode couverture */}
               {mapViewMode === 'coverage' && (
                 <div className="coverage-legend">
                   <span className="legend-item legend-ok"><span className="cov-symbol">✓</span> Couvert (1 app)</span>
@@ -328,6 +552,124 @@ function App() {
       {status && <div className="toast">{status}</div>}
       {modal === 'wizard' && <NewMapWizard model={model} onCancel={closeWizard} onCreate={createMap} />}
       {guideOpen && <TogafGuide onClose={() => setGuideOpen(false)} />}
+
+      {modal === 'layout' && layoutDraft && (
+        <Modal title="Personnaliser la structure" onClose={() => setModal(null)}>
+          <p className="structure-hint">Renommez les colonnes et les layers.</p>
+          {[['columns', 'Colonnes'], ['layers', 'Layers']].map(([kind, title]) => (
+            <section className="structure-section" key={kind}>
+              <h3>{title}</h3>
+              {layoutDraft[kind].map((item, index) => (
+                <div className="structure-row" key={item.id}>
+                  <label className="field">
+                    <span>{title.slice(0, -1)} {index + 1}</span>
+                    <input value={item.name} onChange={e => updateLayoutDraft(kind, item.id, e.target.value)} />
+                  </label>
+                  <button type="button" className="structure-remove" disabled={layoutDraft[kind].length === 1} onClick={() => removeLayoutItem(kind, item.id)}>Supprimer</button>
+                </div>
+              ))}
+              <button type="button" className="structure-add" onClick={() => addLayoutItem(kind)}>＋ Ajouter {kind === 'columns' ? 'une colonne' : 'un layer'}</button>
+            </section>
+          ))}
+          <section className="structure-section zone-editor">
+            <h3>Zones de la matrice</h3>
+            {layoutDraft.zones.map(zone => {
+              const column = layoutDraft.columns.find(x => x.id === zone.columnId);
+              const layer = layoutDraft.layers.find(x => x.id === zone.layerId);
+              return (
+                <label className="field zone-row" key={`${zone.columnId}:${zone.layerId}`}>
+                  <span>{column?.name} · {layer?.name}</span>
+                  <input value={zone.name} onChange={e => updateZoneDraft(zone.columnId, zone.layerId, e.target.value)} />
+                </label>
+              );
+            })}
+          </section>
+          <div className="modal-actions">
+            <button type="button" onClick={() => setModal(null)}>Annuler</button>
+            <button type="button" className="primary" onClick={saveLayout}>Enregistrer</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal && modal !== 'layout' && modal !== 'wizard' && (
+        <Modal
+          title={modal === 'edit-capability' ? 'Renommer la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
+          onClose={() => setModal(null)}
+        >
+          {(modal === 'domain' || modal === 'edit-domain') && <div className="field-guidance"><b>N0 — Domaine métier</b><span>Regroupe un ensemble large de capacités.</span></div>}
+          {(modal === 'capability' || modal === 'edit-capability') && <div className="field-guidance"><b>N1 — Capacité</b><span>Décrit ce que l’entreprise sait faire.</span></div>}
+
+          <Field label="Nom" required error={formErrors.name} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+
+          {modal !== 'edit-capability' && (
+            <>
+              <Field label="Code" required error={formErrors.code} value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} />
+              {modal === 'capability' && (
+                <label className={'field ' + (formErrors.domainId ? 'has-error' : '')}>
+                  <span>Domaine <b className="required" aria-hidden="true">*</b></span>
+                  <select value={form.domainId} onChange={e => setForm({ ...form, domainId: e.target.value })}>
+                    {model.domains.map(d => <option value={d.id} key={d.id}>{d.code} — {d.name}</option>)}
+                  </select>
+                  {formErrors.domainId && <small className="field-error">{formErrors.domainId}</small>}
+                </label>
+              )}
+              {(modal === 'domain' || modal === 'edit-domain') && (
+                <>
+                  <label className="field">
+                    <span>Colonne</span>
+                    <select value={form.columnId} onChange={e => setForm({ ...form, columnId: e.target.value })}>
+                      {columns.map(c => <option value={c.id} key={c.id}>{c.name}</option>)}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>Ligne (layer)</span>
+                    <select value={form.layerId} onChange={e => setForm({ ...form, layerId: e.target.value })}>
+                      {layers.map(l => <option value={l.id} key={l.id}>{l.name}</option>)}
+                    </select>
+                  </label>
+                  <label className={'field ' + (formErrors.columnSpan ? 'has-error' : '')}>
+                    <span>Étendue sur les colonnes</span>
+                    <select value={form.columnSpan} onChange={e => setForm({ ...form, columnSpan: e.target.value })}>
+                      {columns.slice(Math.max(0, columns.findIndex(c => c.id === form.columnId))).map((c, i) => (
+                        <option key={c.id} value={i + 1}>{i + 1} colonne{i ? 's' : ''}</option>
+                      ))}
+                    </select>
+                    {formErrors.columnSpan && <small className="field-error">{formErrors.columnSpan}</small>}
+                  </label>
+                </>
+              )}
+              {modal === 'app' && (
+                <>
+                  <Field label="Éditeur / fournisseur" required error={formErrors.vendor} value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} />
+                  <label className="field">
+                    <span>Statut</span>
+                    <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+                      <option>Actif</option>
+                      <option>Cible</option>
+                      <option>Obsolète</option>
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>Type</span>
+                    <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
+                      <option>SaaS</option>
+                      <option>ERP</option>
+                      <option>On-Premise</option>
+                      <option>Shadow IT</option>
+                    </select>
+                  </label>
+                </>
+              )}
+              <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+            </>
+          )}
+
+          <div className="modal-actions">
+            <button type="button" onClick={() => setModal(null)}>Annuler</button>
+            <button type="button" className="primary" onClick={save}>{modal === 'edit-domain' || modal === 'edit-capability' ? 'Enregistrer' : 'Créer'}</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
