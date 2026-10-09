@@ -73,3 +73,9 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 .inline-guidance b{color:#334155}.context-help{margin:0 0 10px;padding:8px 10px;background:#f8fafc;border-radius:7px;color:#64748b;font-size:10px;line-height:1.45}
 .field-guidance{margin:-3px 0 12px;padding:10px 11px;border:1px solid #dbe4f0;border-radius:8px;background:#f8fafc;font-size:10px;line-height:1.5;color:#64748b}.field-guidance b{display:block;color:#3730a3;margin-bottom:3px}
 .togaf-guide{width:min(720px,calc(100vw - 30px))}.togaf-guide section{padding:13px 0;border-top:1px solid #e7ebf1}.togaf-guide section h3{font-size:13px;margin-bottom:5px}.togaf-guide section p,.togaf-guide li{font-size:11px;line-height:1.55;color:#475569}.togaf-guide ul{margin:6px 0 0;padding-left:18px}.guide-intro{padding:11px 12px;border-radius:9px;background:#eef2ff;color:#3730a3;font-size:11px;line-height:1.55;margin-bottom:4px}.do-dont{padding:9px 10px;background:#f8fafc;border-radius:7px}.do-dont span{font-weight:800}.togaf-guide em{color:#334155}
+
+
+/* Capability-map spans: a domain may occupy adjacent columns on the same layer. */
+.map-row .map-cell[style*="grid-column: span"]{min-width:0;background:#fff;border-style:solid;border-color:#a5b4fc;box-shadow:inset 3px 0 #6366f1;}
+.map-row .map-cell[style*="grid-column: span"]>.domain{width:100%;}
+.field-help{display:block;margin-top:5px;color:#64748b;font-size:10px;line-height:1.45;}
