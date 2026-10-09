@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
 import { exportModel, importModel, loadModel, saveModel } from './services/storage.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
@@ -7,6 +7,20 @@ import TogafGuide from './components/TogafGuide.jsx';
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
+const DOMAIN_COLOR_PALETTE = [
+  { name: 'Indigo', value: '#5b46be' },
+  { name: 'Bleu', value: '#2563eb' },
+  { name: 'Turquoise', value: '#0e7490' },
+  { name: 'Émeraude', value: '#0d6e53' },
+  { name: 'Vert', value: '#15803d' },
+  { name: 'Olive', value: '#4d7c0f' },
+  { name: 'Ambre', value: '#a16207' },
+  { name: 'Orange', value: '#c2410c' },
+  { name: 'Rouge', value: '#b91c1c' },
+  { name: 'Rose', value: '#be185d' },
+  { name: 'Prune', value: '#7e22ce' },
+  { name: 'Ardoise', value: '#475569' }
+];
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
 const domainTextColor = color => {
   const hex = resolveDomainColor(color).slice(1);
@@ -43,6 +57,10 @@ function Field({ label, required = false, error, ...p }) {
 
 function App() {
   const [model, setModel] = useState(() => loadModel(DEMO_MODEL));
+  const modelRef = useRef(model);
+  const undoStack = useRef([]);
+  const redoStack = useRef([]);
+  const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor' ou 'impact'
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
@@ -76,7 +94,55 @@ function App() {
   const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
-  const update = patch => setModel(m => ({ ...m, ...patch }));
+  const refreshHistoryState = () => setHistoryState({ canUndo: undoStack.current.length > 0, canRedo: redoStack.current.length > 0 });
+  const commitModel = nextModel => {
+    const currentModel = modelRef.current;
+    if (nextModel === currentModel) return;
+    undoStack.current = [...undoStack.current.slice(-49), currentModel];
+    redoStack.current = [];
+    modelRef.current = nextModel;
+    setModel(nextModel);
+    refreshHistoryState();
+  };
+  const replaceModel = nextModel => commitModel(nextModel);
+  const update = patch => commitModel({ ...modelRef.current, ...patch });
+  const undo = () => {
+    if (!undoStack.current.length) return;
+    redoStack.current.push(modelRef.current);
+    modelRef.current = undoStack.current.pop();
+    setModel(modelRef.current);
+    refreshHistoryState();
+  };
+  const redo = () => {
+    if (!redoStack.current.length) return;
+    undoStack.current = [...undoStack.current.slice(-49), modelRef.current];
+    modelRef.current = redoStack.current.pop();
+    setModel(modelRef.current);
+    refreshHistoryState();
+  };
+
+  useEffect(() => {
+    const handleKeyDown = event => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || modal) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+
+      const key = event.key.toLowerCase();
+      if (key === 'z' && event.shiftKey && historyState.canRedo) {
+        event.preventDefault();
+        redo();
+      } else if (key === 'z' && !event.shiftKey && historyState.canUndo) {
+        event.preventDefault();
+        undo();
+      } else if (key === 'y' && !event.shiftKey && historyState.canRedo) {
+        event.preventDefault();
+        redo();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [historyState, modal]);
   const openContextMenu = (event, menu) => {
     event.preventDefault();
     event.stopPropagation();
@@ -174,7 +240,7 @@ function App() {
   const closeWizard = () => setModal(null);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
     if (backup) exportModel(model);
-    setModel(m => ({ ...m, metadata: { ...m.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] }));
+    replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
     setSelected([]);
     setLayoutMode('matrix');
     setMode('editor');
@@ -306,7 +372,7 @@ function App() {
     const f = e.target.files?.[0];
     if (!f) return;
     try {
-      update(await importModel(f));
+      replaceModel(await importModel(f));
       notify('Cartographie importée');
     } catch (err) {
       notify(err.message);
@@ -452,6 +518,8 @@ function App() {
             <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
           </div>
           <div className="toolbar-actions">
+            <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶ Annuler</button>
+            <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷ Rétablir</button>
             <button type="button" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
             <button type="button" className="secondary" onClick={openWizard}>＋ Nouvelle cartographie</button>
             <button type="button" className="secondary" onClick={() => exportModel(model)}>↓ Export</button>
@@ -715,6 +783,22 @@ function App() {
           {(modal === 'domain' || modal === 'edit-domain') && (
             <label className={'field domain-color-field ' + (formErrors.color ? 'has-error' : '')}>
               <span>Couleur du domaine N0</span>
+              <span className="domain-color-palette" role="group" aria-label="Couleurs prédéfinies">
+                {DOMAIN_COLOR_PALETTE.map(color => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    className="domain-color-swatch"
+                    data-testid="domain-color-option"
+                    data-color={color.value}
+                    aria-label={color.name}
+                    aria-pressed={resolveDomainColor(form.color) === color.value}
+                    title={color.name}
+                    style={{ '--swatch-color': color.value }}
+                    onClick={() => setForm({ ...form, color: color.value })}
+                  />
+                ))}
+              </span>
               <span className="domain-color-control">
                 <input
                   type="color"
