@@ -24,6 +24,14 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 3. Dans la matrice, utilisez **Ajouter un domaine ici** dans la cellule souhaitée pour créer un domaine N0 à cet emplacement.
 4. Renseignez les champs obligatoires signalés dans le formulaire, puis enregistrez. Pour modifier un domaine par la suite, utilisez son action **Modifier**.
 
+### Naviguer dans la cartographie et l'inventaire
+
+- Le bouton à trois traits situé à gauche du titre **Cartographie des capacités** permet d'afficher ou de masquer l'inventaire des applications.
+- Dans l'inventaire, recherchez une application avec le champ de recherche. Faites glisser une application vers un élément de la cartographie pour créer une relation entre cette application et la capacité concernée.
+- Les actions **Domaine N0** et **Structure** servent respectivement à ajouter un domaine et à modifier l'organisation de la cartographie.
+- Le menu **Configuration** permet de choisir le thème visuel et la densité d'affichage, ainsi que de filtrer les domaines par nom ou code.
+- Le sélecteur **Vue** propose plusieurs représentations de la cartographie : libre, colonnes, layers ou colonnes + layers.
+
 ### Faire couvrir plusieurs colonnes à un domaine N0
 
 Cette fonction sert à représenter visuellement un domaine transverse qui concerne plusieurs colonnes adjacentes de la cartographie. Elle modifie la présentation et le positionnement du **domaine N0** ; elle ne fusionne pas les capacités N1 ni les applications associées.
