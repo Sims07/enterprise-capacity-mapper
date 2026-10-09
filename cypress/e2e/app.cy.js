@@ -43,25 +43,32 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
-  it('conserve le style et la lisibilité du bouton Nouvelle cartographie dans la barre compacte', () => {
+  it('affiche un assistant Nouvelle cartographie stylé et adapté au mobile', () => {
     cy.visit('/');
-    [1280, 1000, 700, 390].forEach(width => {
-      cy.viewport(width, 740);
-      cy.get('[data-testid="new-map-button"]')
+      cy.viewport(1280, 800);
+      cy.get('[data-testid="new-map-button"]').click();
+      cy.get('.modal.wizard')
         .should('be.visible')
-        .and('have.css', 'white-space', 'nowrap')
-        .and('have.css', 'border-radius', '8px')
-        .and('have.css', 'background-color', 'rgb(238, 242, 255)')
-        .within(() => {
-          cy.get('.new-map-button-mark').should('be.visible');
-        })
-        .then(button => {
-          const rect = button[0].getBoundingClientRect();
-          expect(button[0].scrollWidth).to.be.at.most(button[0].clientWidth);
-          expect(rect.left).to.be.at.least(0);
-          expect(rect.right).to.be.at.most(width);
-        });
+        .and('have.css', 'border-radius', '16px')
+        .and('have.css', 'width', '920px');
+      cy.get('.wizard-steps li.current').should('have.attr', 'aria-current', 'step');
+      cy.get('[data-testid="template-matrix"]')
+        .should('have.attr', 'aria-pressed', 'true')
+        .and('have.css', 'background-color', 'rgb(245, 245, 255)');
+      cy.contains('button', 'Suivant').click();
+      cy.get('.axis-editor').should('have.length', 2).and('have.css', 'border-radius', '11px');
+      cy.get('[data-testid="wizard-preview"]').should('be.visible');
+
+      cy.viewport(390, 740);
+      cy.get('.modal.wizard').should('be.visible').then(modal => {
+        const rect = modal[0].getBoundingClientRect();
+        expect(rect.left).to.be.at.least(0);
+        expect(rect.right).to.be.at.most(390);
       });
+      cy.get('.wizard-structure').should('have.css', 'grid-template-columns').then(columns => {
+        expect(columns).to.match(/^\d+(?:\.\d+)?px$/);
+      });
+      cy.get('.wizard .wizard-footer').should('be.visible');
   });
 
   it('ferme le menu contextuel quand on clique hors du menu', () => {
