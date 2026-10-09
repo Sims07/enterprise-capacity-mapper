@@ -103,8 +103,16 @@ function App(){
    const start=columns.findIndex(c=>c.id===columnId);
    const span=Number(columnSpan)||1;
    if(start<0||span<1||start+span>columns.length)return false;
-   const occupied=new Set(columns.slice(start,start+span).map(c=>c.id));
-   return !model.domains.some(d=>d.id!==domainId&&(d.layout?.layerId||layers[0].id)===layerId&&columns.slice(start,start+span).some(c=>{const otherStart=columns.findIndex(x=>x.id===(d.layout?.columnId||columns[0].id));return otherStart>=0&&columns.slice(otherStart,otherStart+Math.max(1,Number(d.layout?.columnSpan)||1)).some(o=>o.id===c.id)}));
+   return !model.domains.some(d=>{
+     if(d.id===domainId||(d.layout?.layerId||layers[0].id)!==layerId)return false;
+     const otherStart=columns.findIndex(c=>c.id===(d.layout?.columnId||columns[0].id));
+     const otherSpan=Math.max(1,Number(d.layout?.columnSpan)||1);
+     if(otherStart<0)return false;
+     // Plusieurs domaines peuvent être empilés dans la même cellule si leur étendue est identique.
+     if(otherStart===start&&otherSpan===span)return false;
+     // Les étendues qui se croisent sur des colonnes différentes restent interdites.
+     return start<otherStart+otherSpan&&otherStart<start+span;
+   });
  };
  const placeDomain=(domainId,columnId,layerId)=>{
    if(!domainId)return;

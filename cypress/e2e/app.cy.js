@@ -245,4 +245,30 @@ describe('Application smoke test', () => {
     cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
   });
 
+
+  it('permet d’ajouter plusieurs domaines N0 dans la même cellule', () => {
+    openWizard();
+    cy.get('[data-testid="wizard-name"]').clear().type('Plusieurs domaines dans une cellule');
+    cy.contains('button', 'Suivant').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-backup"]').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+
+    const firstCell = '.map-row:not(.map-head) .map-cell';
+    cy.get(firstCell).first().find('.cell-add').click();
+    cy.get('.modal .field input').eq(0).type('Domaine N0 A');
+    cy.get('.modal .field input').eq(1).type('N0-A');
+    cy.contains('.modal button', 'Créer').click();
+    cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 A').should('be.visible');
+
+    cy.get(firstCell).first().find('.cell-add').click();
+    cy.get('.modal .field input').eq(0).type('Domaine N0 B');
+    cy.get('.modal .field input').eq(1).type('N0-B');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 A').should('be.visible');
+    cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 B').should('be.visible');
+    cy.get('.stats').should('contain.text', '2 N0');
+  });
+
 });
