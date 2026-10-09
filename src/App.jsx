@@ -186,10 +186,10 @@ function App(){
    })}
  </div>)}</div>;
 
+ const visibleDomains=model.domains.filter(d=>(d.name+' '+d.code+' '+(d.description||'')).toLowerCase().includes(mapQuery.toLowerCase()));
  const domainsView=<div className="domains">{visibleDomains.map(d=><div key={d.id} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const id=e.dataTransfer.getData('domain');if(id&&id!==d.id){const target=d.layout||{};placeDomain(id,target.columnId,target.layerId)}}}><DomainCard d={d}/></div>)}</div>;
  const columnsView=<div className="layout-strip" style={{gridTemplateColumns:`repeat(${columns.length}, minmax(0, 1fr))`}}>{columns.map(col=><div className="layout-group" key={col.id}><div className="layout-group-title">{col.name}</div>{model.domains.filter(d=>(d.layout?.columnId||columns[0].id)===col.id&&(d.name+' '+d.code+' '+(d.description||'')).toLowerCase().includes(mapQuery.toLowerCase())).map(d=><div className="layout-chip" draggable key={d.id} onDragStart={e=>e.dataTransfer.setData('domain',d.id)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();placeDomain(e.dataTransfer.getData('domain'),col.id,d.layout?.layerId)}}>{d.code} · {d.name}</div>)}</div>)}</div>;
  const layersView=<div className="layout-strip layers-strip" style={{gridTemplateColumns:`repeat(${layers.length}, minmax(0, 1fr))`}}>{layers.map(layer=><div className="layout-group" key={layer.id}><div className="layout-group-title">{layer.name}</div>{model.domains.filter(d=>(d.layout?.layerId||layers[0].id)===layer.id&&(d.name+' '+d.code+' '+(d.description||'')).toLowerCase().includes(mapQuery.toLowerCase())).map(d=><div className="layout-chip" key={d.id}>{d.code} · {d.name}</div>)}</div>)}</div>;
- const visibleDomains=model.domains.filter(d=>(d.name+' '+d.code+' '+(d.description||'')).toLowerCase().includes(mapQuery.toLowerCase()));
  const editorMap=layoutMode==='matrix'?matrixView:domainsView;
 
  return <div className={'app theme-'+visualPrefs.theme+' density-'+visualPrefs.density+(presentation?' presentation-mode':'')}>
