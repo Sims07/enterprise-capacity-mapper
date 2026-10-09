@@ -254,3 +254,17 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
  .visual-settings[open]>.visual-toolbar{right:-2px}
  .map{min-height:calc(100vh - 250px)!important}
 }
+
+
+/* Barre d’actions ordonnée : navigation à gauche, actions métier à droite. */
+.canvas-head{display:flex;align-items:center;gap:10px!important}
+.inventory-toggle-rail{flex:0 0 30px!important;width:30px;height:30px;min-width:30px;padding:0!important;display:grid;place-items:center;font-size:16px!important;line-height:1}
+.canvas-title{flex:1;min-width:150px}
+.canvas-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:6px!important}
+.canvas-actions>.primary{order:1}
+.canvas-actions>button.secondary:not(.help-icon){order:2}
+.canvas-actions>.visual-settings{order:3}
+.canvas-actions>.help-icon{order:4;margin-left:2px}
+.canvas-actions .help-icon{flex:0 0 28px;width:28px;height:28px}
+@media(max-width:1100px){.canvas-head{flex-direction:row!important;align-items:center!important}.canvas-title{flex:1}.canvas-actions{width:auto!important;flex-wrap:wrap;justify-content:flex-end!important;margin-left:0!important}}
+@media(max-width:700px){.canvas-head{flex-wrap:wrap;align-items:center!important}.canvas-title{flex:1;min-width:calc(100% - 44px)}.inventory-toggle-rail{order:0}.canvas-actions{width:100%!important;justify-content:flex-start!important;margin-left:40px!important}.canvas-actions button{flex:0 0 auto!important}.canvas-actions .primary{flex:0 0 auto!important}}
