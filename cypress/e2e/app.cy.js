@@ -126,7 +126,7 @@ describe('Application smoke test', () => {
     cy.get('.map-row:not(.map-head)').eq(0).contains('.domain h3', 'Domaine personnalisé').should('be.visible');
 
     // Ajout depuis la cellule de la seconde ligne
-    cy.get('.map-row:not(.map-head)').eq(1).find('.cell-add').click();
+    cy.get('.map-row:not(.map-head)').eq(1).find('.cell-add').first().click();
     cy.get('.modal .field input').eq(0).type('Domaine ligne 2');
     cy.get('.modal .field input').eq(1).type('CUSTOM-2');
     cy.contains('.modal button', 'Créer').click();
