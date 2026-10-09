@@ -69,3 +69,13 @@ Recommandation : rendre la portée configurable par élément de cartographie pl
 ## Périmètre de cet audit
 
 Ce document formalise le constat et le comportement cible. Il ne prétend pas que la fonctionnalité multi-colonnes est déjà implémentée : celle-ci nécessite une évolution du modèle de données, du rendu de la matrice, des interactions et des tests E2E.
+
+## Suivi de mise en œuvre — PR #12
+
+La PR dédiée `feat/multi-column-capabilities` met en œuvre une première version du comportement cible, avec un périmètre volontairement limité :
+
+- **Livré dans le code de la PR #12** : étendue configurable des domaines N0 via `layout.columnSpan` ; rendu du domaine sur plusieurs colonnes adjacentes ; refus des chevauchements et des portées qui dépassent la matrice ; valeur par défaut de 1 pour les données existantes.
+- **Non couvert à ce stade** : étendue indépendante des capacités N1 ; représentation par liste d'identifiants de colonnes ; vérifications E2E dédiées à l'export/import JSON et aux changements de structure (suppression ou réordonnancement de colonnes).
+- **Validation** : les tests E2E de la PR ont révélé deux attentes de test à corriger. La correction est poussée dans la PR #12 ; le succès de la nouvelle exécution CI doit être confirmé avant de considérer la fonctionnalité comme validée.
+
+L'audit décrit donc le besoin et les critères généraux ; la PR #12 fournit une première implémentation partielle et explicite, sans prétendre couvrir tous les cas de robustesse listés ci-dessus.
