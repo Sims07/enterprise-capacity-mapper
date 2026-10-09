@@ -274,6 +274,8 @@ describe('Application smoke test', () => {
 
   it('personnalise la présentation de la cartographie sans modifier le modèle métier', () => {
     cy.visit('/');
+    cy.get('.canvas-head .visual-toolbar').should('not.exist');
+    cy.get('.visual-toolbar').should('be.visible');
     cy.get('[data-testid="visual-theme"]').select('executive');
     cy.get('[data-testid="visual-density"]').select('compact');
     cy.get('.app').should('have.class', 'theme-executive').and('have.class', 'density-compact');
