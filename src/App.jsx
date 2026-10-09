@@ -598,7 +598,10 @@ function App() {
             <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶ Annuler</button>
             <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷ Rétablir</button>
             <button type="button" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
-            <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>Nouvelle cartographie</button>
+            <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>
+              <span className="new-map-button-mark" aria-hidden="true">+</span>
+              <span>Nouvelle cartographie</span>
+            </button>
             <button type="button" className="secondary" data-testid="open-local-maps" onClick={openLocalMaps}>▤ Mes cartographies</button>
             <button type="button" className="primary" data-testid="save-local-map" onClick={saveCurrentLocalMap}>Enregistrer</button>
             <button type="button" className="secondary" onClick={() => exportModel(model)}>↓ Export</button>

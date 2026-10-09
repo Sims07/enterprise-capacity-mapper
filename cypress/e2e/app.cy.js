@@ -44,16 +44,24 @@ describe('Application smoke test', () => {
   });
 
   it('conserve le style et la lisibilité du bouton Nouvelle cartographie dans la barre compacte', () => {
-    cy.viewport(1000, 660);
     cy.visit('/');
-    cy.get('[data-testid="new-map-button"]')
-      .should('be.visible')
-      .and('have.css', 'white-space', 'nowrap')
-      .and('have.css', 'border-radius', '8px')
-      .then(button => {
-        expect(button[0].scrollWidth).to.be.at.most(button[0].clientWidth);
+    [1280, 1000, 700, 390].forEach(width => {
+      cy.viewport(width, 740);
+      cy.get('[data-testid="new-map-button"]')
+        .should('be.visible')
+        .and('have.css', 'white-space', 'nowrap')
+        .and('have.css', 'border-radius', '8px')
+        .and('have.css', 'background-color', 'rgb(238, 242, 255)')
+        .within(() => {
+          cy.get('.new-map-button-mark').should('be.visible');
+        })
+        .then(button => {
+          const rect = button[0].getBoundingClientRect();
+          expect(button[0].scrollWidth).to.be.at.most(button[0].clientWidth);
+          expect(rect.left).to.be.at.least(0);
+          expect(rect.right).to.be.at.most(width);
+        });
       });
-    cy.viewport(1280, 720);
   });
 
   it('ferme le menu contextuel quand on clique hors du menu', () => {
