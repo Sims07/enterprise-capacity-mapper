@@ -215,4 +215,31 @@ describe('Application smoke test', () => {
       });
     });
   });
+
+  it('permet à un domaine de couvrir deux colonnes adjacentes et conserve cette étendue', () => {
+    openWizard();
+    cy.get('[data-testid="template-blank"]').click();
+    cy.get('[data-testid="wizard-name"]').clear().type('Cartographie multi-colonnes');
+    cy.contains('button', 'Suivant').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-backup"]').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+
+    cy.get('.map-cell').first().click();
+    cy.get('.map-cell').first().find('.cell-add').click();
+    cy.get('.modal .field input').eq(0).type('Capacité transverse');
+    cy.get('.modal .field input').eq(1).type('TRANSVERSE');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.contains('.domain', 'Capacité transverse').find('button').contains('Modifier').click();
+    cy.get('.modal select').eq(2).select('2');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
+    cy.get('.map-cell[data-zone-key="operations:strategic"]').should('not.exist');
+    cy.reload();
+    cy.contains('.domain', 'Capacité transverse').should('be.visible');
+    cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
+  });
+
 });
