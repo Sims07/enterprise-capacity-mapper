@@ -1,7 +1,8 @@
 describe('Application smoke test', () => {
   const assertApplicationLoaded = () => {
     cy.contains('Capacity Mapper').should('be.visible');
-    cy.contains('Cartographie des capacités').should('be.visible');
+    cy.get('.map-filter-bar').should('be.visible');
+    cy.get('.map').should('be.visible');
     cy.get('#root').should('not.be.empty');
     cy.get('#root').should('not.contain.text', 'Cannot read properties');
     cy.document().its('readyState').should('eq', 'complete');
@@ -42,16 +43,27 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
+  it('ferme le menu contextuel quand on clique hors du menu', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.contains('.domain', 'Relation & Engagement Client').rightclick();
+    cy.get('.context-menu').should('be.visible');
+    cy.get('body').click(10, 10);
+    cy.get('.context-menu').should('not.exist');
+  });
+
   it('renomme une capacité N1 sans perdre ses applications associées', () => {
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
 
-    cy.get('.stats').should('contain.text', '10 N1');
-    cy.contains('.domain', 'Relation & Engagement Client').contains('button', '＋ N1').should('be.visible');
+    cy.get('.cap').should('have.length', 10);
     cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
       cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').should('be.visible').click();
     });
+    cy.get('.context-menu').contains('button', 'Renommer').click();
     cy.get('.modal h2').should('contain.text', 'Renommer la capacité N1');
     cy.get('.modal .field input').clear().type('Qualification des prospects');
     cy.contains('.modal button', 'Enregistrer').click();
@@ -78,7 +90,8 @@ describe('Application smoke test', () => {
     cy.contains('button', 'Suivant').click();
     cy.get('[data-testid="wizard-create"]').click();
 
-    cy.get('.stats').should('contain.text', '0 N0').and('not.contain.text', 'N1');
+    cy.get('.domain-card').should('not.exist');
+    cy.get('.cap').should('not.exist');
     cy.get('.cell-add').first().click();
     cy.get('.modal .field input').eq(0).type('Domaine niveau 1');
     cy.get('.modal .field input').eq(1).type('N0-01');
@@ -112,7 +125,7 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="wizard-backup"]').should('be.checked').uncheck();
     cy.get('[data-testid="wizard-create"]').click();
 
-    cy.get('.stats').should('contain.text', '0 N0');
+    cy.get('.domain-card').should('not.exist');
     cy.get('.axis-label').should('contain.text', 'Stratégique').and('contain.text', 'Opérationnel');
     cy.get('.map-head').should('contain.text', 'Métier');
     cy.get('.cell-label').should('not.exist');
@@ -133,7 +146,8 @@ describe('Application smoke test', () => {
     cy.get('.map-row:not(.map-head)').eq(1).contains('.domain h3', 'Domaine ligne 2').should('be.visible');
 
     // Déplacement sans glisser-déposer, via les sélecteurs de la modale
-    cy.contains('.domain', 'Domaine ligne 2').contains('button', 'Modifier').click();
+    cy.contains('.domain', 'Domaine ligne 2').find('button[aria-label="Actions pour Domaine ligne 2"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
     // Déplacer vers une cellule libre pour ne pas chevaucher le premier domaine.
     cy.get('.modal select').eq(0).select('Support');
     cy.get('.modal select').eq(1).select('Stratégique');
@@ -142,7 +156,8 @@ describe('Application smoke test', () => {
     cy.get('.map-row:not(.map-head)').eq(1).should('not.contain.text', 'Domaine ligne 2');
 
     // Renommage
-    cy.contains('.domain', 'Domaine personnalisé').contains('button', 'Modifier').click();
+    cy.contains('.domain', 'Domaine personnalisé').find('button[aria-label="Actions pour Domaine personnalisé"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
     cy.get('.modal .field input').eq(0).clear().type('Domaine renommé');
     cy.contains('.modal button', 'Enregistrer').click();
     cy.contains('.domain h3', 'Domaine renommé').should('be.visible');
@@ -165,12 +180,12 @@ describe('Application smoke test', () => {
     openWizard();
     cy.contains('button', 'Annuler').click();
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
-    cy.get('.stats').should('contain.text', '4 N0');
+    cy.get('.domain-card').should('have.length', 4);
 
     cy.contains('button', 'Nouvelle cartographie').click();
     cy.get('body').type('{esc}');
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
-    cy.get('.stats').should('contain.text', '4 N0');
+    cy.get('.domain-card').should('have.length', 4);
   });
 
   it('valide les champs obligatoires et permet de reprendre la structure actuelle', () => {
@@ -194,7 +209,8 @@ describe('Application smoke test', () => {
 
     cy.get('[data-testid="wizard-backup"]').uncheck();
     cy.get('[data-testid="wizard-create"]').click();
-    cy.get('.stats').should('contain.text', '0 N0').and('contain.text', '0 Apps');
+    cy.get('.domain-card').should('not.exist');
+    cy.get('.app-item').should('not.exist');
     cy.get('.axis-label').should('contain.text', 'Core / Value');
     cy.get('.map-cell[data-zone-key="customer:strategic"]').should('exist');
   });
@@ -233,7 +249,8 @@ describe('Application smoke test', () => {
     cy.get('.modal .field input').eq(1).type('TRANSVERSE');
     cy.contains('.modal button', 'Créer').click();
 
-    cy.contains('.domain', 'Capacité transverse').find('button').contains('Modifier').click();
+    cy.contains('.domain', 'Capacité transverse').find('button[aria-label="Actions pour Capacité transverse"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
     cy.get('.modal select').eq(2).select('2');
     cy.contains('.modal button', 'Enregistrer').click();
 
@@ -268,34 +285,78 @@ describe('Application smoke test', () => {
 
     cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 A').should('be.visible');
     cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 B').should('be.visible');
-    cy.get('.stats').should('contain.text', '2 N0');
+    cy.get(firstCell).first().find('.domain-card').eq(1).should('have.css', 'margin-top', '8px');
+    cy.get('.domain-card').should('have.length', 2);
+  });
+
+  it('affiche le domaine créé même si un filtre était actif', () => {
+    openWizard();
+    cy.get('[data-testid="template-blank"]').click();
+    cy.get('[data-testid="wizard-name"]').clear().type('Création avec filtre');
+    cy.contains('button', 'Suivant').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-backup"]').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+
+    cy.get('[data-testid="map-filter"]').type('introuvable');
+    cy.get('.filter-count').should('contain.text', '0 / 0 domaines');
+
+    cy.get('.map-row:not(.map-head)').first().find('.cell-add').first().click();
+    cy.get('.modal .field input').eq(0).type('Domaine visible');
+    cy.get('.modal .field input').eq(1).type('VISIBLE');
+    cy.get('[data-testid="domain-color-hex"]').clear().type('#009e73');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.get('[data-testid="map-filter"]').should('have.value', '');
+    cy.contains('.domain h3', 'Domaine visible').should('be.visible');
+    cy.contains('.domain', 'Domaine visible').closest('.map-cell').find('.cell-add').should('have.css', 'margin-top', '10px');
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(0, 158, 115)');
+    cy.contains('.domain', 'Domaine visible').find('button[aria-label="Actions pour Domaine visible"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
+    cy.get('[data-testid="domain-color-hex"]').clear().type('#cc5500');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(204, 85, 0)');
+    cy.reload();
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(204, 85, 0)');
+    cy.get('.domain-card').should('have.length', 1);
   });
 
 
-  it('personnalise la présentation de la cartographie sans modifier le modèle métier', () => {
+  it('filtre la cartographie et active puis quitte le mode présentation', () => {
     cy.visit('/');
-    cy.get('.canvas-head .visual-toolbar').should('not.exist');
-    cy.get('.visual-settings').should('be.visible').and('not.have.attr', 'open');
-    cy.get('.visual-settings .visual-toolbar').should('not.be.visible');
-    cy.get('.visual-settings > summary').click();
-    cy.get('.visual-settings[open] .visual-toolbar').should('be.visible');
-    cy.get('[data-testid="visual-theme"]').select('executive');
-    cy.get('[data-testid="visual-density"]').select('compact');
-    cy.get('.app').should('have.class', 'theme-executive').and('have.class', 'density-compact');
+    cy.get('.map-controls-row').should('be.visible');
+    cy.get('.canvas-title, .stats, .map-view-toggle').should('not.exist');
+    cy.get('.canvas-actions').should('not.contain.text', 'Domaine N0');
+    cy.get('.map-filter-bar').should('be.visible');
+    cy.get('[data-testid="map-filter"]').should('be.visible');
     cy.get('[data-testid="map-filter"]').type('CAP-CRM');
     cy.get('.filter-count').should('contain.text', '1 / 4 domaines');
     cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
     cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
-    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('header').contains('button', 'Présentation').click();
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('aside').should('not.be.visible');
-    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.workspace').should('have.css', 'grid-template-columns').and('not.contain', '300px');
+    cy.get('.presentation-mode .cap').should('have.length', 3).first().should('have.css', 'border-radius', '6px');
+    cy.get('.presentation-mode .cap-desc, .presentation-mode .cap .relations, .presentation-mode .cell-add, .presentation-mode .domain-actions').should('not.be.visible');
+    cy.get('header').contains('button', 'Quitter la présentation').click();
     cy.get('.app').should('not.have.class', 'presentation-mode');
-    cy.reload();
-    cy.get('.visual-settings > summary').click();
-    cy.get('[data-testid="visual-theme"]').should('have.value', 'executive');
-    cy.get('[data-testid="visual-density"]').should('have.value', 'compact');
-    cy.get('.stats').should('contain.text', '4 N0');
+    cy.get('[data-testid="map-filter"]').should('have.value', 'CAP-CRM');
+    cy.get('.domain-card').should('have.length', 1);
+  });
+
+  it('met en évidence dans la cartographie les capacités sélectionnées dans Impact', () => {
+    cy.visit('/');
+    cy.get('header').contains('button', 'Impact').click();
+    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
+      .should('have.attr', 'aria-pressed', 'false')
+      .click()
+      .should('have.attr', 'aria-pressed', 'true');
+
+    cy.get('header').contains('button', 'Cartographie').click();
+    cy.contains('.cap', 'Gestion des Prospects & Leads')
+      .should('have.class', 'impact-selected')
+      .and('have.css', 'outline-color', 'rgb(245, 158, 11)');
   });
 
 
@@ -307,12 +368,11 @@ describe('Application smoke test', () => {
     cy.get('#app-inventory').should('not.be.visible');
     cy.get('.workspace').should('have.class', 'inventory-collapsed');
     cy.get('.map').should('be.visible');
-    cy.get('.visual-settings > summary').click();
-    cy.get('[data-testid="visual-theme"]').should('be.visible');
-    cy.get('[data-testid="visual-density"]').should('be.visible');
     cy.get('[data-testid="map-filter"]').should('be.visible');
     cy.get('.help-icon').click();
     cy.get('.togaf-guide').should('be.visible');
+    cy.get('.togaf-guide .guide-intro').should('have.css', 'background-color', 'rgb(238, 242, 255)');
+    cy.get('.togaf-guide section').should('have.length', 4).first().should('have.css', 'border-radius', '9px');
     cy.get('.togaf-guide button[aria-label="Fermer"]').click();
     cy.get('.inventory-toggle-rail').should('have.attr', 'aria-label', 'Afficher l’inventaire des applications').click();
     cy.get('#app-inventory').should('be.visible');

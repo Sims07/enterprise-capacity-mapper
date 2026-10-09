@@ -3,3 +3,7 @@ dist
 .DS_Store
 .vscode
 *.local
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+cypress/reports/
