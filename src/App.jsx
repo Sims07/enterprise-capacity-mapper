@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {DEMO_MODEL} from './data/demoData.js';
-import {exportModel,importModel,loadModel,saveModel} from './services/storage.js';
+import {exportModel,importModel,loadModel,loadRemoteModel,normalizeJsonUrl,saveModel} from './services/storage.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 
@@ -9,6 +9,23 @@ const VISUAL_PREFS_KEY='enterprise-capacity-mapper:visual-preferences';
 const uid=p=>`${p}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
 const emptyForm={name:'',code:'',description:'',status:'Actif',type:'SaaS',vendor:'',domainId:'',capabilityIds:[],columnId:'',layerId:'',columnSpan:'1'};
 const DEFAULT_LAYOUTS={columns:[{id:'business',name:'Business',order:0},{id:'operations',name:'Operations',order:1},{id:'support',name:'Support',order:2}],layers:[{id:'strategic',name:'Stratégique',order:0},{id:'core',name:'Core / Value',order:1},{id:'support',name:'Support',order:2}]};
+const DEFAULT_VISUAL_PREFS={theme:'classic',density:'comfortable',color:'domain'};
+
+// Palette sobre : une couleur par domaine N0 (champ `color` du modèle, aucune migration).
+const PALETTE={
+  indigo:{strong:'#4f46e5',soft:'#eef2ff',text:'#3730a3'},
+  emerald:{strong:'#047857',soft:'#ecfdf5',text:'#065f46'},
+  amber:{strong:'#b45309',soft:'#fffbeb',text:'#78350f'},
+  rose:{strong:'#be123c',soft:'#fff1f2',text:'#9f1239'},
+  sky:{strong:'#0369a1',soft:'#f0f9ff',text:'#0c4a6e'},
+  violet:{strong:'#6d28d9',soft:'#f5f3ff',text:'#4c1d95'},
+  teal:{strong:'#0f766e',soft:'#f0fdfa',text:'#134e4a'},
+  slate:{strong:'#475569',soft:'#f8fafc',text:'#1e293b'}
+};
+const PALETTE_KEYS=Object.keys(PALETTE);
+const paletteOf=d=>PALETTE[d.color]||PALETTE.indigo;
+// Couverture applicative : un symbole accompagne toujours la couleur (impression N&B, accessibilité).
+const coverageOf=n=>n===0?{cls:'cov-gap',sym:'✕',label:'Gap de couverture'}:n>1?{cls:'cov-dup',sym:'⇄',label:'Redondance'}:{cls:'cov-ok',sym:'✓',label:'Couvert'};
 
 function Modal({title,children,onClose}){return <div className="modal-backdrop"><div className="modal"><div className="modal-head"><h2>{title}</h2><button onClick={onClose}>×</button></div>{children}</div></div>}
 function Field({label,required=false,error,...p}){return <label className={'field '+(error?'has-error':'')}><span>{label}{required&&<b className="required" aria-hidden="true"> *</b>}</span><input aria-required={required} aria-invalid={!!error} {...p}/>{error&&<small className="field-error">{error}</small>}</label>}
@@ -18,7 +35,7 @@ function App(){
  const [mode,setMode]=useState('editor');
  const [presentation,setPresentation]=useState(false);
  const [inventoryCollapsed,setInventoryCollapsed]=useState(false);
- const [visualPrefs,setVisualPrefs]=useState(()=>{try{return {theme:'classic',density:'comfortable',...JSON.parse(localStorage.getItem(VISUAL_PREFS_KEY)||'{}')}}catch{return {theme:'classic',density:'comfortable'}}});
+ const [visualPrefs,setVisualPrefs]=useState(()=>{try{return {...DEFAULT_VISUAL_PREFS,...JSON.parse(localStorage.getItem(VISUAL_PREFS_KEY)||'{}')}}catch{return {...DEFAULT_VISUAL_PREFS}}});
  const [mapQuery,setMapQuery]=useState('');
  const [sourceUrl,setSourceUrl]=useState(()=>localStorage.getItem(SOURCE_URL_KEY)||'');
  const [selected,setSelected]=useState([]);
@@ -35,6 +52,7 @@ function App(){
  const mappedItems=depth===1?model.domains:model.capabilities;
  const relationIds=item=>item.capabilityIds||[];
  const relationLabel=depth===1?'domaine N0':'capacité N1';
+ const coverageMode=visualPrefs.color==='coverage';
 
  useEffect(()=>saveModel(model),[model]);
  useEffect(()=>{localStorage.setItem(VISUAL_PREFS_KEY,JSON.stringify(visualPrefs))},[visualPrefs]);
@@ -43,6 +61,8 @@ function App(){
  const touched=apps.filter(a=>relationIds(a).some(id=>selected.includes(id)));
  const gaps=mappedItems.filter(c=>selected.includes(c.id)&&!apps.some(a=>relationIds(a).includes(c.id)));
  const redundancy=mappedItems.filter(c=>apps.filter(a=>relationIds(a).includes(c.id)).length>1);
+ const uncovered=mappedItems.filter(c=>!apps.some(a=>relationIds(a).includes(c.id)));
+ const appCount=id=>apps.filter(a=>relationIds(a).includes(id)).length;
  const notify=x=>{setStatus(x);setTimeout(()=>setStatus(''),2500)};
  const update=patch=>setModel(m=>({...m,...patch}));
  const layout=model.layout||{mode:'matrix',columns:DEFAULT_LAYOUTS.columns,layers:DEFAULT_LAYOUTS.layers};
@@ -140,7 +160,8 @@ function App(){
    if((modal==='domain'||modal==='edit-domain')&&!placementAvailable(modal==='edit-domain'?editingDomainId:null,form.columnId||columns[0].id,form.layerId||layers[0].id,form.columnSpan))errors.columnSpan='Cette étendue chevauche un autre domaine ou dépasse les colonnes disponibles.';
    if(Object.keys(errors).length){setFormErrors(errors);notify('Vérifiez les champs signalés.');return}
    setFormErrors({});
-   if(modal==='domain')update({domains:[...model.domains,{id:uid('l0'),code:form.code||'CAP',name:form.name,description:form.description,color:'indigo',layout:{columnId:form.columnId||columns[0].id,layerId:form.layerId||layers[0].id,columnSpan:Number(form.columnSpan)||1}}]});
+   // Couleur du nouveau domaine : rotation dans la palette pour distinguer les N0 sans configuration.
+   if(modal==='domain')update({domains:[...model.domains,{id:uid('l0'),code:form.code||'CAP',name:form.name,description:form.description,color:PALETTE_KEYS[model.domains.length%PALETTE_KEYS.length],layout:{columnId:form.columnId||columns[0].id,layerId:form.layerId||layers[0].id,columnSpan:Number(form.columnSpan)||1}}]});
    if(modal==='edit-domain')update({domains:model.domains.map(d=>d.id===editingDomainId?{...d,name:form.name.trim(),code:form.code.trim()||d.code,description:form.description,layout:{...(d.layout||{}),columnId:form.columnId||d.layout?.columnId||columns[0].id,layerId:form.layerId||d.layout?.layerId||layers[0].id,columnSpan:Number(form.columnSpan)||1}}:d)});
    if(modal==='edit-capability')update({capabilities:model.capabilities.map(c=>c.id===editingCapabilityId?{...c,name:form.name.trim()}:c)});
    if(modal==='capability')update({capabilities:[...model.capabilities,{id:uid('l1'),domainId:form.domainId,code:form.code||'CAP-01',name:form.name,description:form.description}]});
@@ -159,14 +180,20 @@ function App(){
  const onDrop=(e,capId)=>{e.preventDefault();const id=e.dataTransfer.getData('app');if(id)assign(id,capId)};
  const importJson=async e=>{const f=e.target.files?.[0];if(!f)return;try{update(await importModel(f));notify('Cartographie importée')}catch(err){notify(err.message)}e.target.value=''};
 
- const DomainCard=({d})=><section className={'domain '+(depth===1?'depth-one':'')} draggable onDragStart={e=>e.dataTransfer.setData('domain',d.id)} onDragOver={e=>depth===1&&e.preventDefault()} onDrop={e=>{if(depth===1){e.preventDefault();onDrop(e,d.id)}}} key={d.id}>
-   <div className="domain-head"><div><span className="code">{d.code}</span><h3>{d.name}</h3><p>{d.description}</p></div><div className="domain-actions"><button className="secondary" onClick={()=>openEditDomain(d)}>Modifier</button>{depth===2&&<button className="primary-soft" onClick={()=>openNew('capability',d.id)}>＋ N1</button>}<button className="ghost danger-text" onClick={()=>removeDomain(d.id)}>Supprimer</button></div></div>
-   {depth===1?<div className="relations domain-relations">{apps.filter(a=>relationIds(a).includes(d.id)).map(a=><div className="rel" key={a.id} draggable onDragStart={e=>e.dataTransfer.setData("app",a.id)}><span>◈</span>{a.name}<button onClick={()=>unassign(a.id,d.id)}>×</button></div>)}<div className="drop">Déposer une application ici</div></div>:<div className="caps">{model.capabilities.filter(c=>c.domainId===d.id).map(c=><div className={'cap '+(selected.includes(c.id)?'highlight':'')} key={c.id} onDragOver={e=>e.preventDefault()} onDrop={e=>onDrop(e,c.id)}>
-     <div className="cap-head"><div><span className="code">{c.code}</span><b>{c.name}</b></div><span className="count">{apps.filter(a=>(a.capabilityIds||[]).includes(c.id)).length}</span><button className="cap-edit" type="button" title="Renommer" aria-label={`Renommer ${c.name}`} onClick={()=>openEditCapability(c)}>✎</button></div>
-     <p>{c.description}</p>
-     <div className="relations">{apps.filter(a=>(a.capabilityIds||[]).includes(c.id)).map(a=><div className="rel" key={a.id} draggable onDragStart={e=>e.dataTransfer.setData('app',a.id)}><span>◈</span>{a.name}<button onClick={()=>unassign(a.id,c.id)}>×</button></div>)}<div className="drop">Déposer une application ici</div></div>
-   </div>)}</div>}
- </section>;
+ const CoverageCount=({id})=>{const n=appCount(id);const cov=coverageOf(n);return <span className="count" title={coverageMode?`${n} application(s) · ${cov.label}`:`${n} application(s)`} aria-label={`${n} application(s)${coverageMode?' · '+cov.label:''}`}>{coverageMode&&<span aria-hidden="true">{cov.sym} </span>}{n}</span>};
+
+ const DomainCard=({d})=>{
+   const p=paletteOf(d);
+   const covClass=coverageMode&&depth===1?' '+coverageOf(appCount(d.id)).cls:'';
+   return <section className={'domain '+(depth===1?'depth-one':'')+covClass} style={{'--dc':p.strong,'--dbg':p.soft,'--dtx':p.text}} draggable onDragStart={e=>e.dataTransfer.setData('domain',d.id)} onDragOver={e=>depth===1&&e.preventDefault()} onDrop={e=>{if(depth===1){e.preventDefault();onDrop(e,d.id)}}} key={d.id}>
+   <div className="domain-head"><div><span className="code">{d.code}</span><h3 title={d.description||undefined}>{d.name}</h3></div><div className="domain-actions">{depth===1&&<CoverageCount id={d.id}/>}<button className="secondary" onClick={()=>openEditDomain(d)}>Modifier</button>{depth===2&&<button className="primary-soft" onClick={()=>openNew('capability',d.id)}>＋ N1</button>}<button className="ghost danger-text" onClick={()=>removeDomain(d.id)}>Supprimer</button></div></div>
+   {depth===1?<div className="relations domain-relations">{apps.filter(a=>relationIds(a).includes(d.id)).map(a=><div className="rel" key={a.id} draggable onDragStart={e=>e.dataTransfer.setData("app",a.id)}><span>◈</span>{a.name}<button onClick={()=>unassign(a.id,d.id)}>×</button></div>)}<div className="drop">Déposer une application ici</div></div>:<div className="caps">{model.capabilities.filter(c=>c.domainId===d.id).map(c=>{
+     const n=appCount(c.id);
+     return <div className={'cap '+(selected.includes(c.id)?'highlight ':'')+(coverageMode?coverageOf(n).cls:'')} key={c.id} title={c.description||undefined} onDragOver={e=>e.preventDefault()} onDrop={e=>onDrop(e,c.id)}>
+     <div className="cap-head"><div><span className="code">{c.code}</span><b>{c.name}</b></div><CoverageCount id={c.id}/><button className="cap-edit" type="button" title="Renommer" aria-label={`Renommer ${c.name}`} onClick={()=>openEditCapability(c)}>✎</button></div>
+     <div className="relations">{apps.filter(a=>(a.capabilityIds||[]).includes(c.id)).map(a=><div className="rel" key={a.id} draggable onDragStart={e=>e.dataTransfer.setData('app',a.id)}><span>◈</span>{a.name}<button aria-label={`Retirer ${a.name}`} onClick={()=>unassign(a.id,c.id)}>×</button></div>)}{n===0&&<div className="drop">Aucune application · déposez-en une ici</div>}</div>
+   </div>})}</div>}
+ </section>};
 
  const matrixView=<div className="map map-matrix">
    <div className="map-row map-head" style={{gridTemplateColumns:`120px repeat(${columns.length}, minmax(220px, 1fr))`}}><div/>{columns.map(col=><div className="col-head" key={col.id}>{col.name}</div>)}</div>
@@ -200,7 +227,7 @@ function App(){
   <div className={'workspace '+(inventoryCollapsed?'inventory-collapsed':'')}>
    <aside id="app-inventory"><div className="panel-title"><span>Inventaire SI <em>{apps.length}</em></span><button className="side-add" onClick={()=>openNew('app')}>＋ Application</button></div><input className="search" placeholder="Rechercher une application…" value={query} onChange={e=>setQuery(e.target.value)}/><div className="hint">Glissez une application vers un élément de cartographie pour créer une relation.</div>{filteredApps.map(a=><div key={a.id} className="app-item" draggable onDragStart={e=>e.dataTransfer.setData('app',a.id)}><div><b>{a.name}</b><small>{a.code} · {a.vendor||'—'}</small></div><span className={'badge '+a.status.toLowerCase().replace('é','e')}>{a.status}</span></div>)}</aside>
    <main>{mode==='impact'?<section className="impact"><div className="hero"><div><div className="eyebrow">SIMULATION D'IMPACT</div><h2>Projet / fonctionnalité</h2><p>Sélectionnez les capacités métier sollicitées : on cherche « ce que l’entreprise doit savoir faire », pas une liste d’applications ou de processus.</p></div><div className="metric"><strong>{selected.length}</strong><span>{relationLabel}s</span></div><div className="metric"><strong>{touched.length}</strong><span>applications</span></div><div className="metric danger"><strong>{gaps.length}</strong><span>gaps</span></div></div><div className="impact-grid"><div className="impact-card"><h3>Éléments sollicités</h3><p className="context-help">N0 : grand domaine métier. N1 : capacité détaillée et relativement stable. Exemple : N0 « Relation client » → N1 « Gestion des réclamations ».</p>{mappedItems.map(c=><button key={c.id} className={'cap-select '+(selected.includes(c.id)?'selected':'')} onClick={()=>toggleCap(c.id)}>{selected.includes(c.id)?'✓':'○'} {c.code} — {c.name}</button>)}</div><div className="impact-card"><h3>Applications impactées</h3>{touched.length?touched.map(a=><div className="result-row" key={a.id}><b>{a.name}</b><span>{a.status}</span></div>):<p className="empty">Aucune application impactée.</p>}{gaps.length>0&&<div className="gap-box"><b>⚠ {gaps.length} gap(s) de couverture</b>{gaps.map(c=><div key={c.id}>{c.code} — {c.name}</div>)}</div>}</div></div></section>:<>
-    <div className="canvas-head"><button className="secondary inventory-toggle inventory-toggle-rail" onClick={()=>setInventoryCollapsed(v=>!v)} aria-expanded={!inventoryCollapsed} aria-controls="app-inventory" aria-label={inventoryCollapsed?"Afficher l’inventaire des applications":"Masquer l’inventaire des applications"} title={inventoryCollapsed?"Afficher l’inventaire des applications":"Masquer l’inventaire des applications"}><span className="menu-glyph" aria-hidden="true"></span></button><div className="canvas-title"><div className="eyebrow">CAPABILITY MAP · V3 · {depth} NIVEAU{depth===2?"X":""}</div><h2>Cartographie des capacités</h2></div><div className="canvas-actions"><button className="primary" onClick={()=>openNew('domain')}>＋ Domaine N0</button><button className="secondary" onClick={openLayoutEditor}>⚙ Structure</button><details className="visual-settings"><summary aria-label="Configuration de la cartographie" title="Configuration de la cartographie">⚙ <span>Configuration</span></summary><div className="visual-toolbar" aria-label="Options de présentation"><label>Thème <select aria-label="Thème visuel" data-testid="visual-theme" value={visualPrefs.theme} onChange={e=>setVisualPrefs(p=>({...p,theme:e.target.value}))}><option value="classic">Classique</option><option value="executive">Exécutif</option><option value="contrast">Contraste</option></select></label><label>Densité <select aria-label="Densité de la carte" data-testid="visual-density" value={visualPrefs.density} onChange={e=>setVisualPrefs(p=>({...p,density:e.target.value}))}><option value="comfortable">Confortable</option><option value="compact">Compacte</option></select></label><label className="map-filter">Filtrer les domaines <input aria-label="Filtrer les domaines" data-testid="map-filter" placeholder="Nom ou code N0…" value={mapQuery} onChange={e=>setMapQuery(e.target.value)}/></label><span className="filter-count" aria-live="polite">{mapQuery?`${visibleDomains.length} / ${model.domains.length} domaines`: 'Tous les domaines'}</span></div></details><button className="help-icon" onClick={()=>setGuideOpen(true)} aria-label="Aide sur N0, N1 et TOGAF" title="Comprendre N0, N1 et TOGAF">?</button></div></div>    <div className="layout-tools"><label>Vue <select value={layoutMode} onChange={e=>setLayoutView(e.target.value)}><option value="free">Libre</option><option value="columns">Colonnes</option><option value="layers">Layers</option><option value="matrix">Colonnes + Layers</option></select></label><div className="stats"><span>{model.domains.length} N0</span>{depth===2&&<span>{model.capabilities.length} N1</span>}<span>{apps.length} Apps</span><span>{redundancy.length} doublons</span></div></div>
+    <div className="canvas-head"><button className="secondary inventory-toggle inventory-toggle-rail" onClick={()=>setInventoryCollapsed(v=>!v)} aria-expanded={!inventoryCollapsed} aria-controls="app-inventory" aria-label={inventoryCollapsed?"Afficher l’inventaire des applications":"Masquer l’inventaire des applications"} title={inventoryCollapsed?"Afficher l’inventaire des applications":"Masquer l’inventaire des applications"}><span className="menu-glyph" aria-hidden="true"></span></button><div className="canvas-title"><div className="eyebrow">CAPABILITY MAP · V3 · {depth} NIVEAU{depth===2?"X":""}</div><h2>Cartographie des capacités</h2></div><div className="canvas-actions"><button className="primary" onClick={()=>openNew('domain')}>＋ Domaine N0</button><button className="secondary" onClick={openLayoutEditor}>⚙ Structure</button><details className="visual-settings"><summary aria-label="Configuration de la cartographie" title="Configuration de la cartographie">⚙ <span>Configuration</span></summary><div className="visual-toolbar" aria-label="Options de présentation"><label>Thème <select aria-label="Thème visuel" data-testid="visual-theme" value={visualPrefs.theme} onChange={e=>setVisualPrefs(p=>({...p,theme:e.target.value}))}><option value="classic">Classique</option><option value="executive">Exécutif</option><option value="contrast">Contraste</option></select></label><label>Densité <select aria-label="Densité de la carte" data-testid="visual-density" value={visualPrefs.density} onChange={e=>setVisualPrefs(p=>({...p,density:e.target.value}))}><option value="comfortable">Confortable</option><option value="compact">Compacte</option></select></label><label>Coloration <select aria-label="Mode de coloration" data-testid="visual-color" value={visualPrefs.color} onChange={e=>setVisualPrefs(p=>({...p,color:e.target.value}))}><option value="domain">Par domaine</option><option value="coverage">Par couverture</option></select></label><label className="map-filter">Filtrer les domaines <input aria-label="Filtrer les domaines" data-testid="map-filter" placeholder="Nom ou code N0…" value={mapQuery} onChange={e=>setMapQuery(e.target.value)}/></label><span className="filter-count" aria-live="polite">{mapQuery?`${visibleDomains.length} / ${model.domains.length} domaines`: 'Tous les domaines'}</span></div></details><button className="help-icon" onClick={()=>setGuideOpen(true)} aria-label="Aide sur N0, N1 et TOGAF" title="Comprendre N0, N1 et TOGAF">?</button></div></div>    <div className="layout-tools"><label>Vue <select value={layoutMode} onChange={e=>setLayoutView(e.target.value)}><option value="free">Libre</option><option value="columns">Colonnes</option><option value="layers">Layers</option><option value="matrix">Colonnes + Layers</option></select></label><div className="stats"><span>{model.domains.length} N0</span>{depth===2&&<span>{model.capabilities.length} N1</span>}<span>{apps.length} Apps</span><span>{redundancy.length} doublons</span><span>{uncovered.length} gap{uncovered.length>1?'s':''}</span></div>{coverageMode&&<ul className="map-legend" aria-label="Légende de couverture applicative"><li className="cov-ok"><b aria-hidden="true">✓</b> Couvert (1 application)</li><li className="cov-dup"><b aria-hidden="true">⇄</b> Redondance (2 applications ou plus)</li><li className="cov-gap"><b aria-hidden="true">✕</b> Gap (aucune application)</li></ul>}</div>
     {layoutMode==='columns'?columnsView:layoutMode==='layers'?layersView:editorMap}
    </>}</main>
   </div>
