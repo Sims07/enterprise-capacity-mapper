@@ -341,11 +341,19 @@ describe('Application smoke test', () => {
     cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(0, 158, 115)');
     cy.contains('.domain', 'Domaine visible').find('button[aria-label="Actions pour Domaine visible"]').click();
     cy.get('.context-menu').contains('button', 'Modifier').click();
-    cy.get('[data-testid="domain-color-hex"]').clear().type('#cc5500');
+    cy.get('[data-testid="domain-color-option"][data-color="#a16207"]')
+      .should('have.attr', 'aria-pressed', 'false')
+      .click()
+      .should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="domain-color-hex"]').should('have.value', '#a16207');
     cy.contains('.modal button', 'Enregistrer').click();
-    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(204, 85, 0)');
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(161, 98, 7)');
     cy.reload();
-    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(204, 85, 0)');
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(161, 98, 7)');
+    cy.contains('.domain', 'Domaine visible').find('button[aria-label="Actions pour Domaine visible"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
+    cy.get('[data-testid="domain-color-option"][data-color="#a16207"]').should('have.attr', 'aria-pressed', 'true');
+    cy.contains('.modal button', 'Annuler').click();
     cy.get('.domain-card').should('have.length', 1);
   });
 

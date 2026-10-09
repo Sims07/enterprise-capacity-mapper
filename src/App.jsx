@@ -7,6 +7,20 @@ import TogafGuide from './components/TogafGuide.jsx';
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
+const DOMAIN_COLOR_PALETTE = [
+  { name: 'Indigo', value: '#5b46be' },
+  { name: 'Bleu', value: '#2563eb' },
+  { name: 'Turquoise', value: '#0e7490' },
+  { name: 'Émeraude', value: '#0d6e53' },
+  { name: 'Vert', value: '#15803d' },
+  { name: 'Olive', value: '#4d7c0f' },
+  { name: 'Ambre', value: '#a16207' },
+  { name: 'Orange', value: '#c2410c' },
+  { name: 'Rouge', value: '#b91c1c' },
+  { name: 'Rose', value: '#be185d' },
+  { name: 'Prune', value: '#7e22ce' },
+  { name: 'Ardoise', value: '#475569' }
+];
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
 const domainTextColor = color => {
   const hex = resolveDomainColor(color).slice(1);
@@ -769,6 +783,22 @@ function App() {
           {(modal === 'domain' || modal === 'edit-domain') && (
             <label className={'field domain-color-field ' + (formErrors.color ? 'has-error' : '')}>
               <span>Couleur du domaine N0</span>
+              <span className="domain-color-palette" role="group" aria-label="Couleurs prédéfinies">
+                {DOMAIN_COLOR_PALETTE.map(color => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    className="domain-color-swatch"
+                    data-testid="domain-color-option"
+                    data-color={color.value}
+                    aria-label={color.name}
+                    aria-pressed={resolveDomainColor(form.color) === color.value}
+                    title={color.name}
+                    style={{ '--swatch-color': color.value }}
+                    onClick={() => setForm({ ...form, color: color.value })}
+                  />
+                ))}
+              </span>
               <span className="domain-color-control">
                 <input
                   type="color"
