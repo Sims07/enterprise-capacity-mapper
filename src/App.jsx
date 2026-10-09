@@ -6,7 +6,7 @@ import TogafGuide from './components/TogafGuide.jsx';
 
 const SOURCE_URL_KEY='enterprise-capacity-mapper:source-url';
 const uid=p=>`${p}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
-const emptyForm={name:'',code:'',description:'',status:'Actif',type:'SaaS',vendor:'',domainId:'',capabilityIds:[],columnId:'',layerId:''};
+const emptyForm={name:'',code:'',description:'',status:'Actif',type:'SaaS',vendor:'',domainId:'',capabilityIds:[],columnId:'',layerId:'',columnSpan:'1'};
 const DEFAULT_LAYOUTS={columns:[{id:'business',name:'Business',order:0},{id:'operations',name:'Operations',order:1},{id:'support',name:'Support',order:2}],layers:[{id:'strategic',name:'Stratégique',order:0},{id:'core',name:'Core / Value',order:1},{id:'support',name:'Support',order:2}]};
 
 function Modal({title,children,onClose}){return <div className="modal-backdrop"><div className="modal"><div className="modal-head"><h2>{title}</h2><button onClick={onClose}>×</button></div>{children}</div></div>}
@@ -99,12 +99,23 @@ function App(){
    notify(backup?'Cartographie créée · sauvegarde JSON téléchargée':'Cartographie créée');
  };
 
+ const placementAvailable=(domainId,columnId,layerId,columnSpan)=>{
+   const start=columns.findIndex(c=>c.id===columnId);
+   const span=Number(columnSpan)||1;
+   if(start<0||span<1||start+span>columns.length)return false;
+   const occupied=new Set(columns.slice(start,start+span).map(c=>c.id));
+   return !model.domains.some(d=>d.id!==domainId&&(d.layout?.layerId||layers[0].id)===layerId&&columns.slice(start,start+span).some(c=>{const otherStart=columns.findIndex(x=>x.id===(d.layout?.columnId||columns[0].id));return otherStart>=0&&columns.slice(otherStart,otherStart+Math.max(1,Number(d.layout?.columnSpan)||1)).some(o=>o.id===c.id)}));
+ };
  const placeDomain=(domainId,columnId,layerId)=>{
    if(!domainId)return;
-   update({layout:{...layout,mode:layoutMode,columns,layers},domains:model.domains.map(d=>d.id===domainId?{...d,layout:{...(d.layout||{}),columnId:columnId||d.layout?.columnId||columns[0].id,layerId:layerId||d.layout?.layerId||layers[0].id}}:d)});
+   const moving=model.domains.find(d=>d.id===domainId);
+   const targetColumn=columnId||moving?.layout?.columnId||columns[0].id;
+   const targetLayer=layerId||moving?.layout?.layerId||layers[0].id;
+   if(moving&&!placementAvailable(domainId,targetColumn,targetLayer,moving.layout?.columnSpan||1)){notify('Déplacement impossible : cette étendue chevaucherait un autre domaine ou dépasserait la matrice.');return}
+   update({layout:{...layout,mode:layoutMode,columns,layers},domains:model.domains.map(d=>d.id===domainId?{...d,layout:{...(d.layout||{}),columnId:targetColumn,layerId:targetLayer}}:d)});
  };
- const openNew=(kind,parent,place)=>{setEditingDomainId(null);setEditingCapabilityId(null);setFormErrors({});setForm({...emptyForm,domainId:parent||'',capabilityIds:parent?[parent]:[],columnId:place?.columnId||columns[0].id,layerId:place?.layerId||layers[0].id});setModal(kind)};
- const openEditDomain=d=>{setEditingDomainId(d.id);setEditingCapabilityId(null);setFormErrors({});setForm({...emptyForm,name:d.name,code:d.code,description:d.description||'',columnId:d.layout?.columnId||columns[0].id,layerId:d.layout?.layerId||layers[0].id});setModal('edit-domain')};
+ const openNew=(kind,parent,place)=>{setEditingDomainId(null);setEditingCapabilityId(null);setFormErrors({});setForm({...emptyForm,domainId:parent||'',capabilityIds:parent?[parent]:[],columnId:place?.columnId||columns[0].id,layerId:place?.layerId||layers[0].id,columnSpan:'1'});setModal(kind)};
+ const openEditDomain=d=>{setEditingDomainId(d.id);setEditingCapabilityId(null);setFormErrors({});setForm({...emptyForm,name:d.name,code:d.code,description:d.description||'',columnId:d.layout?.columnId||columns[0].id,layerId:d.layout?.layerId||layers[0].id,columnSpan:String(d.layout?.columnSpan||1)});setModal('edit-domain')};
  const openEditCapability=c=>{setEditingCapabilityId(c.id);setFormErrors({});setForm({...emptyForm,name:c.name});setModal('edit-capability')};
  const save=()=>{
    const errors={};
@@ -112,10 +123,11 @@ function App(){
    if(modal!=='edit-capability'&&!form.code.trim())errors.code='Le code est obligatoire.';
    if(modal==='capability'&&!form.domainId)errors.domainId='Le domaine est obligatoire.';
    if(modal==='app'&&!form.vendor.trim())errors.vendor='L’éditeur / fournisseur est obligatoire.';
-   if(Object.keys(errors).length){setFormErrors(errors);notify('Complétez les champs obligatoires.');return}
+   if((modal==='domain'||modal==='edit-domain')&&!placementAvailable(modal==='edit-domain'?editingDomainId:null,form.columnId||columns[0].id,form.layerId||layers[0].id,form.columnSpan))errors.columnSpan='Cette étendue chevauche un autre domaine ou dépasse les colonnes disponibles.';
+   if(Object.keys(errors).length){setFormErrors(errors);notify('Vérifiez les champs signalés.');return}
    setFormErrors({});
-   if(modal==='domain')update({domains:[...model.domains,{id:uid('l0'),code:form.code||'CAP',name:form.name,description:form.description,color:'indigo',layout:{columnId:form.columnId||columns[0].id,layerId:form.layerId||layers[0].id}}]});
-   if(modal==='edit-domain')update({domains:model.domains.map(d=>d.id===editingDomainId?{...d,name:form.name.trim(),code:form.code.trim()||d.code,description:form.description,layout:{...(d.layout||{}),columnId:form.columnId||d.layout?.columnId||columns[0].id,layerId:form.layerId||d.layout?.layerId||layers[0].id}}:d)});
+   if(modal==='domain')update({domains:[...model.domains,{id:uid('l0'),code:form.code||'CAP',name:form.name,description:form.description,color:'indigo',layout:{columnId:form.columnId||columns[0].id,layerId:form.layerId||layers[0].id,columnSpan:Number(form.columnSpan)||1}}]});
+   if(modal==='edit-domain')update({domains:model.domains.map(d=>d.id===editingDomainId?{...d,name:form.name.trim(),code:form.code.trim()||d.code,description:form.description,layout:{...(d.layout||{}),columnId:form.columnId||d.layout?.columnId||columns[0].id,layerId:form.layerId||d.layout?.layerId||layers[0].id,columnSpan:Number(form.columnSpan)||1}}:d)});
    if(modal==='edit-capability')update({capabilities:model.capabilities.map(c=>c.id===editingCapabilityId?{...c,name:form.name.trim()}:c)});
    if(modal==='capability')update({capabilities:[...model.capabilities,{id:uid('l1'),domainId:form.domainId,code:form.code||'CAP-01',name:form.name,description:form.description}]});
    if(modal==='app')update({applications:[...apps,{id:uid('app'),name:form.name,code:form.code||'APP',type:form.type,status:form.status,vendor:form.vendor,capabilityIds:form.capabilityIds,description:form.description}]});
@@ -146,11 +158,14 @@ function App(){
    <div className="map-row map-head" style={{gridTemplateColumns:`120px repeat(${columns.length}, minmax(220px, 1fr))`}}><div/>{columns.map(col=><div className="col-head" key={col.id}>{col.name}</div>)}</div>
    {layers.map(layer=><div className="map-row" key={layer.id} style={{gridTemplateColumns:`120px repeat(${columns.length}, minmax(220px, 1fr))`}}>
    <div className="axis-label">{layer.name}</div>
-   {columns.map(col=>{
+   {columns.map((col,index)=>{
+     const coveredByPrevious=model.domains.some(d=>(d.layout?.layerId||layers[0].id)===layer.id&&columns.findIndex(c=>c.id===(d.layout?.columnId||columns[0].id))<index&&columns.findIndex(c=>c.id===(d.layout?.columnId||columns[0].id))+Math.max(1,Number(d.layout?.columnSpan)||1)>index);
+     if(coveredByPrevious)return null;
      const here=model.domains.filter(d=>(d.layout?.columnId||columns[0].id)===col.id&&(d.layout?.layerId||layers[0].id)===layer.id);
+     const span=Math.max(1,Math.min(columns.length-index,Number(here[0]?.layout?.columnSpan)||1));
      const zone=zones.find(z=>z.columnId===col.id&&z.layerId===layer.id);
      const zoneLabel=zone?.name&&zone.name!==col.name?zone.name:'';
-     return <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();placeDomain(e.dataTransfer.getData('domain'),col.id,layer.id)}}>
+     return <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} style={{gridColumn:span>1?`span ${span}`:undefined}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();placeDomain(e.dataTransfer.getData('domain'),col.id,layer.id)}}>
        {zoneLabel&&<div className="cell-label">{zoneLabel}</div>}
        {here.map(d=><DomainCard d={d} key={d.id}/>)}
        <button className={'cell-add'+(here.length?'':' empty')} onClick={()=>openNew('domain',null,{columnId:col.id,layerId:layer.id})}>＋ Ajouter un domaine ici</button>
@@ -185,7 +200,7 @@ function App(){
    {modal!=='edit-capability'&&<>
     <Field label="Code" required error={formErrors.code} value={form.code} onChange={e=>setForm({...form,code:e.target.value})}/>
     {modal==='capability'&&<label className={'field '+(formErrors.domainId?'has-error':'')}><span>Domaine <b className="required" aria-hidden="true"> *</b></span><select value={form.domainId} onChange={e=>setForm({...form,domainId:e.target.value})}>{model.domains.map(d=><option value={d.id} key={d.id}>{d.code} — {d.name}</option>)}</select>{formErrors.domainId&&<small className="field-error">{formErrors.domainId}</small>}</label>}
-    {(modal==='domain'||modal==='edit-domain')&&<><label className="field"><span>Colonne</span><select value={form.columnId} onChange={e=>setForm({...form,columnId:e.target.value})}>{columns.map(c=><option value={c.id} key={c.id}>{c.name}</option>)}</select></label><label className="field"><span>Ligne (layer)</span><select value={form.layerId} onChange={e=>setForm({...form,layerId:e.target.value})}>{layers.map(l=><option value={l.id} key={l.id}>{l.name}</option>)}</select></label></>}
+    {(modal==='domain'||modal==='edit-domain')&&<><label className="field"><span>Colonne</span><select value={form.columnId} onChange={e=>setForm({...form,columnId:e.target.value})}>{columns.map(c=><option value={c.id} key={c.id}>{c.name}</option>)}</select></label><label className="field"><span>Ligne (layer)</span><select value={form.layerId} onChange={e=>setForm({...form,layerId:e.target.value})}>{layers.map(l=><option value={l.id} key={l.id}>{l.name}</option>)}</select></label><label className={'field '+(formErrors.columnSpan?'has-error':'')}><span>Étendue sur les colonnes</span><select value={form.columnSpan} onChange={e=>setForm({...form,columnSpan:e.target.value})}>{columns.slice( Math.max(0,columns.findIndex(c=>c.id===form.columnId))).map((c,i)=><option key={c.id} value={i+1}>{i+1} colonne{i?'s':''}</option>)}</select>{formErrors.columnSpan&&<small className="field-error">{formErrors.columnSpan}</small>}<small className="field-help">La capacité couvrira les colonnes adjacentes à partir de la colonne choisie.</small></label></>}
     {modal==='app'&&<><Field label="Éditeur / fournisseur" required error={formErrors.vendor} value={form.vendor} onChange={e=>setForm({...form,vendor:e.target.value})}/><label className="field"><span>Statut</span><select value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option>Actif</option><option>Cible</option><option>Obsolète</option></select></label><label className="field"><span>Type</span><select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}><option>SaaS</option><option>ERP</option><option>On-Premise</option><option>Shadow IT</option></select></label></>}
     <Field label="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/>
    </>}
