@@ -118,7 +118,7 @@ describe('Application smoke test', () => {
     cy.get('.cell-label').should('not.exist');
 
     // Ajout depuis la cellule de la première ligne
-    cy.get('.map-cell[data-zone-key="default:default"] .cell-add').click();
+    cy.get('.map-row:not(.map-head)').eq(0).find('.map-cell[data-zone-key="default:default"] .cell-add').click();
     cy.get('.modal .field input').eq(0).type('Domaine personnalisé');
     cy.get('.modal .field input').eq(1).type('CUSTOM');
     cy.get('.modal .field input').eq(2).type('Créé depuis une cellule.');
