@@ -334,8 +334,10 @@ describe('Application smoke test', () => {
     cy.contains('.modal button', 'Créer').click();
 
     cy.get('.poster-cap').first().as('targetCapability');
+    let expectedCount;
     cy.get('@targetCapability').find('b').invoke('text').then((text) => {
       const before = Number(text.trim().replace(/[^0-9]/g, ''));
+      expectedCount = before + 1;
       cy.window().then((win) => {
         const transfer = new win.DataTransfer();
         cy.get('#app-inventory .app-item').contains('Application Cypress Poster').closest('.app-item')
@@ -344,11 +346,13 @@ describe('Application smoke test', () => {
         cy.get('@targetCapability').trigger('drop', { dataTransfer: transfer });
       });
       cy.get('@targetCapability').find('b').invoke('text').should((updated) => {
-        expect(Number(updated.trim().replace(/[^0-9]/g, ''))).to.eq(before + 1);
+        expect(Number(updated.trim().replace(/[^0-9]/g, ''))).to.eq(expectedCount);
       });
     });
     cy.reload();
-    cy.get('.poster-cap').first().find('b').should('contain.text', '1');
+    cy.get('.poster-cap').first().find('b').invoke('text').should((text) => {
+      expect(Number(text.trim().replace(/[^0-9]/g, ''))).to.eq(expectedCount);
+    });
   });
 
 
