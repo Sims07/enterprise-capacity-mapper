@@ -108,7 +108,11 @@ function App(){
  };
  const placeDomain=(domainId,columnId,layerId)=>{
    if(!domainId)return;
-   update({layout:{...layout,mode:layoutMode,columns,layers},domains:model.domains.map(d=>d.id===domainId?{...d,layout:{...(d.layout||{}),columnId:columnId||d.layout?.columnId||columns[0].id,layerId:layerId||d.layout?.layerId||layers[0].id}}:d)});
+   const moving=model.domains.find(d=>d.id===domainId);
+   const targetColumn=columnId||moving?.layout?.columnId||columns[0].id;
+   const targetLayer=layerId||moving?.layout?.layerId||layers[0].id;
+   if(moving&&!placementAvailable(domainId,targetColumn,targetLayer,moving.layout?.columnSpan||1)){notify('Déplacement impossible : cette étendue chevaucherait un autre domaine ou dépasserait la matrice.');return}
+   update({layout:{...layout,mode:layoutMode,columns,layers},domains:model.domains.map(d=>d.id===domainId?{...d,layout:{...(d.layout||{}),columnId:targetColumn,layerId:targetLayer}}:d)});
  };
  const openNew=(kind,parent,place)=>{setEditingDomainId(null);setEditingCapabilityId(null);setFormErrors({});setForm({...emptyForm,domainId:parent||'',capabilityIds:parent?[parent]:[],columnId:place?.columnId||columns[0].id,layerId:place?.layerId||layers[0].id,columnSpan:'1'});setModal(kind)};
  const openEditDomain=d=>{setEditingDomainId(d.id);setEditingCapabilityId(null);setFormErrors({});setForm({...emptyForm,name:d.name,code:d.code,description:d.description||'',columnId:d.layout?.columnId||columns[0].id,layerId:d.layout?.layerId||layers[0].id,columnSpan:String(d.layout?.columnSpan||1)});setModal('edit-domain')};
