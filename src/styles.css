@@ -79,3 +79,61 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 .map-row .map-cell[style*="grid-column: span"]{min-width:0;background:#fff;border-style:solid;border-color:#a5b4fc;box-shadow:inset 3px 0 #6366f1;}
 .map-row .map-cell[style*="grid-column: span"]>.domain{width:100%;}
 .field-help{display:block;margin-top:5px;color:#64748b;font-size:10px;line-height:1.45;}
+
+
+/* Visual presentation controls */
+.visual-toolbar{display:flex;align-items:end;flex-wrap:wrap;gap:10px;margin:16px 0 10px;padding:12px 14px;border:1px solid #dbe3ef;border-radius:12px;background:#fff;box-shadow:0 2px 8px #0f172a08}
+.visual-toolbar label{display:flex;flex-direction:column;gap:5px;font-size:10px;font-weight:800;color:#475569}
+.visual-toolbar select,.visual-toolbar input{min-height:34px;border:1px solid #cbd5e1;border-radius:7px;padding:7px 9px;background:#fff;color:#0f172a;font:inherit;font-size:12px}
+.visual-toolbar .map-filter input{min-width:190px}
+.filter-count{font-size:11px;color:#64748b;padding:0 2px 9px}
+.app.theme-executive{background:#f5f3ef;color:#252e3b}
+.theme-executive main{background:#f5f3ef}
+.theme-executive .map-head{background:#e8e1d5}
+.theme-executive .col-head{border-color:#b58b52;color:#44372a}
+.theme-executive .domain{border-color:#d8c8ad;background:#fffdf8}
+.theme-executive .domain-head{background:#f1e7d7}
+.theme-executive .domain-head h3{color:#44372a}
+.theme-executive .cap{border-color:#e4d7c5;background:#fffefa}
+.theme-executive .cap.highlight{border-color:#b7791f;background:#fff3d8}
+.theme-executive .visual-toolbar{border-color:#d8c8ad}
+.app.theme-contrast{background:#fff;color:#111827}
+.theme-contrast .domain,.theme-contrast .cap,.theme-contrast .map-cell{border-color:#64748b}
+.theme-contrast .domain-head{background:#e2e8f0}
+.theme-contrast .col-head{border-bottom-color:#334155}
+.theme-contrast .cap.highlight{background:#fef3c7;border:2px solid #92400e}
+.theme-contrast .axis-label{color:#111827}
+.density-compact .map-cell{padding:7px;gap:6px}
+.density-compact .domain{padding:8px;margin-bottom:6px}
+.density-compact .domain-head{padding-bottom:6px;margin-bottom:6px}
+.density-compact .domain-head p,.density-compact .cap p{display:none}
+.density-compact .cap{padding:7px;margin-bottom:5px}
+.density-compact .cap-head{gap:5px}
+.density-compact .cap-head b{font-size:11px}
+.density-compact .cell-add.empty{padding:10px 6px}
+.presentation-mode header{position:relative}
+.presentation-mode header .toolbar-actions> :not([data-testid="presentation-toggle"]){display:none}
+.presentation-mode .workspace{display:block;min-height:calc(100vh - 72px)}
+.presentation-mode aside{display:none}
+.presentation-mode main{padding:24px clamp(16px,3vw,48px);overflow:visible}
+.presentation-mode .canvas-actions,.presentation-mode .layout-tools{display:none}
+.presentation-mode .canvas-head{margin-bottom:12px}
+.presentation-mode .canvas-head h2{font-size:28px}
+.presentation-mode .inline-guidance{max-width:none}
+.presentation-mode .visual-toolbar{background:transparent;box-shadow:none}
+.presentation-mode .map{overflow:auto}
+.filtered-view{display:grid;gap:8px}
+@media print{
+ body,.app,.workspace,main{background:#fff!important;color:#111827!important}
+ header,.workspace>aside,.toolbar,.canvas-actions,.layout-tools,.visual-toolbar,.cell-add,.domain-actions,.cap-edit,.relations,.toast,.inline-guidance{display:none!important}
+ .workspace{display:block!important;min-height:0!important}
+ main{padding:0!important;overflow:visible!important}
+ .canvas-head{display:block!important;margin:0 0 12px!important}
+ .canvas-head h2{font-size:20pt!important}
+ .map{overflow:visible!important;min-width:0!important}
+ .map-row{break-inside:avoid}
+ .map-cell,.domain,.cap{break-inside:avoid;box-shadow:none!important}
+ .domain,.cap{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .map-head{position:static!important}
+}
+@media(max-width:900px){.visual-toolbar{align-items:stretch}.visual-toolbar label{flex:1;min-width:120px}.visual-toolbar .map-filter input{min-width:0;width:100%}.filter-count{align-self:center}}
