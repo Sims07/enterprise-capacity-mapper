@@ -43,6 +43,34 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
+  it('affiche un assistant Nouvelle cartographie stylé et adapté au mobile', () => {
+    cy.visit('/');
+      cy.viewport(1280, 800);
+      cy.get('[data-testid="new-map-button"]').click();
+      cy.get('.modal.wizard')
+        .should('be.visible')
+        .and('have.css', 'border-radius', '16px')
+        .and('have.css', 'width', '920px');
+      cy.get('.wizard-steps li.current').should('have.attr', 'aria-current', 'step');
+      cy.get('[data-testid="template-matrix"]')
+        .should('have.attr', 'aria-pressed', 'true')
+        .and('have.css', 'background-color', 'rgb(245, 245, 255)');
+      cy.contains('button', 'Suivant').click();
+      cy.get('.axis-editor').should('have.length', 2).and('have.css', 'border-radius', '11px');
+      cy.get('[data-testid="wizard-preview"]').should('be.visible');
+
+      cy.viewport(390, 740);
+      cy.get('.modal.wizard').should('be.visible').then(modal => {
+        const rect = modal[0].getBoundingClientRect();
+        expect(rect.left).to.be.at.least(0);
+        expect(rect.right).to.be.at.most(390);
+      });
+      cy.get('.wizard-structure').should('have.css', 'grid-template-columns').then(columns => {
+        expect(columns).to.match(/^\d+(?:\.\d+)?px$/);
+      });
+      cy.get('.wizard .wizard-footer').should('be.visible');
+  });
+
   it('ferme le menu contextuel quand on clique hors du menu', () => {
     cy.visit('/');
     cy.clearLocalStorage();
@@ -100,6 +128,38 @@ describe('Application smoke test', () => {
     cy.contains('.cap', 'Gestion des Prospects & Leads').should('exist');
     cy.get('[data-testid="redo-button"]').click();
     cy.contains('.cap', 'Qualification des prospects').should('exist');
+  });
+
+  it('enregistre une cartographie localement et permet de la rouvrir après rechargement', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('[data-testid="save-local-map"]').click();
+    cy.get('[data-testid="local-map-name"]').clear().type('Cartographie locale QA');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.window().then(window => {
+      const savedMaps = JSON.parse(window.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1'));
+      expect(savedMaps.map(map => map.name)).to.include('Cartographie locale QA');
+    });
+
+    cy.reload();
+    cy.get('[data-testid="open-local-maps"]').click();
+    cy.get('[data-testid="recent-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
+    cy.get('[data-testid="saved-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
+    cy.get('.modal-head button').click();
+    cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
+      cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').click();
+    });
+    cy.get('.context-menu').contains('button', 'Renommer').click();
+    cy.get('.modal .field input').clear().type('Modification non sauvegardée');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.get('[data-testid="open-local-maps"]').click();
+    cy.get('[data-testid="saved-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').contains('button', 'Ouvrir').click();
+    cy.get('[data-testid="confirm-load-local-map"]').click();
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('exist');
+    cy.contains('.cap', 'Modification non sauvegardée').should('not.exist');
   });
 
 

@@ -13,6 +13,7 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 - **Étendue multi-colonnes** : un domaine N0 peut couvrir plusieurs colonnes adjacentes sur une même ligne de la matrice.
 - **Analyse d'impact** : capacités sollicitées, applications impactées, gaps et redondances.
 - **Historique** : annulation et rétablissement des modifications du modèle, avec raccourcis clavier.
+- **Bibliothèque locale** : enregistrement de plusieurs cartographies et accès aux cartographies récemment ouvertes dans le navigateur.
 - **Déploiement** : GitHub Actions → GitHub Pages.
 - **Backend** : aucun backend requis.
 
@@ -56,6 +57,14 @@ Cette fonction sert à représenter visuellement un domaine transverse qui conce
 - L'historique porte sur les modifications enregistrées du modèle et conserve jusqu'à **50 étapes**. Une nouvelle modification après une annulation remplace la suite de rétablissement.
 - Dans un champ de formulaire, les raccourcis restent réservés à l'édition du texte.
 
+### Enregistrer et ouvrir plusieurs cartographies
+
+- Cliquez sur **Sauvegarder** pour enregistrer la cartographie actuelle dans la bibliothèque de ce navigateur. Lors du premier enregistrement, donnez-lui un nom ; ensuite, le même bouton met à jour cette sauvegarde.
+- Cliquez sur **Mes cartographies** pour ouvrir une cartographie récente ou une sauvegarde nommée. Les dix dernières cartographies actives sont gardées dans la liste **Récemment ouvertes**, même sans sauvegarde nommée.
+- L'application demande confirmation avant d'ouvrir une cartographie, car cela remplace celle qui est affichée.
+- Les changements apportés à une cartographie déjà enregistrée ne modifient pas sa sauvegarde tant que vous ne cliquez pas de nouveau sur **Sauvegarder**.
+- La bibliothèque est propre à chaque navigateur et appareil. Utilisez l'export JSON pour transférer ou partager une cartographie.
+
 ### Sauvegarder et partager les données
 
 - Les modifications sont conservées dans le stockage local du navigateur.
@@ -85,7 +94,7 @@ npm run test:e2e
 
 ## Données
 
-Le modèle est stocké sous la clé `enterprise-capacity-mapper:model:v2`.
+Le modèle actif est stocké sous la clé `enterprise-capacity-mapper:model:v3`. La bibliothèque de cartographies nommées est stockée séparément dans le LocalStorage du navigateur.
 
 L'étendue d'un domaine est enregistrée dans `layout.columnSpan` (nombre de colonnes, avec une valeur par défaut de `1`). Les informations de position sont conservées dans `layout.columnId` et `layout.layerId`.
 
