@@ -309,3 +309,14 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 }
 .menu-glyph::before{top:-5px}
 .menu-glyph::after{top:5px}
+
+/* Variante B — heatmap de couverture, additive pour préserver le rendu existant */
+.coverage-switch{display:flex;align-items:center;gap:0;padding:3px;border:1px solid var(--border-strong,#cbd5e1);border-radius:8px;background:#fff;white-space:nowrap}
+.coverage-switch button{border:0;background:transparent;color:#475569;padding:7px 10px;border-radius:6px;font-size:11px;font-weight:750;cursor:pointer}
+.coverage-switch button.active{background:#eef2ff;color:#3730a3;box-shadow:0 1px 3px #0f172a18}
+.coverage-legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;font-size:10px;font-weight:750}
+.coverage-legend span{padding:6px 9px;border:1px solid;border-radius:7px;background:#fff}
+.legend-covered{color:#065f46;border-color:#a7f3d0!important}.legend-redundant{color:#92400e;border-color:#fcd34d!important}.legend-gap{color:#9f1239;border-color:#fda4af!important}
+.cap.coverage-covered{background:#ecfdf5;border-color:#6ee7b7}.cap.coverage-redundant{background:#fffbeb;border-color:#fbbf24}.cap.coverage-gap{background:#fff1f2;border-color:#fb7185}
+.coverage-count{font-weight:800;white-space:nowrap}.coverage-covered .coverage-count{background:#d1fae5;color:#065f46}.coverage-redundant .coverage-count{background:#fef3c7;color:#92400e}.coverage-gap .coverage-count{background:#ffe4e6;color:#9f1239}
+@media(max-width:900px){.coverage-switch{order:4}.canvas-actions{flex-wrap:wrap}}
