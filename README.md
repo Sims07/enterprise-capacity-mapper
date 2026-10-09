@@ -1,28 +1,53 @@
 # Enterprise Capacity Mapper
 
-Application PWA de cartographie des capacités métier et de leur couverture applicative.
+Application PWA de cartographie des capacités métier et de leur couverture applicative, inspirée des pratiques de cartographie de capacités TOGAF.
 
-## Cible d'architecture
+## Fonctionnalités
 
-- **Frontend** : React + Vite, statique et compatible GitHub Pages.
-- **PWA** : manifest + service worker + cache offline.
-- **Données locales** : LocalStorage V2 par défaut, avec migration automatique des anciennes clés `ea_canvas_*`.
-- **Échange** : import/export JSON versionné (`schemaVersion: 2`).
-- **Modèle** : Domaines N0 → Capacités N1 → Applications, avec une relation application-capacité **N↔N**.
-- **Personnalisation** : édition des domaines N0 et renommage des capacités N1, renommage/gestion des colonnes et layers, nom distinct pour chaque zone à leur croisement, et création d'une cartographie vierge.
-- **Étendue multi-colonnes** : un domaine N0 peut couvrir plusieurs colonnes adjacentes sur une même ligne de la matrice.
-- **Analyse d'impact** : capacités sollicitées, applications impactées, gaps et redondances.
-- **Déploiement** : GitHub Actions → GitHub Pages.
-- **Backend** : aucun backend requis.
+### Cartographie métier
+
+- **Modèle de capacités** : Domaines N0 → Capacités N1 → Applications, avec une relation application-capacité **N↔N**.
+- **Cartographie à un ou deux niveaux** : adaptez la profondeur de la cartographie au besoin de représentation.
+- **Création guidée** : assistant pour créer une cartographie et définir ses colonnes et ses lignes (*layers*), ou démarrer avec une cartographie vierge.
+- **Édition de la matrice** : création et modification des domaines N0, renommage des capacités N1, gestion et renommage des colonnes et des lignes (*layers*), et personnalisation du nom de chaque zone au croisement.
+- **Domaines transverses** : un domaine N0 peut couvrir plusieurs colonnes adjacentes sur une même ligne.
+- **Déplacement dans la matrice** : déplacement des domaines par glisser-déposer, avec contrôle des positions disponibles.
+- **Contrôle de cohérence** : prévention des chevauchements entre domaines et des étendues qui dépassent les colonnes disponibles, avec retour d'erreur explicite.
+- **Analyse de couverture et d'impact** : identification des capacités sollicitées, applications impactées, gaps et redondances.
+
+### Présentation et lecture
+
+- **Thèmes visuels** : choisissez entre les thèmes Classique, Exécutif et Contraste.
+- **Densité d'affichage** : basculez entre une présentation confortable et une présentation compacte.
+- **Mode présentation** : privilégiez la lecture de la cartographie lors d'une revue ou d'un partage à l'écran.
+- **Recherche et filtrage** : retrouvez des domaines à partir de leur nom, code ou description.
+- **Impression** : mise en page dédiée à l'impression pour faciliter la diffusion de la cartographie.
+- **Préférences mémorisées** : les préférences d'affichage sont conservées localement dans le navigateur.
+
+### Données et fonctionnement
+
+- **PWA** : application installable et utilisable hors ligne après chargement, selon le cache du navigateur.
+- **Stockage local** : sauvegarde des modifications dans le navigateur, avec migration automatique des anciennes clés `ea_canvas_*`.
+- **Import/export JSON** : export et import d'un format versionné (`schemaVersion: 2)) pour sauvegarder, archiver ou partager une cartographie.
+- **Sans backend** : application statique compatible GitHub Pages.
+- **Déploiement automatisé** : GitHub Actions construit l'application et la publie sur GitHub Pages.
 
 ## Utiliser l'application
 
 ### Créer ou ouvrir une cartographie
 
 1. Ouvrez l'application depuis GitHub Pages ou lancez-la localement (voir [Développement local](#développement-local)).
-2. Utilisez l'assistant de création pour nommer la cartographie et définir ses colonnes et ses lignes (*layers*). Vous pouvez créer une cartographie vierge, puis ajouter les domaines au fur et à mesure.
+2. Utilisez l'assistant de création pour nommer la cartographie, choisir une profondeur à un ou deux niveaux et définir ses colonnes et ses lignes (*layers*). Vous pouvez créer une cartographie vierge, puis ajouter les domaines au fur et à mesure.
 3. Dans la matrice, utilisez **Ajouter un domaine ici** dans la cellule souhaitée pour créer un domaine N0 à cet emplacement.
 4. Renseignez les champs obligatoires signalés dans le formulaire, puis enregistrez. Pour modifier un domaine par la suite, utilisez son action **Modifier**.
+
+### Présenter et rechercher dans la cartographie
+
+- Utilisez le sélecteur de thème pour passer entre les vues **Classique**, **Exécutif** et **Contraste**.
+- Choisissez une densité **Confortable** ou **Compacte** selon le niveau de détail et la taille de l'écran.
+- Activez le **mode présentation** pour mettre l'accent sur la matrice.
+- Utilisez le filtre pour rechercher un domaine par nom, code ou description.
+- Utilisez la fonction d'impression du navigateur pour imprimer ou enregistrer la cartographie en PDF.
 
 ### Faire couvrir plusieurs colonnes à un domaine N0
 
@@ -53,6 +78,7 @@ Cette fonction sert à représenter visuellement un domaine transverse qui conce
 - Les modifications sont conservées dans le stockage local du navigateur.
 - Utilisez l'import/export JSON pour sauvegarder une cartographie, l'archiver ou la partager.
 - Pour transférer une cartographie vers un autre navigateur ou poste, exportez le JSON puis importez-le dans l'autre environnement.
+- Les préférences d'affichage sont également mémorisées localement.
 - La disponibilité hors ligne dépend du chargement préalable de l'application et du cache PWA du navigateur.
 
 ## Développement local
@@ -89,7 +115,7 @@ Le workflow `.github/workflows/deploy-pages.yml` construit automatiquement l'app
 
 Dans GitHub : **Settings → Pages → Source: GitHub Actions**.
 
-## Évolution prévue
+## Évolutions envisagées
 
 1. Provider de stockage interchangeable (LocalStorage / IndexedDB / JSON distant).
 2. Configuration d'une source JSON publique dans un dépôt.
