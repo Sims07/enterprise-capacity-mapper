@@ -271,4 +271,52 @@ describe('Application smoke test', () => {
     cy.get('.stats').should('contain.text', '2 N0');
   });
 
+
+  it('personnalise la présentation de la cartographie sans modifier le modèle métier', () => {
+    cy.visit('/');
+    cy.get('.canvas-head .visual-toolbar').should('not.exist');
+    cy.get('.visual-settings').should('be.visible').and('not.have.attr', 'open');
+    cy.get('.visual-settings .visual-toolbar').should('not.be.visible');
+    cy.get('.visual-settings > summary').click();
+    cy.get('.visual-settings[open] .visual-toolbar').should('be.visible');
+    cy.get('[data-testid="visual-theme"]').select('executive');
+    cy.get('[data-testid="visual-density"]').select('compact');
+    cy.get('.app').should('have.class', 'theme-executive').and('have.class', 'density-compact');
+    cy.get('[data-testid="map-filter"]').type('CAP-CRM');
+    cy.get('.filter-count').should('contain.text', '1 / 4 domaines');
+    cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
+    cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('aside').should('not.be.visible');
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'presentation-mode');
+    cy.reload();
+    cy.get('.visual-settings > summary').click();
+    cy.get('[data-testid="visual-theme"]').should('have.value', 'executive');
+    cy.get('[data-testid="visual-density"]').should('have.value', 'compact');
+    cy.get('.stats').should('contain.text', '4 N0');
+  });
+
+
+  it('agrandit la cartographie en repliant l’inventaire sans perdre les commandes', () => {
+    cy.visit('/');
+    cy.get('#app-inventory').should('be.visible');
+    cy.get('.map').should('be.visible');
+    cy.get('.inventory-toggle-rail').should('be.visible').and('have.attr', 'aria-label', 'Masquer l’inventaire des applications').click();
+    cy.get('#app-inventory').should('not.be.visible');
+    cy.get('.workspace').should('have.class', 'inventory-collapsed');
+    cy.get('.map').should('be.visible');
+    cy.get('.visual-settings > summary').click();
+    cy.get('[data-testid="visual-theme"]').should('be.visible');
+    cy.get('[data-testid="visual-density"]').should('be.visible');
+    cy.get('[data-testid="map-filter"]').should('be.visible');
+    cy.get('.help-icon').click();
+    cy.get('.togaf-guide').should('be.visible');
+    cy.get('.togaf-guide button[aria-label="Fermer"]').click();
+    cy.get('.inventory-toggle-rail').should('have.attr', 'aria-label', 'Afficher l’inventaire des applications').click();
+    cy.get('#app-inventory').should('be.visible');
+    cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
+  });
+
 });
