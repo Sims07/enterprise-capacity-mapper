@@ -312,7 +312,8 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="visual-density"]').should('be.visible');
     cy.get('[data-testid="map-filter"]').should('be.visible');
     cy.get('.help-icon').click();
-    cy.get('.guide, [role="dialog"]').should('exist');
+    cy.get('.togaf-guide').should('be.visible');
+    cy.get('.togaf-guide button[aria-label="Fermer"]').click();
     cy.get('.inventory-toggle').should('contain.text', 'Inventaire').click();
     cy.get('#app-inventory').should('be.visible');
     cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
