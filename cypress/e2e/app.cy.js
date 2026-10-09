@@ -319,4 +319,37 @@ describe('Application smoke test', () => {
     cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
   });
 
+
+  it('associe une application à une capacité N1 depuis la vue poster et conserve la relation', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+    cy.get('.poster-map').should('be.visible');
+
+    cy.get('#app-inventory').contains('button', '＋ Application').click();
+    cy.get('.modal').should('be.visible');
+    cy.get('.modal .field input').eq(0).type('Application Cypress Poster');
+    cy.get('.modal .field input').eq(1).type('CYP-POSTER');
+    cy.get('.modal .field input').eq(2).type('Test Vendor');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.get('.poster-cap').first().as('targetCapability');
+    cy.get('@targetCapability').find('b').invoke('text').then((text) => {
+      const before = Number(text.trim().replace(/[^0-9]/g, ''));
+      cy.window().then((win) => {
+        const transfer = new win.DataTransfer();
+        cy.get('#app-inventory .app-item').contains('Application Cypress Poster').closest('.app-item')
+          .trigger('dragstart', { dataTransfer: transfer });
+        cy.get('@targetCapability').trigger('dragover', { dataTransfer: transfer });
+        cy.get('@targetCapability').trigger('drop', { dataTransfer: transfer });
+      });
+      cy.get('@targetCapability').find('b').invoke('text').should((updated) => {
+        expect(Number(updated.trim().replace(/[^0-9]/g, ''))).to.eq(before + 1);
+      });
+    });
+    cy.reload();
+    cy.get('.poster-cap').first().find('b').should('contain.text', '1');
+  });
+
+
 });
