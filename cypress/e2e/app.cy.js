@@ -294,4 +294,21 @@ describe('Application smoke test', () => {
     cy.get('.stats').should('contain.text', '4 N0');
   });
 
+
+  it('agrandit la cartographie en repliant l’inventaire sans perdre les commandes', () => {
+    cy.visit('/');
+    cy.get('#app-inventory').should('be.visible');
+    cy.get('.map').should('be.visible');
+    cy.get('.inventory-toggle').click();
+    cy.get('#app-inventory').should('not.be.visible');
+    cy.get('.workspace').should('have.class', 'inventory-collapsed');
+    cy.get('.map').should('be.visible');
+    cy.get('[data-testid="visual-theme"]').should('be.visible');
+    cy.get('[data-testid="visual-density"]').should('be.visible');
+    cy.get('[data-testid="map-filter"]').should('be.visible');
+    cy.get('.inventory-toggle').should('contain.text', 'Afficher les applications').click();
+    cy.get('#app-inventory').should('be.visible');
+    cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
+  });
+
 });
