@@ -489,7 +489,7 @@ describe('Application smoke test', () => {
     cy.get('.modal .field input').eq(0).type('Gestion des réclamations');
     cy.get('.modal .field input').eq(1).type('CAP-RECLAM');
     cy.get('.modal .field input').eq(2).type('Traitement et suivi des réclamations clients.');
-    cy.get('.modal select').select('Relation & Engagement Client');
+    // Le domaine parent est présélectionné lors de la création depuis son menu contextuel.
     cy.contains('.modal button', 'Créer').click();
 
     cy.contains('.cap', 'Gestion des réclamations').should('be.visible');
