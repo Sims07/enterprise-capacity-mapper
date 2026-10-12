@@ -1,125 +1,72 @@
 # Propositions de maquettes — entête de l’application
 
-## Contexte et objectif
+## Contexte
+Analyse de main le 12 octobre 2026. L’application React/Vite doit rester compatible GitHub Pages et PWA. La cartographie est la surface de travail principale ; les données restent locales au navigateur, avec import/export JSON.
 
-Analyse de la version `main` consultée le 12 octobre 2026. L’application est une SPA React/Vite compatible GitHub Pages et PWA. L’entête doit rester compact : la matrice de cartographie est la surface de travail principale.
+Fonctions à organiser : Cartographie / Analyse d’impact, création, annuler/rétablir, sauvegarde, Mes cartographies, import/export, préférences/thème, aide TOGAF, et commandes contextuelles de structure et de filtrage.
 
-Fonctions déjà présentes ou documentées à rendre accessibles sans transformer l’entête en « mur de boutons » :
+## Direction privilégiée après clarification : ruban inspiré de Microsoft 365
 
-- bascule **Cartographie / Analyse d’impact** ;
-- création d’une cartographie ;
-- annuler / rétablir ;
-- sauvegarder et ouvrir **Mes cartographies** ;
-- import / export JSON ;
-- préférences d’affichage / thème ;
-- aide TOGAF ;
-- commandes de structure de la matrice et recherche/filtrage, qui doivent rester proches de la cartographie plutôt que toutes remonter dans l’entête global.
-
-Les données sont locales au navigateur, avec import/export JSON. La proposition ne suppose ni backend, ni compte utilisateur, ni stockage distant.
-
-## Maquette A — Barre d’application + commandes essentielles (recommandée)
-
-**Intention :** style SaaS professionnel, sobre et très lisible. Une barre unique de hauteur maîtrisée, avec seulement les actions fréquentes visibles ; les commandes secondaires sont regroupées dans des menus nommés.
+Le besoin est plus proche de l’organisation d’Office 365 que d’une simple barre d’outils. Il faut privilégier un ruban à onglets fonctionnels, avec une hiérarchie stable et des groupes de commandes nommés.
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ ◈  CAPACITY MAPPER       [ Cartographie | Analyse d’impact ]     ↶  ↷   [ Sauvegarder ▾ ]  │
-│    Architecture métier                                             [ Mes cartographies ]    │
-│                                                        [ + Nouvelle ] [ ⋯ ]                 │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ ◈ Enterprise Capacity Mapper   [ Rechercher une capacité, un domaine… ]  Thème  Aide  ⚙      │
+├──────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Accueil   Cartographie   Applications   Analyse   Affichage   Mes cartographies   Import/Export│
+├──────────────────────────────────────────────────────────────────────────────────────────────┤
+│ CRÉER                 MODIFIER             DONNÉES                  AFFICHAGE                 │
+│ + Nouvelle carte      ↶ Annuler  ↷ Rétablir  Sauvegarder  Ouvrir      Présentation  Filtrer   │
+│ + Domaine N0          Structure             Importer JSON Exporter    Zoom          Thème      │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Organisation**
-- À gauche : marque discrète et nom de l’application sur une ligne ; sous-titre facultatif seulement sur grand écran.
-- Au centre : sélecteur segmenté « Cartographie / Analyse d’impact » clairement identifiable.
-- À droite : historique Annuler/Rétablir, Sauvegarder, Mes cartographies, action principale « + Nouvelle » et menu « ⋯ ».
-- Le menu « ⋯ » contient Importer, Exporter, Préférences / thème et les actions moins fréquentes. L’aide TOGAF reste un bouton « ? » accessible, avec libellé accessible et infobulle.
-- « Sauvegarder » doit conserver son comportement actuel et ne pas laisser croire à une synchronisation distante.
+### Principes
+- Barre supérieure : nom de l’application, recherche si elle peut réellement couvrir les entités existantes, aide TOGAF et préférences discrètes.
+- Onglets : Accueil, Cartographie, Applications, Analyse et Affichage. Bibliothèque et import/export peuvent être des onglets si leur usage le justifie.
+- Groupes : création, édition, données et présentation, avec des libellés discrets et des séparateurs visuels.
+- Accueil par défaut : création d’une cartographie, sauvegarde, annuler/rétablir et accès à Mes cartographies.
+- Les actions N0/N1, la structure et les filtres dépendants du contexte restent proches de la zone de travail.
+- Le thème est discret, dans Affichage ou Préférences. L’aide TOGAF reste accessible via un bouton « ? » compact.
+- Sur écran étroit, les groupes se replient en menus nommés ; le ruban peut être réduit, sans icônes ambiguës seules.
 
-**Points forts :** hiérarchie claire, actions récurrentes visibles, libellés explicites, faible bruit visuel. La matrice conserve l’espace vertical.
+### Pourquoi cette direction
+Le ruban donne une place prévisible à un nombre croissant de fonctionnalités et convient mieux à un outil d’architecture d’entreprise riche en commandes qu’une rangée unique de boutons. Sa hauteur doit toutefois rester maîtrisée pour préserver la matrice.
 
-**Vigilances :** sur largeur intermédiaire, le menu secondaire doit absorber les actions avant que les libellés principaux ne se chevauchent. Sur mobile, prévoir un repli explicite et accessible, pas une réduction à des icônes sans nom.
+## Trois concepts comparables
 
-## Maquette B — Navigation par espaces de travail
+### A — Ruban type Office 365 (recommandé)
+Barre d’identité au-dessus, onglets fonctionnels, groupes de commandes sous l’onglet actif.
+Atouts : découvrabilité, structure évolutive et vocabulaire stable. Vigilance : éviter trop d’onglets et proposer un mode compact.
 
-**Intention :** donner à l’application l’allure d’un outil d’architecture d’entreprise plus structuré. Les espaces de travail deviennent la navigation primaire ; les actions de fichier sont dans une barre d’outils compacte.
+### B — Menu latéral + barre d’outils compacte
+Navigation persistante à gauche pour Cartographie, Analyse d’impact, Mes cartographies, Bibliothèque et Import/Export ; haut de page consacré à la recherche, aux préférences et aux actions principales.
+Atouts : sections toujours visibles. Vigilance : réduit la largeur disponible pour la matrice.
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ ◈ Capacity Mapper     Cartographie   Analyse d’impact                           Aide  ⚙     │
-├─────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Cartographie active ▾     ↶  ↷      [ Sauvegarder ] [ Importer / Exporter ▾ ] [ + Nouvelle ]│
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-**Organisation**
-- Première ligne : identité, navigation entre les deux espaces, aide et préférences.
-- Deuxième ligne : nom de la cartographie active / sélecteur, historique et opérations sur les données.
-- Le nom de la cartographie est visible pour éviter de travailler par erreur sur le mauvais modèle.
-- Les options de thème restent dans Préférences ; le bouton d’aide ouvre le guide TOGAF.
-
-**Points forts :** séparation nette entre navigation et actions ; extensible si de nouveaux espaces arrivent (par exemple portefeuille applicatif ou qualité des données).
-
-**Vigilances :** deux lignes consomment plus de hauteur ; la seconde doit pouvoir se réduire sur petit écran. Ne pas créer de faux sélecteur de cartographie si l’interaction ne correspond pas à la bibliothèque locale existante.
-
-## Maquette C — Barre compacte + menu de commandes
-
-**Intention :** maximiser la place disponible pour la matrice, notamment sur des écrans portables. Les actions principales restent visibles, le reste est regroupé dans un menu « Actions ».
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ ◈ Capacity Mapper   [ Cartographie | Impact ]   ↶ ↷   [ + Nouvelle ] [ Sauvegarder ] [ ☰ ]  │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-Le menu « ☰ » ouvre un panneau structuré, avec des groupes nommés :
-
-```text
-┌───────────────────────────────┐
-│ DONNÉES                       │
-│  Mes cartographies            │
-│  Importer un JSON             │
-│  Exporter un JSON             │
-├───────────────────────────────┤
-│ AFFICHAGE                     │
-│  Thème et préférences         │
-│  Présentation                 │
-├───────────────────────────────┤
-│ AIDE                          │
-│  Guide TOGAF                  │
-└───────────────────────────────┘
-```
-
-**Points forts :** entête courte et matrice favorisée ; très bonne base pour un affichage mobile ou un mode présentation.
-
-**Vigilances :** les fonctions secondaires sont moins découvrables. Le menu doit être un vrai menu accessible (focus clavier, Échap, fermeture au clic extérieur, noms explicites) et non un hamburger décoratif. Éviter de cacher « Mes cartographies » si cette fonction est fréquente.
+### C — Entête minimale + menu d’actions
+Barre courte avec navigation essentielle, Annuler/Rétablir, Nouvelle cartographie et Sauvegarder. Les commandes secondaires sont classées dans un panneau Données, Affichage et Aide.
+Atouts : maximise la place pour la matrice. Vigilance : commandes moins découvrables.
 
 ## Comparatif
 
-| Critère | A — Essentielle | B — Espaces | C — Compacte |
+| Critère | A — Ruban Office | B — Menu latéral | C — Minimaliste |
 |---|---:|---:|---:|
-| Place laissée à la matrice | Très bonne | Moyenne | Excellente |
-| Découvrabilité des actions | Très bonne | Très bonne | Moyenne |
-| Évolutivité fonctionnelle | Bonne | Excellente | Bonne |
-| Coût de changement / risque | Faible à moyen | Moyen | Moyen |
-| Usage bureau | Excellent | Excellent | Très bon |
-| Usage mobile | Bon avec repli | Correct avec repli | Excellent |
+| Place laissée à la matrice | Bonne | Moyenne | Excellente |
+| Découvrabilité | Excellente | Très bonne | Moyenne |
+| Évolutivité | Excellente | Bonne | Bonne |
+| Usage bureau | Excellent | Très bon | Très bon |
+| Usage mobile | Bon avec repli | Moyen | Excellent |
+| Adéquation au besoin exprimé | Excellente | Partielle | Partielle |
 
 ## Recommandation
+Retenir A — le ruban inspiré de Microsoft 365, avec un repli compact inspiré de C pour les petits écrans. Organiser le ruban autour des vrais cas d’usage plutôt que recopier toutes les conventions Office sans discernement.
 
-**Retenir la maquette A**, avec deux idées complémentaires :
-1. afficher le nom de la cartographie active de façon discrète, si cela peut être fait sans ajouter une seconde ligne permanente ;
-2. reprendre le repli mobile de la maquette C.
-
-Cette option s’appuie sur les contrôles et les comportements existants sans redessiner l’application entière. Elle répond aussi au besoin déjà exprimé de rendre le thème discret, de garder l’aide TOGAF derrière « ? », de libérer l’espace au-dessus de la cartographie et d’éviter un menu burger visuellement dominant.
-
-## Règles UX à respecter lors de l’implémentation
-
+## Règles UX et d’implémentation
 - Ne pas modifier le modèle métier, les relations N0 → N1 → applications, ni le stockage.
-- Conserver les actions existantes et leurs gestionnaires ; le travail doit être principalement structurel et CSS.
-- Garder un seul bouton primaire visuellement dominant : « + Nouvelle » ou « Sauvegarder » selon l’état réel, sans rendre les deux identiques.
-- Utiliser des libellés et des infobulles accessibles ; aucun contrôle essentiel ne doit être une icône seule sans nom accessible.
-- Respecter les états désactivés de Annuler/Rétablir.
-- Ajouter des tests Cypress sur l’accès à chaque action depuis l’entête, la bascule Cartographie/Analyse d’impact, les menus et le repli responsive.
-- Vérifier le build, les tests E2E et le déploiement sous le sous-chemin GitHub Pages.
-- Ne pas fusionner cette proposition documentaire avec une refonte fonctionnelle : l’implémentation éventuelle doit être une PR distincte, petite et testée.
+- Conserver les gestionnaires existants ; privilégier une refonte structurelle et CSS, avec adaptations de composants seulement si nécessaire.
+- Ne pas créer de recherche globale, d’état de compte ou de commandes fictives.
+- Garder un bouton primaire dominant et respecter les états désactivés d’Annuler/Rétablir.
+- Rendre les onglets et menus accessibles au clavier ; gérer le focus et Échap.
+- Ajouter des tests Cypress pour les onglets, les actions déplacées, les menus et le responsive.
+- Vérifier build, tests E2E et déploiement sous le sous-chemin GitHub Pages.
+- L’implémentation devra faire l’objet d’une PR dédiée, distincte de cette proposition documentaire.
