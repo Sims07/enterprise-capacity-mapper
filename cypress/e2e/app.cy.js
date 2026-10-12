@@ -476,6 +476,79 @@ describe('Application smoke test', () => {
   });
 
 
+
+  it('crée une capacité N1 depuis un domaine N0 et conserve son rattachement après rechargement', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.contains('.domain', 'Relation & Engagement Client')
+      .find('button[aria-label="Actions pour Relation & Engagement Client"]').click();
+    cy.get('.context-menu').contains('button', 'Ajouter N1').click();
+    cy.get('.modal h2').should('contain.text', 'Nouvelle capacité N1');
+    cy.get('.modal .field input').eq(0).type('Gestion des réclamations');
+    cy.get('.modal .field input').eq(1).type('CAP-RECLAM');
+    cy.get('.modal .field input').eq(2).type('Traitement et suivi des réclamations clients.');
+    cy.get('.modal select').select('Relation & Engagement Client');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.contains('.cap', 'Gestion des réclamations').should('be.visible');
+    cy.reload();
+    cy.contains('.cap', 'Gestion des réclamations').should('be.visible');
+    cy.contains('.domain', 'Relation & Engagement Client').should('contain.text', 'Gestion des réclamations');
+  });
+
+  it('crée une application avec ses métadonnées et la conserve après rechargement', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('#app-inventory').contains('button', 'Application').click();
+    cy.get('.modal h2').should('contain.text', 'Nouvelle application');
+    cy.get('.modal .field input').eq(0).type('Portail réclamations QA');
+    cy.get('.modal .field input').eq(1).type('APP-RECLAM-QA');
+    cy.get('.modal .field input').eq(2).type('Équipe QA');
+    cy.get('.modal select').eq(0).select('Cible');
+    cy.get('.modal select').eq(1).select('SaaS');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.get('#app-inventory').should('contain.text', 'Portail réclamations QA');
+    cy.get('#app-inventory').should('contain.text', 'APP-RECLAM-QA');
+    cy.reload();
+    cy.get('#app-inventory').should('contain.text', 'Portail réclamations QA');
+    cy.get('#app-inventory').should('contain.text', 'Équipe QA');
+  });
+
+  it('protège le passage Cartographie / Impact sans perdre les capacités ni leurs associations', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('contain.text', 'Salesforce CRM');
+    cy.contains('button', 'Impact').click();
+    cy.get('.impact').should('be.visible');
+    cy.contains('.impact-card', 'Éléments sollicités').should('be.visible');
+    cy.contains('.impact-card', 'Applications impactées').should('be.visible');
+    cy.get('.impact-card').contains('button', 'Gestion des Prospects & Leads').click();
+    cy.get('.metric').first().should('contain.text', '1');
+    cy.contains('button', 'Cartographie').click();
+    cy.get('.map').should('be.visible');
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('contain.text', 'Salesforce CRM');
+  });
+
+  it('permet de sauvegarder une modification puis de la retrouver dans Mes cartographies', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('[data-testid="save-local-map"]').click();
+    cy.get('[data-testid="local-map-name"]').clear().type('Régression ruban - sauvegarde');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.get('[data-testid="open-local-maps"]').click();
+    cy.get('[data-testid="saved-maps-list"]').should('contain.text', 'Régression ruban - sauvegarde');
+    cy.get('[data-testid="recent-maps-list"]').should('contain.text', 'Régression ruban - sauvegarde');
+  });
+
   it('présente le ruban de commandes sans retirer les actions existantes', () => {
     cy.visit('/');
     cy.get('.app > header').should('be.visible');
