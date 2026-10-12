@@ -475,4 +475,24 @@ describe('Application smoke test', () => {
     cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
   });
 
+
+  it('présente le ruban de commandes sans retirer les actions existantes', () => {
+    cy.visit('/');
+    cy.get('.app > header').should('be.visible');
+    cy.get('.app > header .toolbar-switch button').should('have.length', 2);
+    cy.get('[data-testid="undo-button"]').should('be.visible');
+    cy.get('[data-testid="redo-button"]').should('be.visible');
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
+    cy.get('[data-testid="open-local-maps"]').should('be.visible');
+    cy.get('[data-testid="save-local-map"]').should('be.visible');
+    cy.get('.toolbar-actions').contains('button', 'Export').should('be.visible');
+    cy.get('.toolbar-actions input[type="file"]').should('exist');
+    cy.get('.app > header').should('have.css', 'flex-direction', 'column');
+
+    cy.viewport(390, 740);
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
+    cy.get('[data-testid="save-local-map"]').should('be.visible');
+    cy.get('.toolbar-actions').should('be.visible');
+  });
+
 });
