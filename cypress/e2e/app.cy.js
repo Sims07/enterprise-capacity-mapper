@@ -429,6 +429,7 @@ describe('Application smoke test', () => {
     cy.get('.filter-count').should('contain.text', '1 / 4 domaines');
     cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
     cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
+    cy.get('[data-testid="ribbon-tab-affichage"]').click();
     cy.get('header').contains('button', 'Présentation').click();
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('aside').should('not.be.visible');
@@ -443,16 +444,98 @@ describe('Application smoke test', () => {
 
   it('met en évidence dans la cartographie les capacités sélectionnées dans Impact', () => {
     cy.visit('/');
-    cy.get('header').contains('button', 'Impact').click();
+    cy.get('[data-testid="ribbon-tab-analyse"]').click();
     cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
       .should('have.attr', 'aria-pressed', 'false')
       .click()
       .should('have.attr', 'aria-pressed', 'true');
 
-    cy.get('header').contains('button', 'Cartographie').click();
+    cy.get('[data-testid="ribbon-tab-cartographie"]').click();
     cy.contains('.cap', 'Gestion des Prospects & Leads')
       .should('have.class', 'impact-selected')
       .and('have.css', 'outline-color', 'rgb(245, 158, 11)');
+  });
+
+  it('organise les commandes dans des onglets accessibles et conserve leurs actions', () => {
+    cy.visit('/');
+    cy.get('[data-testid="ribbon-tab-accueil"]')
+      .should('have.attr', 'aria-selected', 'true')
+      .and('have.attr', 'tabindex', '0');
+    cy.get('[data-testid="undo-button"]').should('be.disabled');
+    cy.get('[data-testid="redo-button"]').should('be.disabled');
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
+    cy.get('[data-testid="new-map-button"]').focus().type('{esc}');
+    cy.get('[data-testid="ribbon-collapse"]')
+      .should('have.attr', 'aria-expanded', 'false')
+      .and('have.focus');
+    cy.get('[role="tabpanel"]').should('not.be.visible');
+    cy.get('[data-testid="ribbon-collapse"]').click().should('have.attr', 'aria-expanded', 'true');
+
+    cy.get('[data-testid="ribbon-tab-accueil"]').focus().type('{rightarrow}');
+    cy.get('[data-testid="ribbon-tab-cartographie"]')
+      .should('have.attr', 'aria-selected', 'true')
+      .and('have.focus');
+    cy.get('[data-testid="map-filter"]').should('be.visible');
+    cy.get('.cell-add').should('be.visible');
+    cy.contains('[role="tabpanel"] button', 'Structure').click();
+    cy.get('.modal').should('contain.text', 'Personnaliser la structure');
+    cy.get('.modal-head button').click();
+
+    cy.get('[data-testid="ribbon-tab-applications"]').click();
+    cy.get('aside').should('be.visible');
+    cy.contains('[role="tabpanel"] button', 'Nouvelle application').click();
+    cy.get('.modal').should('be.visible');
+    cy.get('.modal-head button').click();
+
+    cy.get('[data-testid="ribbon-tab-analyse"]').click();
+    cy.contains('.impact h2', 'Projet / fonctionnalité').should('be.visible');
+    cy.get('[data-testid="ribbon-tab-affichage"]').click();
+    cy.contains('[role="tabpanel"] button', 'Présentation').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.contains('[role="tabpanel"] button', 'Quitter la présentation').click();
+    cy.get('.app').should('not.have.class', 'presentation-mode');
+
+    cy.get('[data-testid="ribbon-tab-cartotheques"]').click();
+    cy.contains('[role="tabpanel"] button', 'Ouvrir Mes cartographies').click();
+    cy.get('.modal').should('contain.text', 'Mes cartographies');
+    cy.get('.modal-head button').click();
+
+    cy.get('[data-testid="ribbon-tab-import-export"]').click();
+    cy.get('.ribbon-file-command').should('be.visible').and('contain.text', 'Importer JSON');
+    cy.window().then(window => {
+      cy.stub(window.URL, 'createObjectURL').returns('blob:export-test').as('createExport');
+    });
+    cy.contains('[role="tabpanel"] button', 'Exporter JSON').click();
+    cy.get('@createExport').should('have.been.calledOnce').then(stub => {
+      return stub.getCall(0).args[0].text().then(text => {
+        expect(JSON.parse(text).schemaVersion).to.equal(3);
+      });
+    });
+    cy.get('.ribbon-file-command input').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify({
+        schemaVersion: 3,
+        metadata: { name: 'Cartographie importée depuis le ruban' },
+        domains: [{ id: 'ribbon-domain', code: 'RIBBON', name: 'Domaine importé' }],
+        capabilities: [],
+        applications: []
+      })),
+      fileName: 'cartographie.json',
+      mimeType: 'application/json'
+    }, { force: true });
+    cy.get('[data-testid="ribbon-tab-cartographie"]').click();
+    cy.contains('.domain-card', 'Domaine importé').should('be.visible');
+  });
+
+  it('propose une sélection nommée du ruban et des commandes utilisables sur mobile', () => {
+    cy.viewport(390, 740);
+    cy.visit('/');
+    cy.get('[role="tablist"]').should('not.be.visible');
+    cy.get('[data-testid="ribbon-mobile-tabs"]').should('be.visible').select('affichage');
+    cy.contains('[role="tabpanel"] button', 'Présentation').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('header').then(header => {
+      expect(header[0].scrollWidth).to.be.at.most(header[0].clientWidth);
+    });
   });
 
 
@@ -465,7 +548,7 @@ describe('Application smoke test', () => {
     cy.get('.workspace').should('have.class', 'inventory-collapsed');
     cy.get('.map').should('be.visible');
     cy.get('[data-testid="map-filter"]').should('be.visible');
-    cy.get('.help-icon').click();
+    cy.get('[data-testid="ribbon-help"]').click();
     cy.get('.togaf-guide').should('be.visible');
     cy.get('.togaf-guide .guide-intro').should('have.css', 'background-color', 'rgb(238, 242, 255)');
     cy.get('.togaf-guide section').should('have.length', 4).first().should('have.css', 'border-radius', '9px');

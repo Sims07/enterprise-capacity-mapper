@@ -23,6 +23,15 @@ const DOMAIN_COLOR_PALETTE = [
   { name: 'Prune', value: '#7e22ce' },
   { name: 'Ardoise', value: '#475569' }
 ];
+const RIBBON_TABS = [
+  { id: 'accueil', label: 'Accueil' },
+  { id: 'cartographie', label: 'Cartographie' },
+  { id: 'applications', label: 'Applications' },
+  { id: 'analyse', label: 'Analyse d’impact' },
+  { id: 'affichage', label: 'Affichage' },
+  { id: 'cartotheques', label: 'Mes cartographies' },
+  { id: 'import-export', label: 'Import / Export' }
+];
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
 const domainTextColor = color => {
   const hex = resolveDomainColor(color).slice(1);
@@ -81,6 +90,10 @@ function App() {
   const [contextMenu, setContextMenu] = useState(null);
   const [modal, setModal] = useState(null);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [activeRibbonTab, setActiveRibbonTab] = useState('accueil');
+  const [ribbonCollapsed, setRibbonCollapsed] = useState(false);
+  const ribbonTabRefs = useRef({});
+  const ribbonToggleRef = useRef(null);
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
   const [editingDomainId, setEditingDomainId] = useState(null);
@@ -309,6 +322,37 @@ function App() {
 
   const openWizard = () => setModal('wizard');
   const closeWizard = () => setModal(null);
+  const selectRibbonTab = tabId => {
+    setActiveRibbonTab(tabId);
+    if (tabId === 'cartographie') {
+      setMode('editor');
+      setMapQuery('');
+    } else if (tabId === 'applications') {
+      setMode('editor');
+      setInventoryCollapsed(false);
+    } else if (tabId === 'analyse') {
+      setMode('impact');
+    }
+  };
+  const handleRibbonKeyDown = event => {
+    const currentIndex = RIBBON_TABS.findIndex(tab => tab.id === activeRibbonTab);
+    let nextIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % RIBBON_TABS.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + RIBBON_TABS.length) % RIBBON_TABS.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = RIBBON_TABS.length - 1;
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    const nextTab = RIBBON_TABS[nextIndex];
+    selectRibbonTab(nextTab.id);
+    ribbonTabRefs.current[nextTab.id]?.focus();
+  };
+  const handleRibbonEscape = event => {
+    if (event.key !== 'Escape' || ribbonCollapsed) return;
+    setRibbonCollapsed(true);
+    ribbonToggleRef.current?.focus();
+  };
+  const handleMobileRibbonChange = event => selectRibbonTab(event.target.value);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
     if (backup) exportModel(model);
     replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
@@ -587,27 +631,146 @@ function App() {
 
   return (
     <div className={'app' + (presentation ? ' presentation-mode' : '')}>
-      <header>
-        <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
-        <div className="toolbar">
-          <div className="toolbar-switch">
-            <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
-            <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
+      <header className="app-header" onKeyDown={handleRibbonEscape}>
+        <div className="app-header-top">
+          <div className="app-brand">
+            <span className="app-brand-mark" aria-hidden="true">◈</span>
+            <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
           </div>
-          <div className="toolbar-actions">
-            <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶ Annuler</button>
-            <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷ Rétablir</button>
-            <button type="button" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
-            <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>
-              <span className="new-map-button-mark" aria-hidden="true">+</span>
-              <span>Nouvelle cartographie</span>
-            </button>
-            <button type="button" className="secondary" data-testid="open-local-maps" onClick={openLocalMaps}>▤ Mes cartographies</button>
-            <button type="button" className="primary" data-testid="save-local-map" onClick={saveCurrentLocalMap}>Enregistrer</button>
-            <button type="button" className="secondary" onClick={() => exportModel(model)}>↓ Export</button>
-            <label className="button secondary">↑ Import<input hidden type="file" accept=".json,application/json" onChange={importJson} /></label>
-          </div>
+          <button type="button" className="ribbon-help" data-testid="ribbon-help" onClick={() => setGuideOpen(true)} title="Aide TOGAF">? <span>Aide TOGAF</span></button>
         </div>
+
+        <nav className="ribbon-tabs" aria-label="Onglets du ruban">
+          <div className="ribbon-tab-list" role="tablist" aria-label="Commandes de l’application" onKeyDown={handleRibbonKeyDown}>
+            {RIBBON_TABS.map(tab => (
+              <button
+                key={tab.id}
+                id={`ribbon-tab-${tab.id}`}
+                ref={element => { ribbonTabRefs.current[tab.id] = element; }}
+                type="button"
+                role="tab"
+                data-testid={`ribbon-tab-${tab.id}`}
+                aria-selected={activeRibbonTab === tab.id}
+                aria-controls="ribbon-panel"
+                tabIndex={activeRibbonTab === tab.id ? 0 : -1}
+                className={'ribbon-tab' + (activeRibbonTab === tab.id ? ' active' : '')}
+                onClick={() => selectRibbonTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <label className="ribbon-mobile-select">
+            <span>Onglet</span>
+            <select data-testid="ribbon-mobile-tabs" aria-label="Onglet du ruban" value={activeRibbonTab} onChange={handleMobileRibbonChange}>
+              {RIBBON_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+            </select>
+          </label>
+          <button
+            ref={ribbonToggleRef}
+            type="button"
+            className="ribbon-collapse-button"
+            data-testid="ribbon-collapse"
+            aria-expanded={!ribbonCollapsed}
+            aria-controls="ribbon-panel"
+            onClick={() => setRibbonCollapsed(value => !value)}
+          >
+            {ribbonCollapsed ? 'Développer le ruban' : 'Réduire le ruban'}
+          </button>
+        </nav>
+
+        <section id="ribbon-panel" className="ribbon-panel" role="tabpanel" aria-labelledby={`ribbon-tab-${activeRibbonTab}`} hidden={ribbonCollapsed}>
+          {activeRibbonTab === 'accueil' && (
+            <div className="ribbon-groups">
+              <section className="ribbon-group" aria-label="Créer">
+                <div className="ribbon-group-commands">
+                  <button type="button" className="ribbon-command primary" data-testid="new-map-button" onClick={openWizard}><span aria-hidden="true">＋</span> Nouvelle cartographie</button>
+                </div>
+                <span className="ribbon-group-label">Créer</span>
+              </section>
+              <section className="ribbon-group" aria-label="Modifier">
+                <div className="ribbon-group-commands">
+                  <button type="button" data-testid="undo-button" className="ribbon-command history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶ Annuler</button>
+                  <button type="button" data-testid="redo-button" className="ribbon-command history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷ Rétablir</button>
+                </div>
+                <span className="ribbon-group-label">Modifier</span>
+              </section>
+              <section className="ribbon-group" aria-label="Données">
+                <div className="ribbon-group-commands">
+                  <button type="button" className="ribbon-command" data-testid="save-local-map" onClick={saveCurrentLocalMap}>Sauvegarder</button>
+                  <button type="button" className="ribbon-command" data-testid="open-local-maps" onClick={openLocalMaps}>Mes cartographies</button>
+                </div>
+                <span className="ribbon-group-label">Données</span>
+              </section>
+            </div>
+          )}
+
+          {activeRibbonTab === 'cartographie' && (
+            <div className="ribbon-groups">
+              <section className="ribbon-group" aria-label="Structure">
+                <div className="ribbon-group-commands"><button type="button" className="ribbon-command" onClick={openLayoutEditor}>⚙ Structure</button></div>
+                <span className="ribbon-group-label">Structure</span>
+              </section>
+              <p className="ribbon-context-note">Les actions N0/N1 et les filtres restent près de la cartographie.</p>
+            </div>
+          )}
+
+          {activeRibbonTab === 'applications' && (
+            <div className="ribbon-groups">
+              <section className="ribbon-group" aria-label="Applications">
+                <div className="ribbon-group-commands">
+                  <button type="button" className="ribbon-command primary" onClick={() => { setInventoryCollapsed(false); openNew('app'); }}>＋ Nouvelle application</button>
+                  <button type="button" className="ribbon-command" onClick={() => setInventoryCollapsed(value => !value)}>{inventoryCollapsed ? 'Afficher l’inventaire' : 'Masquer l’inventaire'}</button>
+                </div>
+                <span className="ribbon-group-label">Inventaire SI</span>
+              </section>
+            </div>
+          )}
+
+          {activeRibbonTab === 'analyse' && (
+            <div className="ribbon-groups">
+              <section className="ribbon-group" aria-label="Analyse d’impact">
+                <div className="ribbon-group-commands"><button type="button" className="ribbon-command primary" onClick={() => setMode('impact')}>Ouvrir l’analyse d’impact</button></div>
+                <span className="ribbon-group-label">Analyse</span>
+              </section>
+            </div>
+          )}
+
+          {activeRibbonTab === 'affichage' && (
+            <div className="ribbon-groups">
+              <section className="ribbon-group" aria-label="Présentation">
+                <div className="ribbon-group-commands">
+                  <button type="button" className="ribbon-command" onClick={() => setPresentation(value => !value)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
+                </div>
+                <span className="ribbon-group-label">Présentation</span>
+              </section>
+            </div>
+          )}
+
+          {activeRibbonTab === 'cartotheques' && (
+            <div className="ribbon-groups">
+              <section className="ribbon-group" aria-label="Bibliothèque locale">
+                <div className="ribbon-group-commands">
+                  <button type="button" className="ribbon-command primary" data-testid="open-local-maps" onClick={openLocalMaps}>Ouvrir Mes cartographies</button>
+                  <button type="button" className="ribbon-command" data-testid="save-local-map" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie</button>
+                </div>
+                <span className="ribbon-group-label">Bibliothèque locale</span>
+              </section>
+            </div>
+          )}
+
+          {activeRibbonTab === 'import-export' && (
+            <div className="ribbon-groups">
+              <section className="ribbon-group" aria-label="Import et export JSON">
+                <div className="ribbon-group-commands">
+                  <label className="ribbon-command ribbon-file-command">Importer JSON<input hidden type="file" accept=".json,application/json" onChange={importJson} /></label>
+                  <button type="button" className="ribbon-command" onClick={() => exportModel(model)}>Exporter JSON</button>
+                </div>
+                <span className="ribbon-group-label">Import / Export</span>
+              </section>
+            </div>
+          )}
+        </section>
       </header>
 
       <div className={'workspace ' + (inventoryCollapsed ? 'inventory-collapsed' : '')}>
@@ -716,7 +879,6 @@ function App() {
                 </div>
                 <div className="canvas-actions">
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
-                  <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
               </div>
 
