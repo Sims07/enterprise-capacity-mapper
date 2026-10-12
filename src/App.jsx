@@ -66,7 +66,7 @@ function App() {
   const [mode, setMode] = useState('editor'); // 'editor' ou 'impact'
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
-  const [inventoryCollapsed, setInventoryCollapsed] = useState(false);
+  const [inventoryCollapsed, setInventoryCollapsed] = useState(() => window.matchMedia('(max-width: 600px)').matches);
   const [mapQuery, setMapQuery] = useState('');
   const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
   const [localMapId, setLocalMapId] = useState(() => localStorage.getItem(ACTIVE_LOCAL_MAP_KEY) || '');
@@ -574,6 +574,7 @@ function App() {
 
             return (
               <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} style={{ gridColumn: span > 1 ? `span ${span}` : undefined }} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
+                <div className="cell-column-label">{col.name}</div>
                 {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
                 {here.map(d => <DomainCard d={d} key={d.id} />)}
                 <button type="button" className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>
@@ -698,6 +699,7 @@ function App() {
                   className="secondary inventory-toggle inventory-toggle-rail"
                   onClick={() => setInventoryCollapsed(v => !v)}
                   aria-label={inventoryCollapsed ? 'Afficher l’inventaire des applications' : 'Masquer l’inventaire des applications'}
+                  title={inventoryCollapsed ? 'Afficher l’inventaire des applications' : 'Masquer l’inventaire des applications'}
                 >
                   <span className="menu-glyph"></span>
                 </button>

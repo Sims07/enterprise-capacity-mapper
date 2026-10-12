@@ -847,6 +847,10 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   font: 700 11px ui-monospace, SFMono-Regular, monospace;
   text-transform: uppercase;
 }
+.cell-column-label {
+  display: none;
+}
+
 @media (max-width: 600px) {
   .map-filter-bar {
     align-items: stretch;
@@ -1145,5 +1149,216 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
     bottom: -16px;
     margin: 16px -16px -16px;
     padding: 11px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  html,
+  body,
+  #root,
+  .app {
+    min-width: 0;
+    width: 100%;
+  }
+  body {
+    overflow-x: hidden;
+  }
+  header {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 0;
+    gap: 8px;
+    padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+    background-color: #0f172a;
+  }
+  header > div:first-child {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .eyebrow {
+    font-size: 8px;
+  }
+  h1 {
+    font-size: 18px;
+  }
+  .toolbar {
+    flex: 0 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .toolbar-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .toolbar-switch button {
+    min-height: 40px;
+  }
+  .toolbar-actions {
+    width: 100%;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+  .toolbar-actions::-webkit-scrollbar {
+    display: none;
+  }
+  .toolbar-actions > * {
+    flex: 0 0 auto;
+    min-height: 42px;
+  }
+  .workspace {
+    display: block;
+    min-height: 0;
+  }
+  aside {
+    max-height: 28dvh;
+    padding: 12px;
+    overflow-y: auto;
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  main {
+    min-width: 0;
+    padding: 12px;
+    overflow-x: hidden;
+  }
+  .map-controls-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+  }
+  .inventory-toggle-rail {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 40px;
+  }
+  .map-filter-bar {
+    grid-column: 2;
+    min-width: 0;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .map-filter-control {
+    width: 100%;
+  }
+  .filter-count {
+    padding: 0;
+  }
+  .canvas-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+  .canvas-actions button,
+  .cell-add {
+    min-height: 42px;
+  }
+  .map {
+    width: 100%;
+    min-width: 0;
+    padding: 8px;
+    overflow: visible;
+  }
+  .map-head {
+    display: none;
+  }
+  .map-row:not(.map-head) {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0;
+  }
+  .map-row:not(.map-head) > .axis-label {
+    grid-column: 1 / -1;
+    padding: 12px 4px 6px;
+    font-size: 11px;
+  }
+  .map-row:not(.map-head) > .map-cell {
+    grid-column: 1 / -1 !important;
+  }
+  .cell-column-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .domain-banner-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .map-cell {
+    min-height: 130px;
+    padding: 7px;
+  }
+  .domain-banner {
+    min-height: 48px;
+  }
+  .domain-banner h3 {
+    font-size: 13px;
+  }
+  .domain-actions .mini-action-trigger,
+  .cap-head .mini-action-trigger {
+    width: 40px;
+    height: 40px;
+  }
+  .impact .hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 16px;
+  }
+  .impact .hero > div:first-child {
+    grid-column: 1 / -1;
+  }
+  .impact-grid {
+    gap: 12px;
+  }
+  .impact-card {
+    min-width: 0;
+    padding: 14px;
+  }
+  .result-row {
+    gap: 8px;
+  }
+  .result-row b {
+    overflow-wrap: anywhere;
+  }
+  .search,
+  .map-filter-control input,
+  .field input,
+  .field select,
+  .field textarea {
+    font-size: 16px;
+  }
+  .modal-backdrop {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  }
+  .modal {
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);
+    overflow-y: auto;
+  }
+  .modal-actions {
+    flex-wrap: wrap;
+  }
+  .modal-actions button {
+    min-height: 42px;
+  }
+  .toast {
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 12px;
   }
 }
