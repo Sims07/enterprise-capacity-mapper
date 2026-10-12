@@ -43,6 +43,37 @@ describe('Application smoke test', () => {
     assertApplicationLoaded();
   });
 
+  it('reste utilisable à la largeur d’un iPhone 17 Pro sans débordement horizontal de page', () => {
+    cy.viewport(402, 874);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.contains('Capacity Mapper').should('be.visible');
+    cy.get('header').should('have.css', 'position', 'relative').then(header => {
+      expect(header[0].getBoundingClientRect().height, 'hauteur de l’en-tête mobile').to.be.lessThan(300);
+    });
+    cy.get('.map').should('be.visible').then(map => {
+      expect(map[0].scrollWidth, 'matrice visible sans défilement horizontal').to.be.at.most(map[0].clientWidth);
+    });
+    cy.get('.map-row:not(.map-head)').first().should('have.css', 'grid-template-columns').then(columns => {
+      expect(columns.trim().split(/\s+/), 'cellules empilées sur une colonne').to.have.length(1);
+    });
+    cy.get('.cell-column-label').first().should('be.visible').and('not.be.empty');
+    cy.get('.map-cell').first().should('be.visible');
+    cy.get('html').then(html => {
+      expect(html[0].scrollWidth, 'largeur de page').to.be.at.most(402);
+    });
+    cy.get('.toolbar-actions').should('have.css', 'overflow-x', 'auto');
+    cy.get('.inventory-toggle-rail')
+      .should('have.attr', 'aria-label', 'Afficher l’inventaire des applications')
+      .click();
+    cy.get('#app-inventory').should('be.visible');
+    cy.get('.app-item').should('be.visible');
+    cy.get('.inventory-toggle-rail').click();
+    cy.get('#app-inventory').should('not.be.visible');
+  });
+
   it('affiche un assistant Nouvelle cartographie stylé et adapté au mobile', () => {
     cy.visit('/');
       cy.viewport(1280, 800);

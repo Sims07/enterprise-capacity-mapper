@@ -4,6 +4,8 @@ import App from './App.jsx';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
+  const registerServiceWorker = () => navigator.serviceWorker.register('./sw.js').catch(console.error);
+  if (document.readyState === 'complete') registerServiceWorker();
+  else window.addEventListener('load', registerServiceWorker, { once: true });
 }
 createRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>);
