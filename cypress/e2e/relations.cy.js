@@ -188,7 +188,7 @@ describe('Relations applications ↔ capacités', () => {
       .and('have.css', 'border-top-style', 'solid');
     cy.get('.tree-node-cap > .tree-row').first()
       .should('have.css', 'border-radius', '9px')
-      .and('have.css', 'background-color', 'rgb(251, 254, 252)');
+      .and('have.css', 'background-color', 'rgb(240, 250, 243)');
     cy.get('.tree-actions .tree-link').first().should('be.visible').click();
     cy.get('.modal').should('be.visible');
     cy.get('[data-testid="link-list"]').should('be.visible');
