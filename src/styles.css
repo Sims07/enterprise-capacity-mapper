@@ -1762,3 +1762,162 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 @media (prefers-reduced-motion: reduce) {
   .app.theme-dark *, .app.theme-dark *::before, .app.theme-dark *::after { transition-duration: .01ms !important; }
 }
+
+
+/* Dark Linear Pro — palette cohérente, contraste AA et surfaces en profondeur */
+.app.theme-dark {
+  color-scheme: dark;
+  --bg: #101114;
+  --surface: #17181c;
+  --surface-muted: #1d1f24;
+  --border: #2d3038;
+  --border-strong: #414550;
+  --text: #ececf0;
+  --muted: #a1a1aa;
+  --accent: #8b7cff;
+  --accent-soft: #29243f;
+  --danger: #fb7185;
+  background: var(--bg);
+  color: var(--text);
+}
+.app.theme-dark,
+.app.theme-dark main,
+.app.theme-dark .workspace { background: var(--bg); color: var(--text); }
+.app.theme-dark header {
+  background: #15161a;
+  border-bottom: 1px solid #2b2d33;
+  box-shadow: 0 1px 0 rgba(0,0,0,.22);
+}
+.app.theme-dark aside,
+.app.theme-dark .domain,
+.app.theme-dark .cap,
+.app.theme-dark .impact-card,
+.app.theme-dark .layout-group,
+.app.theme-dark .context-menu,
+.app.theme-dark .modal,
+.app.theme-dark .tree-toolbar,
+.app.theme-dark .tree-node-domain,
+.app.theme-dark .tree-app,
+.app.theme-dark .map-view-toggle {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+.app.theme-dark aside { border-right-color: var(--border); }
+.app.theme-dark .domain-head,
+.app.theme-dark .map-cell,
+.app.theme-dark .layout-chip,
+.app.theme-dark .cap-select,
+.app.theme-dark .tree-empty-line,
+.app.theme-dark .tree-domain > .tree-row,
+.app.theme-dark .tree-node-cap > .tree-row {
+  background: var(--surface-muted);
+  color: var(--text);
+  border-color: var(--border);
+}
+.app.theme-dark .canvas-title h2,
+.app.theme-dark .cap-head b,
+.app.theme-dark .tree-node-domain strong,
+.app.theme-dark .tree-node-cap strong,
+.app.theme-dark .tree-app strong,
+.app.theme-dark .panel-title,
+.app.theme-dark .impact-card h3 { color: #f4f4f5; }
+.app.theme-dark .canvas-head p,
+.app.theme-dark .hero p,
+.app.theme-dark .domain-head p,
+.app.theme-dark .cap p,
+.app.theme-dark .app-item small,
+.app.theme-dark .hint,
+.app.theme-dark .structure-hint,
+.app.theme-dark .layout-tools label,
+.app.theme-dark .tree-node-domain small,
+.app.theme-dark .tree-node-cap small,
+.app.theme-dark .tree-app small { color: #a1a1aa; }
+.app.theme-dark .app-item { border-bottom-color: #292b31; color: #e4e4e7; }
+.app.theme-dark .search,
+.app.theme-dark .field input,
+.app.theme-dark .field select,
+.app.theme-dark .layout-tools select,
+.app.theme-dark .tree-toolbar input,
+.app.theme-dark .tree-toolbar select,
+.app.theme-dark .tree-toolbar textarea {
+  background: #111216;
+  color: #f4f4f5;
+  border-color: #3a3d46;
+}
+.app.theme-dark input::placeholder,
+.app.theme-dark textarea::placeholder { color: #777b86; }
+.app.theme-dark .canvas-actions button,
+.app.theme-dark .domain-head button,
+.app.theme-dark .modal-actions button,
+.app.theme-dark .structure-remove,
+.app.theme-dark .structure-add,
+.app.theme-dark .context-menu button,
+.app.theme-dark .tree-actions button,
+.app.theme-dark .tree-bulk button,
+.app.theme-dark .tree-toggle {
+  background: #202127;
+  color: #e4e4e7;
+  border-color: #3a3d46;
+}
+.app.theme-dark .toolbar button,
+.app.theme-dark .toolbar .secondary,
+.app.theme-dark .button.secondary {
+  background: #23252b;
+  color: #e4e4e7;
+  border-color: #3a3d46;
+}
+.app.theme-dark .toolbar .active,
+.app.theme-dark .canvas-actions .primary,
+.app.theme-dark .primary { background: #6554d9 !important; border-color: #7969f0 !important; color: #fff !important; }
+.app.theme-dark .map-view-toggle { background: #17181c; border-color: #343741; }
+.app.theme-dark .map-view-toggle button { color: #a1a1aa !important; }
+.app.theme-dark .map-view-toggle button.active { background: #30313a !important; color: #f4f4f5 !important; box-shadow: none !important; }
+.app.theme-dark .stats span,
+.app.theme-dark .panel-title span,
+.app.theme-dark .count,
+.app.theme-dark .layout-group-title,
+.app.theme-dark .tree-summary span {
+  background: #24262d;
+  color: #d4d4d8;
+  border-color: #3a3d46;
+}
+.app.theme-dark .badge { background: #30323a; color: #e4e4e7; }
+.app.theme-dark .badge.actif { background: #17372b; color: #86efac; }
+.app.theme-dark .badge.cible { background: #1d3155; color: #93c5fd; }
+.app.theme-dark .badge.obsolete { background: #4a2029; color: #fda4af; }
+.app.theme-dark .rel { border-color: #2d3038; }
+.app.theme-dark .relations,
+.app.theme-dark .structure-section { border-color: #343741; }
+.app.theme-dark .result-row { border-bottom-color: #2d3038; }
+.app.theme-dark .result-row span { color: #a1a1aa; }
+.app.theme-dark .cap-select.selected { background: #29243f; color: #c4baff; }
+.app.theme-dark .tree-node-cap > .tree-row { background: #192b23; border-color: #315744; }
+.app.theme-dark .tree-node-domain .tree-domain-title { color: #e4e4e7; }
+.app.theme-dark .coverage-legend .legend-ok { background: #17372b; color: #86efac; border-color: #285a40; }
+.app.theme-dark .coverage-legend .legend-redundant { background: #1d3155; color: #93c5fd; border-color: #304d7c; }
+.app.theme-dark .coverage-legend .legend-gap { background: #4a2029; color: #fda4af; border-color: #71313e; }
+.app.theme-dark .toast { background: #292a31; color: #f4f4f5; border: 1px solid #41434c; }
+.app.theme-dark .modal-backdrop { background: rgba(0,0,0,.72); }
+.app.theme-dark .field span { color: #e4e4e7; }
+.app.theme-dark .field input:focus,
+.app.theme-dark .field select:focus,
+.app.theme-dark .search:focus,
+.app.theme-dark .tree-toolbar input:focus-visible,
+.app.theme-dark .tree-toolbar select:focus-visible {
+  outline: 2px solid #8b7cff;
+  outline-offset: 1px;
+  border-color: #8b7cff;
+}
+.app.theme-dark button:focus-visible,
+.app.theme-dark a:focus-visible,
+.app.theme-dark input:focus-visible,
+.app.theme-dark select:focus-visible {
+  outline: 2px solid #a99cff;
+  outline-offset: 2px;
+}
+.app.theme-dark .tree-caret { background: #25262d; color: #e4e4e7; border-color: #454854; }
+.app.theme-dark .tree-toggle:hover .tree-caret { background: #302a4c; color: #c4baff; border-color: #7665db; }
+@media (prefers-reduced-motion: reduce) {
+  .app.theme-dark *, .app.theme-dark *::before, .app.theme-dark *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
