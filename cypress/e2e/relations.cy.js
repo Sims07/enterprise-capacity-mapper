@@ -186,6 +186,10 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.tree-node-domain').first()
       .should('have.css', 'border-radius', '12px')
       .and('have.css', 'border-top-style', 'solid');
+    cy.get('.tree-domain .tree-caret').first()
+      .should('be.visible')
+      .and('have.css', 'font-size', '19px')
+      .and('have.css', 'width', '24px');
     cy.get('.tree-node-cap > .tree-row').first()
       .should('have.css', 'border-radius', '9px')
       .and('have.css', 'background-color', 'rgb(240, 250, 243)');
