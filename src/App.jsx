@@ -71,6 +71,7 @@ function App() {
   const [linkQuery, setLinkQuery] = useState('');
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('enterprise-capacity-mapper:theme') === 'dark');
   const [inventoryCollapsed, setInventoryCollapsed] = useState(() => window.matchMedia('(max-width: 600px)').matches);
   const [mapQuery, setMapQuery] = useState('');
   const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
@@ -97,6 +98,10 @@ function App() {
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
   const relationIds = item => item.capabilityIds || [];
   const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
+
+  useEffect(() => {
+    localStorage.setItem('enterprise-capacity-mapper:theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   useEffect(() => {
     saveModel(model);
@@ -696,7 +701,7 @@ function App() {
   );
 
   return (
-    <div className={'app' + (presentation ? ' presentation-mode' : '')}>
+    <div className={'app' + (presentation ? ' presentation-mode' : '') + (darkMode ? ' theme-dark' : '')}>
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
@@ -706,6 +711,7 @@ function App() {
             <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
           </div>
           <div className="toolbar-actions">
+            <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => setDarkMode(value => !value)}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
             <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶ Annuler</button>
             <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷ Rétablir</button>
             <button type="button" className="secondary" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
