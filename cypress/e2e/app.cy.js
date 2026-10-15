@@ -506,4 +506,73 @@ describe('Application smoke test', () => {
     cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
   });
 
+
+  it('rationalise l’en-tête sans retirer les commandes existantes', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('.toolbar-switch').within(() => {
+      cy.contains('button', 'Cartographie').should('be.visible');
+      cy.get('[data-testid="tab-relations"]').should('be.visible');
+      cy.contains('button', 'Impact').should('be.visible');
+    });
+    cy.get('.toolbar-history').within(() => {
+      cy.get('[data-testid="undo-button"]').should('be.visible').and('be.disabled');
+      cy.get('[data-testid="redo-button"]').should('be.visible').and('be.disabled');
+    });
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
+    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+
+    cy.get('.toolbar-tools-panel').within(() => {
+      cy.get('[data-testid="presentation-toggle"]').should('be.visible');
+      cy.get('[data-testid="open-local-maps"]').should('be.visible');
+      cy.get('[data-testid="save-local-map"]').should('be.visible');
+      cy.get('[data-testid="export-model"]').should('be.visible');
+      cy.get('[data-testid="import-model"]').should('exist').and('have.attr', 'accept', '.json,application/json');
+      cy.get('label.toolbar-import').should('be.visible');
+    });
+
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('[data-testid="presentation-toggle"]').should('contain.text', 'Quitter la présentation').click();
+    cy.get('.app').should('not.have.class', 'presentation-mode');
+
+    cy.get('[data-testid="open-local-maps"]').click();
+    cy.get('.modal').should('be.visible').and('contain.text', 'Cartographies');
+    cy.get('.modal-head button').click();
+    cy.get('[data-testid="save-local-map"]').click();
+    cy.get('[data-testid="local-map-name"]').should('be.visible');
+    cy.contains('.modal button', 'Annuler').click();
+
+    cy.window().then(win => {
+      cy.stub(win.URL, 'createObjectURL').returns('blob:header-export-test');
+      cy.stub(win.HTMLAnchorElement.prototype, 'click').callsFake(function () {
+        expect(this.download).to.match(/^enterprise-capacity-mapper-.*\.json$/);
+      });
+    });
+    cy.get('[data-testid="export-model"]').click();
+  });
+
+  it('garde le menu Outils utilisable sur mobile sans débordement horizontal', () => {
+    cy.viewport(402, 874);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('.toolbar-switch').should('be.visible');
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('.toolbar-tools-panel').should('be.visible');
+    cy.get('html').then(html => {
+      expect(html[0].scrollWidth, 'largeur de page sur mobile').to.be.at.most(402);
+    });
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+  });
+
+
 });
