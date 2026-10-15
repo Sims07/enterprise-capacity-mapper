@@ -64,7 +64,7 @@ describe('Application smoke test', () => {
     cy.get('html').then(html => {
       expect(html[0].scrollWidth, 'largeur de page').to.be.at.most(402);
     });
-    cy.get('.toolbar-actions').should('have.css', 'overflow-x', 'auto');
+    cy.get('.toolbar-actions').should('have.css', 'overflow-x', 'visible');
     cy.get('.inventory-toggle-rail')
       .should('have.attr', 'aria-label', 'Afficher l’inventaire des applications')
       .click();
@@ -166,6 +166,7 @@ describe('Application smoke test', () => {
     cy.clearLocalStorage();
     cy.reload();
 
+    cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="save-local-map"]').click();
     cy.get('[data-testid="local-map-name"]').clear().type('Cartographie locale QA');
     cy.contains('.modal button', 'Enregistrer').click();
@@ -175,6 +176,7 @@ describe('Application smoke test', () => {
     });
 
     cy.reload();
+    cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="open-local-maps"]').click();
     cy.get('[data-testid="recent-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
     cy.get('[data-testid="saved-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
@@ -460,13 +462,14 @@ describe('Application smoke test', () => {
     cy.get('.filter-count').should('contain.text', '1 / 4 domaines');
     cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
     cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
-    cy.get('header').contains('button', 'Présentation').click();
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('aside').should('not.be.visible');
     cy.get('.workspace').should('have.css', 'grid-template-columns').and('not.contain', '300px');
     cy.get('.presentation-mode .cap').should('have.length', 3).first().should('have.css', 'border-radius', '6px');
     cy.get('.presentation-mode .cap-desc, .presentation-mode .cap .relations, .presentation-mode .cell-add, .presentation-mode .domain-actions').should('not.be.visible');
-    cy.get('header').contains('button', 'Quitter la présentation').click();
+    cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     cy.get('[data-testid="map-filter"]').should('have.value', 'CAP-CRM');
     cy.get('.domain-card').should('have.length', 1);
