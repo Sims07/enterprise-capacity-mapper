@@ -2048,3 +2048,24 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   background: #302747 !important;
   border-color: #65538f;
 }
+
+
+/* Keep the Cartographie / Relations / Impact switch synchronized with the active theme.
+   Explicit light-theme selectors override any generic toolbar button styles. */
+.app:not(.theme-dark) .toolbar-switch {
+  background: #eef1f6 !important;
+  border-color: #e2e7ef !important;
+}
+.app:not(.theme-dark) .toolbar-switch button,
+.app:not(.theme-dark) .toolbar-switch button:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #64748b !important;
+}
+.app:not(.theme-dark) .toolbar-switch button.active,
+.app:not(.theme-dark) .toolbar-switch button.active:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #312e81 !important;
+  box-shadow: 0 1px 4px rgba(15,23,42,.12) !important;
+}
