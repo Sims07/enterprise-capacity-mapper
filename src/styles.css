@@ -1362,3 +1362,92 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
     left: 12px;
   }
 }
+/* --- Ergonomie des relations applications ↔ capacités --- */
+@media (min-width: 981px) {
+  .workspace:not(.inventory-collapsed) aside#app-inventory {
+    position: sticky;
+    top: 68px;
+    align-self: start;
+    height: calc(100vh - 68px);
+  }
+}
+.app-item { align-items: center; }
+.app-pick { flex: 0 0 auto; width: 16px; height: 16px; margin: 0; accent-color: #4f46e5; cursor: pointer; }
+.app-main { flex: 1; min-width: 0; }
+.app-main b { font-size: 11px; overflow-wrap: anywhere; }
+.app-side { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.app-link, .tree-link, .tree-link-here, .picked-bar button, .tree-reset {
+  border: 1px solid #c7d2fe; background: #fff; color: #4338ca; border-radius: 7px;
+  padding: 4px 8px; font-size: 10px; font-weight: 750; cursor: pointer; white-space: nowrap;
+}
+.app-link:hover, .tree-link:hover, .picked-bar button:hover, .tree-reset:hover { background: #eef2ff; border-color: #a5b4fc; }
+.tree-link-here { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+.tree-link-here:hover { background: #4338ca; }
+.app-item.picked { background: #eef2ff; border-color: #c7d2fe; }
+.picked-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 7px 9px; border: 1px solid #c7d2fe; border-radius: 8px; background: #eef2ff; color: #3730a3; font-size: 11px; font-weight: 800; }
+
+.drop { min-height: 34px; display: grid; place-items: center; }
+.drop-over { outline: 2px dashed #6366f1; outline-offset: -2px; background: #eef2ff; }
+.cap.drop-over, .domain-card.drop-over { outline-width: 3px; outline-offset: 2px; }
+.drop-over .drop { border-color: #6366f1; background: #fff; color: #4338ca; }
+
+.link-list { max-height: min(46vh, 360px); overflow: auto; margin: 10px 0 0; border: 1px solid #e2e8f0; border-radius: 9px; background: #f8fafc; padding: 6px; }
+.link-group + .link-group { margin-top: 8px; }
+.link-group h4 { margin: 6px 6px 4px; color: #475569; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; }
+.link-option { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 7px; cursor: pointer; }
+.link-option:hover { background: #eef2ff; }
+.link-option input { width: 16px; height: 16px; margin: 0; accent-color: #4f46e5; }
+.link-option b { display: block; color: #1e293b; font-size: 12px; }
+.link-option small { display: block; margin-top: 2px; color: #64748b; font-size: 10px; }
+
+.coverage-tree { min-width: 0; }
+.tree-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 10px; }
+.tree-select { width: 220px; }
+.tree-select select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 11px; background: #fff; font: inherit; font-size: 12px; }
+.tree-bulk { display: flex; gap: 7px; margin-left: auto; }
+.tree-bulk button { border: 1px solid #d7dee8; background: #fff; color: #334155; padding: 8px 11px; border-radius: 8px; font-size: 11px; font-weight: 750; cursor: pointer; }
+.tree-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; color: #64748b; font-size: 11px; font-weight: 700; }
+.tree-summary span { padding: 4px 9px; border: 1px solid #e2e8f0; border-radius: 999px; background: #fff; }
+.tree-summary .cov-gap { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
+.tree-summary .cov-redundant { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+.tree-body { display: grid; gap: 10px; }
+.tree-node-domain { border: 1px solid #dbe3ed; border-radius: 12px; background: #fff; overflow: hidden; }
+.tree-row { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 10px; }
+.tree-domain { background: #f1f5f9; border-bottom: 1px solid #e2e8f0; }
+.tree-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 6px 4px; border: 0; background: transparent; color: #0f172a; font: inherit; text-align: left; cursor: pointer; border-radius: 6px; }
+.tree-toggle:focus-visible, .tree-link:focus-visible, .tree-link-here:focus-visible { outline: 3px solid rgba(99,102,241,.3); outline-offset: 1px; }
+.tree-caret { width: 14px; color: #64748b; font-size: 11px; }
+.tree-dot { flex: 0 0 12px; width: 12px; height: 12px; border-radius: 4px; }
+.tree-code { flex: 0 0 auto; color: #6366f1; font: 800 10px ui-monospace, SFMono-Regular, monospace; }
+.tree-name { min-width: 0; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+.tree-count { color: #64748b; font-size: 11px; font-weight: 700; }
+.tree-children { padding: 4px 10px 10px 28px; display: grid; gap: 4px; }
+.tree-node-cap { border-radius: 8px; }
+.tree-cap { border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; transition: background-color .12s ease, border-color .12s ease; }
+.tree-cap.cov-ok { background: #f0fdf4; border-color: #bbf7d0; }
+.tree-cap.cov-redundant { background: #eff6ff; border-color: #bfdbfe; }
+.tree-cap.cov-gap { background: #fef2f2; border-color: #fecaca; }
+.tree-cap.drop-over { background: #eef2ff; border-color: #6366f1; }
+.tree-cov { flex: 0 0 auto; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.tree-cov.cov-ok { color: #15803d; }
+.tree-cov.cov-redundant { color: #1d4ed8; }
+.tree-cov.cov-gap { color: #b91c1c; }
+.tree-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+.tree-app { display: flex; align-items: center; gap: 8px; margin: 3px 0 0 24px; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 7px; background: #fff; font-size: 12px; cursor: grab; }
+.tree-app small { color: #64748b; font-size: 10px; }
+.tree-app-icon { color: #4f46e5; }
+.tree-remove { margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: #64748b; font-size: 16px; cursor: pointer; }
+.tree-remove:hover { background: #fee2e2; color: #b91c1c; }
+.tree-empty-line { margin: 3px 0 0 24px; color: #94a3b8; font-size: 11px; }
+.tree-empty { padding: 28px; border: 1px dashed #cbd5e1; border-radius: 12px; background: #fff; color: #64748b; text-align: center; }
+
+@media (max-width: 600px) {
+  .toolbar-switch { grid-template-columns: repeat(3, 1fr); }
+  .tree-select { width: 100%; }
+  .tree-bulk { margin-left: 0; }
+  .tree-row { flex-wrap: wrap; }
+  .tree-children { padding-left: 12px; }
+  .tree-app { margin-left: 8px; flex-wrap: wrap; }
+  .tree-actions .tree-link, .tree-actions .tree-link-here, .app-link, .tree-remove { min-height: 40px; }
+  .tree-remove { min-width: 40px; }
+}

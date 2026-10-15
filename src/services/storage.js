@@ -74,7 +74,11 @@ export function validateModel(model){
   if(!model||model.schemaVersion!==3||!Array.isArray(model.domains)||!Array.isArray(model.capabilities)||!Array.isArray(model.applications))throw new Error('Format de cartographie invalide ou version non supportée.');
   const domainIds=new Set(model.domains.map(x=>x.id)); const capIds=new Set(model.capabilities.map(x=>x.id));
   if(model.capabilities.some(x=>!domainIds.has(x.domainId)))throw new Error('Une capacité référence un domaine inexistant.');
-  if(model.applications.some(x=>x.capabilityIds?.some(id=>!capIds.has(id))))throw new Error('Une application référence une capacité inexistante.');
+  // En profondeur 1, les domaines N0 sont les cibles directement reliées aux applications.
+  // Le champ historique capabilityIds est conservé pour compatibilité de schéma, mais ses
+  // valeurs doivent alors référencer des domaines plutôt que des capacités N1.
+  const relationTargetIds = model.layout?.depth === 1 ? domainIds : capIds;
+  if(model.applications.some(x=>x.capabilityIds?.some(id=>!relationTargetIds.has(id))))throw new Error('Une application référence une capacité inexistante.');
   return model;
 }
 export async function importModel(file){const text=await file.text();return validateModel(JSON.parse(text));}

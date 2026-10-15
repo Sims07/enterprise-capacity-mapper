@@ -3,6 +3,7 @@ import { DEMO_MODEL } from './data/demoData.js';
 import { exportModel, importModel, loadLocalMaps, loadModel, loadRecentMaps, recordRecentMap, saveLocalMap as persistLocalMap, saveModel, updateRecentMap } from './services/storage.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
+import CoverageTree from './components/CoverageTree.jsx';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
@@ -36,7 +37,7 @@ const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0
 function Modal({ title, children, onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div className="modal" role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()}>
         <div className="modal-head">
           <h2>{title}</h2>
           <button type="button" onClick={onClose}>×</button>
@@ -63,7 +64,11 @@ function App() {
   const undoStack = useRef([]);
   const redoStack = useRef([]);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
-  const [mode, setMode] = useState('editor'); // 'editor' ou 'impact'
+  const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'impact'
+  const [pickedApps, setPickedApps] = useState([]);
+  const [link, setLink] = useState(null);
+  const [linkChecked, setLinkChecked] = useState([]);
+  const [linkQuery, setLinkQuery] = useState('');
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
   const [inventoryCollapsed, setInventoryCollapsed] = useState(() => window.matchMedia('(max-width: 600px)').matches);
@@ -100,6 +105,7 @@ function App() {
   }, [model, activeRecentMapId]);
 
   const apps = model.applications || [];
+  const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
   const visibleDomains = useMemo(() => model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), [model.domains, mapQuery]);
   const touched = apps.filter(a => relationIds(a).some(id => selected.includes(id)));
@@ -214,11 +220,44 @@ function App() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [historyState, modal]);
+  // Auto-scroll pendant un glisser-déposer : le HTML5 DnD ne défile pas de façon fiable seul.
+  useEffect(() => {
+    const EDGE = 70;
+    const MAX = 18;
+    const scrollableAncestor = node => {
+      for (let n = node; n && n !== document.body; n = n.parentElement) {
+        const overflowY = getComputedStyle(n).overflowY;
+        if (/(auto|scroll)/.test(overflowY) && n.scrollHeight > n.clientHeight + 1) return n;
+      }
+      return null;
+    };
+    const onDragOver = event => {
+      if (!(event.target instanceof Element)) return;
+      const el = scrollableAncestor(event.target);
+      const rect = el ? el.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+      const top = Math.max(rect.top, 0);
+      const bottom = Math.min(rect.bottom, window.innerHeight);
+      let dy = 0;
+      if (event.clientY < top + EDGE) dy = -MAX * Math.min(1, (top + EDGE - event.clientY) / EDGE);
+      else if (event.clientY > bottom - EDGE) dy = MAX * Math.min(1, (event.clientY - (bottom - EDGE)) / EDGE);
+      if (dy) (el || window).scrollBy(0, Math.round(dy));
+    };
+    const clearHover = () => document.querySelectorAll('.drop-over').forEach(node => node.classList.remove('drop-over'));
+    document.addEventListener('dragover', onDragOver);
+    document.addEventListener('dragend', clearHover);
+    document.addEventListener('drop', clearHover);
+    return () => {
+      document.removeEventListener('dragover', onDragOver);
+      document.removeEventListener('dragend', clearHover);
+      document.removeEventListener('drop', clearHover);
+    };
+  }, []);
+
   const openContextMenu = (event, menu) => {
     event.preventDefault();
     event.stopPropagation();
     const menuWidth = 180;
-    const menuHeight = menu.type === 'domain' ? 132 : 58;
+    const menuHeight = menu.type === 'domain' ? 168 : 96;
     setContextMenu({
       ...menu,
       x: Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8)),
@@ -440,7 +479,52 @@ function App() {
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const assign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: Array.from(new Set([...(a.capabilityIds || []), capId])) } : a) });
   const unassign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: (a.capabilityIds || []).filter(x => x !== capId) } : a) });
-  const onDrop = (e, capId) => { e.preventDefault(); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
+  const hoverOn = e => { e.preventDefault(); e.currentTarget.classList.add('drop-over'); };
+  const hoverOff = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-over'); };
+  const onDrop = (e, capId) => { e.preventDefault(); e.currentTarget.classList.remove('drop-over'); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
+
+  const togglePicked = id => setPickedApps(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  const linkPicked = targetId => {
+    const ids = new Set(pickedValid);
+    if (!ids.size) return;
+    update({ applications: apps.map(a => ids.has(a.id) ? { ...a, capabilityIds: Array.from(new Set([...relationIds(a), targetId])) } : a) });
+    setPickedApps([]);
+    notify(`${ids.size} application(s) reliée(s)`);
+  };
+  const openLinkForTarget = item => {
+    setLink({ kind: 'target', id: item.id, name: item.name });
+    setLinkChecked(apps.filter(a => relationIds(a).includes(item.id)).map(a => a.id));
+    setLinkQuery('');
+    setModal('link');
+  };
+  const openLinkForApp = app => {
+    setLink({ kind: 'app', id: app.id, name: app.name });
+    setLinkChecked(relationIds(app).filter(id => mappedItems.some(m => m.id === id)));
+    setLinkQuery('');
+    setModal('link');
+  };
+  const closeLink = () => { setModal(null); setLink(null); };
+  const toggleLinkChecked = id => setLinkChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
+  const saveLink = () => {
+    if (!link) return;
+    const checked = new Set(linkChecked);
+    const mappedIds = new Set(mappedItems.map(m => m.id));
+    const nextApps = apps.map(a => {
+      const current = relationIds(a);
+      if (link.kind === 'target') {
+        const has = current.includes(link.id);
+        if (checked.has(a.id) === has) return a;
+        return { ...a, capabilityIds: checked.has(a.id) ? [...current, link.id] : current.filter(x => x !== link.id) };
+      }
+      if (a.id !== link.id) return a;
+      const kept = current.filter(id => !mappedIds.has(id));
+      const next = [...kept, ...mappedItems.filter(m => checked.has(m.id)).map(m => m.id)];
+      return next.length === current.length && next.every(id => current.includes(id)) ? a : { ...a, capabilityIds: next };
+    });
+    if (nextApps.some((a, i) => a !== apps[i])) update({ applications: nextApps });
+    notify('Relations mises à jour');
+    closeLink();
+  };
 
   const importJson = async e => {
     const f = e.target.files?.[0];
@@ -476,7 +560,8 @@ function App() {
         draggable
         onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
         onDragStart={e => e.dataTransfer.setData('domain', d.id)}
-        onDragOver={e => depth === 1 && e.preventDefault()}
+        onDragOver={e => { if (depth === 1) hoverOn(e); }}
+        onDragLeave={e => { if (depth === 1) hoverOff(e); }}
         onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
         key={d.id}
       >
@@ -517,7 +602,8 @@ function App() {
                   className={capItemClass}
                   key={c.id}
                   onContextMenu={e => openContextMenu(e, { type: 'capability', item: c })}
-                  onDragOver={e => e.preventDefault()}
+                  onDragOver={hoverOn}
+                  onDragLeave={hoverOff}
                   onDrop={e => onDrop(e, c.id)}
                 >
                   <div className="cap-head">
@@ -554,6 +640,29 @@ function App() {
       </section>
     );
   };
+
+  const linkMatch = text => text.toLowerCase().includes(linkQuery.trim().toLowerCase());
+  const linkOption = (id, title, sub) => (
+    <label className="link-option" key={id}>
+      <input type="checkbox" checked={linkChecked.includes(id)} onChange={() => toggleLinkChecked(id)} />
+      <span><b>{title}</b>{sub && <small>{sub}</small>}</span>
+    </label>
+  );
+  let linkOptions = null;
+  if (link?.kind === 'target') {
+    const list = apps.filter(a => linkMatch(`${a.name} ${a.code} ${a.vendor || ''}`));
+    linkOptions = list.length ? list.map(a => linkOption(a.id, a.name, `${a.code} · ${a.status}`)) : <p className="local-map-empty">Aucune application.</p>;
+  } else if (link?.kind === 'app') {
+    const groups = (depth === 1 ? [{ d: null, items: model.domains }] : model.domains.map(d => ({ d, items: model.capabilities.filter(c => c.domainId === d.id) })))
+      .map(g => ({ ...g, items: g.items.filter(i => linkMatch(`${i.code} ${i.name}`)) }))
+      .filter(g => g.items.length);
+    linkOptions = groups.length ? groups.map(g => (
+      <div className="link-group" key={g.d?.id || 'flat'}>
+        {g.d && <h4>{g.d.code} — {g.d.name}</h4>}
+        {g.items.map(i => linkOption(i.id, i.name, i.code))}
+      </div>
+    )) : <p className="local-map-empty">Aucun élément.</p>;
+  }
 
   const matrixView = (
     <div className="map map-matrix">
@@ -593,6 +702,7 @@ function App() {
         <div className="toolbar">
           <div className="toolbar-switch">
             <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
+            <button type="button" className={mode === 'relations' ? 'active' : ''} data-testid="tab-relations" onClick={() => setMode('relations')}>⛓ Relations</button>
             <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
           </div>
           <div className="toolbar-actions">
@@ -618,17 +728,40 @@ function App() {
             <button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button>
           </div>
           <input className="search" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} />
-          <div className="hint">Glissez une application vers une tuile N1 pour créer une relation.</div>
+          <div className="hint">Glissez une application vers une capacité, ou cochez-en plusieurs puis utilisez « Relier ici » dans l’onglet Relations. Le bouton « Relier à… » permet de relier sans glisser-déposer.</div>
+          {pickedValid.length > 0 && (
+            <div className="picked-bar" role="status" data-testid="picked-bar">
+              <span>{pickedValid.length} sélectionnée(s)</span>
+              <button type="button" onClick={() => setPickedApps([])}>Tout désélectionner</button>
+            </div>
+          )}
           {filteredApps.map(a => (
-            <div key={a.id} className="app-item" draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
-              <div><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
-              <span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}>{a.status}</span>
+            <div key={a.id} className={'app-item' + (pickedValid.includes(a.id) ? ' picked' : '')} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
+              <input type="checkbox" className="app-pick" aria-label={`Sélectionner ${a.name}`} checked={pickedValid.includes(a.id)} onChange={() => togglePicked(a.id)} />
+              <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
+              <div className="app-side">
+                <span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}>{a.status}</span>
+                <button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button>
+              </div>
             </div>
           ))}
         </aside>
 
         <main>
-          {mode === 'impact' ? (
+          {mode === 'relations' ? (
+            <CoverageTree
+              domains={model.domains}
+              capabilities={model.capabilities}
+              apps={apps}
+              depth={depth}
+              colorOf={resolveDomainColor}
+              pickedCount={pickedValid.length}
+              onAssign={assign}
+              onUnassign={unassign}
+              onLinkPicked={linkPicked}
+              onOpenLink={openLinkForTarget}
+            />
+          ) : mode === 'impact' ? (
             <section className="impact">
               <div className="hero">
                 <div>
@@ -737,12 +870,14 @@ function App() {
           {contextMenu.type === 'domain' && (
             <>
               {depth === 2 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('capability', contextMenu.item.id); }}>＋ Ajouter N1</button>}
+              {depth === 1 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>}
               <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditDomain(contextMenu.item); }}>Modifier</button>
               <button type="button" className="danger" onClick={e => { e.stopPropagation(); closeContextMenu(); removeDomain(contextMenu.item.id); }}>Supprimer</button>
             </>
           )}
           {contextMenu.type === 'capability' && (
             <>
+              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>
               <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditCapability(contextMenu.item); }}>Renommer</button>
             </>
           )}
@@ -813,6 +948,23 @@ function App() {
           <div className="modal-actions">
             <button type="button" onClick={() => { setModal('local-maps'); setPendingLocalMap(null); }}>Annuler</button>
             <button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'link' && link && (
+        <Modal
+          title={link.kind === 'target' ? `Relier des applications à « ${link.name} »` : `Relier « ${link.name} » à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`}
+          onClose={closeLink}
+        >
+          <p className="structure-hint">Cochez les {link.kind === 'target' ? 'applications qui supportent' : depth === 1 ? 'domaines supportés par' : 'capacités supportées par'} {link.kind === 'target' ? `ce ${relationLabel}` : 'cette application'}. Décochez pour retirer une relation.</p>
+          <input className="search" aria-label="Rechercher dans la liste" placeholder="Rechercher…" value={linkQuery} onChange={e => setLinkQuery(e.target.value)} />
+          <div className="link-list" data-testid="link-list">
+            {linkOptions}
+          </div>
+          <div className="modal-actions">
+            <button type="button" onClick={closeLink}>Annuler</button>
+            <button type="button" className="primary" data-testid="link-save" onClick={saveLink}>Enregistrer</button>
           </div>
         </Modal>
       )}
