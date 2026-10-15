@@ -1563,3 +1563,31 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 .coverage-tree .tree-actions button:focus-visible,
 .coverage-tree .tree-bulk button:focus-visible,
 .coverage-tree .tree-reset:focus-visible { outline: 3px solid #4f46e5; outline-offset: 2px; }
+
+
+/* Relations — chevrons de navigation plus lisibles et mieux intégrés */
+.coverage-tree .tree-caret {
+  display: inline-flex;
+  flex: 0 0 24px;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+  color: #334155;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+  transition: color .15s ease, background-color .15s ease, border-color .15s ease, transform .15s ease;
+}
+.coverage-tree .tree-toggle:hover .tree-caret {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  color: #3730a3;
+}
+.coverage-tree .tree-toggle:active .tree-caret {
+  background: #e0e7ff;
+  transform: scale(.96);
+}
