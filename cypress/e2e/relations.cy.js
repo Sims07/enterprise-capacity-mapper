@@ -263,6 +263,11 @@ describe('Relations applications ↔ capacités', () => {
       .should('have.css', 'background-color', 'rgb(25, 27, 34)');
     cy.get('.tree-app').first()
       .should('have.css', 'background-color', 'rgb(25, 27, 34)');
+    cy.get('.tree-app small').first()
+      .should('be.visible')
+      .and('have.css', 'color', 'rgb(226, 217, 255)')
+      .and('have.css', 'background-color', 'rgb(48, 39, 71)')
+      .and('have.css', 'font-weight', '800');
 
     // Les titres N0/N1 et toutes les commandes doivent rester lisibles sur les surfaces sombres.
     cy.get('.tree-domain .tree-name').first()
