@@ -1527,3 +1527,39 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   .coverage-tree .tree-actions { margin-left: 0; }
   .coverage-tree .tree-actions button { min-height: 36px; }
 }
+
+
+/* Relations — accessibility contrast pass */
+.coverage-tree { color: #172033; }
+.coverage-tree .tree-domain { background: #e9edf5; border-bottom-color: #d5dce8; }
+.coverage-tree .tree-domain .tree-name { color: #172033; font-size: 13px; font-weight: 800; }
+.coverage-tree .tree-domain .tree-code { color: #3730a3; border-color: #c7d2fe; background: #fff; }
+.coverage-tree .tree-count { color: #334155; border-color: #cbd5e1; background: #fff; }
+.coverage-tree .tree-node-cap > .tree-row { border-color: #cbd5e1; background: #fff; }
+.coverage-tree .tree-node-cap > .tree-row.cov-ok { border-color: #86c99e; background: #f0faf3; }
+.coverage-tree .tree-node-cap > .tree-row.cov-redundant { border-color: #8db5ed; background: #eff6ff; }
+.coverage-tree .tree-node-cap > .tree-row.cov-gap { border-color: #e5a1a1; background: #fff1f1; }
+.coverage-tree .tree-node-cap > .tree-row:hover { border-color: #94a3b8; }
+.coverage-tree .tree-name { color: #172033; font-size: 13px; font-weight: 750; }
+.coverage-tree .tree-code { color: #4338ca; border-color: #d7d9f4; background: #fff; }
+.coverage-tree .tree-cov { font-size: 11px; font-weight: 800; }
+.coverage-tree .tree-cov.cov-ok { color: #166534; border-color: #a7d9b6; background: #dcfce7; }
+.coverage-tree .tree-cov.cov-redundant { color: #1e40af; border-color: #a7c5f0; background: #dbeafe; }
+.coverage-tree .tree-cov.cov-gap { color: #991b1b; border-color: #efb0b0; background: #fee2e2; }
+.coverage-tree .tree-summary span { color: #334155; border-color: #cbd5e1; font-weight: 750; }
+.coverage-tree .tree-summary .cov-gap { color: #991b1b; border-color: #efb0b0; background: #fee2e2; }
+.coverage-tree .tree-summary .cov-redundant { color: #1e40af; border-color: #a7c5f0; background: #dbeafe; }
+.coverage-tree .tree-actions button { border-color: #cbd5e1; color: #334155; font-size: 11px; font-weight: 750; }
+.coverage-tree .tree-actions button:hover { border-color: #6366f1; background: #eef2ff; color: #312e81; }
+.coverage-tree .tree-actions .tree-link-here { border-color: #a5b4fc; background: #e0e7ff; color: #312e81; }
+.coverage-tree .tree-app { border-color: #cbd5e1; background: #fff; color: #1e293b; }
+.coverage-tree .tree-app small { background: #e2e8f0; color: #334155; }
+.coverage-tree .tree-app-icon { color: #4f46e5; }
+.coverage-tree .tree-empty-line { border-color: #cbd5e1; background: #f8fafc; color: #475569; }
+.coverage-tree .tree-reset { color: #3730a3; text-decoration: underline; text-underline-offset: 2px; }
+.coverage-tree .map-filter-control > span { color: #334155; }
+.coverage-tree .tree-bulk button { color: #334155; border-color: #cbd5e1; }
+.coverage-tree .tree-toggle:focus-visible,
+.coverage-tree .tree-actions button:focus-visible,
+.coverage-tree .tree-bulk button:focus-visible,
+.coverage-tree .tree-reset:focus-visible { outline: 3px solid #4f46e5; outline-offset: 2px; }
