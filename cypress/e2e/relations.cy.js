@@ -203,4 +203,22 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('html').then(html => { expect(html[0].scrollWidth).to.be.at.most(402); });
   });
 
+
+  it('active le thème Dark Linear et conserve la préférence après rechargement', () => {
+    fresh();
+    cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Dark Linear').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="theme-toggle"]').should('have.attr', 'aria-pressed', 'true').and('contain.text', 'Thème clair');
+    cy.window().then(win => {
+      expect(win.localStorage.getItem('enterprise-capacity-mapper:theme')).to.equal('dark');
+    });
+    cy.reload();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Thème clair').click();
+    cy.get('.app').should('not.have.class', 'theme-dark');
+    cy.window().then(win => {
+      expect(win.localStorage.getItem('enterprise-capacity-mapper:theme')).to.equal('light');
+    });
+  });
+
 });
