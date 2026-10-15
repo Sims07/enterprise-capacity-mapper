@@ -2034,3 +2034,17 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   background: #1e304b;
   border-color: #36527d;
 }
+
+
+/* Dark Linear Pro — codes des applications liées dans l'arbre Relations */
+.coverage-tree .tree-app > small {
+  color: #4338a8 !important;
+  background: #f1edff !important;
+  border: 1px solid #d8d1fb;
+  font-weight: 800;
+}
+.app.theme-dark .coverage-tree .tree-app > small {
+  color: #e2d9ff !important;
+  background: #302747 !important;
+  border-color: #65538f;
+}
