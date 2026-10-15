@@ -204,6 +204,37 @@ describe('Relations applications ↔ capacités', () => {
   });
 
 
+
+  it('garde les onglets et le bouton Ajouter un domaine lisibles en clair et en Dark Linear', () => {
+    cy.viewport(1280, 800);
+    fresh();
+
+    cy.get('.toolbar-switch')
+      .should('have.css', 'background-color', 'rgb(32, 35, 44)');
+    cy.get('.toolbar-switch button.active')
+      .should('have.css', 'background-color', 'rgb(52, 48, 68)')
+      .and('have.css', 'color', 'rgb(231, 221, 255)');
+    cy.get('.cell-add')
+      .first()
+      .should('be.visible')
+      .and('have.css', 'background-color', 'rgb(245, 243, 255)')
+      .and('have.css', 'color', 'rgb(67, 56, 168)')
+      .and('have.css', 'border-top-style', 'dashed');
+
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('.toolbar-switch')
+      .should('have.css', 'background-color', 'rgb(21, 23, 29)');
+    cy.get('.toolbar-switch button.active')
+      .should('have.css', 'background-color', 'rgb(52, 42, 81)')
+      .and('have.css', 'color', 'rgb(240, 234, 255)');
+    cy.get('.cell-add')
+      .first()
+      .should('have.css', 'background-color', 'rgb(38, 33, 57)')
+      .and('have.css', 'color', 'rgb(216, 204, 255)');
+  });
+
+
   it('active le thème Dark Linear et conserve la préférence après rechargement', () => {
     fresh();
     cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Dark Linear').click();
