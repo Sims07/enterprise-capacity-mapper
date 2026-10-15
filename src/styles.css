@@ -1967,3 +1967,70 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   color: #c9cede;
 }
 
+
+
+/* Dark Linear Pro — contraste explicite des titres et commandes de Relations */
+.app.theme-dark .coverage-tree .tree-domain .tree-name,
+.app.theme-dark .coverage-tree .tree-name {
+  color: #f1f3fa !important;
+}
+.app.theme-dark .coverage-tree .tree-toggle {
+  color: #e7eaf3;
+}
+.app.theme-dark .coverage-tree .tree-code {
+  color: #d4c8ff;
+  background: #252331;
+  border-color: #51466f;
+}
+.app.theme-dark .coverage-tree .tree-count {
+  color: #e0e4ef;
+  background: #252833;
+  border-color: #414656;
+}
+.app.theme-dark .coverage-tree .tree-actions button,
+.app.theme-dark .coverage-tree .tree-bulk button {
+  color: #e7eaf3 !important;
+  background: #252833 !important;
+  border-color: #454b5b !important;
+}
+.app.theme-dark .coverage-tree .tree-actions button:hover,
+.app.theme-dark .coverage-tree .tree-bulk button:hover {
+  color: #ffffff !important;
+  background: #342a51 !important;
+  border-color: #8b7be0 !important;
+}
+.app.theme-dark .coverage-tree .tree-actions .tree-link-here {
+  color: #f0eaff !important;
+  background: #342a51 !important;
+  border-color: #7561ad !important;
+}
+.app.theme-dark .coverage-tree .tree-reset {
+  color: #c4b5fd !important;
+}
+.app.theme-dark .coverage-tree .map-filter-control > span {
+  color: #c9cede;
+}
+.app.theme-dark .coverage-tree .map-filter-control input,
+.app.theme-dark .coverage-tree .tree-select select {
+  color: #eceef4;
+  background: #20232c;
+  border-color: #414656;
+}
+.app.theme-dark .coverage-tree .map-filter-control input::placeholder {
+  color: #9ca3b5;
+}
+.app.theme-dark .coverage-tree .tree-summary span {
+  color: #e0e4ef;
+  background: #20232c;
+  border-color: #414656;
+}
+.app.theme-dark .coverage-tree .tree-summary .cov-gap {
+  color: #fecaca;
+  background: #3b2029;
+  border-color: #743342;
+}
+.app.theme-dark .coverage-tree .tree-summary .cov-redundant {
+  color: #bfdbfe;
+  background: #1e304b;
+  border-color: #36527d;
+}
