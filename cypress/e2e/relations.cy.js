@@ -263,6 +263,24 @@ describe('Relations applications ↔ capacités', () => {
       .should('have.css', 'background-color', 'rgb(25, 27, 34)');
     cy.get('.tree-app').first()
       .should('have.css', 'background-color', 'rgb(25, 27, 34)');
+
+    // Les titres N0/N1 et toutes les commandes doivent rester lisibles sur les surfaces sombres.
+    cy.get('.tree-domain .tree-name').first()
+      .should('be.visible')
+      .and('have.css', 'color', 'rgb(241, 243, 250)');
+    cy.get('.tree-node-cap .tree-name').first()
+      .should('be.visible')
+      .and('have.css', 'color', 'rgb(241, 243, 250)');
+    cy.get('.tree-actions .tree-link').first()
+      .should('be.visible')
+      .and('have.css', 'color', 'rgb(231, 234, 243)')
+      .and('have.css', 'background-color', 'rgb(37, 40, 51)');
+    cy.get('.tree-bulk button').each($button => {
+      cy.wrap($button)
+        .should('be.visible')
+        .and('have.css', 'color', 'rgb(231, 234, 243)')
+        .and('have.css', 'background-color', 'rgb(37, 40, 51)');
+    });
   });
 
 
