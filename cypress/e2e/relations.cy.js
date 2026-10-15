@@ -208,12 +208,16 @@ describe('Relations applications ↔ capacités', () => {
   it('garde les onglets et le bouton Ajouter un domaine lisibles en clair et en Dark Linear', () => {
     cy.viewport(1280, 800);
     fresh();
+    // Force explicit light mode: this test must not depend on a previous spec's persisted preference.
+    cy.window().then(win => win.localStorage.setItem('enterprise-capacity-mapper:theme', 'light'));
+    cy.reload();
+    cy.get('.app').should('not.have.class', 'theme-dark');
 
     cy.get('.toolbar-switch')
-      .should('have.css', 'background-color', 'rgb(32, 35, 44)');
+      .should('have.css', 'background-color', 'rgb(238, 241, 246)');
     cy.get('.toolbar-switch button.active')
-      .should('have.css', 'background-color', 'rgb(52, 48, 68)')
-      .and('have.css', 'color', 'rgb(231, 221, 255)');
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)')
+      .and('have.css', 'color', 'rgb(49, 46, 129)');
     cy.get('.cell-add')
       .first()
       .should('be.visible')
