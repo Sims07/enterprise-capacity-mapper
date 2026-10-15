@@ -192,7 +192,7 @@ describe('Relations applications ↔ capacités', () => {
       .and('have.css', 'width', '24px');
     cy.get('.tree-node-cap > .tree-row').first()
       .should('have.css', 'border-radius', '9px')
-      .and('have.css', 'background-color', 'rgb(240, 250, 243)');
+      .and('have.css', 'background-color', 'rgb(255, 255, 255)');
     cy.get('.tree-actions .tree-link').first().should('be.visible').click();
     cy.get('.modal').should('be.visible');
     cy.get('[data-testid="link-list"]').should('be.visible');
@@ -232,6 +232,37 @@ describe('Relations applications ↔ capacités', () => {
       .first()
       .should('have.css', 'background-color', 'rgb(38, 33, 57)')
       .and('have.css', 'color', 'rgb(216, 204, 255)');
+  });
+
+
+
+  it('assure le contraste du compteur d’inventaire et des surfaces Relations dans les deux thèmes', () => {
+    cy.viewport(1280, 800);
+    fresh();
+
+    cy.get('.panel-title em')
+      .should('be.visible')
+      .and('have.css', 'background-color', 'rgb(241, 237, 255)')
+      .and('have.css', 'color', 'rgb(67, 56, 168)')
+      .and('have.css', 'font-weight', '800');
+    openTree();
+    cy.get('.tree-domain').first()
+      .should('have.css', 'background-color', 'rgb(248, 250, 252)');
+    cy.get('.tree-node-cap > .tree-row').first()
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)');
+    cy.get('.tree-app').first()
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)');
+
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.panel-title em')
+      .should('have.css', 'background-color', 'rgb(52, 42, 81)')
+      .and('have.css', 'color', 'rgb(240, 234, 255)');
+    cy.get('.tree-domain').first()
+      .should('have.css', 'background-color', 'rgb(28, 30, 38)');
+    cy.get('.tree-node-cap > .tree-row').first()
+      .should('have.css', 'background-color', 'rgb(25, 27, 34)');
+    cy.get('.tree-app').first()
+      .should('have.css', 'background-color', 'rgb(25, 27, 34)');
   });
 
 
