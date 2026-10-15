@@ -1451,3 +1451,79 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   .tree-actions .tree-link, .tree-actions .tree-link-here, .app-link, .tree-remove { min-height: 40px; }
   .tree-remove { min-width: 40px; }
 }
+
+
+/* Relations — visual refinement: calmer surfaces, clearer hierarchy, lighter controls */
+.coverage-tree { --relation-accent: #4f46e5; --relation-line: #e7ebf2; color: #1e293b; }
+.coverage-tree .tree-toolbar { align-items: end; gap: 10px; margin: 0 0 14px; padding: 14px; border: 1px solid #e8ecf3; border-radius: 12px; background: #fff; }
+.coverage-tree .map-filter-control > span { margin-bottom: 6px; color: #64748b; font-size: 10px; letter-spacing: .035em; font-weight: 800; }
+.coverage-tree .map-filter-control input,
+.coverage-tree .tree-select select { min-height: 38px; border-color: #dfe5ee; border-radius: 8px; background: #fbfcfe; color: #334155; font-size: 12px; box-shadow: none; }
+.coverage-tree .map-filter-control input:focus,
+.coverage-tree .tree-select select:focus { outline: 3px solid #e0e7ff; border-color: #a5b4fc; }
+.coverage-tree .tree-bulk { gap: 6px; }
+.coverage-tree .tree-bulk button { min-height: 34px; padding: 7px 10px; border-color: #e2e8f0; border-radius: 7px; color: #475569; font-size: 10px; transition: background .15s, border-color .15s; }
+.coverage-tree .tree-bulk button:hover { background: #f8fafc; border-color: #cbd5e1; }
+.coverage-tree .tree-summary { gap: 7px; margin: 0 0 14px; font-size: 11px; font-weight: 650; }
+.coverage-tree .tree-summary span { padding: 5px 9px; border-color: #e8ecf3; background: #fff; color: #64748b; }
+.coverage-tree .tree-summary .cov-gap { color: #b45353; border-color: #f1d9d9; background: #fffafa; }
+.coverage-tree .tree-summary .cov-redundant { color: #4266a5; border-color: #dce6f5; background: #f9fbff; }
+.coverage-tree .tree-reset { border: 0; background: transparent; color: #4f46e5; font-size: 11px; font-weight: 750; cursor: pointer; }
+.coverage-tree .tree-body { gap: 12px; }
+.coverage-tree .tree-node-domain { border: 1px solid #e1e7ef; border-radius: 12px; box-shadow: 0 1px 2px rgba(15,23,42,.025); transition: border-color .15s, box-shadow .15s; }
+.coverage-tree .tree-node-domain:focus-within { border-color: #c7d2fe; }
+.coverage-tree .tree-domain { min-height: 48px; padding: 7px 12px; background: #f8fafc; border-bottom-color: #edf0f5; }
+.coverage-tree .tree-toggle { gap: 9px; padding: 5px 4px; border-radius: 7px; }
+.coverage-tree .tree-toggle:hover { background: rgba(255,255,255,.7); }
+.coverage-tree .tree-caret { color: #94a3b8; font-size: 10px; }
+.coverage-tree .tree-dot { width: 9px; height: 9px; flex-basis: 9px; border-radius: 3px; box-shadow: 0 0 0 3px rgba(148,163,184,.10); }
+.coverage-tree .tree-code { padding: 4px 6px; border: 1px solid #e6e9f2; border-radius: 5px; background: #fff; color: #64748b; font-size: 9px; letter-spacing: .025em; }
+.coverage-tree .tree-name { color: #273449; font-size: 12px; font-weight: 750; line-height: 1.45; }
+.coverage-tree .tree-count { padding: 4px 8px; border: 1px solid #e6eaf0; border-radius: 6px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
+.coverage-tree .tree-children { position: relative; gap: 6px; padding: 8px 12px 12px 26px; background: #fff; }
+.coverage-tree .tree-node-cap { border: 0; border-radius: 0; background: transparent; }
+.coverage-tree .tree-node-cap + .tree-node-cap { margin-top: 1px; }
+.coverage-tree .tree-node-cap > .tree-row { position: relative; min-height: 43px; padding: 5px 9px; border: 1px solid #e9edf3; border-radius: 9px; background: #fff; }
+.coverage-tree .tree-node-cap > .tree-row::before { content: ""; position: absolute; left: -14px; top: 50%; width: 10px; border-top: 1px solid #dce3ed; }
+.coverage-tree .tree-node-cap > .tree-row:hover { border-color: #d4dbea; background: #fcfdff; }
+.coverage-tree .tree-node-cap > .tree-row.cov-ok { border-color: #e0eee5; background: #fbfefc; }
+.coverage-tree .tree-node-cap > .tree-row.cov-redundant { border-color: #e0e8f5; background: #fbfcff; }
+.coverage-tree .tree-node-cap > .tree-row.cov-gap { border-color: #f1e3e3; background: #fffdfd; }
+.coverage-tree .tree-node-cap > .tree-row.drop-over { border-color: #818cf8; background: #eef2ff; box-shadow: 0 0 0 2px #e0e7ff; }
+.coverage-tree .tree-cov { padding: 4px 7px; border: 1px solid transparent; border-radius: 6px; font-size: 10px; font-weight: 750; }
+.coverage-tree .tree-cov.cov-ok { color: #347653; border-color: #dceee2; background: #f2faf5; }
+.coverage-tree .tree-cov.cov-redundant { color: #4266a5; border-color: #dce6f5; background: #f3f7fd; }
+.coverage-tree .tree-cov.cov-gap { color: #ad5a5a; border-color: #f1dfdf; background: #fff6f6; }
+.coverage-tree .tree-actions { gap: 5px; }
+.coverage-tree .tree-actions button { min-height: 29px; padding: 5px 8px; border: 1px solid #e4e8f0; border-radius: 7px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; transition: .15s ease; }
+.coverage-tree .tree-actions button:hover { border-color: #c7d2fe; background: #f7f7ff; color: #4338ca; }
+.coverage-tree .tree-actions .tree-link-here { border-color: #d8ddfc; background: #f7f7ff; color: #4f46e5; }
+.coverage-tree .tree-app { min-height: 37px; margin: 5px 0 0 18px; padding: 6px 9px; border-color: #edf0f5; border-radius: 8px; background: #fcfdff; color: #334155; font-size: 11px; }
+.coverage-tree .tree-app:hover { border-color: #dce3ed; background: #fff; }
+.coverage-tree .tree-app b { font-weight: 700; }
+.coverage-tree .tree-app small { padding: 2px 5px; border-radius: 4px; background: #f1f5f9; color: #64748b; font-size: 9px; }
+.coverage-tree .tree-app-icon { color: #8b93a8; font-size: 12px; }
+.coverage-tree .tree-app .badge { border-radius: 5px; padding: 3px 6px; font-size: 9px; }
+.coverage-tree .tree-remove { width: 26px; height: 26px; border: 1px solid transparent; color: #94a3b8; }
+.coverage-tree .tree-remove:hover { border-color: #f1dada; background: #fff5f5; color: #b45353; }
+.coverage-tree .tree-empty-line { margin: 5px 0 0 18px; padding: 9px 11px; border: 1px dashed #e4e8ef; border-radius: 7px; background: #fcfdff; color: #8a94a6; font-size: 10px; line-height: 1.5; }
+.coverage-tree .tree-empty { border-color: #e1e7ef; border-radius: 12px; color: #64748b; }
+@media (max-width: 800px) {
+  .coverage-tree .tree-toolbar { padding: 11px; }
+  .coverage-tree .tree-row { flex-wrap: wrap; gap: 7px; }
+  .coverage-tree .tree-toggle { flex: 1 1 100%; }
+  .coverage-tree .tree-cov { margin-left: 22px; }
+  .coverage-tree .tree-actions { margin-left: auto; }
+}
+@media (max-width: 600px) {
+  .coverage-tree .tree-toolbar { align-items: stretch; }
+  .coverage-tree .tree-bulk { display: flex; width: 100%; }
+  .coverage-tree .tree-bulk button { flex: 1; }
+  .coverage-tree .tree-domain { padding: 7px 9px; }
+  .coverage-tree .tree-children { padding: 8px 7px 10px 16px; }
+  .coverage-tree .tree-node-cap > .tree-row::before { left: -9px; width: 6px; }
+  .coverage-tree .tree-app { margin-left: 8px; flex-wrap: wrap; }
+  .coverage-tree .tree-cov { margin-left: 21px; }
+  .coverage-tree .tree-actions { margin-left: 0; }
+  .coverage-tree .tree-actions button { min-height: 36px; }
+}
