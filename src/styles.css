@@ -1839,3 +1839,131 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   color: #f0eaff;
 }
 
+/* Dark Linear Pro refinement — inventory count and Relations surfaces */
+.panel-title em {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 25px;
+  min-height: 25px;
+  padding: 0 7px;
+  border: 1px solid #51466f;
+  border-radius: 8px;
+  background: #342a51;
+  color: #f0eaff;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.app.theme-dark .panel-title em {
+  border-color: #7561ad;
+  background: #342a51;
+  color: #f0eaff;
+}
+.app:not(.theme-dark) .panel-title em {
+  border-color: #d8d1fb;
+  background: #f1edff;
+  color: #4338a8;
+}
+
+/* Relations: flatter, cleaner layers; status is carried by badges, not large grey fills. */
+.coverage-tree .tree-toolbar {
+  background: #fff;
+  border-color: #e5e7eb;
+  box-shadow: 0 1px 2px rgba(15,23,42,.025);
+}
+.coverage-tree .tree-domain {
+  background: #f8fafc;
+  border-bottom-color: #e5e7eb;
+}
+.coverage-tree .tree-domain .tree-toggle:hover {
+  background: #f1f0ff;
+}
+.coverage-tree .tree-children {
+  background: #fff;
+}
+.coverage-tree .tree-node-cap > .tree-row,
+.coverage-tree .tree-node-cap > .tree-row.cov-ok,
+.coverage-tree .tree-node-cap > .tree-row.cov-redundant,
+.coverage-tree .tree-node-cap > .tree-row.cov-gap {
+  background: #fff;
+  border-color: #e5e7eb;
+}
+.coverage-tree .tree-node-cap > .tree-row:hover {
+  background: #faf9ff;
+  border-color: #c4b5fd;
+}
+.coverage-tree .tree-node-cap > .tree-row.drop-over {
+  background: #f1edff;
+  border-color: #8b7be0;
+  box-shadow: 0 0 0 2px rgba(139,123,224,.18);
+}
+.coverage-tree .tree-app {
+  background: #fff;
+  border-color: #e5e7eb;
+}
+.coverage-tree .tree-app:hover {
+  background: #faf9ff;
+  border-color: #d8d1fb;
+}
+.coverage-tree .tree-empty-line {
+  background: #fafafa;
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+.coverage-tree .tree-code,
+.coverage-tree .tree-count {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+.app.theme-dark .coverage-tree .tree-toolbar {
+  background: #191b22;
+  border-color: #303541;
+}
+.app.theme-dark .coverage-tree .tree-domain {
+  background: #1c1e26;
+  border-bottom-color: #303541;
+}
+.app.theme-dark .coverage-tree .tree-domain .tree-toggle:hover {
+  background: #252833;
+}
+.app.theme-dark .coverage-tree .tree-children {
+  background: #191b22;
+}
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-ok,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-redundant,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-gap {
+  background: #191b22;
+  border-color: #303541;
+}
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover {
+  background: #22242e;
+  border-color: #51466f;
+}
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row.drop-over {
+  background: #2b2346;
+  border-color: #8b7be0;
+  box-shadow: 0 0 0 2px rgba(167,139,250,.16);
+}
+.app.theme-dark .coverage-tree .tree-app {
+  background: #191b22;
+  border-color: #303541;
+  color: #eceef4;
+}
+.app.theme-dark .coverage-tree .tree-app:hover {
+  background: #22242e;
+  border-color: #51466f;
+}
+.app.theme-dark .coverage-tree .tree-empty-line {
+  background: #15171d;
+  border-color: #3b4050;
+  color: #a0a7b5;
+}
+.app.theme-dark .coverage-tree .tree-code,
+.app.theme-dark .coverage-tree .tree-count {
+  background: #20232c;
+  border-color: #3b4050;
+  color: #c9cede;
+}
+
