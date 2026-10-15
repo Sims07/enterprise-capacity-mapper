@@ -506,4 +506,6 @@ describe('Application smoke test', () => {
     cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
   });
 
+
+
 });
