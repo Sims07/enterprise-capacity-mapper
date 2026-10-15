@@ -174,4 +174,29 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('[data-testid="link-save"]').click();
     cy.contains('.tree-node-domain', 'Domaine niveau 1').should('contain.text', 'Application test').and('contain.text', 'Couvert');
   });
+
+  it('présente l’onglet Relations avec une hiérarchie visuelle légère sans altérer les actions', () => {
+    cy.viewport(1280, 800);
+    fresh();
+    openTree();
+
+    cy.get('.tree-toolbar')
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)')
+      .and('have.css', 'border-radius', '12px');
+    cy.get('.tree-node-domain').first()
+      .should('have.css', 'border-radius', '12px')
+      .and('have.css', 'border-top-style', 'solid');
+    cy.get('.tree-node-cap > .tree-row').first()
+      .should('have.css', 'border-radius', '9px')
+      .and('have.css', 'background-color', 'rgb(251, 254, 252)');
+    cy.get('.tree-actions .tree-link').first().should('be.visible').click();
+    cy.get('.modal').should('be.visible');
+    cy.get('[data-testid="link-list"]').should('be.visible');
+    cy.get('.modal').contains('button', 'Annuler').click();
+
+    cy.viewport(402, 874);
+    cy.get('.tree-cap').first().should('be.visible');
+    cy.get('html').then(html => { expect(html[0].scrollWidth).to.be.at.most(402); });
+  });
+
 });
