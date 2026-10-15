@@ -2069,3 +2069,48 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   color: #312e81 !important;
   box-shadow: 0 1px 4px rgba(15,23,42,.12) !important;
 }
+
+
+/* En-tête compact : commandes secondaires regroupées sans masquer la navigation. */
+.toolbar { gap: 12px; min-width: 0; }
+.toolbar-actions { gap: 7px; min-width: 0; }
+.toolbar-history { display: inline-flex; align-items: center; gap: 4px; padding-right: 7px; border-right: 1px solid var(--border); }
+.toolbar-actions .history-button { width: 30px; height: 32px; padding: 0 !important; display: inline-grid; place-items: center; font-size: 17px !important; }
+.toolbar-actions .new-map-button { padding: 6px 9px !important; font-size: 10px !important; }
+.toolbar-actions .new-map-button-mark { width: 17px; height: 17px; }
+.toolbar-tools { position: relative; flex: 0 0 auto; }
+.toolbar-tools > summary {
+  list-style: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 34px; padding: 7px 11px; border: 1px solid var(--border-strong); border-radius: 8px;
+  background: var(--panel, #fff); color: var(--text, #334155); font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.toolbar-tools > summary::-webkit-details-marker { display: none; }
+.toolbar-tools[open] > summary { background: var(--accent-soft); border-color: #c7d2fe; color: #3730a3; }
+.toolbar-tools > summary:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.toolbar-tools-panel {
+  position: absolute; z-index: 40; top: calc(100% + 8px); right: 0; width: 224px;
+  display: flex; flex-direction: column; gap: 5px; padding: 8px;
+  background: var(--panel, #fff); border: 1px solid var(--border); border-radius: 11px;
+  box-shadow: 0 14px 32px rgba(15,23,42,.16);
+}
+.toolbar-tools-panel button, .toolbar-tools-panel .toolbar-import {
+  display: flex; align-items: center; justify-content: flex-start; width: 100%; min-height: 35px;
+  padding: 8px 10px !important; border-radius: 7px !important; text-align: left; font-size: 11px !important;
+}
+.toolbar-tools-panel .toolbar-import { cursor: pointer; }
+@media (max-width: 1100px) {
+  header { padding-left: 16px; padding-right: 16px; }
+  .toolbar { width: 100%; flex-wrap: wrap; gap: 8px; }
+  .toolbar-actions { flex: 1 1 auto; justify-content: flex-end; }
+}
+@media (max-width: 600px) {
+  header { align-items: stretch; }
+  header > div:first-child { flex: 0 0 auto; }
+  .toolbar { align-items: flex-start; flex-direction: column; }
+  .toolbar-switch { max-width: 100%; width: 100%; }
+  .toolbar-switch button { flex: 1 1 0; padding: 7px 5px !important; white-space: nowrap; }
+  .toolbar-actions { width: 100%; justify-content: space-between; overflow: visible; flex-wrap: wrap; }
+  .toolbar-actions .new-map-button { max-width: calc(100% - 105px); }
+  .toolbar-actions .new-map-button > span:last-child { overflow: hidden; text-overflow: ellipsis; }
+  .toolbar-tools-panel { right: 0; }
+}
