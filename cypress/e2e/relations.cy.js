@@ -232,6 +232,19 @@ describe('Relations applications ↔ capacités', () => {
       .first()
       .should('have.css', 'background-color', 'rgb(38, 33, 57)')
       .and('have.css', 'color', 'rgb(216, 204, 255)');
+
+    // Revenir au thème clair doit aussi restaurer l'apparence des onglets d'en-tête.
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'theme-dark');
+    cy.get('.toolbar-switch')
+      .should('have.css', 'background-color', 'rgb(238, 241, 246)');
+    cy.get('.toolbar-switch button.active')
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)')
+      .and('have.css', 'color', 'rgb(49, 46, 129)');
+    cy.get('.toolbar-switch button').not('.active')
+      .first()
+      .should('have.css', 'background-color', 'rgba(0, 0, 0, 0)')
+      .and('have.css', 'color', 'rgb(100, 116, 139)');
   });
 
 
