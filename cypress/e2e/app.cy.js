@@ -506,4 +506,32 @@ describe('Application smoke test', () => {
     cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
   });
 
+
+  it('active le thème Dark Linear Pro avec contraste et mémorisation du choix', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('[data-testid="theme-toggle"]')
+      .should('be.visible')
+      .and('have.attr', 'aria-pressed', 'false')
+      .and('contain.text', 'Dark Linear')
+      .click();
+
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="theme-toggle"]')
+      .should('have.attr', 'aria-pressed', 'true')
+      .and('contain.text', 'Thème clair');
+    cy.get('.app').should('have.css', 'background-color', 'rgb(16, 17, 20)');
+    cy.get('aside').should('have.css', 'background-color', 'rgb(23, 24, 28)');
+    cy.get('.map').should('be.visible');
+
+    cy.reload();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'theme-dark');
+    cy.reload();
+    cy.get('.app').should('not.have.class', 'theme-dark');
+  });
+
 });
