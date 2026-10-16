@@ -2297,7 +2297,7 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   background-color: #202228 !important;
   border-color: #343842 !important;
 }
-.app.theme-dark .domain-card:not(.impact-selected) .cap {
+.app.theme-dark .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
   background: #171a20 !important;
   background-color: #171a20 !important;
   border-color: #343842 !important;
