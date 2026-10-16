@@ -139,3 +139,22 @@
 .app.theme-dark .domain-card:not(.impact-selected) > .domain-banner .domain-actions {
   color: var(--n0-header-text-color) !important;
 }
+
+/* Le mode présentation réinitialise certains fonds : réaffirmer la couleur
+   complète de chaque en-tête N0 après les règles de présentation et Linear Black. */
+.app.presentation-mode .domain-card:not(.impact-selected) > .domain-banner,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-banner {
+  background: var(--n0-header-color) !important;
+  background-color: var(--n0-header-color) !important;
+  color: var(--n0-header-text-color) !important;
+  border-left: 0 !important;
+  border-bottom-color: color-mix(in srgb, var(--n0-header-text-color) 24%, transparent) !important;
+}
+.app.presentation-mode .domain-card:not(.impact-selected) > .domain-banner h3,
+.app.presentation-mode .domain-card:not(.impact-selected) > .domain-banner .domain-meta,
+.app.presentation-mode .domain-card:not(.impact-selected) > .domain-banner .domain-actions,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-banner h3,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-banner .domain-meta,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-banner .domain-actions {
+  color: var(--n0-header-text-color) !important;
+}
