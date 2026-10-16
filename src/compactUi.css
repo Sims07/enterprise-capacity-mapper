@@ -98,3 +98,24 @@
 .modal.wizard .template-card[aria-pressed="true"] > b { color: #312e81 !important; }
 .app.theme-dark .modal.wizard .template-card > b { color: #f3f4f6 !important; }
 .app.theme-dark .modal.wizard .template-card[aria-pressed="true"] > b { color: #ffffff !important; }
+
+/* Linear Black — les conteneurs N0 deviennent des surfaces sombres de niveau supérieur. */
+.app.theme-dark .domain-card {
+  background: #202228 !important;
+  border-color: #343842 !important;
+  color: #f3f4f6;
+  box-shadow: none;
+}
+.app.theme-dark .domain-card:hover {
+  background: #272a32 !important;
+  border-color: #444955 !important;
+}
+.app.theme-dark .domain-card .domain-description,
+.app.theme-dark .domain-card .domain-meta,
+.app.theme-dark .domain-card small { color: #9ca3af; }
+.app.theme-dark .domain-card .cap {
+  background: #171a20;
+  border-color: #2d323c;
+}
+.app.theme-dark .domain-card .cap:hover { background: #1d2028; }
+.app.theme-dark.presentation-mode .domain-card { background: #1d2026 !important; }
