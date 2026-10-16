@@ -25,3 +25,53 @@
   border-color: #c4b5fd !important;
   background: #302750 !important;
 }
+
+
+/* Regression fix: keep impact highlighting visible while styling nested N0 content dark. */
+.app.theme-dark .domain-card.impact-selected {
+  background: #2a2345 !important;
+  border: 2px solid #8b5cf6 !important;
+  box-shadow: inset 3px 0 0 #a78bfa, 0 0 0 2px rgba(139, 92, 246, .16) !important;
+}
+.app.theme-dark .domain-card.impact-selected > .domain-banner,
+.app.theme-dark .domain-card.impact-selected > .domain-head {
+  background: #302750 !important;
+  background-color: #302750 !important;
+  color: #f5f3ff !important;
+  border-color: #55447e !important;
+}
+.app.theme-dark .domain-card.impact-selected > .domain-banner h3,
+.app.theme-dark .domain-card.impact-selected > .domain-banner .domain-meta,
+.app.theme-dark .domain-card.impact-selected > .domain-banner .domain-actions {
+  color: #f5f3ff !important;
+}
+.app.theme-dark .domain-card.impact-selected > .caps,
+.app.theme-dark .domain-card.impact-selected > .caps-list,
+.app.theme-dark .domain-card.impact-selected .caps-list {
+  background: #25203b !important;
+  background-color: #25203b !important;
+}
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) {
+  background: #171a20 !important;
+  background-color: #171a20 !important;
+  border-color: #454052 !important;
+  color: #e0e3ea !important;
+  box-shadow: none !important;
+}
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) .cap-head b,
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) p,
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) .rel {
+  color: #c3c7d1 !important;
+}
+.app.theme-dark .domain-card.impact-selected .cap.impact-selected {
+  background: #2a2345 !important;
+  border: 2px solid #8b5cf6 !important;
+  color: #f5f3ff !important;
+  box-shadow: inset 3px 0 0 #a78bfa, 0 0 0 2px rgba(139, 92, 246, .16) !important;
+}
+.app.theme-dark.presentation-mode .domain-card.impact-selected,
+.app.theme-dark.presentation-mode .domain-card.impact-selected > .domain-banner,
+.app.theme-dark.presentation-mode .domain-card.impact-selected > .domain-head {
+  background: #302750 !important;
+  background-color: #302750 !important;
+}
