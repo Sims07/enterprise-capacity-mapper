@@ -500,6 +500,22 @@ describe('Application smoke test', () => {
       .and('have.css', 'outline-color', 'rgb(245, 158, 11)');
   });
 
+  it('utilise un contour violet cohérent avec Dark Linear pour les impacts sélectionnés', () => {
+    cy.visit('/');
+    openToolsMenu();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+
+    cy.get('header').contains('button', 'Impact').click();
+    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads').click();
+
+    cy.get('header').contains('button', 'Cartographie').click();
+    cy.contains('.cap', 'Gestion des Prospects & Leads')
+      .should('have.class', 'impact-selected')
+      .and('have.css', 'outline-color', 'rgb(167, 139, 250)')
+      .and('have.css', 'box-shadow', '0px 0px 0px 4px rgba(167, 139, 250, 0.18)');
+  });
+
   it('conserve l’inventaire visible et les commandes de cartographie sans bouton de masquage', () => {
     cy.visit('/');
     cy.get('#app-inventory').should('be.visible');
