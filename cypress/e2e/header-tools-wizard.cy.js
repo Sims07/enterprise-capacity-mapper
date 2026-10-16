@@ -57,4 +57,27 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
       .should('have.css', 'background-color', 'rgb(15, 18, 23)')
       .and('have.css', 'border-color', 'rgb(48, 54, 66)');
   });
+
+  it('expose Présentation dans l’en-tête et Nouvelle cartographie dans Outils', () => {
+    cy.get('[data-testid="presentation-toggle"]').should('be.visible').and('have.attr', 'aria-pressed', 'false');
+    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="new-map-button"]').should('not.exist');
+
+    cy.get('[data-testid="presentation-toggle"]').click()
+      .should('have.attr', 'aria-pressed', 'true')
+      .and('contain.text', 'Quitter la présentation');
+    cy.get('[data-testid="presentation-toggle"]').click()
+      .should('have.attr', 'aria-pressed', 'false');
+
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
+  });
+
+  it('garde les titres des cartes de modèles lisibles en thème clair', () => {
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').click();
+    cy.get('.modal.wizard .template-card > b').first()
+      .should('have.css', 'color', 'rgb(31, 41, 55)');
+    cy.get('.modal.wizard').should('be.visible');
+  });
 });
