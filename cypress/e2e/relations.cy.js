@@ -226,6 +226,8 @@ describe('Relations applications ↔ capacités', () => {
       .and('have.css', 'color', 'rgb(67, 56, 168)')
       .and('have.css', 'border-top-style', 'dashed');
 
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     cy.get('.toolbar-switch')
@@ -239,6 +241,7 @@ describe('Relations applications ↔ capacités', () => {
       .and('have.css', 'color', 'rgb(216, 204, 255)');
 
     // Revenir au thème clair doit aussi restaurer l'apparence des onglets d'en-tête.
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
     cy.get('.toolbar-switch')
@@ -270,6 +273,8 @@ describe('Relations applications ↔ capacités', () => {
       .should('have.css', 'background-color', 'rgb(255, 255, 255)');
     cy.get('.tree-app').first()
       .should('have.css', 'background-color', 'rgb(255, 255, 255)');
+
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.panel-title em')
