@@ -73,11 +73,13 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
     cy.get('[data-testid="new-map-button"]').should('be.visible');
   });
 
-  it('garde les titres des cartes de modèles lisibles en thème clair', () => {
+  it('garde les titres des cartes de modèles lisibles en thème clair et sombre', () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="new-map-button"]').click();
     cy.get('.modal.wizard .template-card > b').first()
       .should('have.css', 'color', 'rgb(31, 41, 55)');
     cy.get('.modal.wizard').should('be.visible');
+    cy.get('[data-testid="theme-toggle"]').should('not.exist');
+    cy.get('[data-testid="wizard-name"]').should('be.visible');
   });
 });
