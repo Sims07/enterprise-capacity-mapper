@@ -21,152 +21,66 @@
   border: 1px solid #2d3340;
   box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
 }
-.app.theme-dark .modal.wizard .modal-head {
-  border-bottom: 1px solid #2d3340;
-  padding-bottom: 14px;
-}
+.app.theme-dark .modal.wizard .modal-head { border-bottom: 1px solid #2d3340; padding-bottom: 14px; }
 .app.theme-dark .modal.wizard .modal-head h2,
 .app.theme-dark .modal.wizard h3,
 .app.theme-dark .modal.wizard .wizard-label,
 .app.theme-dark .modal.wizard .field span,
 .app.theme-dark .modal.wizard .recap dt,
-.app.theme-dark .modal.wizard .axis-editor h3 {
-  color: #f3f4f6;
-}
-.app.theme-dark .modal.wizard .modal-head button {
-  color: #9ca3af;
-}
-.app.theme-dark .modal.wizard .modal-head button:hover {
-  color: #fff;
-  background: #242934;
-  border-radius: 7px;
-}
+.app.theme-dark .modal.wizard .axis-editor h3 { color: #f3f4f6; }
+.app.theme-dark .modal.wizard .modal-head button { color: #9ca3af; }
+.app.theme-dark .modal.wizard .modal-head button:hover { color: #fff; background: #242934; border-radius: 7px; }
 .app.theme-dark .modal.wizard .field input,
-.app.theme-dark .modal.wizard .axis-row input {
-  background: #101318;
-  color: #f3f4f6;
-  border-color: #353b48;
-}
+.app.theme-dark .modal.wizard .axis-row input { background: #101318; color: #f3f4f6; border-color: #353b48; }
 .app.theme-dark .modal.wizard .field input::placeholder,
-.app.theme-dark .modal.wizard .axis-row input::placeholder {
-  color: #6b7280;
-}
+.app.theme-dark .modal.wizard .axis-row input::placeholder { color: #6b7280; }
 .app.theme-dark .modal.wizard .field input:focus,
-.app.theme-dark .modal.wizard .axis-row input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, .18);
-  outline: none;
-}
+.app.theme-dark .modal.wizard .axis-row input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99, 102, 241, .18); outline: none; }
 .app.theme-dark .modal.wizard .structure-hint,
 .app.theme-dark .modal.wizard .recap dd,
 .app.theme-dark .modal.wizard .template-card p,
-.app.theme-dark .modal.wizard .template-card small {
-  color: #9ca3af;
-}
+.app.theme-dark .modal.wizard .template-card small { color: #9ca3af; }
 .app.theme-dark .modal.wizard .template-grid,
-.app.theme-dark .modal.wizard .wizard-structure {
-  background: transparent;
-}
-.app.theme-dark .modal.wizard .template-card {
-  background: #1d212b;
-  color: #e5e7eb;
-  border-color: #343a47;
-  box-shadow: none;
-}
-.app.theme-dark .modal.wizard .template-card:hover {
-  background: #232936;
-  border-color: #4b5563;
-}
-.app.theme-dark .modal.wizard .template-card[aria-pressed="true"] {
-  background: #26233b;
-  border-color: #6366f1;
-  color: #eef2ff;
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, .2);
-}
+.app.theme-dark .modal.wizard .wizard-structure { background: transparent; }
+.app.theme-dark .modal.wizard .template-card { background: #1d212b; color: #e5e7eb; border-color: #343a47; box-shadow: none; }
+.app.theme-dark .modal.wizard .template-card:hover { background: #232936; border-color: #4b5563; }
+.app.theme-dark .modal.wizard .template-card[aria-pressed="true"] { background: #26233b; border-color: #6366f1; color: #eef2ff; box-shadow: 0 0 0 1px rgba(99, 102, 241, .2); }
 .app.theme-dark .modal.wizard .template-card[aria-pressed="true"] p,
-.app.theme-dark .modal.wizard .template-card[aria-pressed="true"] small {
-  color: #c7d2fe;
-}
-.app.theme-dark .modal.wizard .wizard-steps {
-  background: #111318;
-  border-color: #2d3340;
-}
-.app.theme-dark .modal.wizard .wizard-steps li {
-  color: #6b7280;
-}
-.app.theme-dark .modal.wizard .wizard-steps li b {
-  background: #242934;
-  color: #9ca3af;
-}
+.app.theme-dark .modal.wizard .template-card[aria-pressed="true"] small { color: #c7d2fe; }
+.app.theme-dark .modal.wizard .wizard-steps { background: #111318; border-color: #2d3340; }
+.app.theme-dark .modal.wizard .wizard-steps li { color: #9ca3af; }
+.app.theme-dark .modal.wizard .wizard-steps li b { background: #242934; color: #cbd5e1; }
+
+/* Étape courante : contraste élevé, y compris sur les libellés générés par la structure du wizard. */
 .app.theme-dark .modal.wizard .wizard-steps li.current,
-.app.theme-dark .modal.wizard .wizard-steps li.done {
-  color: #c7d2fe;
-}
-.app.theme-dark .modal.wizard .wizard-steps li.current b,
-.app.theme-dark .modal.wizard .wizard-steps li.done b {
-  background: #4f46e5;
-  color: #fff;
-}
+.app.theme-dark .modal.wizard .wizard-steps li.current span,
+.app.theme-dark .modal.wizard .wizard-steps li.current strong { color: #f8fafc !important; font-weight: 800; }
+.app.theme-dark .modal.wizard .wizard-steps li.current b { background: #6366f1; color: #fff !important; border-color: #818cf8; box-shadow: 0 0 0 2px rgba(129, 140, 248, .18); }
+.app.theme-dark .modal.wizard .wizard-steps li.done { color: #c7d2fe; }
+.app.theme-dark .modal.wizard .wizard-steps li.done b { background: #4f46e5; color: #fff; }
+
 .app.theme-dark .modal.wizard .axis-editor,
 .app.theme-dark .modal.wizard .preview,
 .app.theme-dark .modal.wizard .recap,
-.app.theme-dark .modal.wizard .warn-box {
-  background: #111318;
-  border-color: #2d3340;
-}
-.app.theme-dark .modal.wizard .axis-row {
-  background: #1b1f27;
-  border-color: #2d3340;
-}
+.app.theme-dark .modal.wizard .warn-box { background: #111318; border-color: #2d3340; }
+.app.theme-dark .modal.wizard .axis-row { background: #1b1f27; border-color: #2d3340; }
 .app.theme-dark .modal.wizard .icon-btn,
-.app.theme-dark .modal.wizard .structure-add {
-  background: #20242d;
-  color: #cbd5e1;
-  border-color: #353b48;
-}
+.app.theme-dark .modal.wizard .structure-add { background: #20242d; color: #cbd5e1; border-color: #353b48; }
 .app.theme-dark .modal.wizard .icon-btn:hover,
-.app.theme-dark .modal.wizard .structure-add:hover {
-  background: #2a303b;
-  color: #fff;
-}
+.app.theme-dark .modal.wizard .structure-add:hover { background: #2a303b; color: #fff; }
 .app.theme-dark .modal.wizard .preview-grid .pv-head,
-.app.theme-dark .modal.wizard .preview-grid .pv-axis {
-  background: #1d212b;
-  color: #cbd5e1;
-  border-color: #353b48;
-}
-.app.theme-dark .modal.wizard .preview-grid .pv-cell {
-  background: #0f1217;
-  border-color: #303642;
-}
-.app.theme-dark .modal.wizard .warn-box {
-  color: #fcd34d;
-  background: #2a2112;
-  border-color: #6b4f1d;
-}
-.app.theme-dark .modal.wizard .check {
-  color: #cbd5e1;
-}
-.app.theme-dark .modal.wizard .wizard-error {
-  color: #fca5a5;
-  background: #321b20;
-  border-color: #6b2732;
-}
-.app.theme-dark .modal.wizard .modal-actions {
-  border-top: 1px solid #2d3340;
-  padding-top: 14px;
-}
-.app.theme-dark .modal.wizard .modal-actions button {
-  background: #20242d;
-  color: #d1d5db;
-  border-color: #353b48;
-}
-.app.theme-dark .modal.wizard .modal-actions button:hover {
-  background: #2a303b;
-  color: #fff;
-}
-.app.theme-dark .modal.wizard .modal-actions .primary {
-  background: #5b5ce2 !important;
-  border-color: #5b5ce2 !important;
-  color: #fff !important;
-}
+.app.theme-dark .modal.wizard .preview-grid .pv-axis { background: #1d212b; color: #cbd5e1; border-color: #353b48; }
+.app.theme-dark .modal.wizard .preview-grid .pv-cell { background: #0f1217; border-color: #303642; }
+.app.theme-dark .modal.wizard .warn-box { color: #fcd34d; background: #2a2112; border-color: #6b4f1d; }
+.app.theme-dark .modal.wizard .check { color: #cbd5e1; }
+.app.theme-dark .modal.wizard .wizard-error { color: #fca5a5; background: #321b20; border-color: #6b2732; }
+.app.theme-dark .modal.wizard .modal-actions { border-top: 1px solid #2d3340; padding-top: 14px; }
+.app.theme-dark .modal.wizard .modal-actions button { background: #20242d; color: #d1d5db; border-color: #353b48; }
+.app.theme-dark .modal.wizard .modal-actions button:hover { background: #2a303b; color: #fff; }
+.app.theme-dark .modal.wizard .modal-actions .primary { background: #5b5ce2 !important; border-color: #5b5ce2 !important; color: #fff !important; }
+
+/* Même contraste en thème clair : l'étape courante doit rester immédiatement identifiable. */
+.modal.wizard .wizard-steps li.current { color: #312e81 !important; font-weight: 800; }
+.modal.wizard .wizard-steps li.current span,
+.modal.wizard .wizard-steps li.current strong { color: #312e81 !important; }
+.modal.wizard .wizard-steps li.current b { color: #fff !important; }
