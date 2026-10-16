@@ -561,6 +561,30 @@ describe('Application smoke test', () => {
 
 
 
+  it('garde les compteurs d’applications lisibles en thème sombre et en présentation', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('[data-testid="theme-toggle"]').then($toggle => {
+      if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
+    });
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('.cap .app-count').first().should('be.visible').then($count => {
+      expect(getComputedStyle($count[0]).color, 'texte du compteur en thème sombre').not.to.equal('rgb(0, 0, 0)');
+      expect(getComputedStyle($count[0]).backgroundColor, 'fond du compteur en thème sombre').not.to.equal('rgba(0, 0, 0, 0)');
+    });
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('.presentation-mode .cap .app-count').first().should('be.visible').then($count => {
+      expect(getComputedStyle($count[0]).color, 'texte du compteur en présentation sombre').not.to.equal('rgb(0, 0, 0)');
+      expect(getComputedStyle($count[0]).backgroundColor, 'fond du compteur en présentation sombre').not.to.equal('rgba(0, 0, 0, 0)');
+    });
+  });
+
   it('conserve un contraste lisible au survol des applications en thème sombre', () => {
     cy.viewport(1280, 800);
     cy.visit('/');

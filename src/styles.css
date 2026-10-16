@@ -2124,3 +2124,22 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 }
 .app.theme-dark .app-item:hover b { color: #f9fafb; }
 .app.theme-dark .app-item:hover small { color: #c4cada; }
+
+
+/* Contraste des compteurs d’applications en thème sombre, y compris en présentation. */
+.app.theme-dark .cap .app-count {
+  background: #303542;
+  color: #f3f4f6;
+}
+.app.theme-dark .cap.cov-ok .app-count {
+  background: #173526;
+  color: #86efac;
+}
+.app.theme-dark .cap.cov-redundant .app-count {
+  background: #1e304b;
+  color: #bfdbfe;
+}
+.app.theme-dark .cap.cov-gap .app-count {
+  background: #3b2029;
+  color: #fda4af;
+}
