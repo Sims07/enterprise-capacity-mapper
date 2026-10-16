@@ -636,4 +636,50 @@ describe('Application smoke test', () => {
       expect(detailRule.style.color).to.equal('rgb(196, 202, 218)');
     });
   });
+
+  it('masque la barre de défilement native sans bloquer le scroll interne ni faire bouger le viewport', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.get('body').should('have.css', 'overflow', 'hidden');
+    cy.get('.app').should('have.css', 'height', '800px');
+    cy.get('.workspace').should('have.css', 'min-height', '0px');
+    cy.get('main').should('have.css', 'overflow', 'auto');
+    cy.get('main').then($main => {
+      expect(getComputedStyle($main[0]).scrollbarWidth).to.equal('none');
+    });
+    cy.get('html').then($html => {
+      expect(getComputedStyle($html[0]).scrollbarWidth).to.equal('none');
+    });
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('body').should('have.css', 'overflow', 'hidden');
+    cy.get('.app').should('have.css', 'height', '800px');
+    
+    cy.viewport(402, 874);
+    cy.get('.app').should('have.css', 'height', '874px');
+    cy.get('body').should('have.css', 'overflow', 'hidden');
+  });
+
+
+
+  it('adapte visuellement le switch Présentation au thème clair et sombre', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="presentation-toggle"]')
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)')
+      .and('have.css', 'color', 'rgb(51, 65, 85)');
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="presentation-toggle"]')
+      .should('have.css', 'background-color', 'rgb(30, 41, 59)')
+      .and('have.css', 'color', 'rgb(241, 245, 249)');
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'theme-dark');
+    cy.get('[data-testid="presentation-toggle"]')
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)');
+  });
+
 });

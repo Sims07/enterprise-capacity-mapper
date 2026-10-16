@@ -2346,3 +2346,118 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 .app.theme-dark .coverage-tree .tree-row.impact-highlight .tree-code {
   color: #f3e8ff !important;
 }
+
+/* --- Viewport stable : scroll interne sans barre native visible --- */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app > header {
+  flex: 0 0 auto;
+}
+
+.app > .workspace {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app > .workspace > aside,
+.app > .workspace > main {
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Masque la barre visuelle sans désactiver le défilement des zones internes. */
+html,
+body,
+#root,
+.app,
+.app * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+.app::-webkit-scrollbar,
+.app *::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+@media (max-width: 900px) {
+  .app > .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app > .workspace > aside,
+  .app > .workspace > main {
+    min-width: 0;
+  }
+}
+
+
+/* Le switch Présentation suit le thème actif : clair en thème clair, sombre en thème sombre. */
+.app:not(.theme-dark) .presentation-switch {
+  background: #ffffff;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.app:not(.theme-dark) .presentation-switch .presentation-switch-track {
+  background: #cbd5e1;
+}
+
+.app:not(.theme-dark) .presentation-switch input:checked + .presentation-switch-track {
+  background: #4f46e5;
+}
+
+.app:not(.theme-dark) .presentation-switch:has(input:checked) {
+  background: #eef2ff;
+  color: #312e81;
+  border-color: #a5b4fc;
+}
+
+.app.theme-dark .presentation-switch {
+  background: #1e293b;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+.app.theme-dark .presentation-switch:has(input:checked) {
+  background: #27304a;
+  color: #ffffff;
+  border-color: #818cf8;
+}
+
+.app.theme-dark .presentation-switch .presentation-switch-track {
+  background: #64748b;
+}
+
+.app.theme-dark .presentation-switch input:checked + .presentation-switch-track {
+  background: #818cf8;
+}
