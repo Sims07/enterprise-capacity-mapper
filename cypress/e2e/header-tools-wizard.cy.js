@@ -28,6 +28,7 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
 
   it('garde le wizard Nouvelle cartographie lisible en thème sombre', () => {
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     cy.get('[data-testid="tools-menu-toggle"]').click();
@@ -78,6 +79,7 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
       .should('have.css', 'color', 'rgb(31, 41, 55)');
     cy.get('.modal.wizard').should('be.visible');
     cy.contains('.modal.wizard button', 'Annuler').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').then($menu => {
