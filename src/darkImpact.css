@@ -1,0 +1,31 @@
+/* Dark Linear — selected impact uses a tinted surface so the state stays visible on the map. */
+.app.theme-dark .cap.impact-selected,
+.app.theme-dark .domain-card.impact-selected {
+  border: 2px solid #8b5cf6 !important;
+  outline: none !important;
+  background: #2a2345 !important;
+  box-shadow:
+    inset 3px 0 0 #a78bfa,
+    0 0 0 2px rgba(139, 92, 246, 0.16);
+}
+
+.app.theme-dark .cap.impact-selected {
+  color: #f5f3ff;
+}
+
+.app.theme-dark .cap.impact-selected .cap-head b,
+.app.theme-dark .cap.impact-selected .cap-head,
+.app.theme-dark .cap.impact-selected p,
+.app.theme-dark .cap.impact-selected .rel {
+  color: #ede9fe;
+}
+
+.app.theme-dark .domain-card.impact-selected {
+  background: #25203b !important;
+}
+
+.app.theme-dark.presentation-mode .cap.impact-selected,
+.app.theme-dark.presentation-mode .domain-card.impact-selected {
+  border-color: #c4b5fd !important;
+  background: #302750 !important;
+}
