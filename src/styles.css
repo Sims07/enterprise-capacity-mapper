@@ -2238,7 +2238,7 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   background: #202228;
   border-color: #343842;
 }
-.app.theme-dark .domain-card:not(.impact-selected) .cap {
+.app.theme-dark .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
   background: #171a20;
   border-color: #343842;
   color: #e0e3ea;
@@ -2304,11 +2304,11 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   color: #e0e3ea;
   box-shadow: none;
 }
-.app.theme-dark .domain-card:not(.impact-selected) .cap-head b,
-.app.theme-dark .domain-card:not(.impact-selected) .cap-head,
-.app.theme-dark .domain-card:not(.impact-selected) .cap p,
-.app.theme-dark .domain-card:not(.impact-selected) .cap .rel,
-.app.theme-dark .domain-card:not(.impact-selected) .cap .drop {
+.app.theme-dark .domain-card:not(.impact-selected) .cap:not(.impact-selected) .cap-head b,
+.app.theme-dark .domain-card:not(.impact-selected) .cap:not(.impact-selected) .cap-head,
+.app.theme-dark .domain-card:not(.impact-selected) .cap:not(.impact-selected) p,
+.app.theme-dark .domain-card:not(.impact-selected) .cap:not(.impact-selected) .rel,
+.app.theme-dark .domain-card:not(.impact-selected) .cap:not(.impact-selected) .drop {
   color: #c3c7d1 !important;
 }
 .app.theme-dark .domain-card:not(.impact-selected):hover {
