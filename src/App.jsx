@@ -710,7 +710,6 @@ function App() {
             <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
           </div>
           <div className="toolbar-actions">
-            <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => setDarkMode(value => !value)}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶</button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷</button>
@@ -723,6 +722,7 @@ function App() {
             <details className="toolbar-tools" data-testid="tools-menu">
               <summary data-testid="tools-menu-toggle" aria-label="Ouvrir les outils" aria-haspopup="true">Outils <span aria-hidden="true">⌄</span></summary>
               <div className="toolbar-tools-panel" aria-label="Outils et actions">
+                <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => setDarkMode(value => !value)}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
                 <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>
                   <span className="new-map-button-mark" aria-hidden="true">+</span>
                   <span>Nouvelle cartographie</span>
