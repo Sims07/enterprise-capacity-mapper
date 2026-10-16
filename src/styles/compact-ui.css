@@ -120,3 +120,22 @@
 }
 .app.theme-dark .domain-card .cap:hover { background: #1d2028; }
 .app.theme-dark.presentation-mode .domain-card { background: #1d2026 !important; }
+
+/* N0 : la couleur du domaine remplit tout l’en-tête, également en Linear Black.
+   Les variables viennent de la couleur choisie pour chaque domaine. */
+.app .domain-card > .domain-banner,
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner {
+  background: var(--n0-header-color) !important;
+  background-color: var(--n0-header-color) !important;
+  color: var(--n0-header-text-color) !important;
+  border-bottom-color: color-mix(in srgb, var(--n0-header-text-color) 24%, transparent);
+  border-left: 0;
+}
+.app .domain-card > .domain-banner h3,
+.app .domain-card > .domain-banner .domain-meta,
+.app .domain-card > .domain-banner .domain-actions,
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner h3,
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner .domain-meta,
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner .domain-actions {
+  color: var(--n0-header-text-color) !important;
+}
