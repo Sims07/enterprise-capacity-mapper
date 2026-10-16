@@ -61,7 +61,7 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   it('expose Présentation dans l’en-tête et Nouvelle cartographie dans Outils', () => {
     cy.get('[data-testid="presentation-toggle"]').should('be.visible').and('have.attr', 'aria-pressed', 'false');
     cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
-    cy.get('[data-testid="new-map-button"]').should('not.exist');
+    cy.get('[data-testid="new-map-button"]').should('not.be.visible');
 
     cy.get('[data-testid="presentation-toggle"]').click()
       .should('have.attr', 'aria-pressed', 'true')
