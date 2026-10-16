@@ -31,7 +31,7 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="new-map-button"]').should('be.visible').click();
     cy.get('.modal.wizard').should('be.visible');
 
