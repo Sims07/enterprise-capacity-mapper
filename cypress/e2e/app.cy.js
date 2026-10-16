@@ -474,7 +474,7 @@ describe('Application smoke test', () => {
     cy.get('.presentation-mode .cap').should('have.length', 3).first().should('have.css', 'border-radius', '6px');
     cy.get('.presentation-mode .cap-desc, .presentation-mode .cap .relations, .presentation-mode .cell-add, .presentation-mode .domain-actions').should('not.be.visible');
     openToolsMenu();
-    cy.get('[data-testid="presentation-switch-input"]').check();
+    cy.get('[data-testid="presentation-switch-input"]').uncheck();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     cy.get('[data-testid="map-filter"]').should('have.value', 'CAP-CRM');
     cy.get('.domain-card').should('have.length', 1);
@@ -580,8 +580,6 @@ describe('Application smoke test', () => {
     cy.reload();
 
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
     });
@@ -592,7 +590,7 @@ describe('Application smoke test', () => {
     });
 
     openToolsMenu();
-    cy.get('[data-testid="presentation-switch-input"]').uncheck();
+    cy.get('[data-testid="presentation-switch-input"]').check();
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('.presentation-mode .cap .app-count').first().should('be.visible').then($count => {
       expect(getComputedStyle($count[0]).color, 'texte du compteur en présentation sombre').not.to.equal('rgb(0, 0, 0)');
