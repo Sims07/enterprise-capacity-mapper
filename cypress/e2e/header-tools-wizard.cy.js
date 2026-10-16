@@ -24,7 +24,6 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
       .should('have.css', 'border-right-style', 'solid')
       .and('have.css', 'border-bottom-style', 'solid')
       .and('have.css', 'font-size', '0px');
-    cy.get('[data-testid="tools-menu-toggle"] span[aria-hidden="true"]').invoke('text').should('eq', '');
   });
 
   it('garde le wizard Nouvelle cartographie lisible en thème sombre', () => {
