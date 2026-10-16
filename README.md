@@ -19,14 +19,18 @@ Les fichiers sont regroupés par responsabilité, sans multiplier les couches in
 │   ├── components/      # Composants React réutilisables / autonomes
 │   ├── data/            # Modèle de démonstration
 │   ├── services/        # Persistance, import/export et chargement des données
+│   ├── styles/          # Tous les styles CSS, regroupés par rôle
+│   │   ├── base.css     # Styles globaux
+│   │   ├── compact-ui.css
+│   │   └── dark-impact.css
 │   ├── main.jsx         # Point d'entrée React et enregistrement PWA
-│   └── styles.css       # Styles globaux de l'application
+│   └── toolsMenuBehavior.js # Comportement du menu Outils
 ├── index.html
 ├── package.json
 └── vite.config.js
 ```
 
-Le code React utilisé par l'application doit avoir une seule source de vérité : les composants vivent dans `src/components/`, et la documentation fonctionnelle reste à la racine ou dans `docs/`, jamais dans `src/`. Les feuilles de style complémentaires déjà importées par `main.jsx` restent dans `src/` tant qu'elles sont utilisées ; leur fusion est un chantier distinct qui doit préserver la cascade CSS.
+Le code React utilisé par l'application doit avoir une seule source de vérité : les composants vivent dans `src/components/`, et la documentation fonctionnelle reste à la racine ou dans `docs/`, jamais dans `src/`. Tous les fichiers CSS sont regroupés dans `src/styles/`. Les imports de `main.jsx` conservent leur ordre initial (base, interface compacte, impact sombre) afin de préserver la cascade CSS et les rendus existants.
 
 
 - **Frontend** : React + Vite, statique et compatible GitHub Pages.
