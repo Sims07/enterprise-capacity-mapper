@@ -562,4 +562,23 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
   });
 
+
+
+  it('conserve un contraste lisible au survol des applications en thème sombre', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.get('[data-testid="theme-toggle"]').then($toggle => {
+      if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
+    });
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('#app-inventory').should('be.visible');
+    cy.get('.app-item').first().trigger('mouseover').should($item => {
+      expect(getComputedStyle($item[0]).backgroundColor).to.equal('rgb(37, 41, 54)');
+      expect(getComputedStyle($item.find('b')[0]).color).to.equal('rgb(249, 250, 251)');
+    });
+    cy.get('.app-item').first().find('small').should('have.css', 'color', 'rgb(196, 202, 218)');
+  });
 });
