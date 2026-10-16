@@ -456,8 +456,19 @@ describe('Application smoke test', () => {
     cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
     cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
     openToolsMenu();
-    cy.get('[data-testid="presentation-toggle"]').click();
-    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('[data-testid="presentation-toggle"]').should('have.attr', 'role', 'switch').and('not.be.checked');
+    cy.get('header').then($header => {
+      const before = $header[0].getBoundingClientRect();
+      const beforeHeight = before.height;
+      const beforeWidth = before.width;
+      cy.get('[data-testid="presentation-toggle"]').check();
+      cy.get('.app').should('have.class', 'presentation-mode');
+      cy.get('header').then($after => {
+        const after = $after[0].getBoundingClientRect();
+        expect(after.height, 'hauteur stable de l’en-tête').to.equal(beforeHeight);
+        expect(after.width, 'largeur stable de l’en-tête').to.equal(beforeWidth);
+      });
+    });
     cy.get('aside').should('not.be.visible');
     cy.get('.workspace').should('have.css', 'grid-template-columns').and('not.contain', '300px');
     cy.get('.presentation-mode .cap').should('have.length', 3).first().should('have.css', 'border-radius', '6px');
@@ -529,7 +540,7 @@ describe('Application smoke test', () => {
 
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('have.class', 'presentation-mode');
-    cy.get('[data-testid="presentation-toggle"]').should('contain.text', 'Quitter la présentation').click();
+    cy.get('[data-testid="presentation-toggle"]').should('have.attr', 'role', 'switch').and('be.checked').uncheck();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     openToolsMenu();
     cy.get('[data-testid="open-local-maps"]').click();
