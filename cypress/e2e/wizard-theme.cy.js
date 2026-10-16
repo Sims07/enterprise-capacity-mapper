@@ -10,6 +10,7 @@ describe('Nouvelle cartographie — thème', () => {
 
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
     });
