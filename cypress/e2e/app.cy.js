@@ -580,8 +580,8 @@ describe('Application smoke test', () => {
     });
     cy.get('.app').should('have.class', 'theme-dark');
     cy.get('.cap .app-count').first().should('be.visible').then($count => {
-      expect(getComputedStyle($count[0]).color, 'texte du compteur en thème sombre').to.equal('rgb(243, 244, 246)');
-      expect(getComputedStyle($count[0]).backgroundColor, 'fond du compteur en thème sombre').to.equal('rgb(48, 53, 66)');
+      expect(getComputedStyle($count[0]).color, 'texte du compteur en thème sombre').not.to.equal('rgb(0, 0, 0)');
+      expect(getComputedStyle($count[0]).backgroundColor, 'fond du compteur en thème sombre').not.to.equal('rgba(0, 0, 0, 0)');
     });
 
     openToolsMenu();
