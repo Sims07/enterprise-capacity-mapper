@@ -1,0 +1,80 @@
+/* Navigation principale : le fond actif glisse entre les trois vues. */
+.toolbar-switch {
+  --nav-highlight-inset: 3px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 2px;
+  padding: var(--nav-highlight-inset);
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, .28);
+  overflow: hidden;
+}
+
+.toolbar-switch::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: var(--nav-highlight-inset);
+  bottom: var(--nav-highlight-inset);
+  left: var(--nav-highlight-inset);
+  width: calc((100% - 2 * var(--nav-highlight-inset) - 4px) / 3);
+  border: 1px solid rgba(165, 180, 252, .7);
+  border-radius: 7px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, .24), inset 0 1px 0 rgba(255,255,255,.14);
+  transform: translateX(0);
+  transition: transform 320ms cubic-bezier(.2, .8, .2, 1);
+  pointer-events: none;
+}
+
+.toolbar-switch:has(> button:nth-child(2).active)::before {
+  transform: translateX(calc(100% + 2px));
+}
+
+.toolbar-switch:has(> button:nth-child(3).active)::before {
+  transform: translateX(calc((100% + 2px) * 2));
+}
+
+.toolbar-switch > button,
+.toolbar .toolbar-switch > button.active {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  white-space: nowrap;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #cbd5e1;
+  box-shadow: none;
+  transition: color 180ms ease;
+}
+
+.toolbar-switch > button.active,
+.toolbar .toolbar-switch > button.active {
+  color: #fff !important;
+}
+
+.toolbar-switch > button:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-switch::before {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .toolbar-switch {
+    max-width: 100%;
+  }
+
+  .toolbar-switch > button {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+}
