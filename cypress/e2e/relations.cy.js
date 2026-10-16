@@ -294,8 +294,8 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.panel-title em')
-      .should('have.css', 'background-color', 'rgba(0, 0, 0, 0)')
-      .and('have.css', 'color', 'rgb(255, 255, 255)');
+      .should('have.css', 'background-color', 'rgb(52, 42, 81)')
+      .and('have.css', 'color', 'rgb(240, 234, 255)');
     cy.get('.tree-domain').first()
       .should('have.css', 'background-color', 'rgb(28, 30, 38)');
     cy.get('.tree-node-cap > .tree-row').first()
