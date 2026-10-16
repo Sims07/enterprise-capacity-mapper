@@ -2143,3 +2143,70 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   background: #3b2029;
   color: #fda4af;
 }
+
+
+/* Le mode présentation est un interrupteur stable : son libellé ne change pas et
+   la largeur du contrôle reste constante, évitant les déplacements de l’en-tête. */
+.presentation-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.presentation-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  opacity: 0;
+}
+.presentation-switch-track {
+  display: inline-flex;
+  align-items: center;
+  width: 32px;
+  height: 18px;
+  padding: 2px;
+  border-radius: 999px;
+  background: #64748b;
+  transition: background-color .15s ease;
+}
+.presentation-switch-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px #0003;
+  transform: translateX(0);
+  transition: transform .15s ease;
+}
+.presentation-switch input:checked + .presentation-switch-track {
+  background: #818cf8;
+}
+.presentation-switch input:checked + .presentation-switch-track .presentation-switch-thumb {
+  transform: translateX(14px);
+}
+.presentation-switch input:focus-visible + .presentation-switch-track {
+  outline: 2px solid #c7d2fe;
+  outline-offset: 3px;
+}
+.presentation-switch:has(input:checked) {
+  border-color: #818cf8;
+  color: #fff;
+}
+.theme-dark .presentation-switch {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+@media (prefers-reduced-motion: reduce) {
+  .presentation-switch-track,
+  .presentation-switch-thumb { transition: none; }
+}
