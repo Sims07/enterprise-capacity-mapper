@@ -20,10 +20,6 @@
   color: #ede9fe;
 }
 
-.app.theme-dark .domain-card.impact-selected {
-  background: #25203b !important;
-}
-
 .app.theme-dark.presentation-mode .cap.impact-selected,
 .app.theme-dark.presentation-mode .domain-card.impact-selected {
   border-color: #c4b5fd !important;
