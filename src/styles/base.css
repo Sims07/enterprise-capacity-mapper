@@ -2400,3 +2400,45 @@ body::-webkit-scrollbar,
     min-width: 0;
   }
 }
+
+
+/* Le switch Présentation suit le thème actif : clair en thème clair, sombre en thème sombre. */
+.app:not(.theme-dark) .presentation-switch {
+  background: #ffffff;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.app:not(.theme-dark) .presentation-switch .presentation-switch-track {
+  background: #cbd5e1;
+}
+
+.app:not(.theme-dark) .presentation-switch input:checked + .presentation-switch-track {
+  background: #4f46e5;
+}
+
+.app:not(.theme-dark) .presentation-switch:has(input:checked) {
+  background: #eef2ff;
+  color: #312e81;
+  border-color: #a5b4fc;
+}
+
+.app.theme-dark .presentation-switch {
+  background: #1e293b;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+.app.theme-dark .presentation-switch:has(input:checked) {
+  background: #27304a;
+  color: #ffffff;
+  border-color: #818cf8;
+}
+
+.app.theme-dark .presentation-switch .presentation-switch-track {
+  background: #64748b;
+}
+
+.app.theme-dark .presentation-switch input:checked + .presentation-switch-track {
+  background: #818cf8;
+}
