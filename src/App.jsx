@@ -715,7 +715,11 @@ function App() {
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶</button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷</button>
             </div>
-            <button type="button" className={'secondary presentation-toggle' + (presentation ? ' is-active' : '')} data-testid="presentation-toggle" aria-pressed={presentation} onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
+            <label className="presentation-switch" data-testid="presentation-switch">
+              <span>Présentation</span>
+              <input type="checkbox" role="switch" data-testid="presentation-toggle" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
+              <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
+            </label>
             <details className="toolbar-tools" data-testid="tools-menu">
               <summary data-testid="tools-menu-toggle" aria-label="Ouvrir les outils" aria-haspopup="true">Outils <span aria-hidden="true">⌄</span></summary>
               <div className="toolbar-tools-panel" aria-label="Outils et actions">
