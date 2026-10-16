@@ -663,4 +663,23 @@ describe('Application smoke test', () => {
     cy.get('body').should('have.css', 'overflow', 'hidden');
   });
 
+  
+  it('adapte visuellement le switch Présentation au thème clair et sombre', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="presentation-toggle"]')
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)')
+      .and('have.css', 'color', 'rgb(51, 65, 85)');
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="presentation-toggle"]')
+      .should('have.css', 'background-color', 'rgb(30, 41, 59)')
+      .and('have.css', 'color', 'rgb(241, 245, 249)');
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'theme-dark');
+    cy.get('[data-testid="presentation-toggle"]')
+      .should('have.css', 'background-color', 'rgb(255, 255, 255)');
+  });
+
 });
