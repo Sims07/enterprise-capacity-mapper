@@ -301,7 +301,8 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
     cy.get('.domain-card').should('have.length', 4);
 
-    cy.contains('button', 'Nouvelle cartographie').click();
+    openToolsMenu();
+    cy.get('[data-testid="new-map-button"]').click();
     cy.get('body').type('{esc}');
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
     cy.get('.domain-card').should('have.length', 4);
