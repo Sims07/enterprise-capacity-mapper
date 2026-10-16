@@ -771,6 +771,7 @@ function App() {
               apps={apps}
               depth={depth}
               colorOf={resolveDomainColor}
+              selected={selected}
               pickedCount={pickedValid.length}
               onAssign={assign}
               onUnassign={unassign}
