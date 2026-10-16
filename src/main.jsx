@@ -2,8 +2,8 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './styles.css';
-import './compactUi.css';
-import './darkImpact.css';
+import './styles/compact-ui.css';
+import './styles/dark-impact.css';
 import './toolsMenuBehavior.js';
 
 if ('serviceWorker' in navigator) {
