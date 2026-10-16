@@ -3,12 +3,15 @@ describe('Dark Linear impact selection', () => {
     cy.clearLocalStorage('enterprise-capacity-mapper:theme');
   });
 
-  it('rend la sélection d’impact violette et lisible sur la cartographie sombre', () => {
+  const enableDarkTheme = () => {
     cy.visit('/');
-
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
+  };
+
+  it('rend la sélection d’impact violette et lisible sur la cartographie sombre', () => {
+    enableDarkTheme();
 
     cy.get('header').contains('button', 'Impact').click();
     cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
@@ -24,18 +27,25 @@ describe('Dark Linear impact selection', () => {
     });
   });
 
-  it('affiche les conteneurs N0 sur une surface Linear Black sombre', () => {
-    cy.visit('/');
-    cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="theme-toggle"]').click();
-    cy.get('.app').should('have.class', 'theme-dark');
+  it('affiche les conteneurs N0 et N1 sur des surfaces Linear Black sombres', () => {
+    enableDarkTheme();
 
     cy.get('.domain-card').should('have.length.greaterThan', 0).each($el => {
       expect($el.css('background-color')).to.eq('rgb(32, 34, 40)');
       expect($el.css('border-top-color')).to.eq('rgb(52, 56, 66)');
+      expect($el.find('.domain-banner').css('background-color')).to.eq('rgb(32, 34, 40)');
+      expect($el.find('.cap').first().css('background-color')).to.eq('rgb(23, 26, 32)');
     });
+  });
 
-    cy.get('.domain-card').first().trigger('mouseover');
-    cy.get('.domain-card').first().should('have.css', 'background-color', 'rgb(39, 42, 50)');
+  it('assombrit légèrement les conteneurs N0 en mode présentation', () => {
+    enableDarkTheme();
+
+    cy.get('[data-testid="presentation-switch-input"]').check({ force: true });
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('.domain-card').should('have.length.greaterThan', 0).each($el => {
+      expect($el.css('background-color')).to.eq('rgb(29, 32, 38)');
+      expect($el.find('.domain-banner').css('background-color')).to.eq('rgb(29, 32, 38)');
+    });
   });
 });
