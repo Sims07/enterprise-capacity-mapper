@@ -1,6 +1,8 @@
 describe('Impact selection on the capability map', () => {
   beforeEach(() => {
-    cy.clearLocalStorage('enterprise-capacity-mapper:theme');
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
   });
 
   const enableDarkTheme = () => {
@@ -21,6 +23,7 @@ describe('Impact selection on the capability map', () => {
 
   it('rend le surlignage violet clairement visible en thème clair en mode cartographie normal', () => {
     cy.visit('/');
+    cy.get('.app').should('not.have.class', 'theme-dark');
     selectImpactAndReturnToMap();
 
     cy.get('.impact-selected').each($el => {
