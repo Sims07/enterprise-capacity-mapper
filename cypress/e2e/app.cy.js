@@ -461,7 +461,7 @@ describe('Application smoke test', () => {
       const before = $header[0].getBoundingClientRect();
       const beforeHeight = before.height;
       const beforeWidth = before.width;
-      cy.get('[data-testid="presentation-switch-input"]').check();
+      cy.get('[data-testid="presentation-toggle"]').click();
       cy.get('.app').should('have.class', 'presentation-mode');
       cy.get('header').then($after => {
         const after = $after[0].getBoundingClientRect();
@@ -474,7 +474,7 @@ describe('Application smoke test', () => {
     cy.get('.presentation-mode .cap').should('have.length', 3).first().should('have.css', 'border-radius', '6px');
     cy.get('.presentation-mode .cap-desc, .presentation-mode .cap .relations, .presentation-mode .cell-add, .presentation-mode .domain-actions').should('not.be.visible');
     openToolsMenu();
-    cy.get('[data-testid="presentation-switch-input"]').uncheck();
+    cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     cy.get('[data-testid="map-filter"]').should('have.value', 'CAP-CRM');
     cy.get('.domain-card').should('have.length', 1);
@@ -539,7 +539,7 @@ describe('Application smoke test', () => {
       cy.get('[data-testid="import-model"]').should('exist').and('have.attr', 'accept', '.json,application/json');
     });
 
-    cy.get('[data-testid="presentation-switch-input"]').check();
+    cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('be.checked').uncheck();
     cy.get('.app').should('not.have.class', 'presentation-mode');
@@ -590,7 +590,7 @@ describe('Application smoke test', () => {
     });
 
     openToolsMenu();
-    cy.get('[data-testid="presentation-switch-input"]').check();
+    cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('.presentation-mode .cap .app-count').first().should('be.visible').then($count => {
       expect(getComputedStyle($count[0]).color, 'texte du compteur en présentation sombre').not.to.equal('rgb(0, 0, 0)');
