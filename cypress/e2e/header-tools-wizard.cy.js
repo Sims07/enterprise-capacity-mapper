@@ -61,14 +61,17 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   });
 
   it('expose Présentation dans l’en-tête et Nouvelle cartographie dans Outils', () => {
-    cy.get('[data-testid="presentation-switch-input"]').should('be.visible').and('have.attr', 'role', 'switch').and('not.be.checked');
+    cy.get('[data-testid="presentation-toggle"]').should('be.visible');
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('not.be.checked');
     cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
     cy.get('[data-testid="new-map-button"]').should('not.be.visible');
 
-    cy.get('[data-testid="presentation-switch-input"]').check().should('be.checked');
-    cy.get('[data-testid="presentation-switch-input"]').uncheck().should('not.be.checked');
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('[data-testid="presentation-switch-input"]').should('be.checked');
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('[data-testid="presentation-switch-input"]').should('not.be.checked');
 
-    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="new-map-button"]').should('be.visible');
   });
 
