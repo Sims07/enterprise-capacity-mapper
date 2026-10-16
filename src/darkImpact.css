@@ -1,0 +1,18 @@
+/* Dark Linear — selected impact remains visible when the map surface is light. */
+.app.theme-dark .cap.impact-selected,
+.app.theme-dark .domain-card.impact-selected {
+  border: 2px solid #a78bfa;
+}
+
+.app.theme-dark .cap.impact-selected {
+  background: #251f38;
+}
+
+.app.theme-dark .domain-card.impact-selected {
+  background: #211b31;
+}
+
+.app.theme-dark.presentation-mode .cap.impact-selected,
+.app.theme-dark.presentation-mode .domain-card.impact-selected {
+  border-color: #c4b5fd;
+}
