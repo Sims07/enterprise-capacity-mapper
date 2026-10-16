@@ -695,7 +695,15 @@ describe('Application smoke test', () => {
       const highlight = getComputedStyle($switch[0], '::before');
       expect(highlight.content).not.to.equal('none');
       expect(highlight.transitionDuration).to.include('0.32s');
+      expect(highlight.borderTopWidth).to.equal('0px');
+      expect(highlight.zIndex).to.equal('0');
       expect(highlight.transform).to.equal('matrix(1, 0, 0, 1, 0, 0)');
+    });
+    cy.get('.toolbar-switch > button').each($button => {
+      expect(getComputedStyle($button[0]).backgroundColor, 'fond individuel du bouton transparent')
+        .to.equal('rgba(0, 0, 0, 0)');
+      expect(getComputedStyle($button[0]).zIndex, 'bouton au-dessus du fond mobile')
+        .to.equal('1');
     });
 
     cy.get('[data-testid="tab-relations"]').click();
