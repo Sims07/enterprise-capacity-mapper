@@ -27,9 +27,11 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   });
 
   it('garde le wizard Nouvelle cartographie lisible en thème sombre', () => {
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="new-map-button"]').should('be.visible').click();
     cy.get('.modal.wizard').should('be.visible');
 
@@ -59,17 +61,17 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   });
 
   it('expose Présentation dans l’en-tête et Nouvelle cartographie dans Outils', () => {
-    cy.get('[data-testid="presentation-toggle"]').should('be.visible').and('have.attr', 'aria-pressed', 'false');
+    cy.get('[data-testid="presentation-toggle"]').should('be.visible');
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('not.be.checked');
     cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
     cy.get('[data-testid="new-map-button"]').should('not.be.visible');
 
-    cy.get('[data-testid="presentation-toggle"]').click()
-      .should('have.attr', 'aria-pressed', 'true')
-      .and('contain.text', 'Quitter la présentation');
-    cy.get('[data-testid="presentation-toggle"]').click()
-      .should('have.attr', 'aria-pressed', 'false');
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('[data-testid="presentation-switch-input"]').should('be.checked');
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('[data-testid="presentation-switch-input"]').should('not.be.checked');
 
-    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="new-map-button"]').should('be.visible');
   });
 
@@ -80,6 +82,8 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
       .should('have.css', 'color', 'rgb(31, 41, 55)');
     cy.get('.modal.wizard').should('be.visible');
     cy.contains('.modal.wizard button', 'Annuler').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').then($menu => {
       if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click();

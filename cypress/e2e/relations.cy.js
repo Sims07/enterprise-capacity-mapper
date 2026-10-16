@@ -226,6 +226,9 @@ describe('Relations applications ↔ capacités', () => {
       .and('have.css', 'color', 'rgb(67, 56, 168)')
       .and('have.css', 'border-top-style', 'dashed');
 
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     cy.get('.toolbar-switch')
@@ -239,6 +242,8 @@ describe('Relations applications ↔ capacités', () => {
       .and('have.css', 'color', 'rgb(216, 204, 255)');
 
     // Revenir au thème clair doit aussi restaurer l'apparence des onglets d'en-tête.
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
     cy.get('.toolbar-switch')
@@ -271,6 +276,9 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.tree-app').first()
       .should('have.css', 'background-color', 'rgb(255, 255, 255)');
 
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.panel-title em')
       .should('have.css', 'background-color', 'rgb(52, 42, 81)')
@@ -309,6 +317,7 @@ describe('Relations applications ↔ capacités', () => {
 
   it('active le thème Dark Linear et conserve la préférence après rechargement', () => {
     fresh();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Dark Linear').click();
     cy.get('.app').should('have.class', 'theme-dark');
     cy.get('[data-testid="theme-toggle"]').should('have.attr', 'aria-pressed', 'true').and('contain.text', 'Thème clair');
@@ -317,6 +326,7 @@ describe('Relations applications ↔ capacités', () => {
     });
     cy.reload();
     cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Thème clair').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
     cy.window().then(win => {

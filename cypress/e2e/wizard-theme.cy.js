@@ -8,11 +8,12 @@ describe('Nouvelle cartographie — thème', () => {
     cy.clearLocalStorage();
     cy.reload();
 
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
     });
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="new-map-button"]').click();
     cy.get('.modal.wizard').should('be.visible');
 

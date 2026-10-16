@@ -456,8 +456,25 @@ describe('Application smoke test', () => {
     cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
     cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
     openToolsMenu();
-    cy.get('[data-testid="presentation-toggle"]').click();
-    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('not.be.checked');
+    cy.get('header').then($header => {
+      const before = $header[0].getBoundingClientRect();
+      const beforeHeight = before.height;
+      cy.get('[data-testid="presentation-toggle"]').then($toggle => {
+        const toggleBefore = $toggle[0].getBoundingClientRect();
+        cy.wrap($toggle).click();
+        cy.get('.app').should('have.class', 'presentation-mode');
+        cy.get('header').then($after => {
+          const after = $after[0].getBoundingClientRect();
+          expect(after.height, 'hauteur stable de l’en-tête').to.equal(beforeHeight);
+        });
+        cy.get('[data-testid="presentation-toggle"]').then($toggleAfter => {
+          const toggleAfter = $toggleAfter[0].getBoundingClientRect();
+          expect(toggleAfter.width, 'largeur stable du switch Présentation').to.equal(toggleBefore.width);
+          expect(toggleAfter.height, 'hauteur stable du switch Présentation').to.equal(toggleBefore.height);
+        });
+      });
+    });
     cy.get('aside').should('not.be.visible');
     cy.get('.workspace').should('have.css', 'grid-template-columns').and('not.contain', '300px');
     cy.get('.presentation-mode .cap').should('have.length', 3).first().should('have.css', 'border-radius', '6px');
@@ -513,12 +530,13 @@ describe('Application smoke test', () => {
       cy.get('[data-testid="undo-button"]').should('be.visible').and('be.disabled');
       cy.get('[data-testid="redo-button"]').should('be.visible').and('be.disabled');
     });
-    cy.get('[data-testid="theme-toggle"]').should('be.visible');
+    cy.get('[data-testid="theme-toggle"]').should('not.be.visible');
     cy.get('[data-testid="new-map-button"]').should('not.be.visible');
     cy.get('[data-testid="presentation-toggle"]').should('be.visible');
     cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+    cy.get('[data-testid="theme-toggle"]').should('be.visible');
     cy.get('.toolbar-tools-panel').within(() => {
       cy.get('[data-testid="new-map-button"]').should('be.visible');
       cy.get('[data-testid="open-local-maps"]').should('be.visible');
@@ -529,7 +547,8 @@ describe('Application smoke test', () => {
 
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('have.class', 'presentation-mode');
-    cy.get('[data-testid="presentation-toggle"]').should('contain.text', 'Quitter la présentation').click();
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('be.checked');
+    cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     openToolsMenu();
     cy.get('[data-testid="open-local-maps"]').click();
@@ -567,6 +586,7 @@ describe('Application smoke test', () => {
     cy.clearLocalStorage();
     cy.reload();
 
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
     });
@@ -590,6 +610,8 @@ describe('Application smoke test', () => {
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
+
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
