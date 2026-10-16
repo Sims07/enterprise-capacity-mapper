@@ -29,7 +29,8 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   it('garde le wizard Nouvelle cartographie lisible en thème sombre', () => {
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="new-map-button"]').click();
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').should('be.visible').click();
     cy.get('.modal.wizard').should('be.visible');
 
     cy.get('.modal.wizard').should('have.css', 'background-color', 'rgb(23, 26, 33)');
@@ -55,5 +56,36 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
     cy.get('.pv-cell').first()
       .should('have.css', 'background-color', 'rgb(15, 18, 23)')
       .and('have.css', 'border-color', 'rgb(48, 54, 66)');
+  });
+
+  it('expose Présentation dans l’en-tête et Nouvelle cartographie dans Outils', () => {
+    cy.get('[data-testid="presentation-toggle"]').should('be.visible').and('have.attr', 'aria-pressed', 'false');
+    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="new-map-button"]').should('not.be.visible');
+
+    cy.get('[data-testid="presentation-toggle"]').click()
+      .should('have.attr', 'aria-pressed', 'true')
+      .and('contain.text', 'Quitter la présentation');
+    cy.get('[data-testid="presentation-toggle"]').click()
+      .should('have.attr', 'aria-pressed', 'false');
+
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
+  });
+
+  it('garde les titres des cartes de modèles lisibles en thème clair et sombre', () => {
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').click();
+    cy.get('.modal.wizard .template-card > b').first()
+      .should('have.css', 'color', 'rgb(31, 41, 55)');
+    cy.get('.modal.wizard').should('be.visible');
+    cy.contains('.modal.wizard button', 'Annuler').click();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').then($menu => {
+      if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click();
+    });
+    cy.get('[data-testid="new-map-button"]').click();
+    cy.get('.modal.wizard .template-card > b').first()
+      .should('have.css', 'color', 'rgb(243, 244, 246)');
   });
 });

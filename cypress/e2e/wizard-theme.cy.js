@@ -12,6 +12,7 @@ describe('Nouvelle cartographie — thème', () => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
     });
     cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="new-map-button"]').click();
     cy.get('.modal.wizard').should('be.visible');
 

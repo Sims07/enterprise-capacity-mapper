@@ -716,14 +716,14 @@ function App() {
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶</button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷</button>
             </div>
-            <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>
-              <span className="new-map-button-mark" aria-hidden="true">+</span>
-              <span>Nouvelle cartographie</span>
-            </button>
+            <button type="button" className={'secondary presentation-toggle' + (presentation ? ' is-active' : '')} data-testid="presentation-toggle" aria-pressed={presentation} onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
             <details className="toolbar-tools" data-testid="tools-menu">
               <summary data-testid="tools-menu-toggle" aria-label="Ouvrir les outils" aria-haspopup="true">Outils <span aria-hidden="true">⌄</span></summary>
               <div className="toolbar-tools-panel" aria-label="Outils et actions">
-                <button type="button" className="secondary" data-testid="presentation-toggle" onClick={() => setPresentation(v => !v)}>{presentation ? '↙ Quitter la présentation' : '⛶ Présentation'}</button>
+                <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>
+                  <span className="new-map-button-mark" aria-hidden="true">+</span>
+                  <span>Nouvelle cartographie</span>
+                </button>
                 <button type="button" className="secondary" data-testid="open-local-maps" onClick={openLocalMaps}>▤ Mes cartographies</button>
                 <button type="button" className="primary" data-testid="save-local-map" onClick={saveCurrentLocalMap}>Enregistrer</button>
                 <button type="button" className="secondary" data-testid="export-model" onClick={() => exportModel(model)}>↓ Exporter JSON</button>

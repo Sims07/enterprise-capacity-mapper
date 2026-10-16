@@ -29,7 +29,8 @@ describe('Application smoke test', () => {
 
   const openWizard = () => {
     cy.visit('/');
-    cy.contains('button', 'Nouvelle cartographie').click();
+    openToolsMenu();
+    cy.get('[data-testid="new-map-button"]').click();
     cy.get('[data-testid="wizard-step-1"]').should('be.visible');
   };
 
@@ -83,6 +84,7 @@ describe('Application smoke test', () => {
   it('affiche un assistant Nouvelle cartographie stylé et adapté au mobile', () => {
     cy.visit('/');
       cy.viewport(1280, 800);
+      openToolsMenu();
       cy.get('[data-testid="new-map-button"]').click();
       cy.get('.modal.wizard')
         .should('be.visible')
@@ -299,7 +301,8 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
     cy.get('.domain-card').should('have.length', 4);
 
-    cy.contains('button', 'Nouvelle cartographie').click();
+    openToolsMenu();
+    cy.get('[data-testid="new-map-button"]').click();
     cy.get('body').type('{esc}');
     cy.get('[data-testid="wizard-step-1"]').should('not.exist');
     cy.get('.domain-card').should('have.length', 4);
@@ -519,12 +522,13 @@ describe('Application smoke test', () => {
       cy.get('[data-testid="redo-button"]').should('be.visible').and('be.disabled');
     });
     cy.get('[data-testid="theme-toggle"]').should('be.visible');
-    cy.get('[data-testid="new-map-button"]').should('be.visible');
+    cy.get('[data-testid="new-map-button"]').should('not.be.visible');
+    cy.get('[data-testid="presentation-toggle"]').should('be.visible');
     cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
     cy.get('.toolbar-tools-panel').within(() => {
-      cy.get('[data-testid="presentation-toggle"]').should('be.visible');
+      cy.get('[data-testid="new-map-button"]').should('be.visible');
       cy.get('[data-testid="open-local-maps"]').should('be.visible');
       cy.get('[data-testid="save-local-map"]').should('be.visible');
       cy.get('[data-testid="export-model"]').should('be.visible');
@@ -552,8 +556,9 @@ describe('Application smoke test', () => {
     cy.reload();
 
     cy.get('.toolbar-switch').should('be.visible');
-    cy.get('[data-testid="new-map-button"]').should('be.visible');
+    cy.get('[data-testid="new-map-button"]').should('not.be.visible');
     cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').should('be.visible');
     cy.get('.toolbar-tools-panel').should('be.visible');
     cy.get('html').then(html => {
       expect(html[0].scrollWidth, 'largeur de page sur mobile').to.be.at.most(402);

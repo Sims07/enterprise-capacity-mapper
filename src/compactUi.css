@@ -77,3 +77,24 @@
 .app.theme-dark .modal.wizard .wizard-steps li.current { color: #f8fafc !important; background: #26233b !important; border-color: #6366f1 !important; }
 .app.theme-dark .modal.wizard .wizard-steps li.current span,
 .app.theme-dark .modal.wizard .wizard-steps li.current strong { color: #f8fafc !important; }
+
+/* En-tête : Présentation est un mode visible, Nouvelle cartographie reste dans Outils. */
+.toolbar-actions > .presentation-toggle { white-space: nowrap; }
+.toolbar-actions > .presentation-toggle.is-active,
+.app.theme-dark .toolbar-actions > .presentation-toggle.is-active {
+  background: #26233b !important;
+  border-color: #6366f1 !important;
+  color: #eef2ff !important;
+}
+.app:not(.theme-dark) .toolbar-actions > .presentation-toggle.is-active {
+  background: #eef2ff !important;
+  border-color: #a5b4fc !important;
+  color: #3730a3 !important;
+}
+.toolbar-tools-panel .new-map-button { gap: 8px; }
+
+/* Contraste explicite des titres des cartes de choix (profondeur et modèles). */
+.modal.wizard .template-card > b { color: #1f2937 !important; }
+.modal.wizard .template-card[aria-pressed="true"] > b { color: #312e81 !important; }
+.app.theme-dark .modal.wizard .template-card > b { color: #f3f4f6 !important; }
+.app.theme-dark .modal.wizard .template-card[aria-pressed="true"] > b { color: #ffffff !important; }
