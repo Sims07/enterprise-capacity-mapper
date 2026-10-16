@@ -16,7 +16,7 @@ const dropOut = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.current
  * Chaque ligne cible (N1, ou N0 en profondeur 1) est une zone de dépôt pleine largeur.
  * Le composant ne modifie jamais le modèle lui-même : il délègue à App.jsx via onAssign / onUnassign / onLinkPicked / onOpenLink.
  */
-export default function CoverageTree({ domains, capabilities, apps, depth, colorOf, pickedCount, onAssign, onUnassign, onLinkPicked, onOpenLink }) {
+export default function CoverageTree({ domains, capabilities, apps, depth, colorOf, selected = [], pickedCount, onAssign, onUnassign, onLinkPicked, onOpenLink }) {
   const [collapsed, setCollapsed] = useState(() => new Set());
   const [query, setQuery] = useState('');
   const [coverage, setCoverage] = useState('all');
@@ -117,7 +117,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
     const { linked, cov, isOpen } = renderTargetBody(cap, 2);
     return (
       <div className="tree-node tree-node-cap" role="treeitem" aria-level={2} aria-expanded={isOpen} key={cap.id}>
-        <div className={`tree-row tree-cap cov-${cov.state}`} onDragOver={dropOver} onDragLeave={dropOut} onDrop={e => handleDrop(e, cap.id)}>
+        <div className={`tree-row tree-cap cov-${cov.state}${selected.includes(cap.id) ? " impact-highlight" : ""}`} onDragOver={dropOver} onDragLeave={dropOut} onDrop={e => handleDrop(e, cap.id)}>
           <button type="button" className="tree-toggle" data-tree-focus data-expand={cap.id} onClick={() => toggle(cap.id)}>
             <span className="tree-caret" aria-hidden="true">{isOpen ? '▾' : '▸'}</span>
             <span className="tree-code">{cap.code}</span>
@@ -143,7 +143,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
     return (
       <div className="tree-node tree-node-domain" role="treeitem" aria-level={1} aria-expanded={isOpen} key={d.id}>
         <div
-          className={`tree-row tree-domain${isTarget ? ` tree-cap cov-${cov.state}` : ''}`}
+          className={`tree-row tree-domain${isTarget ? ` tree-cap cov-${cov.state}` : ""}${selected.includes(d.id) ? " impact-highlight" : ""}`}
           onDragEnter={() => hoverExpand(d.id)}
           onDragOver={isTarget ? dropOver : e => e.preventDefault()}
           onDragLeave={e => { hoverCancel(); if (isTarget) dropOut(e); }}
