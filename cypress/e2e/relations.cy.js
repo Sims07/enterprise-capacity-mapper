@@ -148,7 +148,8 @@ describe('Relations applications ↔ capacités', () => {
 
   it('en profondeur 1, relie directement les domaines N0 aux applications', () => {
     cy.visit('/');
-    cy.contains('button', 'Nouvelle cartographie').click();
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').click();
     cy.get('[data-testid="depth-1"]').click();
     cy.get('[data-testid="template-blank"]').click();
     cy.get('[data-testid="wizard-name"]').clear().type('Relations niveau 1');
