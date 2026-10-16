@@ -79,7 +79,11 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
     cy.get('.modal.wizard .template-card > b').first()
       .should('have.css', 'color', 'rgb(31, 41, 55)');
     cy.get('.modal.wizard').should('be.visible');
-    cy.get('[data-testid="theme-toggle"]').should('not.exist');
-    cy.get('[data-testid="wizard-name"]').should('be.visible');
+    cy.contains('.modal.wizard button', 'Annuler').click();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').click();
+    cy.get('.modal.wizard .template-card > b').first()
+      .should('have.css', 'color', 'rgb(243, 244, 246)');
   });
 });
