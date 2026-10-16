@@ -4,6 +4,35 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 
 ## Cible d'architecture
 
+## Structure du dépôt
+
+Les fichiers sont regroupés par responsabilité, sans multiplier les couches inutiles :
+
+```text
+.
+├── .github/workflows/   # Déploiement et contrôles GitHub Actions
+├── cypress/e2e/         # Scénarios de tests de bout en bout
+├── docs/                # Documentation d'architecture et conventions
+├── public/              # Manifest, icônes et service worker PWA
+├── src/
+│   ├── App.jsx          # Orchestration et comportements métier
+│   ├── components/      # Composants React réutilisables / autonomes
+│   ├── data/            # Modèle de démonstration
+│   ├── services/        # Persistance, import/export et chargement des données
+│   ├── styles/          # Tous les styles CSS, regroupés par rôle
+│   │   ├── base.css     # Styles globaux
+│   │   ├── compact-ui.css
+│   │   └── dark-impact.css
+│   ├── main.jsx         # Point d'entrée React et enregistrement PWA
+│   └── toolsMenuBehavior.js # Comportement du menu Outils
+├── index.html
+├── package.json
+└── vite.config.js
+```
+
+Le code React utilisé par l'application doit avoir une seule source de vérité : les composants vivent dans `src/components/`, et la documentation fonctionnelle reste à la racine ou dans `docs/`, jamais dans `src/`. Tous les fichiers CSS sont regroupés dans `src/styles/`. Les imports de `main.jsx` conservent leur ordre initial (base, interface compacte, impact sombre) afin de préserver la cascade CSS et les rendus existants.
+
+
 - **Frontend** : React + Vite, statique et compatible GitHub Pages.
 - **PWA** : manifest + service worker + cache offline.
 - **Données locales** : LocalStorage V2 par défaut, avec migration automatique des anciennes clés `ea_canvas_*`.
@@ -45,6 +74,15 @@ Cette fonction sert à représenter visuellement un domaine transverse qui conce
 - Les domaines existants qui ne définissent pas d'étendue utilisent une valeur de **1 colonne** par défaut : les cartographies JSON existantes restent donc compatibles.
 
 ### Capacités et applications
+
+### Relier des applications aux capacités
+
+Trois façons complémentaires, sans changement du modèle de données :
+
+- **Glisser-déposer** : l'inventaire reste visible (sticky) pendant que la page défile, la page défile automatiquement près des bords pendant un glissement, et la cible survolée est surlignée.
+- **Sans glisser-déposer** : bouton **Relier à…** sur chaque application de l'inventaire, ou **Relier des applications…** dans le menu ⋮ d'une capacité N1 (d'un domaine N0 en cartographie à 1 niveau).
+- **Onglet Relations** : arbre repliable Domaine N0 → Capacité N1 → Applications. Chaque ligne N1 est une zone de dépôt pleine largeur ; cochez plusieurs applications dans l'inventaire puis cliquez sur **Relier ici**. Filtres *Gaps seulement* / *Redondances seulement*, navigation clavier (↑ ↓ ← → Début Fin). En cartographie à 1 niveau, l'arbre relie directement les domaines N0.
+
 
 - Les capacités N1 restent rattachées à leur domaine N0.
 - Une application peut être associée à plusieurs capacités, et une capacité peut être couverte par plusieurs applications.

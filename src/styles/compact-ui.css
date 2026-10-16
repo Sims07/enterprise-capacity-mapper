@@ -1,3 +1,4 @@
+/* Styles du package d'interface compacte. Extrait de compactUi.css. */
 /* Menu Outils : chevron CSS net et cohérent avec le design compact. */
 .toolbar-tools > summary > span[aria-hidden="true"] {
   display: inline-block;
