@@ -17,10 +17,17 @@ describe('Nouvelle cartographie — thème', () => {
 
     cy.get('.modal.wizard').should('have.css', 'background-color', 'rgb(23, 26, 33)');
     cy.get('.wizard-steps').should('have.css', 'background-color', 'rgb(17, 19, 24)');
-    cy.get('[data-testid="template-matrix"]').should('have.css', 'background-color', 'rgb(29, 33, 43)');
-    cy.get('[data-testid="template-blank"]').should('have.css', 'background-color', 'rgb(29, 33, 43)');
+    // Les cartes ont deux surfaces valides : neutre si non sélectionnée, indigo si active.
+    ['template-matrix', 'template-blank'].forEach(id => {
+      cy.get(`[data-testid="${id}"]`).should($card => {
+        const selected = $card.attr('aria-pressed') === 'true';
+        expect(getComputedStyle($card[0]).backgroundColor).to.equal(
+          selected ? 'rgb(38, 35, 59)' : 'rgb(29, 33, 43)'
+        );
+      });
+    });
     cy.get('.wizard-steps li.current')
-      .should('have.css', 'background-color', 'rgb(29, 33, 43)')
+      .should('have.css', 'background-color', 'rgb(38, 35, 59)')
       .and('have.css', 'color', 'rgb(248, 250, 252)');
 
     cy.contains('button', 'Suivant').click();
