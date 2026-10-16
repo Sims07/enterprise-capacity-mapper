@@ -2210,3 +2210,18 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   .presentation-switch-track,
   .presentation-switch-thumb { transition: none; }
 }
+
+
+/* Dark Linear — impact selection uses the product's violet accent instead of warning amber. */
+.app.theme-dark:not(.presentation-mode) .cap.impact-selected,
+.app.theme-dark:not(.presentation-mode) .domain-card.impact-selected,
+.app.theme-dark.presentation-mode .cap.impact-selected,
+.app.theme-dark.presentation-mode .domain-card.impact-selected {
+  outline-color: #a78bfa;
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.18);
+}
+
+.app.theme-dark.presentation-mode .cap.impact-selected,
+.app.theme-dark.presentation-mode .domain-card.impact-selected {
+  border-color: #a78bfa;
+}
