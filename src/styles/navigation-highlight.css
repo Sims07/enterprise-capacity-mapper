@@ -79,3 +79,11 @@
   .toolbar-switch { max-width: 100%; }
   .toolbar-switch > button { padding-inline: 8px; font-size: 11px; }
 }
+
+/* Couleurs des libellés inactifs selon le thème, sans réintroduire de fond individuel. */
+.app:not(.theme-dark) .toolbar-switch > button:not(.active) {
+  color: #64748b;
+}
+.app.theme-dark .toolbar-switch > button:not(.active) {
+  color: #cbd5e1;
+}
