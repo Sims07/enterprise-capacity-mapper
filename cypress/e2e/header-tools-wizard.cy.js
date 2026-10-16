@@ -29,7 +29,8 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   it('garde le wizard Nouvelle cartographie lisible en thème sombre', () => {
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="new-map-button"]').click();
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="new-map-button"]').should('be.visible').click();
     cy.get('.modal.wizard').should('be.visible');
 
     cy.get('.modal.wizard').should('have.css', 'background-color', 'rgb(23, 26, 33)');
