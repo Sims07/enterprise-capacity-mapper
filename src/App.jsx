@@ -72,7 +72,6 @@ function App() {
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('enterprise-capacity-mapper:theme') === 'dark');
-  const [inventoryCollapsed, setInventoryCollapsed] = useState(() => window.matchMedia('(max-width: 600px)').matches);
   const [mapQuery, setMapQuery] = useState('');
   const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
   const [localMapId, setLocalMapId] = useState(() => localStorage.getItem(ACTIVE_LOCAL_MAP_KEY) || '');
@@ -734,7 +733,7 @@ function App() {
         </div>
       </header>
 
-      <div className={'workspace ' + (inventoryCollapsed ? 'inventory-collapsed' : '')}>
+      <div className="workspace">
         <aside id="app-inventory">
           <div className="panel-title">
             <span>Inventaire SI <em>{apps.length}</em></span>
@@ -840,15 +839,6 @@ function App() {
           ) : (
             <>
               <div className="map-controls-row">
-                <button
-                  type="button"
-                  className="secondary inventory-toggle inventory-toggle-rail"
-                  onClick={() => setInventoryCollapsed(v => !v)}
-                  aria-label={inventoryCollapsed ? 'Afficher l’inventaire des applications' : 'Masquer l’inventaire des applications'}
-                  title={inventoryCollapsed ? 'Afficher l’inventaire des applications' : 'Masquer l’inventaire des applications'}
-                >
-                  <span className="menu-glyph"></span>
-                </button>
                 <div className="map-filter-bar">
                   <label className="map-filter-control">
                     <span>Filtrer les domaines</span>
