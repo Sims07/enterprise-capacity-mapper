@@ -87,3 +87,14 @@
 .app.theme-dark .toolbar-switch > button:not(.active) {
   color: #cbd5e1;
 }
+
+/* Empêcher les états hover/focus des styles globaux de recréer une pastille. */
+.app .toolbar-switch > button:hover,
+.app .toolbar-switch > button:focus,
+.app .toolbar-switch > button:not(.active):hover,
+.app .toolbar-switch > button:not(.active):focus,
+.app:not(.theme-dark) .toolbar-switch > button:hover,
+.app.theme-dark .toolbar-switch > button:hover {
+  background: transparent !important;
+  box-shadow: none !important;
+}
