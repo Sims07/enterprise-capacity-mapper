@@ -569,7 +569,7 @@ function App() {
         onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
         key={d.id}
       >
-        <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color) }}>
+        <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color), "--n0-header-color": resolveDomainColor(d.color), "--n0-header-text-color": domainTextColor(d.color) }}>
           <div className="domain-banner-title">
             <h3>{d.name}</h3>
             <span className="domain-meta">{d.code} · {caps.length} N1</span>
