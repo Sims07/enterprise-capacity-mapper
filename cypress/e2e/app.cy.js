@@ -497,7 +497,7 @@ describe('Application smoke test', () => {
     cy.get('header').contains('button', 'Cartographie').click();
     cy.contains('.cap', 'Gestion des Prospects & Leads')
       .should('have.class', 'impact-selected')
-      .and('have.css', 'outline-color', 'rgb(245, 158, 11)');
+      .and('have.css', 'outline-color', 'rgba(124, 58, 237, 0.2)');
   });
 
   it('conserve l’inventaire visible et les commandes de cartographie sans bouton de masquage', () => {

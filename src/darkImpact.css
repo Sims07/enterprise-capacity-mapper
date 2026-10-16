@@ -1,31 +1,110 @@
-/* Dark Linear — selected impact uses a tinted surface so the state stays visible on the map. */
+/* Impact métier : le surlignage doit rester immédiatement perceptible en cartographie,
+   quel que soit le thème ou le mode de présentation. */
+.app .cap.impact-selected,
+.app .domain-card.impact-selected {
+  position: relative;
+  border: 2px solid #7c3aed !important;
+  outline: 2px solid rgba(124, 58, 237, .2) !important;
+  outline-offset: 1px;
+  background: #ede9fe !important;
+  background-color: #ede9fe !important;
+  box-shadow: inset 5px 0 0 #7c3aed, 0 2px 8px rgba(91, 33, 182, .18) !important;
+  z-index: 1;
+}
+.app .cap.impact-selected {
+  color: #2e1065 !important;
+}
+.app .cap.impact-selected .cap-head,
+.app .cap.impact-selected .cap-head b,
+.app .cap.impact-selected p,
+.app .cap.impact-selected .rel,
+.app .cap.impact-selected .rel b {
+  color: #3b0764 !important;
+}
+.app .domain-card.impact-selected > .domain-banner,
+.app .domain-card.impact-selected > .domain-head {
+  background: #ddd6fe !important;
+  background-color: #ddd6fe !important;
+  color: #2e1065 !important;
+  border-color: #a78bfa !important;
+}
+.app .domain-card.impact-selected > .domain-banner h3,
+.app .domain-card.impact-selected > .domain-banner .domain-meta,
+.app .domain-card.impact-selected > .domain-banner .domain-actions {
+  color: #2e1065 !important;
+}
+.app .domain-card.impact-selected > .caps,
+.app .domain-card.impact-selected > .caps-list,
+.app .domain-card.impact-selected .caps-list {
+  background: #f5f3ff !important;
+  background-color: #f5f3ff !important;
+}
+.app .domain-card.impact-selected .cap:not(.impact-selected) {
+  background: #fff !important;
+  background-color: #fff !important;
+  border-color: #ddd6fe !important;
+  color: #1f2937 !important;
+  box-shadow: none !important;
+}
+.app .domain-card.impact-selected .cap:not(.impact-selected) .cap-head b,
+.app .domain-card.impact-selected .cap:not(.impact-selected) p,
+.app .domain-card.impact-selected .cap:not(.impact-selected) .rel {
+  color: #64748b !important;
+}
+
+/* Dark Linear : accent violet plus lumineux sur les surfaces graphite. */
 .app.theme-dark .cap.impact-selected,
 .app.theme-dark .domain-card.impact-selected {
-  border: 2px solid #8b5cf6 !important;
-  outline: none !important;
-  background: #2a2345 !important;
-  box-shadow:
-    inset 3px 0 0 #a78bfa,
-    0 0 0 2px rgba(139, 92, 246, 0.16);
-}
-
-.app.theme-dark .cap.impact-selected {
-  color: #f5f3ff;
-}
-
-.app.theme-dark .cap.impact-selected .cap-head b,
-.app.theme-dark .cap.impact-selected .cap-head,
-.app.theme-dark .cap.impact-selected p,
-.app.theme-dark .cap.impact-selected .rel {
-  color: #ede9fe;
-}
-
-.app.theme-dark .domain-card.impact-selected {
-  background: #25203b !important;
-}
-
-.app.theme-dark.presentation-mode .cap.impact-selected,
-.app.theme-dark.presentation-mode .domain-card.impact-selected {
-  border-color: #c4b5fd !important;
+  border-color: #a78bfa !important;
+  outline-color: rgba(167, 139, 250, .32) !important;
   background: #302750 !important;
+  background-color: #302750 !important;
+  box-shadow: inset 5px 0 0 #c4b5fd, 0 0 0 2px rgba(139, 92, 246, .24) !important;
+}
+.app.theme-dark .cap.impact-selected {
+  color: #f5f3ff !important;
+}
+.app.theme-dark .cap.impact-selected .cap-head,
+.app.theme-dark .cap.impact-selected .cap-head b,
+.app.theme-dark .cap.impact-selected p,
+.app.theme-dark .cap.impact-selected .rel,
+.app.theme-dark .cap.impact-selected .rel b {
+  color: #ede9fe !important;
+}
+.app.theme-dark .domain-card.impact-selected > .domain-banner,
+.app.theme-dark .domain-card.impact-selected > .domain-head {
+  background: #382d5a !important;
+  background-color: #382d5a !important;
+  color: #f5f3ff !important;
+  border-color: #6d5a9e !important;
+}
+.app.theme-dark .domain-card.impact-selected > .domain-banner h3,
+.app.theme-dark .domain-card.impact-selected > .domain-banner .domain-meta,
+.app.theme-dark .domain-card.impact-selected > .domain-banner .domain-actions {
+  color: #f5f3ff !important;
+}
+.app.theme-dark .domain-card.impact-selected > .caps,
+.app.theme-dark .domain-card.impact-selected > .caps-list,
+.app.theme-dark .domain-card.impact-selected .caps-list {
+  background: #25203b !important;
+  background-color: #25203b !important;
+}
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) {
+  background: #171a20 !important;
+  background-color: #171a20 !important;
+  border-color: #454052 !important;
+  color: #e0e3ea !important;
+  box-shadow: none !important;
+}
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) .cap-head b,
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) p,
+.app.theme-dark .domain-card.impact-selected .cap:not(.impact-selected) .rel {
+  color: #c3c7d1 !important;
+}
+.app.theme-dark.presentation-mode .cap.impact-selected,
+.app.theme-dark.presentation-mode .domain-card.impact-selected,
+.app.theme-dark.presentation-mode .domain-card.impact-selected > .domain-banner,
+.app.theme-dark.presentation-mode .domain-card.impact-selected > .domain-head {
+  background: #382d5a !important;
+  background-color: #382d5a !important;
 }
