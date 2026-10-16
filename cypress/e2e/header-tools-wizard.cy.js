@@ -36,9 +36,15 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
     cy.get('.modal.wizard .field input').first()
       .should('have.css', 'background-color', 'rgb(16, 19, 24)')
       .and('have.css', 'color', 'rgb(243, 244, 246)');
-    cy.get('[data-testid="template-matrix"]')
-      .should('have.css', 'background-color', 'rgb(29, 33, 43)')
-      .and('have.css', 'border-color', 'rgb(52, 58, 71)');
+    cy.get('[data-testid="template-matrix"]').should($card => {
+      const selected = $card.attr('aria-pressed') === 'true';
+      expect(getComputedStyle($card[0]).backgroundColor).to.equal(
+        selected ? 'rgb(38, 35, 59)' : 'rgb(29, 33, 43)'
+      );
+      expect(getComputedStyle($card[0]).borderColor).to.equal(
+        selected ? 'rgb(99, 102, 241)' : 'rgb(52, 58, 71)'
+      );
+    });
 
     cy.contains('button', 'Suivant').click();
     cy.get('.axis-editor').should('be.visible');
