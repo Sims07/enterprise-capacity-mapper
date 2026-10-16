@@ -456,12 +456,12 @@ describe('Application smoke test', () => {
     cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
     cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
     openToolsMenu();
-    cy.get('[data-testid="presentation-toggle"]').should('have.attr', 'role', 'switch').and('not.be.checked');
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('not.be.checked');
     cy.get('header').then($header => {
       const before = $header[0].getBoundingClientRect();
       const beforeHeight = before.height;
       const beforeWidth = before.width;
-      cy.get('[data-testid="presentation-toggle"]').check();
+      cy.get('[data-testid="presentation-switch-input"]').check();
       cy.get('.app').should('have.class', 'presentation-mode');
       cy.get('header').then($after => {
         const after = $after[0].getBoundingClientRect();
@@ -540,7 +540,7 @@ describe('Application smoke test', () => {
 
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('have.class', 'presentation-mode');
-    cy.get('[data-testid="presentation-toggle"]').should('have.attr', 'role', 'switch').and('be.checked').uncheck();
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('be.checked').uncheck();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     openToolsMenu();
     cy.get('[data-testid="open-local-maps"]').click();
