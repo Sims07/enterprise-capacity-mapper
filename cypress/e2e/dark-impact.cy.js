@@ -76,7 +76,7 @@ describe('Impact selection on the capability map', () => {
       cy.get('.cap.impact-selected')
         .should('have.css', 'background-color', 'rgb(48, 39, 80)')
         .and('have.css', 'border-top-color', 'rgb(167, 139, 250)');
-      cy.get('.cap').not('.impact-selected').first()
+      cy.get('.cap:not(.impact-selected)').first()
         .should('have.css', 'background-color', 'rgb(23, 26, 32)');
     });
   });
