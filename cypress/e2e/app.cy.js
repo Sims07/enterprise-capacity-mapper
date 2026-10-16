@@ -524,12 +524,13 @@ describe('Application smoke test', () => {
       cy.get('[data-testid="undo-button"]').should('be.visible').and('be.disabled');
       cy.get('[data-testid="redo-button"]').should('be.visible').and('be.disabled');
     });
-    cy.get('[data-testid="theme-toggle"]').should('be.visible');
+    cy.get('[data-testid="theme-toggle"]').should('not.be.visible');
     cy.get('[data-testid="new-map-button"]').should('not.be.visible');
     cy.get('[data-testid="presentation-toggle"]').should('be.visible');
     cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+    cy.get('[data-testid="theme-toggle"]').should('be.visible');
     cy.get('.toolbar-tools-panel').within(() => {
       cy.get('[data-testid="new-map-button"]').should('be.visible');
       cy.get('[data-testid="open-local-maps"]').should('be.visible');
