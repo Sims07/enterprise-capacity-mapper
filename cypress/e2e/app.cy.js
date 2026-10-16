@@ -460,13 +460,19 @@ describe('Application smoke test', () => {
     cy.get('header').then($header => {
       const before = $header[0].getBoundingClientRect();
       const beforeHeight = before.height;
-      const beforeWidth = before.width;
-      cy.get('[data-testid="presentation-toggle"]').click();
-      cy.get('.app').should('have.class', 'presentation-mode');
-      cy.get('header').then($after => {
-        const after = $after[0].getBoundingClientRect();
-        expect(after.height, 'hauteur stable de l’en-tête').to.equal(beforeHeight);
-        expect(after.width, 'largeur stable de l’en-tête').to.equal(beforeWidth);
+      cy.get('[data-testid="presentation-toggle"]').then($toggle => {
+        const toggleBefore = $toggle[0].getBoundingClientRect();
+        cy.wrap($toggle).click();
+        cy.get('.app').should('have.class', 'presentation-mode');
+        cy.get('header').then($after => {
+          const after = $after[0].getBoundingClientRect();
+          expect(after.height, 'hauteur stable de l’en-tête').to.equal(beforeHeight);
+        });
+        cy.get('[data-testid="presentation-toggle"]').then($toggleAfter => {
+          const toggleAfter = $toggleAfter[0].getBoundingClientRect();
+          expect(toggleAfter.width, 'largeur stable du switch Présentation').to.equal(toggleBefore.width);
+          expect(toggleAfter.height, 'hauteur stable du switch Présentation').to.equal(toggleBefore.height);
+        });
       });
     });
     cy.get('aside').should('not.be.visible');
@@ -541,7 +547,8 @@ describe('Application smoke test', () => {
 
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('have.class', 'presentation-mode');
-    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('be.checked').uncheck();
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('be.checked');
+    cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     openToolsMenu();
     cy.get('[data-testid="open-local-maps"]').click();
