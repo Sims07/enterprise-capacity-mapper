@@ -34,6 +34,19 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.tree-summary').should('contain.text', '2 gaps').and('contain.text', '1 redondance');
   });
 
+  it('met en évidence les capacités impactées dans l’onglet Relations', () => {
+    fresh();
+    cy.get('header').contains('button', 'Impact').click();
+    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
+      .click()
+      .should('have.attr', 'aria-pressed', 'true');
+    openTree();
+    cy.get('.tree-row.impact-highlight')
+      .should('have.length.greaterThan', 0)
+      .and('contain.text', 'Gestion des Prospects & Leads')
+      .and('have.css', 'border-left-color', 'rgb(139, 92, 246)');
+  });
+
   it('relie une application par glisser-déposer sur une ligne de l’arbre', () => {
     fresh();
     openTree();
