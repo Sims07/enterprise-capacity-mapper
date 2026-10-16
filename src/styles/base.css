@@ -2326,3 +2326,23 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   background: #1d2026 !important;
   background-color: #1d2026 !important;
 }
+
+/* Mise en évidence des éléments impactés également dans l’arbre Relations. */
+.coverage-tree .tree-row.impact-highlight {
+  border-color: #8b5cf6 !important;
+  box-shadow: inset 4px 0 0 #8b5cf6, 0 0 0 2px rgb(139 92 246 / 22%) !important;
+  background: #ede9fe !important;
+}
+.coverage-tree .tree-row.impact-highlight .tree-name,
+.coverage-tree .tree-row.impact-highlight .tree-code {
+  color: #4c1d95 !important;
+}
+.app.theme-dark .coverage-tree .tree-row.impact-highlight {
+  background: #302750 !important;
+  border-color: #a78bfa !important;
+  box-shadow: inset 4px 0 0 #a78bfa, 0 0 0 2px rgb(167 139 250 / 28%) !important;
+}
+.app.theme-dark .coverage-tree .tree-row.impact-highlight .tree-name,
+.app.theme-dark .coverage-tree .tree-row.impact-highlight .tree-code {
+  color: #f3e8ff !important;
+}

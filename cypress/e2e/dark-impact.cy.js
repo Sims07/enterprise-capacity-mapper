@@ -52,7 +52,9 @@ describe('Impact selection on the capability map', () => {
     cy.get('.domain-card').should('have.length.greaterThan', 0).each($el => {
       expect($el.css('background-color')).to.eq('rgb(32, 34, 40)');
       expect($el.css('border-top-color')).to.eq('rgb(52, 56, 66)');
-      expect($el.find('.domain-banner').css('background-color')).to.eq('rgb(32, 34, 40)');
+      const header = $el.find('.domain-banner');
+      expect(header.css('background-color')).to.eq(header[0].style.backgroundColor);
+      expect(header.css('background-color')).not.to.eq('rgb(32, 34, 40)');
       expect($el.find('.cap').first().css('background-color')).to.eq('rgb(23, 26, 32)');
     });
   });
@@ -64,7 +66,9 @@ describe('Impact selection on the capability map', () => {
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('.domain-card').should('have.length.greaterThan', 0).each($el => {
       expect($el.css('background-color')).to.eq('rgb(29, 32, 38)');
-      expect($el.find('.domain-banner').css('background-color')).to.eq('rgb(29, 32, 38)');
+      const header = $el.find('.domain-banner');
+      expect(header.css('background-color')).to.eq(header[0].style.backgroundColor);
+      expect(header.css('background-color')).not.to.eq('rgb(29, 32, 38)');
     });
   });
 
