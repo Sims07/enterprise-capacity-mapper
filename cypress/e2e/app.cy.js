@@ -682,4 +682,42 @@ describe('Application smoke test', () => {
       .should('have.css', 'background-color', 'rgb(255, 255, 255)');
   });
 
+  
+  it('anime le fond de navigation entre Cartographie, Relations et Impact', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.get('.toolbar-switch').should('be.visible').within(() => {
+      cy.contains('button', 'Cartographie').should('have.class', 'active');
+    });
+
+    cy.get('.toolbar-switch').should('have.css', 'position', 'relative');
+    cy.get('.toolbar-switch').then($switch => {
+      const highlight = getComputedStyle($switch[0], '::before');
+      expect(highlight.content).not.to.equal('none');
+      expect(highlight.transitionDuration).to.include('0.32s');
+      expect(highlight.borderTopWidth).to.equal('0px');
+      expect(highlight.zIndex).to.equal('0');
+      expect(highlight.transform).to.equal('matrix(1, 0, 0, 1, 0, 0)');
+    });
+    cy.get('.toolbar-switch > button').each($button => {
+      expect(getComputedStyle($button[0]).backgroundColor, 'fond individuel du bouton transparent')
+        .to.equal('rgba(0, 0, 0, 0)');
+      expect(getComputedStyle($button[0]).zIndex, 'bouton au-dessus du fond mobile')
+        .to.equal('1');
+    });
+
+    cy.get('[data-testid="tab-relations"]').click();
+    cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
+    cy.get('header').contains('button', 'Impact').click();
+    cy.get('header').contains('button', 'Impact').should('have.class', 'active');
+    cy.get('.toolbar-switch').then($switch => {
+      expect(getComputedStyle($switch[0], '::before').transform).not.to.equal('matrix(1, 0, 0, 1, 0, 0)');
+    });
+
+    cy.get('header').contains('button', 'Cartographie').click();
+    cy.get('header').contains('button', 'Cartographie').should('have.class', 'active');
+    cy.get('.toolbar-switch').then($switch => {
+      expect(getComputedStyle($switch[0], '::before').transform).to.equal('matrix(1, 0, 0, 1, 0, 0)');
+    });
+  });
 });
