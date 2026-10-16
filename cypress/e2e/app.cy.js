@@ -72,13 +72,9 @@ describe('Application smoke test', () => {
       expect(html[0].scrollWidth, 'largeur de page').to.be.at.most(402);
     });
     cy.get('.toolbar-actions').should('have.css', 'overflow-x', 'visible');
-    cy.get('.inventory-toggle-rail')
-      .should('have.attr', 'aria-label', 'Afficher l’inventaire des applications')
-      .click();
     cy.get('#app-inventory').should('be.visible');
     cy.get('.app-item').should('be.visible');
-    cy.get('.inventory-toggle-rail').click();
-    cy.get('#app-inventory').should('not.be.visible');
+    cy.get('.inventory-toggle-rail').should('not.exist');
   });
 
   it('affiche un assistant Nouvelle cartographie stylé et adapté au mobile', () => {
@@ -487,23 +483,19 @@ describe('Application smoke test', () => {
       .and('have.css', 'outline-color', 'rgb(245, 158, 11)');
   });
 
-  it('agrandit la cartographie en repliant l’inventaire sans perdre les commandes', () => {
+  it('conserve l’inventaire visible et les commandes de cartographie sans bouton de masquage', () => {
     cy.visit('/');
     cy.get('#app-inventory').should('be.visible');
     cy.get('.map').should('be.visible');
-    cy.get('.inventory-toggle-rail').should('be.visible').and('have.attr', 'aria-label', 'Masquer l’inventaire des applications').click();
-    cy.get('#app-inventory').should('not.be.visible');
-    cy.get('.workspace').should('have.class', 'inventory-collapsed');
-    cy.get('.map').should('be.visible');
+    cy.get('.inventory-toggle-rail').should('not.exist');
+    cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
     cy.get('[data-testid="map-filter"]').should('be.visible');
     cy.get('.help-icon').click();
     cy.get('.togaf-guide').should('be.visible');
     cy.get('.togaf-guide .guide-intro').should('have.css', 'background-color', 'rgb(238, 242, 255)');
     cy.get('.togaf-guide section').should('have.length', 4).first().should('have.css', 'border-radius', '9px');
     cy.get('.togaf-guide button[aria-label="Fermer"]').click();
-    cy.get('.inventory-toggle-rail').should('have.attr', 'aria-label', 'Afficher l’inventaire des applications').click();
     cy.get('#app-inventory').should('be.visible');
-    cy.get('.workspace').should('not.have.class', 'inventory-collapsed');
   });
 
   it('regroupe les commandes secondaires dans Outils sans retirer les actions principales', () => {
