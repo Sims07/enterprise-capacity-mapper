@@ -48,4 +48,25 @@ describe('Dark Linear impact selection', () => {
       expect($el.find('.domain-banner').css('background-color')).to.eq('rgb(29, 32, 38)');
     });
   });
+
+  it('conserve le violet d’impact sans réintroduire de surfaces claires dans une carte N0 sélectionnée', () => {
+    enableDarkTheme();
+
+    cy.get('header').contains('button', 'Impact').click();
+    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
+      .click()
+      .should('have.attr', 'aria-pressed', 'true');
+    cy.get('header').contains('button', 'Cartographie').click();
+
+    cy.get('.impact-selected').should('have.length.greaterThan', 0).each($el => {
+      expect($el.css('border-top-color')).to.eq('rgb(139, 92, 246)');
+      expect($el.css('background-color')).to.eq('rgb(42, 35, 69)');
+    });
+    cy.get('.domain-card.impact-selected').each($card => {
+      expect($card.css('background-color')).to.eq('rgb(42, 35, 69)');
+      expect($card.find('.domain-banner').css('background-color')).to.eq('rgb(48, 39, 80)');
+      expect($card.find('.cap').not('.impact-selected').first().css('background-color')).to.eq('rgb(23, 26, 32)');
+    });
+  });
+
 });
