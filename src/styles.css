@@ -2253,3 +2253,76 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 .app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .domain-head {
   background: #1d2026 !important;
 }
+
+
+/* Linear Black map surfaces — cover the full map canvas and nested layout variants. */
+.app.theme-dark main,
+.app.theme-dark .canvas,
+.app.theme-dark .map,
+.app.theme-dark .map-matrix,
+.app.theme-dark .map-row,
+.app.theme-dark .layout-strip,
+.app.theme-dark .layers-strip {
+  background-color: #111318 !important;
+  color: #eceef4;
+}
+.app.theme-dark .map-cell,
+.app.theme-dark .layout-group {
+  background-color: #171a20 !important;
+  border-color: #343842 !important;
+  color: #dfe2ea;
+}
+.app.theme-dark .domain-card:not(.impact-selected) {
+  background-color: #202228 !important;
+  border-color: #343842 !important;
+  color: #f3f4f6;
+  box-shadow: none;
+}
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner {
+  background: #202228 !important;
+  background-color: #202228 !important;
+  color: #f3f4f6 !important;
+  border-bottom: 1px solid #343842;
+}
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner h3,
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner .domain-meta,
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-banner .domain-actions {
+  color: #f3f4f6 !important;
+}
+.app.theme-dark .domain-card:not(.impact-selected) > .domain-head,
+.app.theme-dark .domain-card:not(.impact-selected) > .caps,
+.app.theme-dark .domain-card:not(.impact-selected) > .caps-list,
+.app.theme-dark .domain-card:not(.impact-selected) .caps-list {
+  background: #202228 !important;
+  background-color: #202228 !important;
+  border-color: #343842 !important;
+}
+.app.theme-dark .domain-card:not(.impact-selected) .cap {
+  background: #171a20 !important;
+  background-color: #171a20 !important;
+  border-color: #343842 !important;
+  color: #e0e3ea;
+  box-shadow: none;
+}
+.app.theme-dark .domain-card:not(.impact-selected) .cap-head b,
+.app.theme-dark .domain-card:not(.impact-selected) .cap-head,
+.app.theme-dark .domain-card:not(.impact-selected) .cap p,
+.app.theme-dark .domain-card:not(.impact-selected) .cap .rel,
+.app.theme-dark .domain-card:not(.impact-selected) .cap .drop {
+  color: #c3c7d1 !important;
+}
+.app.theme-dark .domain-card:not(.impact-selected):hover {
+  background-color: #272a32 !important;
+  border-color: #454a56 !important;
+}
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected),
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-banner,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-head {
+  background: #1d2026 !important;
+  background-color: #1d2026 !important;
+}
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .caps-list,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .caps {
+  background: #1d2026 !important;
+  background-color: #1d2026 !important;
+}
