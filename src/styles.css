@@ -2114,3 +2114,13 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   .toolbar-actions .new-map-button > span:last-child { overflow: hidden; text-overflow: ellipsis; }
   .toolbar-tools-panel { right: 0; }
 }
+
+
+/* Inventaire des applications : préserver le contraste du texte au survol en thème sombre. */
+.app.theme-dark .app-item:hover {
+  background: #252936;
+  border-color: #62558f;
+  color: #f3f4f6;
+}
+.app.theme-dark .app-item:hover b { color: #f9fafb; }
+.app.theme-dark .app-item:hover small { color: #c4cada; }
