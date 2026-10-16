@@ -23,4 +23,19 @@ describe('Dark Linear impact selection', () => {
       expect($el.css('box-shadow')).to.include('rgba(139, 92, 246, 0.16)');
     });
   });
+
+  it('affiche les conteneurs N0 sur une surface Linear Black sombre', () => {
+    cy.visit('/');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+
+    cy.get('.domain-card').should('have.length.greaterThan', 0).each($el => {
+      expect($el.css('background-color')).to.eq('rgb(32, 34, 40)');
+      expect($el.css('border-top-color')).to.eq('rgb(52, 56, 66)');
+    });
+
+    cy.get('.domain-card').first().trigger('mouseover');
+    cy.get('.domain-card').first().should('have.css', 'background-color', 'rgb(39, 42, 50)');
+  });
 });
