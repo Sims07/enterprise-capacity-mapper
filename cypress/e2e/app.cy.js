@@ -575,10 +575,22 @@ describe('Application smoke test', () => {
     });
     cy.get('.app').should('have.class', 'theme-dark');
     cy.get('#app-inventory').should('be.visible');
-    cy.get('.app-item').first().trigger('mouseover').should($item => {
-      expect(getComputedStyle($item[0]).backgroundColor).to.equal('rgb(37, 41, 54)');
-      expect(getComputedStyle($item.find('b')[0]).color).to.equal('rgb(249, 250, 251)');
+    cy.get('.app-item').first().trigger('mouseover');
+    cy.document().then(doc => {
+      const rules = Array.from(doc.styleSheets).flatMap(sheet => {
+        try { return Array.from(sheet.cssRules); } catch { return []; }
+      });
+      const hoverRule = rules.find(rule => rule.selectorText === '.app.theme-dark .app-item:hover');
+      const titleRule = rules.find(rule => rule.selectorText === '.app.theme-dark .app-item:hover b');
+      const detailRule = rules.find(rule => rule.selectorText === '.app.theme-dark .app-item:hover small');
+
+      expect(hoverRule, 'règle de survol en thème sombre').to.exist;
+      expect(hoverRule.style.backgroundColor).to.equal('rgb(37, 41, 54)');
+      expect(hoverRule.style.borderColor).to.equal('rgb(98, 85, 143)');
+      expect(titleRule, 'couleur du titre au survol').to.exist;
+      expect(titleRule.style.color).to.equal('rgb(249, 250, 251)');
+      expect(detailRule, 'couleur des détails au survol').to.exist;
+      expect(detailRule.style.color).to.equal('rgb(196, 202, 218)');
     });
-    cy.get('.app-item').first().find('small').should('have.css', 'color', 'rgb(196, 202, 218)');
   });
 });
