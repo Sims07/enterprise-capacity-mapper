@@ -687,6 +687,7 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="presentation-toggle"]')
       .should('have.css', 'background-color', 'rgb(30, 41, 59)')
       .and('have.css', 'color', 'rgb(241, 245, 249)');
+    openToolsMenu();
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
     cy.get('[data-testid="presentation-toggle"]')
