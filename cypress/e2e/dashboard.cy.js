@@ -22,13 +22,11 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-progress[role="progressbar"]').should('have.attr', 'aria-valuenow');
   });
 
-  it('garde les onglets principaux sur une seule ligne sur mobile', () => {
+  it('garde les quatre onglets principaux sur une seule ligne sur mobile', () => {
     cy.viewport(390, 844);
-    cy.get('[data-testid="tab-impact"]').then($impact => {
-      const impactTop = $impact[0].getBoundingClientRect().top;
-      cy.get('[data-testid="tab-dashboard"]').then($dashboard => {
-        expect(Math.abs($dashboard[0].getBoundingClientRect().top - impactTop)).to.be.lessThan(1);
-      });
+    cy.get('.toolbar-switch > button').should('have.length', 4).then($tabs => {
+      const tops = [...$tabs].map(tab => tab.getBoundingClientRect().top);
+      expect(Math.max(...tops) - Math.min(...tops)).to.be.lessThan(1);
     });
   });
 
