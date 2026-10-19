@@ -376,3 +376,33 @@
 @media (prefers-reduced-motion: reduce) {
   .toolbar-tools > summary > span[aria-hidden="true"] { transition: none; }
 }
+
+
+/* Historique : conserver un contraste suffisant en Linear Black, même désactivé. */
+.app.theme-dark .toolbar-actions .history-button,
+.app.theme-dark .toolbar-actions .history-button:disabled {
+  background: #202632 !important;
+  color: #e5eaf2 !important;
+  border-color: #485366 !important;
+  opacity: 1;
+}
+.app.theme-dark .toolbar-actions .history-button:not(:disabled) {
+  background: #252f42 !important;
+  color: #f8fafc !important;
+  border-color: #64748b !important;
+}
+.app.theme-dark .toolbar-actions .history-button:not(:disabled):hover {
+  background: #303d55 !important;
+  color: #ffffff !important;
+  border-color: #a5b4fc !important;
+}
+.app.theme-dark .toolbar-actions .history-button:disabled {
+  background: #191f2b !important;
+  color: #cbd5e1 !important;
+  border-color: #3f4a5d !important;
+  cursor: not-allowed;
+}
+.app.theme-dark .toolbar-actions .history-button .history-button-icon,
+.app.theme-dark .toolbar-actions .history-button .history-button-label {
+  color: inherit !important;
+}
