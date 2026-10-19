@@ -78,6 +78,16 @@
   color: #3730a3 !important;
 }
 
+/* Les anciennes règles de base ajoutent une ombre au bouton actif ; la sélection reste sans halo. */
+.app:not(.theme-dark) .toolbar-switch > button.active,
+.app:not(.theme-dark) .toolbar-switch > button.active:hover,
+.app:not(.theme-dark) .toolbar-switch > button.active:focus,
+.app.theme-dark .toolbar-switch > button.active,
+.app.theme-dark .toolbar-switch > button.active:hover,
+.app.theme-dark .toolbar-switch > button.active:focus {
+  box-shadow: none !important;
+}
+
 .toolbar-switch > button:focus-visible {
   outline: 2px solid #a5b4fc;
   outline-offset: -3px;
