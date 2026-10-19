@@ -158,3 +158,61 @@
 .app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-banner .domain-actions {
   color: var(--n0-header-text-color) !important;
 }
+
+/* Lot A — hiérarchie N0/N1 et lisibilité des libellés longs. */
+.app .domain-banner-title,
+.app .cap-head {
+  min-width: 0;
+}
+.app .domain-banner-title h3,
+.app .cap-head b {
+  overflow-wrap: anywhere;
+}
+.app.presentation-mode .domain-banner-title {
+  flex: 1 1 auto;
+}
+.app.presentation-mode .domain-banner {
+  gap: 8px;
+}
+.app.presentation-mode .domain-meta {
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.app.presentation-mode .caps-list {
+  min-width: 0;
+  gap: 6px;
+}
+.app.presentation-mode .cap {
+  min-width: 0;
+  align-items: flex-start;
+  padding: 6px 8px;
+}
+.app.presentation-mode .cap-head {
+  min-width: 0;
+  align-items: flex-start;
+}
+.app.presentation-mode .cap-head b {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+/* En Linear Black, les capacités restent distinctes du domaine en présentation. */
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
+  background: #171a20 !important;
+  background-color: #171a20 !important;
+  border-color: #343842 !important;
+  color: #e0e3ea !important;
+}
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) .cap-head b,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) .app-count {
+  color: #e0e3ea !important;
+}
+
+@media (max-width: 700px) {
+  .presentation-mode .map {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overscroll-behavior-x: contain;
+  }
+}

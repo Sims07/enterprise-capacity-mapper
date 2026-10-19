@@ -721,4 +721,55 @@ describe('Application smoke test', () => {
     cy.get('header').contains('button', 'Cartographie').click().should('have.class', 'active');
     assertTransparentButtons();
   });
+
+
+  it('préserve la distinction visuelle entre domaines N0 et capacités N1 en présentation claire et sombre', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    const assertN0N1Contrast = () => {
+      cy.get('.domain-card').first().then($domain => {
+        const banner = $domain.find('.domain-banner')[0];
+        const capability = $domain.find('.cap')[0];
+        expect(banner, 'en-tête du domaine N0').to.exist;
+        expect(capability, 'carte de capacité N1').to.exist;
+        expect(getComputedStyle(banner).backgroundColor, 'fond N0').not.to.equal(
+          getComputedStyle(capability).backgroundColor
+        );
+        expect(getComputedStyle(capability).borderColor, 'bordure N1 distincte').not.to.equal('rgba(0, 0, 0, 0)');
+      });
+    };
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    assertN0N1Contrast();
+
+    openToolsMenu();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    assertN0N1Contrast();
+  });
+
+  it('conserve le défilement horizontal dans la carte en présentation mobile sans élargir la page', () => {
+    cy.viewport(402, 874);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('.map').should('be.visible').and('have.css', 'overflow-x', 'auto').then($map => {
+      expect($map[0].clientWidth, 'largeur de la carte dans le viewport').to.be.at.most(402);
+      expect($map[0].scrollWidth, 'contenu large défilable dans la carte').to.be.greaterThan($map[0].clientWidth);
+    });
+    cy.get('.presentation-mode .domain-banner h3').first().should('be.visible');
+    cy.get('.presentation-mode .cap-head b').first().should('be.visible');
+    cy.get('html').then($html => {
+      expect($html[0].scrollWidth, 'aucun débordement horizontal de la page').to.be.at.most(402);
+    });
+  });
 });
