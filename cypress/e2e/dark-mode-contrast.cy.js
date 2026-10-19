@@ -22,7 +22,7 @@ describe('Contrastes du thème sombre', () => {
     toggleTheme();
 
     cy.get('.app.theme-dark').should('exist');
-    cy.get('.canvas-title h2').should('exist').and('have.css', 'color', 'rgb(241, 245, 249)');
+    cy.get('.map-filter-control span').should('be.visible').and('have.css', 'color', 'rgb(241, 245, 249)');
     cy.get('aside').should('have.css', 'background-color', 'rgb(17, 28, 46)');
     cy.get('.search').should('have.css', 'background-color', 'rgb(13, 23, 39)');
     cy.get('.search').should('have.css', 'color', 'rgb(241, 245, 249)');
