@@ -9,7 +9,7 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
-    cy.get('[data-testid="tab-impact"], button').contains('Impact').next('[data-testid="tab-dashboard"]').should('exist');
+    cy.get('[data-testid="tab-impact"]').next('[data-testid="tab-dashboard"]').should('exist');
     cy.get('[data-testid="dashboard-coverage-rate"]').should('contain.text', '%');
     cy.get('[data-testid="dashboard-gap-count"]').invoke('text').then(value => {
       expect(Number(value.trim())).to.be.greaterThan(0);
