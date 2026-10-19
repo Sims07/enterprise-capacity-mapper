@@ -48,7 +48,11 @@ describe('Description des domaines N0 sur la cartographie', () => {
     cy.get('.context-menu').contains('button', 'Renommer').click();
 
     cy.get('[data-testid="capability-description"]').should('be.visible')
-      .and('have.css', 'width', '460px')
+      .then($textarea => {
+        const textareaWidth = $textarea[0].getBoundingClientRect().width;
+        const fieldWidth = $textarea.closest('.field')[0].getBoundingClientRect().width;
+        expect(textareaWidth).to.be.closeTo(fieldWidth, 1);
+      })
       .clear().type('Capacité à piloter le cycle de vie client.');
     cy.get('.modal-actions').contains('button', 'Enregistrer').click();
 
@@ -63,9 +67,10 @@ describe('Description des domaines N0 sur la cartographie', () => {
 
   it('étire les champs de description sur toute la largeur du formulaire N0', () => {
     openFirstDomainEditor();
-    cy.get('.modal').then($modal => {
-      const modalWidth = $modal.innerWidth();
-      cy.get('[data-testid="domain-description"]').should('have.css', 'width', `${modalWidth - 40}px`);
+    cy.get('[data-testid="domain-description"]').then($textarea => {
+      const textareaWidth = $textarea[0].getBoundingClientRect().width;
+      const fieldWidth = $textarea.closest('.field')[0].getBoundingClientRect().width;
+      expect(textareaWidth).to.be.closeTo(fieldWidth, 1);
     });
   });
 });
