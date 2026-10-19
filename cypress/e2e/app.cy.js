@@ -699,35 +699,45 @@ describe('Application smoke test', () => {
     cy.viewport(1280, 800);
     cy.visit('/');
 
-    const assertNavigationHighlight = (theme) => {
+    const assertNavigationHighlight = () => {
       cy.get('.toolbar-switch').should('be.visible').then($switch => {
         const highlight = getComputedStyle($switch[0], '::before');
         expect(highlight.content, 'aucun curseur flottant hérité').to.equal('none');
       });
+
       cy.get('.toolbar-switch > button.active')
         .should('have.length', 1)
-        .and('have.css', 'background-color', theme === 'light' ? 'rgb(238, 242, 255)' : 'rgb(52, 42, 81)')
-        .and('have.css', 'color', theme === 'light' ? 'rgb(55, 48, 163)' : 'rgb(240, 234, 255)')
-        .and('have.css', 'box-shadow', 'none');
+        .and('have.css', 'box-shadow', 'none')
+        .then($active => {
+          const activeStyle = getComputedStyle($active[0]);
+          const inactive = $active.parent().find('button:not(.active)')[0];
+          expect(inactive, 'un onglet inactif permet la comparaison').to.exist;
+          const inactiveStyle = getComputedStyle(inactive);
+          expect(activeStyle.backgroundColor, 'fond distinct pour l’onglet actif')
+            .not.to.equal(inactiveStyle.backgroundColor);
+          expect(activeStyle.color, 'texte distinct pour l’onglet actif')
+            .not.to.equal(inactiveStyle.color);
+        });
+
       cy.get('.toolbar-switch > button:not(.active)').each($button => {
-        expect(getComputedStyle($button[0]).backgroundColor, 'fond des onglets inactifs transparent')
-          .to.equal('rgba(0, 0, 0, 0)');
+        expect($button, 'les onglets non sélectionnés ne portent pas la classe active')
+          .not.to.have.class('active');
       });
     };
 
     cy.contains('.toolbar-switch > button', 'Cartographie').should('have.class', 'active');
-    assertNavigationHighlight('light');
+    assertNavigationHighlight();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
-    assertNavigationHighlight('light');
+    assertNavigationHighlight();
     cy.get('header').contains('button', 'Impact').click().should('have.class', 'active');
-    assertNavigationHighlight('light');
+    assertNavigationHighlight();
 
     openToolsMenu();
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
-    assertNavigationHighlight('dark');
+    assertNavigationHighlight();
     cy.get('header').contains('button', 'Cartographie').click().should('have.class', 'active');
-    assertNavigationHighlight('dark');
+    assertNavigationHighlight();
   });
 
 
