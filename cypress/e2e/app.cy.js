@@ -2,6 +2,8 @@ describe('Application smoke test', () => {
   const assertApplicationLoaded = () => {
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
+    cy.get('[data-testid="pwa-version"]').should('be.visible');
+    cy.get('[data-testid="pwa-version"] a').should('have.attr', 'href', 'https://github.com/Sims07/enterprise-capacity-mapper/releases');
     cy.get('.map').should('be.visible');
     cy.get('#root').should('not.be.empty');
     cy.get('#root').should('not.contain.text', 'Cannot read properties');
