@@ -459,7 +459,7 @@ function App() {
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
-      update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim() } : c) });
+      update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim(), description: form.description } : c) });
       notify('Capacité N1 modifiée');
     }
     if (modal === 'capability') {
@@ -1025,7 +1025,7 @@ function App() {
 
       {['domain', 'edit-domain', 'capability', 'edit-capability', 'app'].includes(modal) && (
         <Modal
-          title={modal === 'edit-capability' ? 'Renommer la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
+          title={modal === 'edit-capability' ? 'Modifier la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
           onClose={() => setModal(null)}
         >
           {(modal === 'domain' || modal === 'edit-domain') && <div className="field-guidance"><b>N0 — Domaine métier</b><span>Regroupe un ensemble large de capacités.</span></div>}
@@ -1092,16 +1092,22 @@ function App() {
                   </label>
                 </>
               )}
-              {(modal === 'domain' || modal === 'edit-domain') ? (
-                <label className="field">
-                  <span>Description</span>
-                  <textarea data-testid="domain-description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Décrivez le périmètre du domaine (facultatif)" />
-                </label>
-              ) : (
-                <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-              )}
             </>
           )}
+
+          {(modal === 'domain' || modal === 'edit-domain') ? (
+            <label className="field">
+              <span>Description</span>
+              <textarea data-testid="domain-description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Décrivez le périmètre du domaine (facultatif)" />
+            </label>
+          ) : (modal === 'capability' || modal === 'edit-capability') ? (
+            <label className="field">
+              <span>Description</span>
+              <textarea data-testid="capability-description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Décrivez la capacité (facultatif)" />
+            </label>
+          ) : modal === 'app' ? (
+            <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          ) : null}
 
           {(modal === 'domain' || modal === 'edit-domain') && (
             <label className={'field domain-color-field ' + (formErrors.color ? 'has-error' : '')}>
