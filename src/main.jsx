@@ -4,6 +4,7 @@ import App from './App.jsx';
 import './styles/base.css';
 import './styles/compact-ui.css';
 import './styles/dark-impact.css';
+import './styles/navigation-highlight.css';
 import './toolsMenuBehavior.js';
 
 if ('serviceWorker' in navigator) {
