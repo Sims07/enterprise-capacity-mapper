@@ -44,7 +44,9 @@ describe('Dashboard de couverture', () => {
     cy.get('.toolbar-switch').then($switch => {
       expect(getComputedStyle($switch[0], '::before').content).to.equal('none');
     });
-    cy.get('[data-testid="tab-dashboard"]').should('have.css', 'background-color').and('not.equal', 'rgba(0, 0, 0, 0)');
+    cy.get('[data-testid="tab-dashboard"]').then($button => {
+      expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)');
+    });
   });
 
   it('préserve le menu Outils et les libellés complets sur mobile', () => {
