@@ -64,7 +64,7 @@ describe('Contrastes du thème sombre', () => {
 
     cy.contains('.canvas-actions button', 'Structure').click();
     cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
-    cy.get('.modal:not(.wizard)').should('have.css', 'background-color', 'rgb(17, 28, 46)');
+    cy.get('.modal:not(.wizard)').should('have.css', 'background-color', 'rgb(32, 35, 44)');
     cy.get('.modal:not(.wizard) .structure-section').should('have.length', 3)
       .first().should('have.css', 'background-color', 'rgb(23, 26, 33)')
       .and('have.css', 'border-top-color', 'rgb(53, 59, 72)');
