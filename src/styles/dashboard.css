@@ -83,3 +83,40 @@
 .app.theme-dark .dashboard-app-action { border-color: #51458b; background: #342c56; color: #ddd6fe; }
 .app.theme-dark .dashboard-app-action:hover { background: #40356a; }
 @media (max-width: 420px) { .dashboard-app-row { align-items: flex-start; gap: 8px; padding: 9px; } .dashboard-app-action { padding: 7px 8px; } }
+
+
+/* Heatmap de couverture : états explicitement nommés, indépendants de valeurs RGB. */
+.dashboard-heatmap { display: flex; flex-direction: column; gap: 14px; }
+.dashboard-heatmap .dashboard-panel-heading { margin-bottom: 0; }
+.dashboard-heatmap-legend { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.dashboard-heatmap-legend span { display: inline-flex; align-items: center; gap: 7px; color: #64748b; font-size: 11px; }
+.dashboard-heatmap-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.dashboard-heatmap-legend i.is-gap { background: #fbbf24; }
+.dashboard-heatmap-legend i.is-covered { background: #22c55e; }
+.dashboard-heatmap-legend i.is-redundant { background: #8b5cf6; }
+.dashboard-heatmap-groups { display: flex; flex-direction: column; gap: 18px; }
+.dashboard-heatmap-group { min-width: 0; }
+.dashboard-heatmap-group h4 { margin: 0 0 9px; font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
+.dashboard-heatmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+.dashboard-heatmap-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; min-height: 88px; padding: 10px; border: 1px solid transparent; border-radius: 10px; text-align: left; color: #1f2937; cursor: pointer; }
+.dashboard-heatmap-tile-name { width: 100%; overflow-wrap: anywhere; font-size: 11px; font-weight: 700; line-height: 1.4; }
+.dashboard-heatmap-tile strong { font-size: 20px; line-height: 1; font-variant-numeric: tabular-nums; }
+.dashboard-heatmap-tile-label { font-size: 10px; font-weight: 650; }
+.dashboard-heatmap-tile.is-gap { background: #fffbeb; border-color: #fde68a; }
+.dashboard-heatmap-tile.is-gap .dashboard-heatmap-tile-label { color: #92400e; }
+.dashboard-heatmap-tile.is-covered { background: #f0fdf4; border-color: #bbf7d0; }
+.dashboard-heatmap-tile.is-covered .dashboard-heatmap-tile-label { color: #166534; }
+.dashboard-heatmap-tile.is-redundant { background: #f5f3ff; border-color: #ddd6fe; }
+.dashboard-heatmap-tile.is-redundant .dashboard-heatmap-tile-label { color: #5b46be; }
+.dashboard-heatmap-tile:hover { filter: brightness(.97); }
+.dashboard-heatmap-tile:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+.app.theme-dark .dashboard-heatmap-legend span { color: #9ca3af; }
+.app.theme-dark .dashboard-heatmap-tile { color: #f3f4f6; }
+.app.theme-dark .dashboard-heatmap-tile.is-gap { background: #422f12; border-color: #78551a; }
+.app.theme-dark .dashboard-heatmap-tile.is-gap .dashboard-heatmap-tile-label { color: #fcd34d; }
+.app.theme-dark .dashboard-heatmap-tile.is-covered { background: #153322; border-color: #286443; }
+.app.theme-dark .dashboard-heatmap-tile.is-covered .dashboard-heatmap-tile-label { color: #bbf7d0; }
+.app.theme-dark .dashboard-heatmap-tile.is-redundant { background: #342c56; border-color: #51458b; }
+.app.theme-dark .dashboard-heatmap-tile.is-redundant .dashboard-heatmap-tile-label { color: #ddd6fe; }
+@media (max-width: 420px) { .dashboard-heatmap-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; } .dashboard-heatmap-tile { min-height: 82px; padding: 9px; } }
+@media (prefers-reduced-motion: reduce) { .dashboard-heatmap-tile { scroll-behavior: auto; } }

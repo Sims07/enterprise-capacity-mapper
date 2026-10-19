@@ -93,6 +93,62 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
         </article>
       </div>
 
+      <section className="dashboard-panel dashboard-heatmap" data-testid="dashboard-coverage-heatmap" aria-label="Heatmap de couverture">
+        <div className="dashboard-panel-heading">
+          <div>
+            <h3>Heatmap de couverture</h3>
+            <p>Vue synthétique des relations entre capacités et applications. Sélectionnez une case pour examiner les relations.</p>
+          </div>
+          <span>{stats.enriched.length} éléments</span>
+        </div>
+        <div className="dashboard-heatmap-legend" aria-label="Légende de la couverture">
+          <span><i className="is-gap" /> Sans application</span>
+          <span><i className="is-covered" /> Une application</span>
+          <span><i className="is-redundant" /> Plusieurs applications</span>
+        </div>
+        {(() => {
+          const groups = depth === 1
+            ? [{ id: 'domains', name: 'Domaines N0', targets: stats.enriched }]
+            : [
+                ...domains.map(domain => ({
+                  id: domain.id,
+                  name: domain.name,
+                  targets: stats.enriched.filter(target => target.domainId === domain.id)
+                })).filter(group => group.targets.length),
+                {
+                  id: 'unclassified',
+                  name: 'Capacités non classées',
+                  targets: stats.enriched.filter(target => !domains.some(domain => domain.id === target.domainId))
+                }
+              ].filter(group => group.targets.length);
+          return groups.length ? (
+            <div className="dashboard-heatmap-groups">
+              {groups.map(group => (
+                <section className="dashboard-heatmap-group" key={group.id}>
+                  <h4>{group.name}</h4>
+                  <div className="dashboard-heatmap-grid">
+                    {group.targets.map(target => (
+                      <button
+                        key={target.id}
+                        type="button"
+                        className={`dashboard-heatmap-tile is-${target.state}`}
+                        onClick={() => onExploreTarget(target.id)}
+                        aria-label={`${target.name} : ${target.coverageCount} application${target.coverageCount > 1 ? 's' : ''}. Explorer dans Relations`}
+                        title={`${target.name} — ${target.coverageCount} application(s)`}
+                      >
+                        <span className="dashboard-heatmap-tile-name">{target.name}</span>
+                        <strong>{target.coverageCount}</strong>
+                        <span className="dashboard-heatmap-tile-label">{target.coverageCount === 0 ? 'Gap' : target.coverageCount === 1 ? 'Couvert' : 'Multiple'}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : <p className="dashboard-empty">Ajoutez des domaines ou des capacités pour afficher la heatmap.</p>;
+        })()}
+      </section>
+
       <div className="dashboard-content">
         <section className="dashboard-panel dashboard-domain-panel">
           <div className="dashboard-panel-heading">
