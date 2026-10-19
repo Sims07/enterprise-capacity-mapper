@@ -38,13 +38,25 @@ describe('Dashboard de couverture', () => {
     });
   });
 
-  it('affiche un onglet actif statique sans animation de déplacement', () => {
+  it('préserve le menu Outils et les libellés complets sur mobile', () => {
+    cy.viewport(390, 844);
+    cy.get('[data-testid="tools-menu-toggle"]').should('be.visible');
+    cy.get('.toolbar-switch > button').each($button => {
+      expect($button[0].scrollWidth, $button.text()).to.be.at.most($button[0].clientWidth);
+      expect($button.css('text-overflow')).not.to.equal('ellipsis');
+    });
+  });
+
+  it('garde un onglet actif sans curseur violet débordant', () => {
     cy.viewport(390, 844);
     cy.get('[data-testid="tab-relations"]').click();
     cy.get('.toolbar-switch > button.active')
       .should('have.length', 1)
-      .and('have.css', 'transition-duration', '0s')
-      .and('have.css', 'animation-name', 'none');
+      .and('have.css', 'animation-name', 'none')
+      .and('have.css', 'transform', 'none');
+    cy.get('.toolbar-switch > button.active').then($button => {
+      expect($button[0].getBoundingClientRect().width).to.be.lessThan(200);
+    });
   });
 
   it('permet d’ouvrir dans Relations un gap depuis le dashboard', () => {
