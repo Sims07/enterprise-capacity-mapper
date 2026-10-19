@@ -58,7 +58,7 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('header').contains('button', 'Cartographie').click();
     cy.get('.cap.impact-selected').should('contain.text', 'Gestion des Prospects & Leads');
     cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click();
-    cy.get('.cap.impact-selected').should('not.contain.text', 'Gestion des Prospects & Leads');
+    cy.get('.cap.impact-selected').should('not.exist');
   });
 
   it('relie une application par glisser-déposer sur une ligne de l’arbre', () => {
