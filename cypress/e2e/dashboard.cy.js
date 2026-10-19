@@ -10,6 +10,7 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
     cy.get('[data-testid="tab-impact"]').next('[data-testid="tab-dashboard"]').should('exist');
+    cy.get('[data-testid="capability-dashboard"]').should('have.attr', 'aria-label', 'Dashboard de couverture');
     cy.get('[data-testid="dashboard-coverage-rate"]').should('contain.text', '%');
     cy.get('[data-testid="dashboard-gap-count"]').invoke('text').then(value => {
       expect(Number(value.trim())).to.be.greaterThan(0);
@@ -19,6 +20,16 @@ describe('Dashboard de couverture', () => {
     });
     cy.get('.dashboard-domain-row').should('have.length.greaterThan', 0);
     cy.get('.dashboard-progress[role="progressbar"]').should('have.attr', 'aria-valuenow');
+  });
+
+  it('garde les onglets principaux sur une seule ligne sur mobile', () => {
+    cy.viewport(390, 844);
+    cy.get('[data-testid="tab-impact"]').then($impact => {
+      const impactTop = $impact[0].getBoundingClientRect().top;
+      cy.get('[data-testid="tab-dashboard"]').then($dashboard => {
+        expect(Math.abs($dashboard[0].getBoundingClientRect().top - impactTop)).to.be.lessThan(1);
+      });
+    });
   });
 
   it('permet d’ouvrir dans Relations un gap depuis le dashboard', () => {
