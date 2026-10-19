@@ -28,11 +28,15 @@ describe('Impact selection on the capability map', () => {
       expect($title.css('text-decoration-line')).to.eq('none');
       expect($title.css('background-color')).to.eq('rgba(0, 0, 0, 0)');
     });
-    cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click().then($title => {
-      expect($title).to.have.attr('aria-pressed', 'true');
-      expect($title.css('text-decoration-line')).to.eq('none');
-      expect($title.css('background-color')).not.to.eq('rgba(0, 0, 0, 0)');
-    });
+    cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click();
+    // React remplace le bouton après la sélection : relire le DOM plutôt que
+    // d'asserter sur le nœud conservé avant le rerender.
+    cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads')
+      .should('have.attr', 'aria-pressed', 'true')
+      .and($title => {
+        expect($title.css('text-decoration-line')).to.eq('none');
+        expect($title.css('background-color')).not.to.eq('rgba(0, 0, 0, 0)');
+      });
   });
 
   it('permet de sélectionner une capacité depuis la cartographie et de retrouver la sélection dans Impact', () => {
