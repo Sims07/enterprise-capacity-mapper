@@ -116,7 +116,7 @@
 .map-domain-select {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0;
   max-width: 100%;
   padding: 2px 3px;
   margin: -2px -3px;
@@ -147,23 +147,10 @@
   color: #6d28d9;
   background: rgb(139 92 246 / 10%);
 }
-.map-cap-select[aria-pressed="true"]::before,
-.map-domain-select[aria-pressed="true"]::before {
-  content: "";
-  flex: 0 0 6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #8b5cf6;
-}
 .app.theme-dark .map-cap-select[aria-pressed="true"],
 .app.theme-dark .map-domain-select[aria-pressed="true"] {
   color: #ddd6fe;
   background: rgb(167 139 250 / 12%);
-}
-.app.theme-dark .map-cap-select[aria-pressed="true"]::before,
-.app.theme-dark .map-domain-select[aria-pressed="true"]::before {
-  background: #c4b5fd;
 }
 .impact-card-heading {
   display: flex;
