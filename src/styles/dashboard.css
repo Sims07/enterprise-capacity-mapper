@@ -1,7 +1,5 @@
 /* Dashboard de couverture : indicateurs lisibles en thèmes clair et sombre. */
 .dashboard { display: flex; flex-direction: column; gap: 18px; min-width: 0; padding: 4px 0 20px; color: #0f172a; }
-.dashboard-heading { align-items: flex-end; }
-.dashboard-heading-stats { justify-content: flex-end; }
 .dashboard-panel-heading p { margin: 0; color: #64748b; font-size: 11px; line-height: 1.5; max-width: 680px; }
 .dashboard-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .dashboard-kpi { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; padding: 16px; border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; box-shadow: 0 2px 6px rgba(15,23,42,.025); }
@@ -46,7 +44,7 @@
 .dashboard-empty { margin: 0; padding: 14px 0 4px; color: #64748b; font-size: 12px; }
 .dashboard-footnote { margin: 0; color: #64748b; font-size: 11px; line-height: 1.5; }
 .app.theme-dark .dashboard { color: #f3f4f6; }
-.app.theme-dark .dashboard-heading p, .app.theme-dark .dashboard-panel-heading p, .app.theme-dark .dashboard-kpi > span, .app.theme-dark .dashboard-kpi > small, .app.theme-dark .dashboard-panel-heading > span, .app.theme-dark .dashboard-domain-label span, .app.theme-dark .dashboard-domain-meta span, .app.theme-dark .dashboard-target-apps, .app.theme-dark .dashboard-empty, .app.theme-dark .dashboard-more, .app.theme-dark .dashboard-footnote { color: #9ca3af; }
+.app.theme-dark .dashboard-panel-heading p, .app.theme-dark .dashboard-kpi > span, .app.theme-dark .dashboard-kpi > small, .app.theme-dark .dashboard-panel-heading > span, .app.theme-dark .dashboard-domain-label span, .app.theme-dark .dashboard-domain-meta span, .app.theme-dark .dashboard-target-apps, .app.theme-dark .dashboard-empty, .app.theme-dark .dashboard-more, .app.theme-dark .dashboard-footnote { color: #9ca3af; }
 .app.theme-dark .dashboard-kpi, .app.theme-dark .dashboard-panel { background: #171a20; border-color: #343842; box-shadow: none; }
 .app.theme-dark .dashboard-kpi-primary { background: #26233b; border-color: #51458b; }
 .app.theme-dark .dashboard-kpi-primary > strong { color: #c4b5fd; }
@@ -61,8 +59,6 @@
 .app.theme-dark .dashboard-status.is-covered { color: #bbf7d0; background: #153322; }
 @media (max-width: 1150px) { .dashboard-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .dashboard-content { grid-template-columns: 1fr; } }
 @media (max-width: 680px) {
-  .dashboard-heading { align-items: flex-start; flex-direction: column; }
-  .dashboard-heading-stats { justify-content: flex-start; width: 100%; }
   .dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .dashboard-kpi { padding: 12px; }
   .dashboard-kpi > strong { font-size: 25px; }
