@@ -683,19 +683,11 @@ describe('Application smoke test', () => {
   });
 
 
-  it('anime le fond de navigation sans superposer les fonds des boutons', () => {
+  it('anime le fond de navigation et l adapte aux thèmes clair et sombre sans doublon', () => {
     cy.viewport(1280, 800);
     cy.visit('/');
     cy.get('.toolbar-switch').should('be.visible').within(() => {
       cy.contains('button', 'Cartographie').should('have.class', 'active');
-    });
-
-    cy.get('.toolbar-switch').then($switch => {
-      const highlight = getComputedStyle($switch[0], '::before');
-      expect(highlight.content).not.to.equal('none');
-      expect(highlight.borderTopWidth).to.equal('0px');
-      expect(highlight.zIndex).to.equal('0');
-      expect(highlight.transitionDuration).to.include('0.32s');
     });
 
     const assertTransparentButtons = () => {
@@ -707,18 +699,134 @@ describe('Application smoke test', () => {
         expect(getComputedStyle($button[0]).zIndex).to.equal('1');
       });
     };
-    assertTransparentButtons();
+    const assertNavigationHighlight = (theme) => {
+      cy.get('.toolbar-switch').then($switch => {
+        const highlight = getComputedStyle($switch[0], '::before');
+        expect(highlight.content).not.to.equal('none');
+        expect(highlight.zIndex).to.equal('0');
+        expect(highlight.transitionDuration).to.include('0.32s');
+        if (theme === 'light') {
+          expect(highlight.backgroundColor).to.equal('rgb(238, 242, 255)');
+          expect(highlight.borderTopWidth).to.equal('1px');
+          cy.get('.toolbar-switch > button.active').should('have.css', 'color', 'rgb(55, 48, 163)');
+        } else {
+          expect(highlight.backgroundImage).to.include('linear-gradient');
+          expect(highlight.borderTopWidth).to.equal('0px');
+        }
+      });
+    };
 
+    assertNavigationHighlight('light');
+    assertTransparentButtons();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
     cy.get('.toolbar-switch').then($switch => {
       expect(getComputedStyle($switch[0], '::before').transform)
         .not.to.equal('matrix(1, 0, 0, 1, 0, 0)');
     });
     assertTransparentButtons();
-
     cy.get('header').contains('button', 'Impact').click().should('have.class', 'active');
+    assertTransparentButtons();
+
+    openToolsMenu();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    assertNavigationHighlight('dark');
     assertTransparentButtons();
     cy.get('header').contains('button', 'Cartographie').click().should('have.class', 'active');
     assertTransparentButtons();
+  });
+
+
+  it('préserve la distinction visuelle entre domaines N0 et capacités N1 en présentation claire et sombre', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    const assertN0N1Contrast = () => {
+      cy.get('.domain-card').first().then($domain => {
+        const banner = $domain.find('.domain-banner')[0];
+        const capability = $domain.find('.cap')[0];
+        expect(banner, 'en-tête du domaine N0').to.exist;
+        expect(capability, 'carte de capacité N1').to.exist;
+        expect(getComputedStyle(banner).backgroundColor, 'fond N0').not.to.equal(
+          getComputedStyle(capability).backgroundColor
+        );
+        expect(getComputedStyle(capability).borderColor, 'bordure N1 distincte').not.to.equal('rgba(0, 0, 0, 0)');
+      });
+    };
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    assertN0N1Contrast();
+
+    openToolsMenu();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    assertN0N1Contrast();
+  });
+
+
+  it('renforce la lisibilité des axes et des zones de cartographie dans les deux thèmes et modes', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    const assertMapContrast = (theme, presentation) => {
+      cy.get('.map .axis-label').first().should('be.visible')
+        .and('have.css', 'font-size', '12px')
+        .then($label => {
+          expect(Number.parseInt(getComputedStyle($label[0]).fontWeight, 10), 'poids des titres de lignes').to.be.at.least(700);
+        });
+      cy.get('.map .col-head').first().should('be.visible')
+        .and('have.css', 'font-size', '12px');
+      cy.get('.map .map-cell').first().should('be.visible').then($cell => {
+        expect(getComputedStyle($cell[0]).borderTopStyle, 'limite de zone visible').to.equal('solid');
+        expect(getComputedStyle($cell[0]).borderTopWidth, 'épaisseur de limite').to.equal('1px');
+        expect(getComputedStyle($cell[0]).borderTopColor, 'contraste des limites')
+          .to.equal(theme === 'dark'
+            ? (presentation ? 'rgb(104, 117, 139)' : 'rgb(89, 100, 119)')
+            : 'rgb(174, 187, 208)');
+      });
+    };
+
+    assertMapContrast('light', false);
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    assertMapContrast('light', true);
+
+    openToolsMenu();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    assertMapContrast('dark', true);
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'presentation-mode');
+    assertMapContrast('dark', false);
+  });
+
+  it('conserve le défilement horizontal dans la carte en présentation mobile sans élargir la page', () => {
+    cy.viewport(402, 874);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    cy.get('.map').should('be.visible').and('have.css', 'overflow-x', 'auto').then($map => {
+      expect($map[0].clientWidth, 'largeur de la carte dans le viewport').to.be.at.most(402);
+      expect($map[0].scrollWidth, 'contenu de la carte').to.be.at.least($map[0].clientWidth);
+    });
+    cy.get('.presentation-mode .domain-banner h3').first().should('be.visible');
+    cy.get('.presentation-mode .cap-head b').first().should('be.visible');
+    cy.get('html').then($html => {
+      expect($html[0].scrollWidth, 'aucun débordement horizontal de la page').to.be.at.most(402);
+    });
   });
 });

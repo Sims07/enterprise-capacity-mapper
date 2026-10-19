@@ -158,3 +158,121 @@
 .app.theme-dark.presentation-mode .domain-card:not(.impact-selected) > .domain-banner .domain-actions {
   color: var(--n0-header-text-color) !important;
 }
+
+/* Lot A — hiérarchie N0/N1 et lisibilité des libellés longs. */
+.app .domain-banner-title,
+.app .cap-head {
+  min-width: 0;
+}
+.app .domain-banner-title h3,
+.app .cap-head b {
+  overflow-wrap: anywhere;
+}
+.app.presentation-mode .domain-banner-title {
+  flex: 1 1 auto;
+}
+.app.presentation-mode .domain-banner {
+  gap: 8px;
+}
+.app.presentation-mode .domain-meta {
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.app.presentation-mode .caps-list {
+  min-width: 0;
+  gap: 6px;
+}
+.app.presentation-mode .cap {
+  min-width: 0;
+  align-items: flex-start;
+  padding: 6px 8px;
+}
+.app.presentation-mode .cap-head {
+  min-width: 0;
+  align-items: flex-start;
+}
+.app.presentation-mode .cap-head b {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+/* En Linear Black, les capacités restent distinctes du domaine en présentation. */
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
+  background: #11151d !important;
+  background-color: #11151d !important;
+  border: 1px solid #657087 !important;
+  box-shadow: inset 0 0 0 1px #252c3a, 0 1px 2px rgba(0, 0, 0, .28) !important;
+  color: #e0e3ea !important;
+}
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) .cap-head b,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) .app-count {
+  color: #e0e3ea !important;
+}
+
+@media (max-width: 700px) {
+  .presentation-mode .map {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overscroll-behavior-x: contain;
+  }
+}
+
+/* Bordures N1 renforcées : elles doivent rester visibles sur les surfaces N0 sombres. */
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected):hover {
+  border-color: #9aa6bd !important;
+  background: #1a2030 !important;
+}
+
+/* Lot A — renforcer la hiérarchie des axes et les limites des zones de cartographie. */
+.app .map .col-head,
+.app .map .axis-label {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.app .map .col-head {
+  padding: 7px 9px 9px;
+  letter-spacing: .01em;
+}
+.app .map .axis-label {
+  padding: 12px 9px;
+}
+.app .map .map-cell {
+  background: #fff;
+  border: 1px solid #aebbd0;
+}
+.app.presentation-mode .map .col-head,
+.app.presentation-mode .map .axis-label {
+  color: #273449;
+  font-size: 12px;
+  font-weight: 750;
+}
+.app.presentation-mode .map .map-cell {
+  background: #fff;
+  border: 1px solid #aebbd0;
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, .45);
+}
+.app.theme-dark .map .col-head,
+.app.theme-dark .map .axis-label {
+  color: #e2e8f0;
+}
+.app.theme-dark .map .map-cell {
+  background: #1b2029 !important;
+  border-color: #596477 !important;
+}
+.app.theme-dark.presentation-mode .map .col-head,
+.app.theme-dark.presentation-mode .map .axis-label {
+  color: #f1f5f9;
+}
+.app.theme-dark.presentation-mode .map .map-cell {
+  background: #151922 !important;
+  border-color: #68758b !important;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .12);
+}
+/* Thème clair : le texte du tab actif reste foncé sur le curseur clair. */
+.app:not(.theme-dark) .toolbar-switch > button.active,
+.app:not(.theme-dark) .toolbar-switch > button.active:hover {
+  color: #3730a3 !important;
+}

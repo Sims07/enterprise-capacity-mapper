@@ -98,3 +98,14 @@
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* Le curseur de navigation adopte une surface claire en thème clair. */
+.app:not(.theme-dark) .toolbar-switch::before {
+  background: #eef2ff;
+  border: 1px solid #a5b4fc;
+  box-shadow: 0 1px 4px rgba(79, 70, 229, .16);
+}
+.app:not(.theme-dark) .toolbar-switch > button.active,
+.app:not(.theme-dark) .toolbar-switch > button.active:hover {
+  color: #3730a3 !important;
+}
