@@ -109,3 +109,121 @@
   background: #382d5a !important;
   background-color: #382d5a !important;
 }
+
+
+/* Lot B — titres N1/N0 sobres : le titre reste typographique, l'interaction est discrète. */
+.map-cap-select,
+.map-domain-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  max-width: 100%;
+  padding: 2px 3px;
+  margin: -2px -3px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 650;
+  line-height: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.map-cap-select:hover,
+.map-domain-select:hover {
+  background: rgb(139 92 246 / 8%);
+}
+.map-cap-select:focus-visible,
+.map-domain-select:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+.map-cap-select[aria-pressed="true"],
+.map-domain-select[aria-pressed="true"] {
+  color: #6d28d9;
+  background: rgb(139 92 246 / 10%);
+}
+.app.theme-dark .map-cap-select[aria-pressed="true"],
+.app.theme-dark .map-domain-select[aria-pressed="true"] {
+  color: #ddd6fe;
+  background: rgb(167 139 250 / 12%);
+}
+.impact-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.impact-card-heading h3 { margin: 0; }
+.impact-clear-selection,
+.coverage-tree .tree-impact-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid #c4b5fd;
+  border-radius: 7px;
+  background: #f5f3ff;
+  color: #5b21b6;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.impact-clear-selection:hover,
+.coverage-tree .tree-impact-toggle:hover {
+  background: #ede9fe;
+  border-color: #8b5cf6;
+}
+.app.theme-dark .impact-clear-selection,
+.app.theme-dark .coverage-tree .tree-impact-toggle {
+  background: #302750;
+  border-color: #7561ad;
+  color: #f0eaff;
+}
+.app.theme-dark .impact-clear-selection:hover,
+.app.theme-dark .coverage-tree .tree-impact-toggle:hover {
+  background: #403365;
+  border-color: #a78bfa;
+}
+.coverage-tree .tree-impact-toggle[aria-pressed="true"] {
+  background: #ede9fe;
+  border-color: #8b5cf6;
+  color: #4c1d95;
+}
+.app.theme-dark .coverage-tree .tree-impact-toggle[aria-pressed="true"] {
+  background: #302750;
+  border-color: #a78bfa;
+  color: #f3e8ff;
+}
+@media (max-width: 700px) {
+  .coverage-tree .tree-impact-toggle { white-space: normal; }
+}
+
+
+/* Hiérarchie typographique de la cartographie : N0 reste au-dessus de N1,
+   tandis que le mode présentation réduit la densité visuelle. */
+.app .domain-banner h3,
+.app .map-domain-select {
+  font-size: 12px;
+  font-weight: 650;
+}
+.app .map-cap-select {
+  font-size: 11px;
+  font-weight: 600;
+}
+.app.presentation-mode .domain-banner h3,
+.app.presentation-mode .map-domain-select {
+  font-size: 11px;
+  font-weight: 650;
+}
+.app.presentation-mode .map-cap-select {
+  font-size: 10px;
+  font-weight: 600;
+}

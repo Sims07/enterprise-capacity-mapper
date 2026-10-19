@@ -571,7 +571,9 @@ function App() {
       >
         <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color), "--n0-header-color": resolveDomainColor(d.color), "--n0-header-text-color": domainTextColor(d.color) }}>
           <div className="domain-banner-title">
-            <h3>{d.name}</h3>
+            {depth === 1 ? (
+              <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button>
+            ) : <h3>{d.name}</h3>}
             <span className="domain-meta">{d.code} · {caps.length} N1</span>
           </div>
           <div className="domain-actions">
@@ -611,7 +613,7 @@ function App() {
                   onDrop={e => onDrop(e, c.id)}
                 >
                   <div className="cap-head">
-                    <b>{c.name}</b>
+                    <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>
                     <button
                       type="button"
                       className="mini-action-trigger"
@@ -777,6 +779,7 @@ function App() {
               onUnassign={unassign}
               onLinkPicked={linkPicked}
               onOpenLink={openLinkForTarget}
+              onToggleSelection={toggleCap}
             />
           ) : mode === 'impact' ? (
             <section className="impact">
@@ -802,8 +805,11 @@ function App() {
 
               <div className="impact-grid">
                 <div className="impact-card">
-                  <h3>Éléments sollicités</h3>
-                  <p className="context-help">N0 : grand domaine métier. N1 : capacité détaillée et relativement stable.</p>
+                  <div className="impact-card-heading">
+                    <h3>Éléments sollicités</h3>
+                    {selected.length > 0 && <button type="button" className="impact-clear-selection" data-testid="clear-impact-selection" onClick={() => setSelected([])}>Effacer la sélection</button>}
+                  </div>
+                  <p className="context-help">N0 : grand domaine métier. N1 : capacité détaillée et relativement stable. Vous pouvez aussi sélectionner directement un élément depuis la cartographie ou Relations.</p>
                   {mappedItems.map(c => (
                     <button
                       key={c.id}

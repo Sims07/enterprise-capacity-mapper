@@ -21,6 +21,50 @@ describe('Impact selection on the capability map', () => {
     cy.get('.cap.impact-selected').should('have.length.greaterThan', 0);
   };
 
+  it('garde les titres de capacités sobres tout en indiquant discrètement la sélection', () => {
+    cy.visit('/');
+    cy.get('[data-testid="map-cap-select"]').first().then($title => {
+      expect(Number.parseFloat(getComputedStyle($title[0]).fontWeight)).to.be.at.most(700);
+      expect($title.css('text-decoration-line')).to.eq('none');
+      expect($title.css('background-color')).to.eq('rgba(0, 0, 0, 0)');
+    });
+    cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click();
+    // React remplace le bouton après la sélection : relire le DOM plutôt que
+    // d'asserter sur le nœud conservé avant le rerender.
+    cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads')
+      .should('have.attr', 'aria-pressed', 'true')
+      .and($title => {
+        expect($title.css('text-decoration-line')).to.eq('none');
+        expect($title.css('background-color')).not.to.eq('rgba(0, 0, 0, 0)');
+      });
+  });
+
+  it('réduit les titres en mode présentation tout en gardant N0 au-dessus de N1', () => {
+    cy.visit('/');
+    cy.get('[data-testid="presentation-switch-input"]').check({ force: true });
+    cy.get('.app').should('have.class', 'presentation-mode');
+
+    cy.get('.domain-banner h3').first().then($n0 => {
+      cy.get('[data-testid="map-cap-select"]').first().then($n1 => {
+        const n0Size = Number.parseFloat(getComputedStyle($n0[0]).fontSize);
+        const n1Size = Number.parseFloat(getComputedStyle($n1[0]).fontSize);
+        expect(n0Size).to.eq(11);
+        expect(n1Size).to.eq(10);
+        expect(n0Size).to.be.greaterThan(n1Size);
+      });
+    });
+  });
+
+  it('permet de sélectionner une capacité depuis la cartographie et de retrouver la sélection dans Impact', () => {
+    cy.visit('/');
+    cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click();
+    cy.get('.cap.impact-selected').should('contain.text', 'Gestion des Prospects & Leads');
+    cy.get('header').contains('button', 'Impact').click();
+    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads').should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="clear-impact-selection"]').click();
+    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads').should('have.attr', 'aria-pressed', 'false');
+  });
+
   it('rend le surlignage violet clairement visible en thème clair en mode cartographie normal', () => {
     cy.visit('/');
     cy.get('.app').should('not.have.class', 'theme-dark');
