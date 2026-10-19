@@ -406,3 +406,21 @@
 .app.theme-dark .toolbar-actions .history-button .history-button-label {
   color: inherit !important;
 }
+
+
+/* Les descriptions N0 restent contextuelles et discrètes dans la cartographie. */
+.domain-desc {
+  font-size: 10px;
+  line-height: 1.4;
+  margin: 0;
+  padding: 6px 8px;
+  color: #64748b;
+}
+.presentation-mode .domain-desc {
+  font-size: 9px;
+  line-height: 1.35;
+  padding: 4px 7px;
+}
+.app.theme-dark .domain-desc {
+  color: #b4c2d4;
+}
