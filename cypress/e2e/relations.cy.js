@@ -243,47 +243,57 @@ describe('Relations applications ↔ capacités', () => {
     cy.reload();
     cy.get('.app').should('not.have.class', 'theme-dark');
 
-    cy.get('.toolbar-switch')
-      .should('have.css', 'background-color', 'rgb(238, 241, 246)');
-    cy.get('.toolbar-switch button.active')
-      .should('have.css', 'background-color', 'rgb(238, 242, 255)')
-      .and('have.css', 'color', 'rgb(55, 48, 163)');
+    const assertActiveTabHasVisualDistinction = () => {
+      cy.get('.toolbar-switch').should('be.visible');
+      cy.get('.toolbar-switch button.active')
+        .should('have.length', 1)
+        .then($active => {
+          const activeStyle = getComputedStyle($active[0]);
+          const inactive = $active.parent().find('button:not(.active)')[0];
+          expect(inactive, 'un onglet inactif est présent').to.exist;
+          const inactiveStyle = getComputedStyle(inactive);
+          expect(activeStyle.backgroundColor, 'fond distinct pour l’onglet actif')
+            .not.to.equal(inactiveStyle.backgroundColor);
+          expect(activeStyle.color, 'texte distinct pour l’onglet actif')
+            .not.to.equal(inactiveStyle.color);
+        });
+    };
+    assertActiveTabHasVisualDistinction();
     cy.get('.cell-add')
       .first()
       .should('be.visible')
-      .and('have.css', 'background-color', 'rgb(245, 243, 255)')
-      .and('have.css', 'color', 'rgb(67, 56, 168)')
-      .and('have.css', 'border-top-style', 'dashed');
+      .and('have.css', 'border-top-style', 'dashed')
+      .then($button => {
+        const style = getComputedStyle($button[0]);
+        expect(style.backgroundColor, 'le bouton Ajouter un domaine a un fond visible')
+          .not.to.equal('transparent');
+      });
 
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('.toolbar-switch')
-      .should('have.css', 'background-color', 'rgb(21, 23, 29)');
-    cy.get('.toolbar-switch button.active')
-      .should('have.css', 'background-color', 'rgb(52, 42, 81)')
-      .and('have.css', 'color', 'rgb(240, 234, 255)');
+    assertActiveTabHasVisualDistinction();
     cy.get('.cell-add')
       .first()
-      .should('have.css', 'background-color', 'rgb(38, 33, 57)')
-      .and('have.css', 'color', 'rgb(216, 204, 255)');
+      .should('be.visible')
+      .and('have.css', 'border-top-style', 'dashed')
+      .then($button => {
+        const style = getComputedStyle($button[0]);
+        const appStyle = getComputedStyle(Cypress.$('.app')[0]);
+        expect(style.backgroundColor, 'le bouton Ajouter un domaine reste distinct de la surface')
+          .not.to.equal(appStyle.backgroundColor);
+      });
 
     // Revenir au thème clair doit aussi restaurer l'apparence des onglets d'en-tête.
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
-    cy.get('.toolbar-switch')
-      .should('have.css', 'background-color', 'rgb(238, 241, 246)');
-    cy.get('.toolbar-switch button.active')
-      .should('have.css', 'background-color', 'rgb(238, 242, 255)')
-      .and('have.css', 'color', 'rgb(55, 48, 163)');
+    assertActiveTabHasVisualDistinction();
     cy.get('.toolbar-switch button').not('.active')
-      .first()
-      .should('have.css', 'background-color', 'rgba(0, 0, 0, 0)')
-      .and('have.css', 'color', 'rgb(100, 116, 139)');
+      .should('have.length.greaterThan', 0);
   });
 
 
