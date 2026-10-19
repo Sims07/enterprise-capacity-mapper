@@ -2507,3 +2507,37 @@ body::-webkit-scrollbar,
     flex: 0 0 auto !important;
   }
 }
+
+
+/* Navigation : stabiliser l’onglet actif après le passage en ligne unique.
+   Les quatre boutons partagent l’espace disponible, sans décalage ni glissement horizontal. */
+.toolbar-switch {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  width: max-content;
+  max-width: 100%;
+  overflow: visible;
+}
+.toolbar-switch > button {
+  flex: 0 1 auto !important;
+  min-width: 0;
+  white-space: nowrap;
+  transition: none !important;
+}
+@media (max-width: 600px) {
+  .toolbar-switch {
+    display: flex !important;
+    width: 100%;
+    min-width: 0;
+    gap: 1px;
+    overflow: hidden;
+  }
+  .toolbar-switch > button {
+    flex: 1 1 0 !important;
+    min-width: 0;
+    padding: 7px 4px !important;
+    font-size: 10px !important;
+    text-overflow: clip;
+    transition: none !important;
+  }
+}
