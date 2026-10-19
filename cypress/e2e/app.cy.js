@@ -766,6 +766,47 @@ describe('Application smoke test', () => {
     assertN0N1Contrast();
   });
 
+
+  it('renforce la lisibilité des axes et des zones de cartographie dans les deux thèmes et modes', () => {
+    cy.viewport(1280, 800);
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    const assertMapContrast = (theme, presentation) => {
+      cy.get('.map .axis-label').first().should('be.visible')
+        .and('have.css', 'font-size', '12px')
+        .and('have.css', 'font-weight', '800');
+      cy.get('.map .col-head').first().should('be.visible')
+        .and('have.css', 'font-size', '12px');
+      cy.get('.map .map-cell').first().should('be.visible').then($cell => {
+        expect(getComputedStyle($cell[0]).borderTopStyle, 'limite de zone visible').to.equal('solid');
+        expect(getComputedStyle($cell[0]).borderTopWidth, 'épaisseur de limite').to.equal('1px');
+        expect(getComputedStyle($cell[0]).borderTopColor, 'contraste des limites')
+          .to.equal(theme === 'dark'
+            ? (presentation ? 'rgb(104, 117, 139)' : 'rgb(89, 100, 119)')
+            : 'rgb(174, 187, 208)');
+      });
+    };
+
+    assertMapContrast('light', false);
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('have.class', 'presentation-mode');
+    assertMapContrast('light', true);
+
+    openToolsMenu();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    assertMapContrast('dark', true);
+
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'presentation-mode');
+    assertMapContrast('dark', false);
+  });
+
   it('conserve le défilement horizontal dans la carte en présentation mobile sans élargir la page', () => {
     cy.viewport(402, 874);
     cy.visit('/');
