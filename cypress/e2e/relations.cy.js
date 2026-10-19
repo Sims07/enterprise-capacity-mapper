@@ -231,7 +231,7 @@ describe('Relations applications ↔ capacités', () => {
       .should('have.css', 'background-color', 'rgb(238, 241, 246)');
     cy.get('.toolbar-switch button.active')
       .should('have.css', 'background-color', 'rgba(0, 0, 0, 0)')
-      .and('have.css', 'color', 'rgb(255, 255, 255)');
+      .and('have.css', 'color', 'rgb(55, 48, 163)');
     cy.get('.cell-add')
       .first()
       .should('be.visible')
