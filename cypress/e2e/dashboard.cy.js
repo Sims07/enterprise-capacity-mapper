@@ -1,0 +1,37 @@
+describe('Dashboard de couverture', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+  });
+
+  it('présente des indicateurs calculés depuis la cartographie active', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="capability-dashboard"]').should('be.visible');
+    cy.get('[data-testid="dashboard-coverage-rate"]').should('contain.text', '%');
+    cy.get('[data-testid="dashboard-gap-count"]').invoke('text').then(value => {
+      expect(Number(value.trim())).to.be.greaterThan(0);
+    });
+    cy.get('[data-testid="dashboard-redundancy-count"]').invoke('text').then(value => {
+      expect(Number(value.trim())).to.be.at.least(0);
+    });
+    cy.get('.dashboard-domain-row').should('have.length.greaterThan', 0);
+    cy.get('.dashboard-progress[role="progressbar"]').should('have.attr', 'aria-valuenow');
+  });
+
+  it('permet d’ouvrir dans Relations un gap depuis le dashboard', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
+    cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
+    cy.get('.tree-impact-toggle[aria-pressed="true"]').should('exist');
+  });
+
+  it('reste lisible en thème sombre', () => {
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('.dashboard-panel').should('be.visible');
+    cy.get('.dashboard-kpi').should('have.length', 5);
+    cy.get('.app.theme-dark .dashboard-panel').should('have.css', 'background-color', 'rgb(23, 26, 32)');
+  });
+});
