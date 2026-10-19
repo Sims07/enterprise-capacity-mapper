@@ -40,4 +40,21 @@ describe('Description des domaines N0 sur la cartographie', () => {
       expect($description.text().trim()).not.to.equal('');
     });
   });
+
+  it('permet de modifier et conserver la description d’une capacité N1', () => {
+    cy.get('.cap').first().find('.mini-action-trigger').click();
+    cy.get('.context-menu').contains('button', 'Renommer').click();
+
+    cy.get('[data-testid="capability-description"]').should('be.visible')
+      .clear().type('Capacité à piloter le cycle de vie client.');
+    cy.get('.modal-actions').contains('button', 'Enregistrer').click();
+
+    cy.get('.cap').first().find('.cap-desc')
+      .should('be.visible')
+      .and('have.text', 'Capacité à piloter le cycle de vie client.');
+
+    cy.reload();
+    cy.get('.cap').first().find('.cap-desc')
+      .should('have.text', 'Capacité à piloter le cycle de vie client.');
+  });
 });
