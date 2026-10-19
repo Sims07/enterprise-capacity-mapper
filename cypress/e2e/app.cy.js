@@ -127,7 +127,7 @@ describe('Application smoke test', () => {
       cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').should('be.visible').click();
     });
     cy.get('.context-menu').contains('button', 'Renommer').click();
-    cy.get('.modal h2').should('contain.text', 'Renommer la capacité N1');
+    cy.get('.modal h2').should('contain.text', 'Modifier la capacité N1');
     cy.get('.modal .field input').clear().type('Qualification des prospects');
     cy.contains('.modal button', 'Enregistrer').click();
 
@@ -719,7 +719,7 @@ describe('Application smoke test', () => {
     assertNavigationHighlight('light');
     assertTransparentButtons();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
-    cy.get('.toolbar-switch').then($switch => {
+    cy.get('.toolbar-switch').should($switch => {
       expect(getComputedStyle($switch[0], '::before').transform)
         .not.to.equal('matrix(1, 0, 0, 1, 0, 0)');
     });
