@@ -2463,144 +2463,54 @@ body::-webkit-scrollbar,
 }
 
 
-/* Keep the four main navigation tabs on one line, including narrow screens. */
+/* Navigation principale : onglets sur une ligne, sans masquer les autres contrôles de l’en-tête. */
 .toolbar-switch {
   display: flex;
-  flex-wrap: nowrap;
+  flex: 0 1 auto;
+  width: auto;
   min-width: 0;
   max-width: 100%;
+  flex-wrap: nowrap;
+  gap: 4px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
-.toolbar-switch::-webkit-scrollbar { display: none; }
-.toolbar-switch button {
+.toolbar-switch::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-switch > button {
+  position: relative;
   flex: 0 0 auto;
-  white-space: nowrap;
-}
-
-
-/* Navigation principale : les quatre onglets restent dans une rangée unique. */
-.toolbar-switch {
-  display: inline-flex !important;
-  flex-flow: row nowrap !important;
-  align-items: center;
-  width: max-content;
-  max-width: 100%;
-  min-width: 0;
-  flex-shrink: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-.toolbar-switch > button {
-  flex: 0 0 auto !important;
-  align-self: center;
-  white-space: nowrap !important;
-}
-@media (max-width: 600px) {
-  .toolbar-switch {
-    width: 100%;
-    flex: 0 1 auto;
-  }
-  .toolbar-switch > button {
-    flex: 0 0 auto !important;
-  }
-}
-
-
-/* Navigation : stabiliser l’onglet actif après le passage en ligne unique.
-   Les quatre boutons partagent l’espace disponible, sans décalage ni glissement horizontal. */
-.toolbar-switch {
-  display: flex !important;
-  flex-flow: row nowrap !important;
-  width: max-content;
-  max-width: 100%;
+  width: auto;
+  min-width: max-content;
+  max-width: none;
   overflow: visible;
-}
-.toolbar-switch > button {
-  flex: 0 1 auto !important;
-  min-width: 0;
   white-space: nowrap;
-  transition: none !important;
-}
-@media (max-width: 600px) {
-  .toolbar-switch {
-    display: flex !important;
-    width: 100%;
-    min-width: 0;
-    gap: 1px;
-    overflow: hidden;
-  }
-  .toolbar-switch > button {
-    flex: 1 1 0 !important;
-    min-width: 0;
-    padding: 7px 4px !important;
-    font-size: 10px !important;
-    text-overflow: clip;
-    transition: none !important;
-  }
-}
-
-
-
-/* Navigation principale : onglets statiques, sans curseur ni animation de sélection. */
-.toolbar-switch {
-  display: flex !important;
-  position: static !important;
-  isolation: auto;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  flex: 1 1 auto;
-  gap: 2px;
-  padding: 3px;
-  overflow: hidden;
-  border-radius: 9px;
-}
-.toolbar-switch > button {
-  position: static !important;
-  box-sizing: border-box;
-  display: block;
-  flex: 1 1 0 !important;
-  width: 0;
-  min-width: 0;
-  max-width: 100%;
-  margin: 0 !important;
-  padding: 7px 6px !important;
-  overflow: hidden;
-  white-space: nowrap !important;
-  text-overflow: ellipsis;
-  border: 1px solid transparent !important;
-  border-radius: 6px !important;
-  box-shadow: none !important;
-  transform: none !important;
-  transition: none !important;
-  animation: none !important;
+  text-overflow: clip;
+  transform: none;
+  transition: background-color 120ms ease, color 120ms ease;
 }
 .toolbar-switch > button::before,
 .toolbar-switch > button::after {
   content: none !important;
   display: none !important;
-  animation: none !important;
-  transition: none !important;
 }
 .toolbar-switch > button.active {
-  position: static !important;
-  z-index: auto;
-  box-shadow: none !important;
+  position: relative;
+  z-index: 1;
+  box-shadow: none;
 }
 @media (max-width: 600px) {
   .toolbar-switch {
-    width: 100%;
     flex: 0 1 auto;
-    gap: 1px;
-    padding: 2px;
+    width: auto;
+    max-width: 100%;
+    gap: 2px;
   }
   .toolbar-switch > button {
-    padding: 7px 2px !important;
-    font-size: 10px !important;
-    letter-spacing: -.02em;
+    padding: 7px 6px;
+    font-size: 11px;
   }
 }
