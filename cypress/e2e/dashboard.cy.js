@@ -8,6 +8,7 @@ describe('Dashboard de couverture', () => {
   it('présente des indicateurs calculés depuis la cartographie active', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
+    cy.get('.dashboard-heading.canvas-head .canvas-title h2').should('have.text', 'Dashboard de couverture');
     cy.get('[data-testid="dashboard-coverage-rate"]').should('contain.text', '%');
     cy.get('[data-testid="dashboard-gap-count"]').invoke('text').then(value => {
       expect(Number(value.trim())).to.be.greaterThan(0);
