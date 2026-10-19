@@ -289,3 +289,17 @@
   color: #f1f5f9 !important;
   border-color: #455a76 !important;
 }
+
+
+/* Le bouton secondaire "Structure" doit suivre le thème sombre, malgré
+   les règles historiques qui forcent un fond blanc avec !important. */
+.app.theme-dark .canvas-actions button.secondary {
+  background: #1a2940 !important;
+  color: #e8eef7 !important;
+  border-color: #455a76 !important;
+}
+.app.theme-dark .canvas-actions button.secondary:hover {
+  background: #263956 !important;
+  color: #ffffff !important;
+  border-color: #8296b4 !important;
+}
