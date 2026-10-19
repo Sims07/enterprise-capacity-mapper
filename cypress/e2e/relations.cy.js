@@ -47,6 +47,20 @@ describe('Relations applications ↔ capacités', () => {
       .and('have.css', 'border-left-color', 'rgb(139, 92, 246)');
   });
 
+  it('synchronise la sélection d’impact entre Relations et Cartographie', () => {
+    fresh();
+    openTree();
+    cy.contains('.tree-node-cap', 'Gestion des Prospects & Leads')
+      .find('[data-testid="tree-impact-toggle"]')
+      .click()
+      .should('have.attr', 'aria-pressed', 'true');
+    cy.get('.tree-row.impact-highlight').should('contain.text', 'Gestion des Prospects & Leads');
+    cy.get('header').contains('button', 'Cartographie').click();
+    cy.get('.cap.impact-selected').should('contain.text', 'Gestion des Prospects & Leads');
+    cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click();
+    cy.get('.cap.impact-selected').should('not.contain.text', 'Gestion des Prospects & Leads');
+  });
+
   it('relie une application par glisser-déposer sur une ligne de l’arbre', () => {
     fresh();
     openTree();
