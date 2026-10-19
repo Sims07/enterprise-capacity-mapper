@@ -1,69 +1,81 @@
-/* Navigation principale : un unique fond actif animé sous les trois vues. */
+/* Navigation principale : sélection portée par le bouton actif, sans curseur flottant. */
 .toolbar-switch {
-  --nav-highlight-inset: 3px;
   position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 2px;
-  padding: var(--nav-highlight-inset);
+  isolation: auto;
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid rgba(148, 163, 184, .28);
   border-radius: 10px;
   background: rgba(15, 23, 42, .28);
-  overflow: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-.toolbar-switch::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  top: var(--nav-highlight-inset);
-  bottom: var(--nav-highlight-inset);
-  left: var(--nav-highlight-inset);
-  width: calc((100% - 2 * var(--nav-highlight-inset) - 4px) / 3);
-  box-sizing: border-box;
-  border: 0;
-  border-radius: 7px;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  box-shadow: 0 2px 8px rgba(79, 70, 229, .24);
-  transform: translateX(0);
-  transition: transform 320ms cubic-bezier(.2, .8, .2, 1);
-  pointer-events: none;
+.toolbar-switch::-webkit-scrollbar {
+  display: none;
 }
 
-.toolbar-switch:has(> button:nth-child(2).active)::before {
-  transform: translateX(calc(100% + 2px));
+/* Neutralise le curseur animé historique : il ne doit jamais recouvrir un autre onglet. */
+.toolbar-switch::before,
+.toolbar-switch::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  transition: none !important;
 }
 
-.toolbar-switch:has(> button:nth-child(3).active)::before {
-  transform: translateX(calc((100% + 2px) * 2));
-}
-
-/* Surclasser aussi les règles de thème plus spécifiques de base.css. */
 .app .toolbar-switch > button,
-.app .toolbar .toolbar-switch > button.active,
-.app:not(.theme-dark) .toolbar-switch > button,
-.app:not(.theme-dark) .toolbar-switch button.active,
-.app:not(.theme-dark) .toolbar-switch button.active:hover,
-.app.theme-dark .toolbar-switch button.active {
+.app .toolbar-switch > button.active,
+.app .toolbar-switch > button:hover,
+.app .toolbar-switch > button:focus {
   position: relative;
-  z-index: 1;
-  min-width: 0;
+  z-index: auto;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
+  max-width: none;
+  padding: 7px 9px;
+  overflow: visible;
   white-space: nowrap;
+  text-overflow: clip;
   border: 1px solid transparent !important;
+  border-radius: 7px;
   background: transparent !important;
   color: #cbd5e1;
   box-shadow: none !important;
-  outline: none;
-  transition: color 180ms ease;
+  outline-offset: 2px;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
 }
 
 .app .toolbar-switch > button.active,
-.app .toolbar .toolbar-switch > button.active,
-.app:not(.theme-dark) .toolbar-switch button.active,
-.app.theme-dark .toolbar-switch button.active {
-  color: #fff !important;
+.app .toolbar-switch > button.active:hover,
+.app .toolbar-switch > button.active:focus {
+  background: #4f46e5 !important;
+  border-color: #6366f1 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.app:not(.theme-dark) .toolbar-switch > button:not(.active) {
+  color: #64748b;
+}
+
+.app:not(.theme-dark) .toolbar-switch > button.active,
+.app:not(.theme-dark) .toolbar-switch > button.active:hover,
+.app:not(.theme-dark) .toolbar-switch > button.active:focus {
+  background: #eef2ff !important;
+  border-color: #a5b4fc !important;
+  color: #3730a3 !important;
 }
 
 .toolbar-switch > button:focus-visible {
@@ -71,41 +83,22 @@
   outline-offset: -3px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .toolbar-switch::before { transition: none; }
-}
-
 @media (max-width: 900px) {
-  .toolbar-switch { max-width: 100%; }
-  .toolbar-switch > button { padding-inline: 8px; font-size: 11px; }
+  .toolbar-switch {
+    max-width: 100%;
+  }
+
+  .app .toolbar-switch > button,
+  .app .toolbar-switch > button.active {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
 }
 
-/* Couleurs des libellés inactifs selon le thème, sans réintroduire de fond individuel. */
-.app:not(.theme-dark) .toolbar-switch > button:not(.active) {
-  color: #64748b;
-}
-.app.theme-dark .toolbar-switch > button:not(.active) {
-  color: #cbd5e1;
-}
-
-/* Empêcher les états hover/focus des styles globaux de recréer une pastille. */
-.app .toolbar-switch > button:hover,
-.app .toolbar-switch > button:focus,
-.app .toolbar-switch > button:not(.active):hover,
-.app .toolbar-switch > button:not(.active):focus,
-.app:not(.theme-dark) .toolbar-switch > button:hover,
-.app.theme-dark .toolbar-switch > button:hover {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-/* Le curseur de navigation adopte une surface claire en thème clair. */
-.app:not(.theme-dark) .toolbar-switch::before {
-  background: #eef2ff;
-  border: 1px solid #a5b4fc;
-  box-shadow: 0 1px 4px rgba(79, 70, 229, .16);
-}
-.app:not(.theme-dark) .toolbar-switch > button.active,
-.app:not(.theme-dark) .toolbar-switch > button.active:hover {
-  color: #3730a3 !important;
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-switch::before,
+  .toolbar-switch > button {
+    transition: none !important;
+    animation: none !important;
+  }
 }
