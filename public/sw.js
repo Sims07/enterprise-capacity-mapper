@@ -5,8 +5,11 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
       .then(cache => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
