@@ -4,6 +4,7 @@ import { exportModel, importModel, loadLocalMaps, loadModel, loadRecentMaps, rec
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
+import Dashboard from './components/Dashboard.jsx';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
@@ -741,6 +742,7 @@ function App() {
             <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
             <button type="button" className={mode === 'relations' ? 'active' : ''} data-testid="tab-relations" onClick={() => setMode('relations')}>⛓ Relations</button>
             <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
+            <button type="button" className={mode === 'dashboard' ? 'active' : ''} data-testid="tab-dashboard" onClick={() => setMode('dashboard')}>▥ Dashboard</button>
           </div>
           <div className="toolbar-actions">
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
@@ -821,7 +823,13 @@ function App() {
         </aside>
 
         <main>
-          {mode === 'relations' ? (
+          {mode === 'dashboard' ? (
+            <Dashboard
+              model={model}
+              depth={depth}
+              onExploreTarget={id => { setSelected([id]); setMode('relations'); }}
+            />
+          ) : mode === 'relations' ? (
             <CoverageTree
               domains={model.domains}
               capabilities={model.capabilities}
