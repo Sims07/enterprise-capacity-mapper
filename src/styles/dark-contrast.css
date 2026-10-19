@@ -230,3 +230,55 @@
 @media (prefers-reduced-motion: reduce) {
   .theme-dark *, .theme-dark *::before, .theme-dark *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Éditeur Structure de la cartographie : surfaces, séparateurs et actions cohérents
+   avec Linear Black. Ces règles sont volontairement limitées à cette modale. */
+.app.theme-dark .modal:not(.wizard) .structure-section {
+  background: #171a21;
+  border-top-color: #353b48;
+}
+.app.theme-dark .modal:not(.wizard) .structure-section h3,
+.app.theme-dark .modal:not(.wizard) .structure-row .field > span,
+.app.theme-dark .modal:not(.wizard) .zone-row > span {
+  color: #f3f4f6 !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-hint {
+  color: #c1c8d5 !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-row,
+.app.theme-dark .modal:not(.wizard) .zone-row {
+  color: #e5e7eb;
+}
+.app.theme-dark .modal:not(.wizard) .structure-row .field input,
+.app.theme-dark .modal:not(.wizard) .zone-row input {
+  background: #101318 !important;
+  color: #f3f4f6 !important;
+  border-color: #454c5b !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-row .field input:focus-visible,
+.app.theme-dark .modal:not(.wizard) .zone-row input:focus-visible {
+  border-color: #a5b4fc !important;
+  outline: 2px solid #818cf8;
+  outline-offset: 1px;
+}
+.app.theme-dark .modal:not(.wizard) .structure-remove {
+  background: #28202a !important;
+  color: #fecaca !important;
+  border-color: #70404a !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-remove:disabled {
+  background: #20232c !important;
+  color: #a0a7b5 !important;
+  border-color: #3b4050 !important;
+  opacity: 1;
+}
+.app.theme-dark .modal:not(.wizard) .structure-add {
+  background: #252b50 !important;
+  color: #e0e7ff !important;
+  border-color: #626db0 !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-add:hover,
+.app.theme-dark .modal:not(.wizard) .structure-remove:not(:disabled):hover {
+  filter: brightness(1.16);
+}
