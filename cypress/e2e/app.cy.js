@@ -727,6 +727,7 @@ describe('Application smoke test', () => {
     cy.get('header').contains('button', 'Impact').click().should('have.class', 'active');
     assertTransparentButtons();
 
+    openToolsMenu();
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     assertNavigationHighlight('dark');
