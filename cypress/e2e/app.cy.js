@@ -683,19 +683,11 @@ describe('Application smoke test', () => {
   });
 
 
-  it('anime le fond de navigation sans superposer les fonds des boutons', () => {
+  it('anime le fond de navigation et l adapte aux thèmes clair et sombre sans doublon', () => {
     cy.viewport(1280, 800);
     cy.visit('/');
     cy.get('.toolbar-switch').should('be.visible').within(() => {
       cy.contains('button', 'Cartographie').should('have.class', 'active');
-    });
-
-    cy.get('.toolbar-switch').then($switch => {
-      const highlight = getComputedStyle($switch[0], '::before');
-      expect(highlight.content).not.to.equal('none');
-      expect(highlight.borderTopWidth).to.equal('0px');
-      expect(highlight.zIndex).to.equal('0');
-      expect(highlight.transitionDuration).to.include('0.32s');
     });
 
     const assertTransparentButtons = () => {
@@ -707,16 +699,37 @@ describe('Application smoke test', () => {
         expect(getComputedStyle($button[0]).zIndex).to.equal('1');
       });
     };
-    assertTransparentButtons();
+    const assertNavigationHighlight = (theme) => {
+      cy.get('.toolbar-switch').then($switch => {
+        const highlight = getComputedStyle($switch[0], '::before');
+        expect(highlight.content).not.to.equal('none');
+        expect(highlight.zIndex).to.equal('0');
+        expect(highlight.transitionDuration).to.include('0.32s');
+        if (theme === 'light') {
+          expect(highlight.backgroundColor).to.equal('rgb(238, 242, 255)');
+          expect(highlight.borderTopWidth).to.equal('1px');
+          cy.get('.toolbar-switch > button.active').should('have.css', 'color', 'rgb(55, 48, 163)');
+        } else {
+          expect(highlight.backgroundImage).to.include('linear-gradient');
+          expect(highlight.borderTopWidth).to.equal('0px');
+        }
+      });
+    };
 
+    assertNavigationHighlight('light');
+    assertTransparentButtons();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
     cy.get('.toolbar-switch').then($switch => {
       expect(getComputedStyle($switch[0], '::before').transform)
         .not.to.equal('matrix(1, 0, 0, 1, 0, 0)');
     });
     assertTransparentButtons();
-
     cy.get('header').contains('button', 'Impact').click().should('have.class', 'active');
+    assertTransparentButtons();
+
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    assertNavigationHighlight('dark');
     assertTransparentButtons();
     cy.get('header').contains('button', 'Cartographie').click().should('have.class', 'active');
     assertTransparentButtons();
