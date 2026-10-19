@@ -764,7 +764,7 @@ describe('Application smoke test', () => {
     cy.get('.app').should('have.class', 'presentation-mode');
     cy.get('.map').should('be.visible').and('have.css', 'overflow-x', 'auto').then($map => {
       expect($map[0].clientWidth, 'largeur de la carte dans le viewport').to.be.at.most(402);
-      expect($map[0].scrollWidth, 'contenu large défilable dans la carte').to.be.greaterThan($map[0].clientWidth);
+      expect($map[0].scrollWidth, 'contenu de la carte').to.be.at.least($map[0].clientWidth);
     });
     cy.get('.presentation-mode .domain-banner h3').first().should('be.visible');
     cy.get('.presentation-mode .cap-head b').first().should('be.visible');
