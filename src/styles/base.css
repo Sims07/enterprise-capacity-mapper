@@ -2461,3 +2461,21 @@ body::-webkit-scrollbar,
 .app.theme-dark .presentation-switch input:checked + .presentation-switch-track {
   background: #818cf8;
 }
+
+
+/* Keep the four main navigation tabs on one line, including narrow screens. */
+.toolbar-switch {
+  display: flex;
+  flex-wrap: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.toolbar-switch::-webkit-scrollbar { display: none; }
+.toolbar-switch button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
