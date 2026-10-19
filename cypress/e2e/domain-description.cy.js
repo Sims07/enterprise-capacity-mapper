@@ -48,6 +48,7 @@ describe('Description des domaines N0 sur la cartographie', () => {
     cy.get('.context-menu').contains('button', 'Renommer').click();
 
     cy.get('[data-testid="capability-description"]').should('be.visible')
+      .and('have.css', 'width', '460px')
       .clear().type('Capacité à piloter le cycle de vie client.');
     cy.get('.modal-actions').contains('button', 'Enregistrer').click();
 
@@ -58,5 +59,13 @@ describe('Description des domaines N0 sur la cartographie', () => {
     cy.reload();
     cy.get('.cap').first().find('.cap-desc')
       .should('have.text', 'Capacité à piloter le cycle de vie client.');
+  });
+
+  it('étire les champs de description sur toute la largeur du formulaire N0', () => {
+    openFirstDomainEditor();
+    cy.get('.modal').then($modal => {
+      const modalWidth = $modal.innerWidth();
+      cy.get('[data-testid="domain-description"]').should('have.css', 'width', `${modalWidth - 40}px`);
+    });
   });
 });
