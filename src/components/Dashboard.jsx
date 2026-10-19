@@ -63,7 +63,7 @@ export default function Dashboard({ model, depth, onExploreTarget }) {
   );
 
   return (
-    <section className="dashboard" data-testid="capability-dashboard" aria-labelledby="dashboard-title">
+    <section className="dashboard" data-testid="capability-dashboard" aria-label="Dashboard de couverture">
       <div className="dashboard-kpis" aria-label="Indicateurs de couverture">
         <article className="dashboard-kpi dashboard-kpi-primary">
           <span>Couverture globale</span>
