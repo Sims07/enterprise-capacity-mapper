@@ -293,7 +293,7 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.app').should('not.have.class', 'theme-dark');
     assertActiveTabHasVisualDistinction();
     cy.get('.toolbar-switch button').not('.active')
-      .should('have.length.greaterThan', 0);
+      .should('not.be.empty');
   });
 
 
