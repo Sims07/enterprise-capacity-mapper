@@ -2461,3 +2461,56 @@ body::-webkit-scrollbar,
 .app.theme-dark .presentation-switch input:checked + .presentation-switch-track {
   background: #818cf8;
 }
+
+
+/* Navigation principale : onglets sur une ligne, sans masquer les autres contrôles de l’en-tête. */
+.toolbar-switch {
+  display: flex;
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.toolbar-switch::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-switch > button {
+  position: relative;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+  white-space: nowrap;
+  text-overflow: clip;
+  transform: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.toolbar-switch > button::before,
+.toolbar-switch > button::after {
+  content: none !important;
+  display: none !important;
+}
+.toolbar-switch > button.active {
+  position: relative;
+  z-index: 1;
+  box-shadow: none;
+}
+@media (max-width: 600px) {
+  .toolbar-switch {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+    gap: 2px;
+  }
+  .toolbar-switch > button {
+    padding: 7px 6px;
+    font-size: 11px;
+  }
+}

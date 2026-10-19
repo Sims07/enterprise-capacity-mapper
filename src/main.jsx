@@ -7,6 +7,7 @@ import './styles/dark-impact.css';
 import './styles/navigation-highlight.css';
 import './styles/dark-contrast.css';
 import './styles/description-fields.css';
+import './styles/dashboard.css';
 import './toolsMenuBehavior.js';
 
 if ('serviceWorker' in navigator) {
