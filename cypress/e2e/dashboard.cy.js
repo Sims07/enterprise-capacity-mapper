@@ -38,6 +38,15 @@ describe('Dashboard de couverture', () => {
     });
   });
 
+  it('affiche le Dashboard comme onglet actif sans curseur hérité de Cartographie', () => {
+    cy.get('[data-testid="tab-dashboard"]').click().should('have.class', 'active');
+    cy.get('.toolbar-switch').should('have.css', 'grid-template-columns', 'none');
+    cy.get('.toolbar-switch').then($switch => {
+      expect(getComputedStyle($switch[0], '::before').content).to.equal('none');
+    });
+    cy.get('[data-testid="tab-dashboard"]').should('have.css', 'background-color').and('not.equal', 'rgba(0, 0, 0, 0)');
+  });
+
   it('préserve le menu Outils et les libellés complets sur mobile', () => {
     cy.viewport(390, 844);
     cy.get('[data-testid="tools-menu-toggle"]').should('be.visible');
