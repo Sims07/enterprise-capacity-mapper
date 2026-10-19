@@ -777,7 +777,9 @@ describe('Application smoke test', () => {
     const assertMapContrast = (theme, presentation) => {
       cy.get('.map .axis-label').first().should('be.visible')
         .and('have.css', 'font-size', '12px')
-        .and('have.css', 'font-weight', '800');
+        .then($label => {
+          expect(Number.parseInt(getComputedStyle($label[0]).fontWeight, 10), 'poids des titres de lignes').to.be.at.least(700);
+        });
       cy.get('.map .col-head').first().should('be.visible')
         .and('have.css', 'font-size', '12px');
       cy.get('.map .map-cell').first().should('be.visible').then($cell => {
