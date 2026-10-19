@@ -205,3 +205,25 @@
 @media (max-width: 700px) {
   .coverage-tree .tree-impact-toggle { white-space: normal; }
 }
+
+
+/* Hiérarchie typographique de la cartographie : N0 reste au-dessus de N1,
+   tandis que le mode présentation réduit la densité visuelle. */
+.app .domain-banner h3,
+.app .map-domain-select {
+  font-size: 12px;
+  font-weight: 650;
+}
+.app .map-cap-select {
+  font-size: 11px;
+  font-weight: 600;
+}
+.app.presentation-mode .domain-banner h3,
+.app.presentation-mode .map-domain-select {
+  font-size: 11px;
+  font-weight: 650;
+}
+.app.presentation-mode .map-cap-select {
+  font-size: 10px;
+  font-weight: 600;
+}
