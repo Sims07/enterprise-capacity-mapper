@@ -78,8 +78,11 @@ describe('Contrastes du thème sombre', () => {
       .and('have.css', 'background-color', 'rgb(16, 19, 24)')
       .and('have.css', 'color', 'rgb(243, 244, 246)');
     cy.get('.modal .structure-remove').first().should('be.visible').and('have.css', 'color', 'rgb(254, 202, 202)');
-    cy.get('.modal .structure-add').first().should('be.visible').and('have.css', 'color', 'rgb(224, 231, 255)').click();
-    cy.get('.modal .structure-section').first().find('.structure-row').should('have.length', 3);
+    cy.get('.modal .structure-section').first().find('.structure-row').then($rows => {
+      const initialRowCount = $rows.length;
+      cy.get('.modal .structure-add').first().should('be.visible').and('have.css', 'color', 'rgb(224, 231, 255)').click();
+      cy.get('.modal .structure-section').first().find('.structure-row').should('have.length', initialRowCount + 1);
+    });
     cy.get('.modal .modal-actions').contains('button', 'Annuler').click();
     cy.get('.modal').should('not.exist');
   });
