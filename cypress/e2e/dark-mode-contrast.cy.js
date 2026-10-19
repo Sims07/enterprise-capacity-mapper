@@ -23,7 +23,11 @@ describe('Contrastes du thème sombre', () => {
 
     cy.get('.app.theme-dark').should('exist');
     cy.get('.map-filter-control span').should('be.visible').and('have.css', 'color', 'rgb(241, 245, 249)');
-    cy.get('aside').should('have.css', 'background-color', 'rgb(17, 28, 46)');
+    cy.get('aside').should('have.css', 'background-color', 'rgb(25, 27, 34)');
+    cy.get('[data-testid="undo-button"], [data-testid="redo-button"]').each(($button) => {
+      cy.wrap($button).should('be.visible').and('have.css', 'opacity', '1');
+      cy.wrap($button).find('.history-button-label').should('have.css', 'color', 'rgb(203, 213, 225)');
+    });
     cy.get('.search').should('have.css', 'background-color', 'rgb(13, 23, 39)');
     cy.get('.search').should('have.css', 'color', 'rgb(241, 245, 249)');
   });
