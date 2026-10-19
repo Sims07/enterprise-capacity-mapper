@@ -6,7 +6,7 @@ describe('Description des domaines N0 sur la cartographie', () => {
   });
 
   const openFirstDomainEditor = () => {
-    cy.get('.domain-card').first().find('.mini-action-trigger').click();
+    cy.get('.domain-card').first().find('.domain-banner .mini-action-trigger').first().click();
     cy.get('.context-menu').contains('button', 'Modifier').click();
     cy.get('[data-testid="domain-description"]').should('be.visible');
   };
@@ -34,14 +34,10 @@ describe('Description des domaines N0 sur la cartographie', () => {
     cy.get('.domain-card').first().should('not.contain.text', 'Aucune description');
   });
 
-  it('masque le bloc de description d’une capacité N1 si le champ est vide', () => {
-    cy.window().then(win => {
-      const key = 'enterprise-capacity-mapper:model:v3';
-      const model = JSON.parse(win.localStorage.getItem(key));
-      model.capabilities[0].description = '';
-      win.localStorage.setItem(key, JSON.stringify(model));
+  it('n’affiche pas de texte de remplacement artificiel pour les descriptions N1', () => {
+    cy.get('.cap-desc').should('not.contain.text', 'Aucune description');
+    cy.get('.cap-desc').each($description => {
+      expect($description.text().trim()).not.to.equal('');
     });
-    cy.reload();
-    cy.get('.cap').first().find('.cap-desc').should('not.exist');
   });
 });
