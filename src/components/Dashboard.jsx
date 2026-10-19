@@ -64,18 +64,6 @@ export default function Dashboard({ model, depth, onExploreTarget }) {
 
   return (
     <section className="dashboard" data-testid="capability-dashboard" aria-labelledby="dashboard-title">
-      <div className="canvas-head dashboard-heading">
-        <div className="canvas-title">
-          <div className="eyebrow">PILOTAGE DU PATRIMOINE</div>
-          <h2 id="dashboard-title">Dashboard de couverture</h2>
-          <p>Vue de synthèse de la couverture applicative, des zones sans support et des capacités soutenues par plusieurs applications.</p>
-        </div>
-        <div className="stats dashboard-heading-stats" aria-label="Périmètre du dashboard">
-          <span>Périmètre : {targetLabel}</span>
-          <span>{targets.length} éléments analysés</span>
-        </div>
-      </div>
-
       <div className="dashboard-kpis" aria-label="Indicateurs de couverture">
         <article className="dashboard-kpi dashboard-kpi-primary">
           <span>Couverture globale</span>
