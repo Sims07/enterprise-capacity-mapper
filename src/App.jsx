@@ -66,7 +66,9 @@ function App() {
   const undoStack = useRef([]);
   const redoStack = useRef([]);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
-  const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'impact'
+  const [mode, setMode] = useState('editor'); // 'editor', 'relations', 'impact' ou 'dashboard'
+  const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
+  const dashboardHistoryEntry = useRef(false);
   const [pickedApps, setPickedApps] = useState([]);
   const [link, setLink] = useState(null);
   const [linkChecked, setLinkChecked] = useState([]);
@@ -106,6 +108,34 @@ function App() {
   useEffect(() => {
     localStorage.setItem('enterprise-capacity-mapper:theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!dashboardHistoryEntry.current) return;
+      dashboardHistoryEntry.current = false;
+      setDashboardReturnAvailable(false);
+      setMode('dashboard');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const exploreDashboardTarget = id => {
+    setSelected([id]);
+    setDashboardReturnAvailable(true);
+    dashboardHistoryEntry.current = true;
+    window.history.pushState({ ...(window.history.state || {}), dashboardReturn: true }, '', window.location.href);
+    setMode('relations');
+  };
+
+  const returnToDashboard = () => {
+    if (dashboardHistoryEntry.current) {
+      window.history.back();
+      return;
+    }
+    setDashboardReturnAvailable(false);
+    setMode('dashboard');
+  };
 
   const closeToolsMenu = () => {
     if (toolsMenuRef.current) toolsMenuRef.current.open = false;
@@ -830,11 +860,19 @@ function App() {
             <Dashboard
               model={model}
               depth={depth}
-              onExploreTarget={id => { setSelected([id]); setMode('relations'); }}
+              onExploreTarget={exploreDashboardTarget}
               onLinkApp={openLinkForApp}
             />
           ) : mode === 'relations' ? (
-            <CoverageTree
+            <>
+              {dashboardReturnAvailable && (
+                <div className="relations-return-row">
+                  <button type="button" className="secondary relations-return-button" data-testid="return-to-dashboard" onClick={returnToDashboard}>
+                    ← Retour au dashboard
+                  </button>
+                </div>
+              )}
+              <CoverageTree
               domains={model.domains}
               capabilities={model.capabilities}
               apps={apps}
@@ -847,7 +885,8 @@ function App() {
               onLinkPicked={linkPicked}
               onOpenLink={openLinkForTarget}
               onToggleSelection={toggleCap}
-            />
+              />
+            </>
           ) : mode === 'impact' ? (
             <section className="impact">
               <div className="hero">

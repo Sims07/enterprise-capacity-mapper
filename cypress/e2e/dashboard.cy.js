@@ -22,6 +22,17 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-progress[role="progressbar"]').should('have.attr', 'aria-valuenow');
   });
 
+  it('affiche la heatmap de couverture et permet d’ouvrir une capacité dans Relations', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('.dashboard-heatmap-legend').should('contain.text', 'Sans application')
+      .and('contain.text', 'Une application')
+      .and('contain.text', 'Plusieurs applications');
+    cy.get('.dashboard-heatmap-tile').should('have.length.greaterThan', 0);
+    cy.get('.dashboard-heatmap-tile').first().click();
+    cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
+  });
+
   it('identifie une application sans relation et permet de la relier depuis le dashboard', () => {
     cy.get('.side-add').click();
     cy.get('[role="dialog"]').within(() => {
@@ -93,11 +104,21 @@ describe('Dashboard de couverture', () => {
     });
   });
 
-  it('permet d’ouvrir dans Relations un gap depuis le dashboard', () => {
+  it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
     cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
     cy.get('.tree-impact-toggle[aria-pressed="true"]').should('exist');
+    cy.get('[data-testid="return-to-dashboard"]').should('be.visible');
+
+    cy.go('back');
+    cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
+    cy.get('[data-testid="capability-dashboard"]').should('be.visible');
+
+    cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
+    cy.get('[data-testid="return-to-dashboard"]').click();
+    cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
+    cy.get('[data-testid="capability-dashboard"]').should('be.visible');
   });
 
   it('reste lisible en thème sombre', () => {
