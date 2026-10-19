@@ -22,6 +22,29 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-progress[role="progressbar"]').should('have.attr', 'aria-valuenow');
   });
 
+  it('identifie une application sans relation et permet de la relier depuis le dashboard', () => {
+    cy.get('.side-add').click();
+    cy.get('[role="dialog"]').within(() => {
+      cy.contains('label.field', /^Nom/).find('input').type('Application orpheline test');
+      cy.contains('label.field', /^Code/).find('input').type('APP-ORPHELINE');
+      cy.contains('label.field', /Éditeur \/ fournisseur/).find('input').type('Éditeur test');
+      cy.contains('button', 'Créer').click();
+    });
+
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-unlinked-apps"]').within(() => {
+      cy.contains('Application orpheline test').should('be.visible');
+      cy.get('button[aria-label="Relier Application orpheline test à des capacités N1"]').click();
+    });
+
+    cy.get('[role="dialog"]').should('contain.text', 'Relier « Application orpheline test »');
+    cy.get('[data-testid="link-list"] input[type="checkbox"]').first().check();
+    cy.get('[data-testid="link-save"]').click();
+    cy.get('[data-testid="dashboard-unlinked-apps"]')
+      .should('contain.text', 'Toutes les applications sont reliées')
+      .and('not.contain.text', 'Application orpheline test');
+  });
+
   it('garde les quatre onglets principaux sur une seule ligne sur mobile', () => {
     cy.viewport(390, 844);
     cy.get('.toolbar-switch > button').should('have.length', 4).then($tabs => {

@@ -831,6 +831,7 @@ function App() {
               model={model}
               depth={depth}
               onExploreTarget={id => { setSelected([id]); setMode('relations'); }}
+              onLinkApp={openLinkForApp}
             />
           ) : mode === 'relations' ? (
             <CoverageTree
