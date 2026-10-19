@@ -2479,3 +2479,31 @@ body::-webkit-scrollbar,
   flex: 0 0 auto;
   white-space: nowrap;
 }
+
+
+/* Navigation principale : les quatre onglets restent dans une rangée unique. */
+.toolbar-switch {
+  display: inline-flex !important;
+  flex-flow: row nowrap !important;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.toolbar-switch > button {
+  flex: 0 0 auto !important;
+  align-self: center;
+  white-space: nowrap !important;
+}
+@media (max-width: 600px) {
+  .toolbar-switch {
+    width: 100%;
+    flex: 0 1 auto;
+  }
+  .toolbar-switch > button {
+    flex: 0 0 auto !important;
+  }
+}
