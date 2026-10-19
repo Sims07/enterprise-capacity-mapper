@@ -744,8 +744,8 @@ function App() {
           </div>
           <div className="toolbar-actions">
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
-              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶</button>
-              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷</button>
+              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
+              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
             </div>
             <label className="presentation-switch" data-testid="presentation-toggle">
               <span>Présentation</span>
