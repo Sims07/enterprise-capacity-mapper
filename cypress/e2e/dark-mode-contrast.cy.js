@@ -28,7 +28,8 @@ describe('Contrastes du thème sombre', () => {
       .and('have.css', 'background-color', 'rgb(26, 41, 64)')
       .and('have.css', 'color', 'rgb(232, 238, 247)')
       .and('have.css', 'border-color', 'rgb(69, 90, 118)');
-    cy.get('aside').first().should('have.css', 'background-color', 'rgb(17, 28, 46)');
+    // Le panneau Outils utilise sa surface dédiée au thème sombre.
+    cy.get('.app.theme-dark .toolbar-tools-panel').should('have.css', 'background-color', 'rgb(17, 28, 46)');
     cy.get('[data-testid="undo-button"], [data-testid="redo-button"]').each(($button) => {
       cy.wrap($button).should('be.visible').and('have.css', 'opacity', '1');
       cy.wrap($button).find('.history-button-label').should('have.css', 'color', 'rgb(203, 213, 225)');
