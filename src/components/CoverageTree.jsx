@@ -16,7 +16,7 @@ const dropOut = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.current
  * Chaque ligne cible (N1, ou N0 en profondeur 1) est une zone de dépôt pleine largeur.
  * Le composant ne modifie jamais le modèle lui-même : il délègue à App.jsx via onAssign / onUnassign / onLinkPicked / onOpenLink.
  */
-export default function CoverageTree({ domains, capabilities, apps, depth, colorOf, selected = [], pickedCount, onAssign, onUnassign, onLinkPicked, onOpenLink }) {
+export default function CoverageTree({ domains, capabilities, apps, depth, colorOf, selected = [], pickedCount, onAssign, onUnassign, onLinkPicked, onOpenLink, onToggleSelection }) {
   const [collapsed, setCollapsed] = useState(() => new Set());
   const [query, setQuery] = useState('');
   const [coverage, setCoverage] = useState('all');
@@ -101,6 +101,13 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
 
   const TargetActions = ({ target }) => (
     <span className="tree-actions">
+      <button
+        type="button"
+        className="tree-impact-toggle"
+        data-testid="tree-impact-toggle"
+        aria-pressed={selected.includes(target.id)}
+        onClick={event => { event.stopPropagation(); onToggleSelection(target.id); }}
+      >{selected.includes(target.id) ? '✓ Impact sélectionné' : '⚡ Sélectionner impact'}</button>
       {pickedCount > 0 && <button type="button" className="tree-link-here" onClick={() => onLinkPicked(target.id)}>Relier ici ({pickedCount})</button>}
       <button type="button" className="tree-link" aria-label={`Relier des applications à ${target.name}`} onClick={() => onOpenLink(target)}>＋ Relier…</button>
     </span>
