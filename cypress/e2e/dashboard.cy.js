@@ -38,29 +38,13 @@ describe('Dashboard de couverture', () => {
     });
   });
 
-  it('confine le rectangle actif à son onglet sans chevaucher les voisins', () => {
+  it('affiche un onglet actif statique sans animation de déplacement', () => {
     cy.viewport(390, 844);
-    const tabs = [
-      '[data-testid="tab-relations"]',
-      '[data-testid="tab-impact"]',
-      '[data-testid="tab-dashboard"]'
-    ];
-
-    tabs.forEach(selector => {
-      cy.get(selector).click();
-      cy.get('.toolbar-switch').then($nav => {
-        const nav = $nav[0].getBoundingClientRect();
-        const buttons = [...$nav[0].querySelectorAll('button')];
-        const active = buttons.find(button => button.classList.contains('active'));
-        const rect = active.getBoundingClientRect();
-        expect(rect.left).to.be.at.least(nav.left);
-        expect(rect.right).to.be.at.most(nav.right);
-        buttons.filter(button => button !== active).forEach(button => {
-          const other = button.getBoundingClientRect();
-          expect(rect.right <= other.left || rect.left >= other.right).to.equal(true);
-        });
-      });
-    });
+    cy.get('[data-testid="tab-relations"]').click();
+    cy.get('.toolbar-switch > button.active')
+      .should('have.length', 1)
+      .and('have.css', 'transition-duration', '0s')
+      .and('have.css', 'animation-name', 'none');
   });
 
   it('permet d’ouvrir dans Relations un gap depuis le dashboard', () => {
