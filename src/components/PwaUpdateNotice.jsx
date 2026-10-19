@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const APP_VERSION = '2.0.0';
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || '2.0.0';
 const RELEASES_URL = 'https://github.com/Sims07/enterprise-capacity-mapper/releases';
 
 export default function PwaUpdateNotice() {

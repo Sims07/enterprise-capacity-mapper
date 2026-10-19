@@ -3,7 +3,10 @@ describe('Application smoke test', () => {
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
     cy.get('[data-testid="pwa-version"]').should('be.visible');
-    cy.get('[data-testid="pwa-version"] a').should('have.attr', 'href', 'https://github.com/Sims07/enterprise-capacity-mapper/releases');
+    cy.get('[data-testid="pwa-version"] a')
+      .should('have.attr', 'href', 'https://github.com/Sims07/enterprise-capacity-mapper/releases')
+      .and('contain.text', 'Versions');
+    cy.get('[data-testid="pwa-version"]').invoke('text').should('match', /v\d+\.\d+\.\d+(?:-[\w.]+)?\s*·\s*Versions/);
     cy.get('.map').should('be.visible');
     cy.get('#root').should('not.be.empty');
     cy.get('#root').should('not.contain.text', 'Cannot read properties');
