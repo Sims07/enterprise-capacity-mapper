@@ -706,8 +706,8 @@ describe('Application smoke test', () => {
       });
       cy.get('.toolbar-switch > button.active')
         .should('have.length', 1)
-        .and('have.css', 'background-color', theme === 'light' ? 'rgb(238, 242, 255)' : 'rgb(79, 70, 229)')
-        .and('have.css', 'color', theme === 'light' ? 'rgb(55, 48, 163)' : 'rgb(255, 255, 255)')
+        .and('have.css', 'background-color', theme === 'light' ? 'rgb(238, 242, 255)' : 'rgb(52, 42, 81)')
+        .and('have.css', 'color', theme === 'light' ? 'rgb(55, 48, 163)' : 'rgb(240, 234, 255)')
         .and('have.css', 'box-shadow', 'none');
       cy.get('.toolbar-switch > button:not(.active)').each($button => {
         expect(getComputedStyle($button[0]).backgroundColor, 'fond des onglets inactifs transparent')
