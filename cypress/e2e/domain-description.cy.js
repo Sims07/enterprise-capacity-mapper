@@ -18,7 +18,9 @@ describe('Description des domaines N0 sur la cartographie', () => {
 
     cy.get('.domain-card').first().find('.domain-desc')
       .should('be.visible')
-      .and('have.text', 'Périmètre client et engagement.');
+      .and('have.text', 'Périmètre client et engagement.')
+      .and('have.css', 'font-size', '10px')
+      .and('have.css', 'line-height', '14px');
 
     cy.reload();
     cy.get('.domain-card').first().find('.domain-desc')
