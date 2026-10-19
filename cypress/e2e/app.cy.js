@@ -695,57 +695,39 @@ describe('Application smoke test', () => {
   });
 
 
-  it('anime le fond de navigation et l adapte aux thèmes clair et sombre sans doublon', () => {
+  it('garde le surlignage sur le bouton actif dans les thèmes clair et sombre', () => {
     cy.viewport(1280, 800);
     cy.visit('/');
-    cy.get('.toolbar-switch').should('be.visible').within(() => {
-      cy.contains('button', 'Cartographie').should('have.class', 'active');
-    });
 
-    const assertTransparentButtons = () => {
-      cy.get('.toolbar-switch > button').each($button => {
-        expect(getComputedStyle($button[0]).backgroundColor, 'fond individuel du bouton transparent')
-          .to.equal('rgba(0, 0, 0, 0)');
-        expect(getComputedStyle($button[0]).boxShadow, 'aucune ombre individuelle')
-          .to.equal('none');
-        expect(getComputedStyle($button[0]).zIndex).to.equal('1');
-      });
-    };
     const assertNavigationHighlight = (theme) => {
-      cy.get('.toolbar-switch').then($switch => {
+      cy.get('.toolbar-switch').should('be.visible').then($switch => {
         const highlight = getComputedStyle($switch[0], '::before');
-        expect(highlight.content).not.to.equal('none');
-        expect(highlight.zIndex).to.equal('0');
-        expect(highlight.transitionDuration).to.include('0.32s');
-        if (theme === 'light') {
-          expect(highlight.backgroundColor).to.equal('rgb(238, 242, 255)');
-          expect(highlight.borderTopWidth).to.equal('1px');
-          cy.get('.toolbar-switch > button.active').should('have.css', 'color', 'rgb(55, 48, 163)');
-        } else {
-          expect(highlight.backgroundImage).to.include('linear-gradient');
-          expect(highlight.borderTopWidth).to.equal('0px');
-        }
+        expect(highlight.content, 'aucun curseur flottant hérité').to.equal('none');
+      });
+      cy.get('.toolbar-switch > button.active')
+        .should('have.length', 1)
+        .and('have.css', 'background-color', theme === 'light' ? 'rgb(238, 242, 255)' : 'rgb(79, 70, 229)')
+        .and('have.css', 'color', theme === 'light' ? 'rgb(55, 48, 163)' : 'rgb(255, 255, 255)')
+        .and('have.css', 'box-shadow', 'none');
+      cy.get('.toolbar-switch > button:not(.active)').each($button => {
+        expect(getComputedStyle($button[0]).backgroundColor, 'fond des onglets inactifs transparent')
+          .to.equal('rgba(0, 0, 0, 0)');
       });
     };
 
+    cy.contains('.toolbar-switch > button', 'Cartographie').should('have.class', 'active');
     assertNavigationHighlight('light');
-    assertTransparentButtons();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
-    cy.get('.toolbar-switch').should($switch => {
-      expect(getComputedStyle($switch[0], '::before').transform)
-        .not.to.equal('matrix(1, 0, 0, 1, 0, 0)');
-    });
-    assertTransparentButtons();
+    assertNavigationHighlight('light');
     cy.get('header').contains('button', 'Impact').click().should('have.class', 'active');
-    assertTransparentButtons();
+    assertNavigationHighlight('light');
 
     openToolsMenu();
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     assertNavigationHighlight('dark');
-    assertTransparentButtons();
     cy.get('header').contains('button', 'Cartographie').click().should('have.class', 'active');
-    assertTransparentButtons();
+    assertNavigationHighlight('dark');
   });
 
 
