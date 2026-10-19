@@ -30,6 +30,14 @@ describe('Dashboard de couverture', () => {
     });
   });
 
+  it('garde le surlignage actif sur l’onglet sélectionné', () => {
+    const tabs = ['[data-testid="tab-relations"]', '[data-testid="tab-impact"]', '[data-testid="tab-dashboard"]'];
+    tabs.forEach(selector => {
+      cy.get(selector).click().should('have.class', 'active');
+      cy.get('.toolbar-switch > button.active').should('have.length', 1).and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
+    });
+  });
+
   it('permet d’ouvrir dans Relations un gap depuis le dashboard', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
