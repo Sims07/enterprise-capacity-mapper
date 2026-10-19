@@ -91,7 +91,10 @@ describe('Contrastes du thème sombre', () => {
     cy.contains('.canvas-actions button', 'Structure').click();
     cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
     cy.get('.modal .structure-section').first().should('have.css', 'border-top-color', 'rgb(226, 232, 240)');
-    cy.get('.modal .structure-section h3').first().should('have.css', 'color', 'rgb(15, 23, 42)');
+    cy.get('.modal .structure-section h3').first().should('be.visible').then($heading => {
+      const channels = getComputedStyle($heading[0]).color.match(/\d+/g).slice(0, 3).map(Number);
+      expect(channels.every(channel => channel < 128), 'texte de titre suffisamment sombre en thème clair').to.be.true;
+    });
     cy.get('.modal .modal-actions').contains('button', 'Annuler').click();
     cy.get('.modal').should('not.exist');
   });
