@@ -587,6 +587,8 @@ function App() {
           </div>
         </div>
 
+        {d.description?.trim() && <p className="cap-desc domain-desc">{d.description.trim()}</p>}
+
         {depth === 1 ? (
           <div className="relations domain-relations">
             {apps.filter(a => relationIds(a).includes(d.id)).map(a => (
@@ -627,7 +629,7 @@ function App() {
                     <span className="app-count">{coverage.count}</span>
                   </div>
 
-                  <p className="cap-desc">{c.description || 'Aucune description'}</p>
+                  {c.description?.trim() && <p className="cap-desc">{c.description.trim()}</p>}
 
                   <div className="relations">
                     {coverage.apps.map(a => (
@@ -1090,7 +1092,14 @@ function App() {
                   </label>
                 </>
               )}
-              <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+              {(modal === 'domain' || modal === 'edit-domain') ? (
+                <label className="field">
+                  <span>Description</span>
+                  <textarea data-testid="domain-description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Décrivez le périmètre du domaine (facultatif)" />
+                </label>
+              ) : (
+                <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+              )}
             </>
           )}
 
