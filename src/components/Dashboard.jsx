@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 const linksFor = (app, targetId) => (app.capabilityIds || []).includes(targetId);
 const coverageState = count => count === 0 ? 'gap' : count === 1 ? 'covered' : 'redundant';
 
-export default function Dashboard({ model, depth, onExploreTarget }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -132,6 +132,25 @@ export default function Dashboard({ model, depth, onExploreTarget }) {
               <span className="dashboard-count is-redundant">{stats.redundancies.length}</span>
             </div>
             {stats.redundancies.length ? <div className="dashboard-target-list">{stats.redundancies.slice(0, 6).map(targetButton)}{stats.redundancies.length > 6 && <p className="dashboard-more">+ {stats.redundancies.length - 6} autres éléments</p>}</div> : <p className="dashboard-empty">Aucune couverture multiple détectée.</p>}
+          </section>
+          <section className="dashboard-panel dashboard-unlinked-apps" data-testid="dashboard-unlinked-apps">
+            <div className="dashboard-panel-heading">
+              <div><h3>Applications sans relation</h3><p>Applications qui ne contribuent actuellement à aucune capacité de ce modèle.</p></div>
+              <span className="dashboard-count is-gap">{stats.unlinkedApps.length}</span>
+            </div>
+            {stats.unlinkedApps.length ? (
+              <div className="dashboard-app-list">
+                {stats.unlinkedApps.map(app => (
+                  <div className="dashboard-app-row" key={app.id}>
+                    <div className="dashboard-app-details">
+                      <strong>{app.name}</strong>
+                      <span>{app.code || 'Sans code'} · {app.status || 'Statut non défini'}{app.vendor ? ` · ${app.vendor}` : ''}</span>
+                    </div>
+                    <button type="button" className="dashboard-app-action" aria-label={`Relier ${app.name} à des ${targetSingular === 'domaine' ? 'domaines N0' : 'capacités N1'}`} onClick={() => onLinkApp?.(app)}>Relier…</button>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="dashboard-empty">Toutes les applications sont reliées à au moins un élément de la cartographie.</p>}
           </section>
         </div>
       </div>

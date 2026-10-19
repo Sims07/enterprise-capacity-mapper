@@ -67,3 +67,19 @@
   .dashboard-panel { padding: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { .dashboard-progress > span, .dashboard-domain-progress > span { transition: none; } }
+
+
+/* Applications orphelines : diagnostic avec action directe vers le dialogue de liaison. */
+.dashboard-app-list { display: flex; flex-direction: column; gap: 8px; }
+.dashboard-app-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 10px; border: 1px solid #e2e8f0; border-radius: 9px; }
+.dashboard-app-details { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.dashboard-app-details strong { overflow-wrap: anywhere; font-size: 12px; }
+.dashboard-app-details span { color: #64748b; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+.dashboard-app-action { flex: 0 0 auto; padding: 7px 10px; border: 1px solid #c7d2fe; border-radius: 8px; background: #eef2ff; color: #4338ca; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.dashboard-app-action:hover { background: #e0e7ff; }
+.dashboard-app-action:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+.app.theme-dark .dashboard-app-row { border-color: #343842; }
+.app.theme-dark .dashboard-app-details span { color: #9ca3af; }
+.app.theme-dark .dashboard-app-action { border-color: #51458b; background: #342c56; color: #ddd6fe; }
+.app.theme-dark .dashboard-app-action:hover { background: #40356a; }
+@media (max-width: 420px) { .dashboard-app-row { align-items: flex-start; gap: 8px; padding: 9px; } .dashboard-app-action { padding: 7px 8px; } }
