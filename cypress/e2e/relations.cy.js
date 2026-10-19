@@ -52,7 +52,9 @@ describe('Relations applications ↔ capacités', () => {
     openTree();
     cy.contains('.tree-node-cap', 'Gestion des Prospects & Leads')
       .find('[data-testid="tree-impact-toggle"]')
-      .click()
+      .click();
+    cy.contains('.tree-node-cap', 'Gestion des Prospects & Leads')
+      .find('[data-testid="tree-impact-toggle"]')
       .should('have.attr', 'aria-pressed', 'true');
     cy.get('.tree-row.impact-highlight').should('contain.text', 'Gestion des Prospects & Leads');
     cy.get('header').contains('button', 'Cartographie').click();
