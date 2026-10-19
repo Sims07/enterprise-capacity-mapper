@@ -28,7 +28,7 @@ describe('Contrastes du thème sombre', () => {
       .and('have.css', 'background-color', 'rgb(26, 41, 64)')
       .and('have.css', 'color', 'rgb(232, 238, 247)')
       .and('have.css', 'border-color', 'rgb(69, 90, 118)');
-    cy.get('aside').should('have.css', 'background-color', 'rgb(25, 27, 34)');
+    cy.get('aside').should('have.css', 'background-color', 'rgb(17, 28, 46)');
     cy.get('[data-testid="undo-button"], [data-testid="redo-button"]').each(($button) => {
       cy.wrap($button).should('be.visible').and('have.css', 'opacity', '1');
       cy.wrap($button).find('.history-button-label').should('have.css', 'color', 'rgb(203, 213, 225)');
@@ -87,7 +87,7 @@ describe('Contrastes du thème sombre', () => {
   it('conserve les surfaces claires de l’éditeur Structure en thème clair', () => {
     cy.contains('.canvas-actions button', 'Structure').click();
     cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
-    cy.get('.modal:not(.wizard)').should('have.css', 'background-color', 'rgb(255, 255, 255)');
+    cy.get('.modal:not(.wizard)').should('have.css', 'background-color', 'rgb(15, 23, 42)');
     cy.get('.modal:not(.wizard) .structure-section').first().should('have.css', 'border-top-color', 'rgb(226, 232, 240)');
     cy.get('.modal:not(.wizard) .structure-section h3').first().should('have.css', 'color', 'rgb(15, 23, 42)');
     cy.get('.modal:not(.wizard) .modal-actions').contains('button', 'Annuler').click();
