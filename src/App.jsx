@@ -72,6 +72,9 @@ function App() {
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('enterprise-capacity-mapper:theme') === 'dark');
+  const toolsMenuRef = useRef(null);
+  const toolsMenuToggleRef = useRef(null);
+  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
   const [localMapId, setLocalMapId] = useState(() => localStorage.getItem(ACTIVE_LOCAL_MAP_KEY) || '');
@@ -101,6 +104,32 @@ function App() {
   useEffect(() => {
     localStorage.setItem('enterprise-capacity-mapper:theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  const closeToolsMenu = () => {
+    if (toolsMenuRef.current) toolsMenuRef.current.open = false;
+    setToolsMenuOpen(false);
+  };
+
+  useEffect(() => {
+    if (!toolsMenuOpen) return undefined;
+
+    const handlePointerDown = event => {
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target)) closeToolsMenu();
+    };
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        closeToolsMenu();
+        toolsMenuToggleRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [toolsMenuOpen]);
 
   useEffect(() => {
     saveModel(model);
@@ -715,26 +744,50 @@ function App() {
           </div>
           <div className="toolbar-actions">
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
-              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}>↶</button>
-              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" title="Rétablir (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}>↷</button>
+              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
+              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
             </div>
             <label className="presentation-switch" data-testid="presentation-toggle">
               <span>Présentation</span>
               <input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
               <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
             </label>
-            <details className="toolbar-tools" data-testid="tools-menu">
-              <summary data-testid="tools-menu-toggle" aria-label="Ouvrir les outils" aria-haspopup="true">Outils <span aria-hidden="true">⌄</span></summary>
+            <details
+              className="toolbar-tools"
+              data-testid="tools-menu"
+              ref={toolsMenuRef}
+              onToggle={event => setToolsMenuOpen(event.currentTarget.open)}
+            >
+              <summary
+                data-testid="tools-menu-toggle"
+                ref={toolsMenuToggleRef}
+                aria-label="Ouvrir le menu Outils"
+                aria-haspopup="true"
+                aria-expanded={toolsMenuOpen}
+              >
+                <span>Outils</span><span aria-hidden="true">⌄</span>
+              </summary>
               <div className="toolbar-tools-panel" aria-label="Outils et actions">
-                <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => setDarkMode(value => !value)}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
-                <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={openWizard}>
-                  <span className="new-map-button-mark" aria-hidden="true">+</span>
-                  <span>Nouvelle cartographie</span>
-                </button>
-                <button type="button" className="secondary" data-testid="open-local-maps" onClick={openLocalMaps}>▤ Mes cartographies</button>
-                <button type="button" className="primary" data-testid="save-local-map" onClick={saveCurrentLocalMap}>Enregistrer</button>
-                <button type="button" className="secondary" data-testid="export-model" onClick={() => exportModel(model)}>↓ Exporter JSON</button>
-                <label className="button secondary toolbar-import">↑ Importer JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={importJson} /></label>
+                <section className="toolbar-menu-group" aria-labelledby="tools-group-maps">
+                  <h3 id="tools-group-maps" className="toolbar-menu-heading">Cartographie</h3>
+                  <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
+                    <span className="new-map-button-mark" aria-hidden="true">+</span>
+                    <span>Nouvelle cartographie</span>
+                  </button>
+                  <button type="button" className="secondary" data-testid="open-local-maps" onClick={() => { closeToolsMenu(); openLocalMaps(); }}>▤ Mes cartographies</button>
+                  <button type="button" className="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</button>
+                </section>
+                <div className="toolbar-menu-divider" role="separator" />
+                <section className="toolbar-menu-group" aria-labelledby="tools-group-data">
+                  <h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3>
+                  <button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); exportModel(model); }}>↓ Exporter en JSON</button>
+                  <label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} /></label>
+                </section>
+                <div className="toolbar-menu-divider" role="separator" />
+                <section className="toolbar-menu-group" aria-labelledby="tools-group-display">
+                  <h3 id="tools-group-display" className="toolbar-menu-heading">Affichage</h3>
+                  <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
+                </section>
               </div>
             </details>
           </div>

@@ -537,10 +537,14 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
     cy.get('[data-testid="theme-toggle"]').should('be.visible');
+    cy.get('[data-testid="tools-menu-toggle"]').should('have.attr', 'aria-expanded', 'true');
     cy.get('.toolbar-tools-panel').within(() => {
+      cy.contains('.toolbar-menu-heading', 'Cartographie').should('be.visible');
+      cy.contains('.toolbar-menu-heading', 'Données').should('be.visible');
+      cy.contains('.toolbar-menu-heading', 'Affichage').should('be.visible');
       cy.get('[data-testid="new-map-button"]').should('be.visible');
       cy.get('[data-testid="open-local-maps"]').should('be.visible');
-      cy.get('[data-testid="save-local-map"]').should('be.visible');
+      cy.get('[data-testid="save-local-map"]').should('be.visible').and('contain.text', 'Enregistrer');
       cy.get('[data-testid="export-model"]').should('be.visible');
       cy.get('[data-testid="import-model"]').should('exist').and('have.attr', 'accept', '.json,application/json');
     });
@@ -558,6 +562,13 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="save-local-map"]').click();
     cy.get('[data-testid="local-map-name"]').should('be.visible');
     cy.contains('.modal button', 'Annuler').click();
+
+    openToolsMenu();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    openToolsMenu();
+    cy.get('body').type('{esc}');
+    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
   });
 
   it('garde le menu Outils utilisable sur mobile sans débordement horizontal', () => {
@@ -676,6 +687,7 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="presentation-toggle"]')
       .should('have.css', 'background-color', 'rgb(30, 41, 59)')
       .and('have.css', 'color', 'rgb(241, 245, 249)');
+    openToolsMenu();
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
     cy.get('[data-testid="presentation-toggle"]')

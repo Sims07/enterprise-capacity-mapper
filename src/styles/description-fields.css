@@ -1,34 +1,35 @@
-/* Champs de description : occuper toute la largeur disponible du formulaire. */
-.field textarea {
+/* Champs de description N0/N1 : même largeur que le conteneur du formulaire. */
+.field textarea,
+.field textarea[data-testid="domain-description"],
+.field textarea[data-testid="capability-description"] {
   display: block;
   width: 100%;
-  min-width: 0;
   max-width: 100%;
-  min-height: 84px;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 9px;
   border: 1px solid #cbd5e1;
   border-radius: 7px;
   background: #fff;
-  color: #334155;
+  color: #0f172a;
   font: inherit;
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.5;
   resize: vertical;
 }
+
 .field textarea:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99,102,241,.14);
   outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, .16);
 }
+
 .app.theme-dark .field textarea {
   background: #101318;
   color: #f3f4f6;
-  border-color: #454c5b;
+  border-color: #353b48;
 }
+
 .app.theme-dark .field textarea::placeholder {
-  color: #7c8799;
-}
-.app.theme-dark .field textarea:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 2px rgba(129,140,248,.18);
+  color: #858c9b;
 }

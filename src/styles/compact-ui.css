@@ -276,3 +276,151 @@
 .app:not(.theme-dark) .toolbar-switch > button.active:hover {
   color: #3730a3 !important;
 }
+
+
+/* Menu Outils structuré : catégories explicites, fermeture accessible et contrastes cohérents. */
+.toolbar-tools-panel {
+  width: min(264px, calc(100vw - 24px));
+  max-height: min(72vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px;
+  gap: 0;
+}
+.toolbar-menu-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.toolbar-menu-heading {
+  margin: 2px 8px 5px;
+  color: #64748b;
+  font-size: 9px;
+  line-height: 1.4;
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.toolbar-tools-panel button,
+.toolbar-tools-panel .toolbar-import {
+  min-height: 36px;
+  gap: 9px;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+  line-height: 1.35;
+  white-space: normal;
+}
+.toolbar-tools-panel .new-map-button { max-width: none; }
+.toolbar-menu-divider { height: 1px; margin: 9px 4px; background: #e2e8f0; }
+.toolbar-tools-panel button:focus-visible,
+.toolbar-tools-panel .toolbar-import:focus-within {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+.toolbar-tools > summary { user-select: none; }
+.toolbar-tools[open] > summary { background: #eef2ff; border-color: #a5b4fc; color: #3730a3; }
+.toolbar-history { flex: 0 0 auto; }
+.toolbar-actions .history-button {
+  width: auto;
+  min-width: 36px;
+  height: 34px;
+  gap: 6px;
+  padding: 0 9px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px !important;
+  font-weight: 750;
+}
+.history-button-icon { font-size: 17px; line-height: 1; }
+.history-button-label { white-space: nowrap; }
+.toolbar-actions .history-button:disabled { opacity: .42; cursor: not-allowed; }
+.toolbar-actions .history-button:not(:disabled):hover { background: #eef2ff !important; border-color: #a5b4fc !important; color: #3730a3 !important; }
+.toolbar-actions .history-button:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.app.theme-dark .toolbar-tools-panel {
+  background: #111c2e;
+  color: #f1f5f9;
+  border-color: #34465e;
+  box-shadow: 0 18px 42px rgba(0,0,0,.42);
+}
+.app.theme-dark .toolbar-menu-heading { color: #b4c2d4; }
+.app.theme-dark .toolbar-menu-divider { background: #34465e; }
+.app.theme-dark .toolbar-tools > summary,
+.app.theme-dark .toolbar-tools[open] > summary {
+  background: #1a2940;
+  color: #f1f5f9;
+  border-color: #455a76;
+}
+.app.theme-dark .toolbar-tools-panel button,
+.app.theme-dark .toolbar-tools-panel .toolbar-import {
+  background: #172438 !important;
+  color: #e8eef7 !important;
+  border-color: #455a76 !important;
+}
+.app.theme-dark .toolbar-tools-panel button:hover,
+.app.theme-dark .toolbar-tools-panel .toolbar-import:hover {
+  background: #263956 !important;
+  border-color: #8296b4 !important;
+}
+.app.theme-dark .toolbar-tools-panel .primary {
+  background: #4f46e5 !important;
+  color: #fff !important;
+  border-color: #818cf8 !important;
+}
+.app.theme-dark .toolbar-actions .history-button:not(:disabled):hover {
+  background: #263956 !important;
+  border-color: #8296b4 !important;
+  color: #fff !important;
+}
+@media (max-width: 600px) {
+  .toolbar-tools-panel { right: 0; width: min(264px, calc(100vw - 24px)); }
+  .toolbar-actions .history-button { padding-inline: 7px !important; }
+  .history-button-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-tools > summary > span[aria-hidden="true"] { transition: none; }
+}
+
+
+/* Historique : conserver un contraste suffisant en Linear Black, même désactivé. */
+.app.theme-dark .toolbar-actions .history-button,
+.app.theme-dark .toolbar-actions .history-button:disabled {
+  background: #202632 !important;
+  color: #e5eaf2 !important;
+  border-color: #485366 !important;
+  opacity: 1;
+}
+.app.theme-dark .toolbar-actions .history-button:not(:disabled) {
+  background: #252f42 !important;
+  color: #f8fafc !important;
+  border-color: #64748b !important;
+}
+.app.theme-dark .toolbar-actions .history-button:not(:disabled):hover {
+  background: #303d55 !important;
+  color: #ffffff !important;
+  border-color: #a5b4fc !important;
+}
+.app.theme-dark .toolbar-actions .history-button:disabled {
+  background: #191f2b !important;
+  color: #cbd5e1 !important;
+  border-color: #3f4a5d !important;
+  cursor: not-allowed;
+}
+.app.theme-dark .toolbar-actions .history-button .history-button-icon,
+.app.theme-dark .toolbar-actions .history-button .history-button-label {
+  color: inherit !important;
+}
+
+
+/* Les descriptions N0 restent contextuelles et discrètes dans la cartographie. */
+.domain-desc {
+  font-size: 10px;
+  line-height: 1.4;
+  margin: 0;
+  padding: 6px 8px;
+  color: #64748b;
+}
+.presentation-mode .domain-desc {
+  font-size: 9px;
+  line-height: 1.35;
+  padding: 4px 7px;
+}
+.app.theme-dark .domain-desc {
+  color: #b4c2d4;
+}

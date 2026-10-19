@@ -1,0 +1,305 @@
+/* Dark theme contrast pass — keep the cartography's layered, cool-toned surfaces. */
+.theme-dark {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --surface: #111c2e;
+  --surface-muted: #172438;
+  --border: #2b3b52;
+  --border-strong: #40536d;
+  --text: #f1f5f9;
+  --muted: #b4c2d4;
+  --accent: #818cf8;
+  --accent-soft: #252b50;
+}
+.theme-dark,
+.theme-dark main {
+  background: var(--bg);
+  color: var(--text);
+}
+.theme-dark header {
+  background: #101a2b;
+  color: #f8fafc;
+  border-bottom-color: #2b3b52;
+  box-shadow: 0 2px 14px rgba(0,0,0,.24);
+}
+.theme-dark .eyebrow,
+.theme-dark .hint,
+.theme-dark .canvas-head p,
+.theme-dark .hero p,
+.theme-dark .domain-head p,
+.theme-dark .app-item small,
+.theme-dark .cap p,
+.theme-dark .cap-desc,
+.theme-dark .structure-hint,
+.theme-dark .filter-count,
+.theme-dark .local-map-row span,
+.theme-dark .local-map-empty {
+  color: #b4c2d4;
+}
+.theme-dark aside,
+.theme-dark .impact-card,
+.theme-dark .domain,
+.theme-dark .domain-card,
+.theme-dark .cap,
+.theme-dark .layout-group,
+.theme-dark .modal,
+.theme-dark .local-map-row,
+.theme-dark .context-menu {
+  background: #111c2e;
+  color: #f1f5f9;
+  border-color: #34465e;
+}
+.theme-dark aside { border-right-color: #2b3b52; }
+.theme-dark .app-item { border-bottom-color: #26364c; }
+.theme-dark .app-item:hover,
+.theme-dark .local-map-row,
+.theme-dark .cap-select,
+.theme-dark .map-cell,
+.theme-dark .layout-chip,
+.theme-dark .caps-list,
+.theme-dark .domain-head,
+.theme-dark .map-view-toggle,
+.theme-dark .toolbar-switch {
+  background: #172438;
+  color: #e2e8f0;
+  border-color: #34465e;
+}
+.theme-dark .canvas-title h2,
+.theme-dark .cap-head b,
+.theme-dark .cap-tile-title,
+.theme-dark .local-map-row strong,
+.theme-dark .local-map-section-title,
+.theme-dark .modal h2,
+.theme-dark .modal h3,
+.theme-dark .field,
+.theme-dark .panel-title,
+.theme-dark .layout-tools label,
+.theme-dark .map-filter-control {
+  color: #f1f5f9;
+}
+.theme-dark .stats span,
+.theme-dark .count,
+.theme-dark .panel-title span,
+.theme-dark .panel-title em {
+  background: #1d2b40;
+  color: #e2e8f0;
+  border-color: #3b4e68;
+}
+.theme-dark .map {
+  background: #0d1727;
+  border-color: #34465e;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+.theme-dark .map-cell {
+  background: rgba(23,36,56,.78);
+  border: 1px solid #34465e;
+}
+.theme-dark .map-cell:hover { background: #1b2b42; border-color: #5b6f8a; }
+.theme-dark .axis-label,
+.theme-dark .col-head,
+.theme-dark .cell-label,
+.theme-dark .layout-group-title { color: #b4c2d4; }
+.theme-dark .cap {
+  background: #152238;
+  border-color: #3b4e68;
+}
+.theme-dark .cap.highlight {
+  border-color: #a5b4fc;
+  box-shadow: 0 0 0 2px rgba(129,140,248,.25);
+}
+.theme-dark .map-view-toggle button { color: #b4c2d4 !important; }
+.theme-dark .map-view-toggle button.active {
+  background: #303b60 !important;
+  color: #fff !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.28) !important;
+}
+.theme-dark .toolbar-switch button { color: #b4c2d4 !important; }
+.theme-dark .toolbar-switch button.active {
+  background: #263553 !important;
+  color: #fff !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+.theme-dark .toolbar button,
+.theme-dark .button,
+.theme-dark .canvas-actions button,
+.theme-dark .domain-head button,
+.theme-dark .modal-actions button,
+.theme-dark .structure-remove,
+.theme-dark .structure-add,
+.theme-dark .local-map-row button,
+.theme-dark .cap-edit-btn,
+.theme-dark .mini-action-trigger {
+  background: #1a2940;
+  color: #e8eef7 !important;
+  border-color: #455a76 !important;
+}
+.theme-dark .toolbar button:hover,
+.theme-dark .button:hover,
+.theme-dark .canvas-actions button:hover,
+.theme-dark .domain-head button:hover,
+.theme-dark .modal-actions button:hover,
+.theme-dark .local-map-row button:hover,
+.theme-dark .cap-edit-btn:hover {
+  background: #263956 !important;
+  border-color: #8296b4 !important;
+}
+.theme-dark .toolbar .active,
+.theme-dark .primary,
+.theme-dark .canvas-actions .primary,
+.theme-dark .toolbar .primary {
+  background: #4f46e5 !important;
+  border-color: #818cf8 !important;
+  color: #fff !important;
+}
+.theme-dark .toolbar-actions .new-map-button,
+.theme-dark .side-add,
+.theme-dark .structure-add {
+  background: #252b50 !important;
+  color: #c7d2fe !important;
+  border-color: #626db0 !important;
+}
+.theme-dark input:not([type="checkbox"]):not([type="radio"]),
+.theme-dark select,
+.theme-dark textarea,
+.theme-dark .search,
+.theme-dark .map-filter-control input,
+.theme-dark .field input,
+.theme-dark .field select {
+  background: #0d1727;
+  color: #f1f5f9;
+  border-color: #455a76;
+}
+.theme-dark input::placeholder,
+.theme-dark textarea::placeholder,
+.theme-dark .map-filter-control input::placeholder { color: #8fa2bc; opacity: 1; }
+.theme-dark input:focus-visible,
+.theme-dark select:focus-visible,
+.theme-dark textarea:focus-visible,
+.theme-dark button:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+.theme-dark .context-menu { box-shadow: 0 16px 36px rgba(0,0,0,.48); }
+.theme-dark .context-menu button {
+  background: #172438;
+  color: #e8eef7;
+  border-color: #34465e;
+}
+.theme-dark .context-menu button:hover { background: #263956; }
+.theme-dark .context-menu button.danger {
+  color: #fecaca;
+  border-color: #7f353f;
+  background: #351f2b;
+}
+.theme-dark .modal-backdrop { background: rgba(2,6,23,.78); }
+.theme-dark .modal { box-shadow: 0 24px 70px rgba(0,0,0,.55); }
+.theme-dark .modal-head button { color: #e2e8f0; }
+.theme-dark .field span { color: #e2e8f0; }
+.theme-dark .field-error { color: #fca5a5; }
+.theme-dark .field.has-error input,
+.theme-dark .field.has-error select { border-color: #f87171; box-shadow: 0 0 0 2px rgba(248,113,113,.18); }
+.theme-dark .relations { border-color: #34465e; }
+.theme-dark .rel span { color: #a5b4fc; }
+.theme-dark .rel button { color: #a7b6ca; }
+.theme-dark .drop { color: #a7b6ca; border-color: #526781; }
+.theme-dark .cap-select { color: #e2e8f0; }
+.theme-dark .cap-select.selected { background: #30345d; color: #e0e7ff; }
+.theme-dark .result-row { border-color: #2b3b52; }
+.theme-dark .result-row span { color: #b4c2d4; }
+.theme-dark .impact .hero { background: #101a2b; border: 1px solid #34465e; }
+.theme-dark .metric { background: #1a2940; }
+.theme-dark .metric span { color: #c3cede; }
+.theme-dark .gap-box { background: #351f2b; color: #fecdd3; border-color: #7f353f; }
+.theme-dark .toast { background: #263956; color: #f8fafc; border: 1px solid #526781; }
+.theme-dark .cap-tile { background: #152238; border-color: #3b4e68; }
+.theme-dark .cap-tile-title { color: #f1f5f9; }
+.theme-dark .cap-tile-detail { border-color: #40536d; }
+.theme-dark .cap-desc { color: #b4c2d4; }
+.theme-dark .app-count { background: #263956; color: #e2e8f0; }
+.theme-dark .cap-tile.cov-ok { background: #15352f; border-color: #347a65; }
+.theme-dark .cap-tile.cov-ok .app-count { background: #205344; color: #bbf7d0; }
+.theme-dark .cap-tile.cov-redundant { background: #172f4c; border-color: #3e6c9e; }
+.theme-dark .cap-tile.cov-redundant .app-count { background: #24476d; color: #dbeafe; }
+.theme-dark .cap-tile.cov-gap { background: #40242c; border-color: #9a4654; }
+.theme-dark .cap-tile.cov-gap .app-count { background: #63313d; color: #ffe4e6; }
+.theme-dark .legend-ok { background: #15352f; color: #bbf7d0; border-color: #347a65; }
+.theme-dark .legend-redundant { background: #172f4c; color: #dbeafe; border-color: #3e6c9e; }
+.theme-dark .legend-gap { background: #40242c; color: #ffe4e6; border-color: #9a4654; }
+.theme-dark .local-map-row strong { color: #f1f5f9; }
+.theme-dark .local-map-row button:focus-visible { outline-color: #a5b4fc; }
+@media (prefers-reduced-motion: reduce) {
+  .theme-dark *, .theme-dark *::before, .theme-dark *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+
+/* Éditeur Structure de la cartographie : surfaces, séparateurs et actions cohérents
+   avec Linear Black. Ces règles sont volontairement limitées à cette modale. */
+.app.theme-dark .modal:not(.wizard) .structure-section {
+  background: #171a21;
+  border-top-color: #353b48;
+}
+.app.theme-dark .modal:not(.wizard) .structure-section h3,
+.app.theme-dark .modal:not(.wizard) .structure-row .field > span,
+.app.theme-dark .modal:not(.wizard) .zone-row > span {
+  color: #f3f4f6 !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-hint {
+  color: #c1c8d5 !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-row,
+.app.theme-dark .modal:not(.wizard) .zone-row {
+  color: #e5e7eb;
+}
+.app.theme-dark .modal:not(.wizard) .structure-row .field input,
+.app.theme-dark .modal:not(.wizard) .zone-row input {
+  background: #101318 !important;
+  color: #f3f4f6 !important;
+  border-color: #454c5b !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-row .field input:focus-visible,
+.app.theme-dark .modal:not(.wizard) .zone-row input:focus-visible {
+  border-color: #a5b4fc !important;
+  outline: 2px solid #818cf8;
+  outline-offset: 1px;
+}
+.app.theme-dark .modal:not(.wizard) .structure-remove {
+  background: #28202a !important;
+  color: #fecaca !important;
+  border-color: #70404a !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-remove:disabled {
+  background: #20232c !important;
+  color: #a0a7b5 !important;
+  border-color: #3b4050 !important;
+  opacity: 1;
+}
+.app.theme-dark .modal:not(.wizard) .structure-add {
+  background: #252b50 !important;
+  color: #e0e7ff !important;
+  border-color: #626db0 !important;
+}
+.app.theme-dark .modal:not(.wizard) .structure-add:hover,
+.app.theme-dark .modal:not(.wizard) .structure-remove:not(:disabled):hover {
+  filter: brightness(1.16);
+}
+
+/* Le thème sombre doit primer sur les sélecteurs historiques plus spécifiques. */
+.app.theme-dark .search {
+  background: #0d1727 !important;
+  color: #f1f5f9 !important;
+  border-color: #455a76 !important;
+}
+
+
+/* Le bouton secondaire "Structure" doit suivre le thème sombre, malgré
+   les règles historiques qui forcent un fond blanc avec !important. */
+.app.theme-dark .canvas-actions button.secondary {
+  background: #1a2940 !important;
+  color: #e8eef7 !important;
+  border-color: #455a76 !important;
+}
+.app.theme-dark .canvas-actions button.secondary:hover {
+  background: #263956 !important;
+  color: #ffffff !important;
+  border-color: #8296b4 !important;
+}
