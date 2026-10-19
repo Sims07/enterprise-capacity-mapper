@@ -741,7 +741,7 @@ function App() {
           <div className="toolbar-switch">
             <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
             <button type="button" className={mode === 'relations' ? 'active' : ''} data-testid="tab-relations" onClick={() => setMode('relations')}>⛓ Relations</button>
-            <button type="button" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
+            <button type="button" data-testid="tab-impact" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
             <button type="button" className={mode === 'dashboard' ? 'active' : ''} data-testid="tab-dashboard" onClick={() => setMode('dashboard')}>▥ Dashboard</button>
           </div>
           <div className="toolbar-actions">
