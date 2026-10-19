@@ -109,3 +109,92 @@
   background: #382d5a !important;
   background-color: #382d5a !important;
 }
+
+
+/* Lot B — sélection d'impact directement depuis les vues Cartographie et Relations. */
+.map-cap-select,
+.map-domain-select {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  line-height: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.map-cap-select:hover,
+.map-domain-select:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.map-cap-select:focus-visible,
+.map-domain-select:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 3px;
+}
+.map-cap-select[aria-pressed="true"],
+.map-domain-select[aria-pressed="true"] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.impact-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.impact-card-heading h3 { margin: 0; }
+.impact-clear-selection,
+.coverage-tree .tree-impact-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid #c4b5fd;
+  border-radius: 7px;
+  background: #f5f3ff;
+  color: #5b21b6;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.impact-clear-selection:hover,
+.coverage-tree .tree-impact-toggle:hover {
+  background: #ede9fe;
+  border-color: #8b5cf6;
+}
+.app.theme-dark .impact-clear-selection,
+.app.theme-dark .coverage-tree .tree-impact-toggle {
+  background: #302750;
+  border-color: #7561ad;
+  color: #f0eaff;
+}
+.app.theme-dark .impact-clear-selection:hover,
+.app.theme-dark .coverage-tree .tree-impact-toggle:hover {
+  background: #403365;
+  border-color: #a78bfa;
+}
+.coverage-tree .tree-impact-toggle[aria-pressed="true"] {
+  background: #ede9fe;
+  border-color: #8b5cf6;
+  color: #4c1d95;
+}
+.app.theme-dark .coverage-tree .tree-impact-toggle[aria-pressed="true"] {
+  background: #302750;
+  border-color: #a78bfa;
+  color: #f3e8ff;
+}
+@media (max-width: 700px) {
+  .coverage-tree .tree-impact-toggle { white-space: normal; }
+}
