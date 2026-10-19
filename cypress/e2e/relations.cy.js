@@ -246,7 +246,7 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.toolbar-switch')
       .should('have.css', 'background-color', 'rgb(238, 241, 246)');
     cy.get('.toolbar-switch button.active')
-      .should('have.css', 'background-color', 'rgba(0, 0, 0, 0)')
+      .should('have.css', 'background-color', 'rgb(238, 242, 255)')
       .and('have.css', 'color', 'rgb(55, 48, 163)');
     cy.get('.cell-add')
       .first()
@@ -263,7 +263,7 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.toolbar-switch')
       .should('have.css', 'background-color', 'rgb(21, 23, 29)');
     cy.get('.toolbar-switch button.active')
-      .should('have.css', 'background-color', 'rgba(0, 0, 0, 0)')
+      .should('have.css', 'background-color', 'rgb(79, 70, 229)')
       .and('have.css', 'color', 'rgb(255, 255, 255)');
     cy.get('.cell-add')
       .first()
@@ -278,7 +278,7 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.toolbar-switch')
       .should('have.css', 'background-color', 'rgb(238, 241, 246)');
     cy.get('.toolbar-switch button.active')
-      .should('have.css', 'background-color', 'rgba(0, 0, 0, 0)')
+      .should('have.css', 'background-color', 'rgb(238, 242, 255)')
       .and('have.css', 'color', 'rgb(55, 48, 163)');
     cy.get('.toolbar-switch button').not('.active')
       .first()
