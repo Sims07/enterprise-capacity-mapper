@@ -282,3 +282,10 @@
 .app.theme-dark .modal:not(.wizard) .structure-remove:not(:disabled):hover {
   filter: brightness(1.16);
 }
+
+/* Le thème sombre doit primer sur les sélecteurs historiques plus spécifiques. */
+.app.theme-dark .search {
+  background: #0d1727 !important;
+  color: #f1f5f9 !important;
+  border-color: #455a76 !important;
+}
