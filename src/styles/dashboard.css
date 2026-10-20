@@ -40,6 +40,7 @@
 .dashboard-status.is-covered { color: #166534; background: #dcfce7; }
 .dashboard-target-apps { white-space: nowrap; color: #64748b; font-size: 10px; }
 .dashboard-target-action { color: #64748b; text-align: center; font-size: 15px; }
+.dashboard-priority-placeholder { display: block; width: 1px; }
 .dashboard-priority { padding: 3px 6px; border-radius: 6px; font-size: 10px; font-weight: 750; white-space: nowrap; }
 .dashboard-priority.is-P1 { color: #991b1b; background: #fee2e2; }
 .dashboard-priority.is-P2 { color: #92400e; background: #fef3c7; }
