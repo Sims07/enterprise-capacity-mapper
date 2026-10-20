@@ -73,7 +73,7 @@ export default function PwaUpdateNotice() {
   return (
     <div className="pwa-version" data-testid="pwa-version">
       <a href={RELEASES_URL} target="_blank" rel="noreferrer" aria-label="Consulter les nouvelles versions">
-        v{APP_VERSION} · Versions
+        v{APP_VERSION}
       </a>
       {updateReady && (
         <button type="button" className="pwa-update-button" data-testid="pwa-update-button" onClick={applyUpdate}>

@@ -2515,45 +2515,15 @@ body::-webkit-scrollbar,
   }
 }
 
-/* Version et mise à jour PWA, intégrées sans encombrer la barre de navigation. */
-.pwa-version {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 5px 16px;
-  min-height: 30px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  color: #475569;
-  font-size: 11px;
-}
-.pwa-version a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.pwa-update-button {
-  border: 1px solid #4f46e5;
-  border-radius: 6px;
-  padding: 5px 9px;
-  background: #4f46e5;
-  color: #fff;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-.pwa-update-message { color: inherit; }
-.app.theme-dark .pwa-version {
-  background: #171a20;
-  color: #cbd5e1;
-  border-bottom-color: #334155;
-}
-@media (max-width: 600px) {
-  .pwa-version { padding: 5px 10px; }
-}
-
+/* Version compacte, consultable au bas du menu Outils. */
+.pwa-version { display:flex; align-items:center; justify-content:flex-start; flex-wrap:wrap; gap:6px; padding:0; min-height:0; background:transparent; border:0; color:#64748b; font-size:11px; }
+.pwa-version a { color:inherit; text-decoration:none; font-variant-numeric:tabular-nums; }
+.pwa-version a:hover { text-decoration:underline; text-underline-offset:2px; }
+.pwa-update-button { border:1px solid #4f46e5; border-radius:6px; padding:5px 9px; background:#4f46e5; color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+.pwa-update-message { color:inherit; font-size:11px; }
+.app.theme-dark .pwa-version { background:transparent; color:#9ca3af; }
+.toolbar-menu-version { gap:5px; }
+.toolbar-menu-version .toolbar-menu-heading { margin-bottom:0; }
 
 /* Navigation contextuelle depuis le dashboard vers Relations. */
 .relations-return-row { display: flex; justify-content: flex-start; margin: 0 0 12px; }

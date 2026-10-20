@@ -829,13 +829,16 @@ function App() {
                   <h3 id="tools-group-display" className="toolbar-menu-heading">Affichage</h3>
                   <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
                 </section>
+                <div className="toolbar-menu-divider" role="separator" />
+                <section className="toolbar-menu-group toolbar-menu-version" aria-labelledby="tools-group-version">
+                  <h3 id="tools-group-version" className="toolbar-menu-heading">Version</h3>
+                  <PwaUpdateNotice />
+                </section>
               </div>
             </details>
           </div>
         </div>
       </header>
-
-      <PwaUpdateNotice />
 
       <div className="workspace">
         <aside id="app-inventory">
