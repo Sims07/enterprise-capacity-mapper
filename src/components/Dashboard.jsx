@@ -88,6 +88,13 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
     setPriorityFilter('all');
     document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const focusDomainGaps = (domainId, priority = 'all') => {
+    setDomainFilter(domainId);
+    setStatusFilter('gap');
+    setSearchQuery('');
+    setPriorityFilter(priority);
+    document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const targetButton = target => (
     <button
@@ -261,6 +268,69 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           </section>
         )}
       </section>
+
+      {depth !== 1 && (
+        <section className="dashboard-panel dashboard-gap-priorities" data-testid="dashboard-gap-priorities" aria-label="Gaps prioritaires par domaine N0">
+          <div className="dashboard-panel-heading">
+            <div><h3>Gaps prioritaires par domaine N0</h3><p>Repérez les domaines qui concentrent les gaps et explorez uniquement les éléments à traiter. Les priorités restent celles définies dans la cartographie.</p></div>
+            <span>{stats.gaps.length} gaps à qualifier ou traiter</span>
+          </div>
+          {stats.domainStats.length ? (
+            <div className="dashboard-gap-domain-grid">
+              {stats.domainStats.map(domain => {
+                const priorityOrder = { P1: 0, P2: 1, P3: 2, unqualified: 3 };
+                const orderedGaps = [...domain.gaps].sort((a, b) => (priorityOrder[a.priority || 'unqualified'] ?? 3) - (priorityOrder[b.priority || 'unqualified'] ?? 3) || a.name.localeCompare(b.name, 'fr'));
+                const priorityCounts = {
+                  P1: orderedGaps.filter(target => target.priority === 'P1').length,
+                  P2: orderedGaps.filter(target => target.priority === 'P2').length,
+                  P3: orderedGaps.filter(target => target.priority === 'P3').length,
+                  unqualified: orderedGaps.filter(target => !target.priority || target.priority === 'unqualified').length
+                };
+                return (
+                  <article className="dashboard-gap-domain" key={domain.id} data-testid={`dashboard-gap-domain-${domain.id}`}>
+                    <div className="dashboard-gap-domain-heading">
+                      <div><strong>{domain.name}</strong><span>{domain.code || 'Sans code'}</span></div>
+                      <b>{orderedGaps.length}</b>
+                    </div>
+                    <div className="dashboard-gap-priority-counts" aria-label={`Priorités des gaps pour ${domain.name}`}>
+                      {[
+                        ['P1', 'Critique'],
+                        ['P2', 'Élevée'],
+                        ['P3', 'Normale'],
+                        ['unqualified', 'À qualifier']
+                      ].map(([priority, label]) => (
+                        <button
+                          key={priority}
+                          type="button"
+                          className={`dashboard-gap-priority is-${priority}`}
+                          data-testid={`dashboard-gap-priority-${domain.id}-${priority}`}
+                          disabled={priorityCounts[priority] === 0}
+                          onClick={() => focusDomainGaps(domain.id, priority)}
+                          aria-label={`${priority === 'unqualified' ? 'À qualifier' : priority} : ${priorityCounts[priority]} gap(s) dans ${domain.name}`}
+                        >
+                          <strong>{priorityCounts[priority]}</strong><span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {orderedGaps.length ? (
+                      <ul className="dashboard-gap-domain-list">
+                        {orderedGaps.slice(0, 3).map(target => (
+                          <li key={target.id}>
+                            <button type="button" onClick={() => onExploreTarget(target.id)} aria-label={`Explorer le gap ${target.name} dans Relations`}>{target.name}</button>
+                            <span className={`dashboard-priority is-${target.priority || 'unqualified'}`}>{target.priority || 'À qualifier'}</span>
+                          </li>
+                        ))}
+                        {orderedGaps.length > 3 && <li className="dashboard-gap-domain-more">+ {orderedGaps.length - 3} autres gaps</li>}
+                      </ul>
+                    ) : <p className="dashboard-gap-domain-empty">Aucun gap détecté dans ce domaine.</p>}
+                    <button type="button" className="dashboard-domain-filter-action" data-testid={`dashboard-domain-gaps-${domain.id}`} disabled={!orderedGaps.length} onClick={() => focusDomainGaps(domain.id)}>Afficher les gaps de ce domaine <span aria-hidden="true">↗</span></button>
+                  </article>
+                );
+              })}
+            </div>
+          ) : <p className="dashboard-empty">Aucun domaine dans cette cartographie.</p>}
+        </section>
+      )}
 
       <div className="dashboard-content">
         <section className="dashboard-panel dashboard-domain-panel">
