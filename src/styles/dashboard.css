@@ -178,3 +178,24 @@
 @media (max-width: 680px) {
   .dashboard-map-cell { gap: 8px; padding: 7px; }
 }
+
+
+/* Typographie des titres N0 : même hiérarchie visuelle que la cartographie. */
+.dashboard-map-domain-header {
+  gap: 7px;
+  padding: 8px 10px;
+}
+.dashboard-map-domain-header strong {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: normal;
+}
+.dashboard-map-domain-code {
+  font-size: 9px;
+}
+.dashboard-map-domain-count {
+  min-width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
