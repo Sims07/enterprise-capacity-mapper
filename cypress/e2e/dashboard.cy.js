@@ -144,10 +144,11 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('.dashboard-map-domain').first().should('be.visible').then($domain => {
       const style = getComputedStyle($domain[0]);
-      expect(style.borderRadius).to.equal('10px');
-      expect(style.overflow).to.equal('clip');
+      expect(style.borderRadius).to.equal('0px');
+      expect(style.overflow).to.equal('visible');
+      expect(style.isolation).to.equal('auto');
     });
-    cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px');
+    cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px').and('have.css', 'gap', '10px');
   });
 
 });
