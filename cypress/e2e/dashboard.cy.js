@@ -148,10 +148,16 @@ describe('Dashboard de couverture', () => {
       expect(style.overflow).to.equal('visible');
       expect(style.isolation).to.equal('auto');
       const title = $domain.find('.dashboard-map-domain-header strong')[0];
+      const code = $domain.find('.dashboard-map-domain-code')[0];
       const titleStyle = getComputedStyle(title);
+      const codeStyle = getComputedStyle(code);
       expect(titleStyle.fontSize).to.equal('12px');
       expect(titleStyle.fontWeight).to.equal('800');
       expect(titleStyle.letterSpacing).to.equal('normal');
+      expect(title.parentElement.classList.contains('dashboard-map-domain-title')).to.equal(true);
+      expect(title.nextElementSibling).to.equal(code);
+      expect(codeStyle.fontSize).to.equal('10px');
+      expect(codeStyle.fontWeight).to.equal('600');
     });
     cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px').and('have.css', 'gap', '10px');
   });
