@@ -43,6 +43,25 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
   });
 
+  it('respecte les domaines N0 étendus sur plusieurs colonnes dans la heatmap', () => {
+    cy.get('.mini-action-trigger[aria-label="Actions pour Relation & Engagement Client"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
+    cy.get('[role="dialog"]').within(() => {
+      cy.contains('label.field', 'Étendue sur les colonnes').find('select').select('2');
+      cy.contains('button', 'Enregistrer').click();
+    });
+
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('.dashboard-map-domain[data-domain-id="l0-1"]')
+      .closest('.dashboard-map-cell')
+      .should('have.attr', 'data-column', 'customer')
+      .and('have.attr', 'data-layer', 'core')
+      .and('have.attr', 'style')
+      .and('contain', 'grid-column: span 2');
+    cy.get('.dashboard-map-row[data-layer="core"] .dashboard-map-cell[data-column="product"]')
+      .should('not.exist');
+    cy.get('.dashboard-map-column-headings span').should('have.length', 4);
+  });
   it('identifie une application sans relation et permet de la relier depuis le dashboard', () => {
     cy.get('.side-add').click();
     cy.get('[role="dialog"]').within(() => {
