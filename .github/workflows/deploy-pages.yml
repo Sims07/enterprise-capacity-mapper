@@ -71,6 +71,8 @@ jobs:
     needs: deploy
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: main
       - name: Create a GitHub Release for this deployment
         env:
           GH_TOKEN: ${{ github.token }}
