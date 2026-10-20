@@ -90,8 +90,10 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
               aria-label={`Domaine ${domain.name}`}
             >
               <header className="dashboard-map-domain-header">
-                <span className="dashboard-map-domain-code">{domain.code}</span>
-                <strong>{domain.name}</strong>
+                <div className="dashboard-map-domain-title">
+                  <strong>{domain.name}</strong>
+                  <span className="dashboard-map-domain-code">{domain.code}</span>
+                </div>
                 <span className="dashboard-map-domain-count">{domainTargets.length}</span>
               </header>
               <div className="dashboard-map-capabilities">

@@ -139,4 +139,27 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-kpi').should('have.length', 5);
     cy.get('.app.theme-dark .dashboard-panel').should('have.css', 'background-color', 'rgb(23, 26, 32)');
   });
+
+  it('garde des contours nets et un espacement régulier entre les domaines N0 de la heatmap', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('.dashboard-map-domain').first().should('be.visible').then($domain => {
+      const style = getComputedStyle($domain[0]);
+      expect(style.borderRadius).to.equal('0px');
+      expect(style.overflow).to.equal('visible');
+      expect(style.isolation).to.equal('auto');
+      const title = $domain.find('.dashboard-map-domain-header strong')[0];
+      const code = $domain.find('.dashboard-map-domain-code')[0];
+      const titleStyle = getComputedStyle(title);
+      const codeStyle = getComputedStyle(code);
+      expect(titleStyle.fontSize).to.equal('12px');
+      expect(titleStyle.fontWeight).to.equal('800');
+      expect(titleStyle.letterSpacing).to.equal('normal');
+      expect(title.parentElement.classList.contains('dashboard-map-domain-title')).to.equal(true);
+      expect(title.nextElementSibling).to.equal(code);
+      expect(codeStyle.fontSize).to.equal('10px');
+      expect(codeStyle.fontWeight).to.equal('600');
+    });
+    cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px').and('have.css', 'gap', '10px');
+  });
+
 });
