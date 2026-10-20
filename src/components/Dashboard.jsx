@@ -5,7 +5,7 @@ const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color :
 const linksFor = (app, targetId) => (app.capabilityIds || []).includes(targetId);
 const coverageState = count => count === 0 ? 'gap' : count === 1 ? 'covered' : 'redundant';
 
-export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, selected = [] }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -54,6 +54,10 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
     };
   }, [targets, apps, domains, depth]);
 
+  const impactTargets = stats.enriched.filter(target => selected.includes(target.id));
+  const impactTargetIds = new Set(impactTargets.map(target => target.id));
+  const impactApps = apps.filter(app => (app.capabilityIds || []).some(id => impactTargetIds.has(id)));
+  const impactGaps = impactTargets.filter(target => target.coverageCount === 0);
   const targetLabel = depth === 1 ? 'domaines N0' : 'capacités N1';
   const targetSingular = depth === 1 ? 'domaine' : 'capacité';
   const enrichedById = new Map(stats.enriched.map(target => [target.id, target]));
@@ -166,7 +170,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                   <button
                     key={target.id}
                     type="button"
-                    className={`dashboard-map-capability is-${target.state}`}
+                    className={`dashboard-map-capability is-${target.state}${impactTargetIds.has(target.id) ? ' is-impact-selected' : ''}`}
                     onClick={() => onExploreTarget(target.id)}
                     aria-label={`${target.name} : ${target.coverageCount} application${target.coverageCount > 1 ? 's' : ''}. Explorer dans Relations`}
                     title={`${target.name} — ${target.coverageCount} application(s)`}
@@ -194,6 +198,34 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
 
   return (
     <section className="dashboard" data-testid="capability-dashboard" aria-label="Dashboard de couverture">
+      {impactTargets.length > 0 && (
+        <section className="dashboard-panel dashboard-impact-summary" data-testid="dashboard-impact-summary" aria-label="Synthèse des impacts sélectionnés">
+          <div className="dashboard-panel-heading">
+            <div><h3>Impacts sélectionnés</h3><p>Les éléments choisis dans la vue Impact, avec leurs applications et gaps associés. Les indicateurs globaux ci-dessous restent calculés sur toute la cartographie.</p></div>
+            <span>{impactTargets.length} élément{impactTargets.length > 1 ? 's' : ''} sélectionné{impactTargets.length > 1 ? 's' : ''}</span>
+          </div>
+          <div className="dashboard-impact-metrics">
+            <article><strong>{impactTargets.length}</strong><span>Éléments sollicités</span></article>
+            <article><strong>{impactApps.length}</strong><span>Applications impactées</span></article>
+            <article className={impactGaps.length ? 'has-gaps' : ''}><strong>{impactGaps.length}</strong><span>Gaps dans la sélection</span></article>
+          </div>
+          <div className="dashboard-impact-details">
+            <div>
+              <h4>Éléments sélectionnés</h4>
+              <ul>{impactTargets.map(target => <li key={target.id}>{target.code ? `${target.code} — ` : ''}{target.name}</li>)}</ul>
+            </div>
+            <div>
+              <h4>Applications impactées</h4>
+              {impactApps.length ? <ul>{impactApps.map(app => <li key={app.id}>{app.name}<span>{app.status || 'Statut non défini'}</span></li>)}</ul> : <p>Aucune application reliée aux éléments sélectionnés.</p>}
+            </div>
+            <div>
+              <h4>Gaps de couverture</h4>
+              {impactGaps.length ? <ul>{impactGaps.map(target => <li key={target.id}>{target.code ? `${target.code} — ` : ''}{target.name}</li>)}</ul> : <p>Aucun gap dans les éléments sélectionnés.</p>}
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="dashboard-kpis" aria-label="Indicateurs de couverture">
         <article className="dashboard-kpi dashboard-kpi-primary">
           <span>Couverture globale</span>
