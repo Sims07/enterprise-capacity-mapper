@@ -401,7 +401,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                 );
               })}
             </div>
-          ) : <p className="dashboard-empty">Aucun domaine dans cette cartographie.</p>}
+          )}
         </section>
       )}
 
