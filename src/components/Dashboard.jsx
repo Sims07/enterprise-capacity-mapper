@@ -185,23 +185,6 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                         <span>{target.coverageCount === 0 ? 'Gap' : target.coverageCount === 1 ? 'Couvert' : 'Multiple'}</span>
                       </span>
                     </button>
-                    {depth !== 1 && (
-                      <label className="dashboard-map-priority-editor">
-                        <span className="dashboard-visually-hidden">Criticité de {target.name}</span>
-                        <select
-                          value={target.priority || 'unqualified'}
-                          data-testid={`dashboard-map-priority-select-${target.id}`}
-                          aria-label={`Criticité de ${target.name}`}
-                          onClick={event => event.stopPropagation()}
-                          onChange={event => onUpdatePriority?.(target.id, event.target.value)}
-                        >
-                          <option value="unqualified">À qualifier</option>
-                          <option value="P1">P1 — Critique</option>
-                          <option value="P2">P2 — Élevée</option>
-                          <option value="P3">P3 — Normale</option>
-                        </select>
-                      </label>
-                    )}
                   </div>
                 )) : (
                   <span className="dashboard-map-empty">{hasActiveFilters ? 'Aucun résultat avec ces filtres' : 'Aucun élément'}</span>
