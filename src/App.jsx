@@ -33,7 +33,7 @@ const domainTextColor = color => {
   const luminance = [r, g, b].map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
   return luminance > 0.42 ? '#0f172a' : '#ffffff';
 };
-const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo };
+const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified' };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
 
 function Modal({ title, children, onClose }) {
@@ -490,7 +490,7 @@ function App() {
   const openEditCapability = c => {
     setEditingCapabilityId(c.id);
     setFormErrors({});
-    setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '' });
+    setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '', priority: c.priority || 'unqualified' });
     setModal('edit-capability');
   };
 
@@ -520,11 +520,11 @@ function App() {
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
-      update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim(), description: form.description } : c) });
+      update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' } : c) });
       notify('Capacité N1 modifiée');
     }
     if (modal === 'capability') {
-      update({ capabilities: [...model.capabilities, { id: uid('l1'), domainId: form.domainId, code: form.code || 'CAP-01', name: form.name.trim(), description: form.description }] });
+      update({ capabilities: [...model.capabilities, { id: uid('l1'), domainId: form.domainId, code: form.code || 'CAP-01', name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' }] });
       notify('Capacité N1 créée');
     }
     if (modal === 'app') {
@@ -1212,6 +1212,19 @@ function App() {
           ) : modal === 'app' ? (
             <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
           ) : null}
+
+          {(modal === 'capability' || modal === 'edit-capability') && (
+            <label className="field">
+              <span>Priorité métier</span>
+              <select data-testid="capability-priority" value={form.priority || 'unqualified'} onChange={e => setForm({ ...form, priority: e.target.value })}>
+                <option value="unqualified">À qualifier</option>
+                <option value="P1">P1 — Critique</option>
+                <option value="P2">P2 — Élevée</option>
+                <option value="P3">P3 — Normale</option>
+              </select>
+              <small>Qualifiez la criticité métier ; un gap n’est pas automatiquement un risque élevé.</small>
+            </label>
+          )}
 
           {(modal === 'domain' || modal === 'edit-domain') && (
             <label className={'field domain-color-field ' + (formErrors.color ? 'has-error' : '')}>
