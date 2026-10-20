@@ -22,14 +22,24 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-progress[role="progressbar"]').should('have.attr', 'aria-valuenow');
   });
 
-  it('affiche la heatmap de couverture et permet d’ouvrir une capacité dans Relations', () => {
+  it('affiche la heatmap dans la même matrice de positionnement que la cartographie', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
-    cy.get('.dashboard-heatmap-legend').should('contain.text', 'Sans application')
-      .and('contain.text', 'Une application')
-      .and('contain.text', 'Plusieurs applications');
-    cy.get('.dashboard-heatmap-tile').should('have.length.greaterThan', 0);
-    cy.get('.dashboard-heatmap-tile').first().click();
+    cy.get('[data-testid="dashboard-map-layout"]').should('be.visible');
+    cy.get('.dashboard-map-column-headings span').should('have.length', 4)
+      .then($headings => expect([...$headings].map(el => el.textContent.trim())).to.deep.equal(['Client', 'Produit', 'Opérations', 'Support']));
+    cy.get('.dashboard-map-layer-label').should('have.length', 3)
+      .then($labels => expect([...$labels].map(el => el.textContent.trim())).to.deep.equal(['Stratégique', 'Core / Value', 'Support']));
+    cy.get('.dashboard-map-domain[data-domain-id="l0-1"]').should('exist')
+      .closest('.dashboard-map-cell').should('have.attr', 'data-column', 'customer').and('have.attr', 'data-layer', 'core');
+    cy.get('.dashboard-map-domain[data-domain-id="l0-2"]').should('exist')
+      .closest('.dashboard-map-cell').should('have.attr', 'data-column', 'support').and('have.attr', 'data-layer', 'support');
+    cy.get('.dashboard-map-domain[data-domain-id="l0-3"]').should('exist')
+      .closest('.dashboard-map-cell').should('have.attr', 'data-column', 'operations').and('have.attr', 'data-layer', 'core');
+    cy.get('.dashboard-map-domain[data-domain-id="l0-4"]').should('exist')
+      .closest('.dashboard-map-cell').should('have.attr', 'data-column', 'support').and('have.attr', 'data-layer', 'support');
+    cy.get('.dashboard-map-capability').should('have.length', 10);
+    cy.get('.dashboard-map-capability').first().click();
     cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
   });
 
