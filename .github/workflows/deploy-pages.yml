@@ -24,7 +24,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           npm version patch --no-git-tag-version
-          VERSION="$(node -p 'require(\"./package.json\").version')"
+          VERSION="$(node -p 'require("./package.json").version')"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           export VERSION
@@ -44,7 +44,7 @@ jobs:
           git push
       - run: npm install
       - name: Set build version
-        run: echo "VITE_APP_VERSION=$(node -p 'require(\"./package.json\").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+        run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       - run: npm run build
       - name: Prepare GitHub Pages preview paths
         run: |
@@ -89,7 +89,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="$(node -p 'require(\"./package.json\").version')-build.${GITHUB_RUN_NUMBER}"
+          VERSION="$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}"
           TAG="v${VERSION}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists; nothing to do."
