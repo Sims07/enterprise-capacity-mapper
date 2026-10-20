@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
@@ -13,6 +13,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
   const layout = model.layout || {};
   const columns = [...(layout.columns || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   const layers = [...(layout.layers || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [domainFilter, setDomainFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const stats = useMemo(() => {
     const enriched = targets.map(target => {
@@ -53,6 +56,21 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
   const targetSingular = depth === 1 ? 'domaine' : 'capacité';
   const enrichedById = new Map(stats.enriched.map(target => [target.id, target]));
   const capabilitiesByDomain = new Map(domains.map(domain => [domain.id, stats.enriched.filter(target => target.domainId === domain.id)]));
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase('fr');
+  const matchesFilters = (target, domain) => {
+    const targetDomainId = depth === 1 ? target.id : target.domainId;
+    if (statusFilter !== 'all' && target.state !== statusFilter) return false;
+    if (domainFilter !== 'all' && targetDomainId !== domainFilter) return false;
+    if (!normalizedQuery) return true;
+    const searchableText = [target.name, target.code, domain?.name, domain?.code].filter(Boolean).join(' ').toLocaleLowerCase('fr');
+    return searchableText.includes(normalizedQuery);
+  };
+  const filteredTargets = stats.enriched.filter(target => {
+    const domain = depth === 1 ? target : domains.find(item => item.id === target.domainId);
+    return matchesFilters(target, domain);
+  });
+  const hasActiveFilters = statusFilter !== 'all' || domainFilter !== 'all' || searchQuery.trim().length > 0;
+  const resetFilters = () => { setStatusFilter('all'); setDomainFilter('all'); setSearchQuery(''); };
 
   const targetButton = target => (
     <button
@@ -101,6 +119,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           const domainTargets = depth === 1
             ? [enrichedById.get(domain.id)].filter(Boolean)
             : (capabilitiesByDomain.get(domain.id) || []);
+          const visibleTargets = domainTargets.filter(target => matchesFilters(target, domain));
+          if (hasActiveFilters && visibleTargets.length === 0) return null;
           return (
             <article
               className="dashboard-map-domain"
@@ -114,10 +134,10 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
                   <strong>{domain.name}</strong>
                   <span className="dashboard-map-domain-code">{domain.code}</span>
                 </div>
-                <span className="dashboard-map-domain-count">{domainTargets.length}</span>
+                <span className="dashboard-map-domain-count">{visibleTargets.length}</span>
               </header>
               <div className="dashboard-map-capabilities">
-                {domainTargets.length ? domainTargets.map(target => (
+                {visibleTargets.length ? visibleTargets.map(target => (
                   <button
                     key={target.id}
                     type="button"
@@ -133,7 +153,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
                     </span>
                   </button>
                 )) : (
-                  <span className="dashboard-map-empty">Aucun élément</span>
+                  <span className="dashboard-map-empty">{hasActiveFilters ? 'Aucun résultat avec ces filtres' : 'Aucun élément'}</span>
                 )}
               </div>
             </article>
@@ -172,6 +192,29 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           <span><i className="is-covered" /> Une application</span>
           <span><i className="is-redundant" /> Plusieurs applications</span>
         </div>
+        <div className="dashboard-heatmap-filters" data-testid="dashboard-heatmap-filters" role="search" aria-label="Filtres de la heatmap">
+          <label className="dashboard-heatmap-filter dashboard-heatmap-search">
+            <span>Rechercher une capacité</span>
+            <input type="search" data-testid="dashboard-heatmap-search" aria-label="Rechercher une capacité par nom ou code" placeholder="Nom ou code…" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} />
+          </label>
+          <label className="dashboard-heatmap-filter">
+            <span>État de couverture</span>
+            <select data-testid="dashboard-heatmap-status-filter" aria-label="Filtrer par état de couverture" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+              <option value="all">Tous les états</option><option value="gap">Gaps</option><option value="covered">Couvertes (1 application)</option><option value="redundant">Couvertures multiples</option>
+            </select>
+          </label>
+          <label className="dashboard-heatmap-filter">
+            <span>Domaine N0</span>
+            <select data-testid="dashboard-heatmap-domain-filter" aria-label="Filtrer par domaine N0" value={domainFilter} onChange={event => setDomainFilter(event.target.value)}>
+              <option value="all">Tous les domaines</option>
+              {domains.map(domain => <option key={domain.id} value={domain.id}>{domain.code ? `${domain.code} — ` : ''}{domain.name}</option>)}
+            </select>
+          </label>
+          <div className="dashboard-heatmap-filter-summary">
+            <span data-testid="dashboard-heatmap-result-count" aria-live="polite">{filteredTargets.length} / {stats.enriched.length} éléments</span>
+            {hasActiveFilters && <button type="button" className="dashboard-filter-reset" data-testid="dashboard-heatmap-reset" onClick={resetFilters}>Réinitialiser</button>}
+          </div>
+        </div>
         {mapGroups.length ? (
           <div className="dashboard-map" data-testid="dashboard-map-layout" style={{ '--dashboard-map-columns': columns.length }}>
             <div className="dashboard-map-column-headings" aria-hidden="true">
@@ -186,6 +229,12 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           </div>
         ) : (
           <p className="dashboard-empty">La cartographie active ne possède pas encore de matrice de positionnement.</p>
+        )}
+        {hasActiveFilters && (
+          <section className="dashboard-filter-results" data-testid="dashboard-filter-results" aria-label="Résultats des filtres">
+            <div className="dashboard-panel-heading"><div><h3>Résultats filtrés</h3><p>Chaque résultat ouvre directement l’élément dans Relations.</p></div><span>{filteredTargets.length} résultat{filteredTargets.length > 1 ? 's' : ''}</span></div>
+            {filteredTargets.length ? <div className="dashboard-target-list">{filteredTargets.map(targetButton)}</div> : <p className="dashboard-empty">Aucun élément ne correspond à ces critères. Essayez d’élargir les filtres.</p>}
+          </section>
         )}
       </section>
 
