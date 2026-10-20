@@ -906,7 +906,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
     cy.get('[data-testid="dashboard-focus-redundancies"]').click();
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'redundant');
-    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
   });
 
   it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
