@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 
+const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
+const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
 const linksFor = (app, targetId) => (app.capabilityIds || []).includes(targetId);
 const coverageState = count => count === 0 ? 'gap' : count === 1 ? 'covered' : 'redundant';
 
@@ -8,6 +10,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
   const targets = depth === 1 ? domains : capabilities;
+  const layout = model.layout || {};
+  const columns = [...(layout.columns || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const layers = [...(layout.layers || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const stats = useMemo(() => {
     const enriched = targets.map(target => {
@@ -46,6 +51,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
 
   const targetLabel = depth === 1 ? 'domaines N0' : 'capacités N1';
   const targetSingular = depth === 1 ? 'domaine' : 'capacité';
+  const enrichedById = new Map(stats.enriched.map(target => [target.id, target]));
+  const capabilitiesByDomain = new Map(domains.map(domain => [domain.id, stats.enriched.filter(target => target.domainId === domain.id)]));
 
   const targetButton = target => (
     <button
@@ -62,6 +69,62 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
     </button>
   );
 
+  const mapCell = (column, layer) => {
+    const cellDomains = domains.filter(domain => {
+      const domainLayout = domain.layout || {};
+      return domainLayout.columnId === column.id && domainLayout.layerId === layer.id;
+    });
+
+    return (
+      <div className="dashboard-map-cell" key={`${layer.id}-${column.id}`} data-column={column.id} data-layer={layer.id}>
+        {cellDomains.length ? cellDomains.map(domain => {
+          const domainTargets = depth === 1
+            ? [enrichedById.get(domain.id)].filter(Boolean)
+            : (capabilitiesByDomain.get(domain.id) || []);
+          return (
+            <article
+              className="dashboard-map-domain"
+              key={domain.id}
+              style={{ '--dashboard-domain-color': resolveDomainColor(domain.color) }}
+              data-domain-id={domain.id}
+              aria-label={`Domaine ${domain.name}`}
+            >
+              <header className="dashboard-map-domain-header">
+                <span className="dashboard-map-domain-code">{domain.code}</span>
+                <strong>{domain.name}</strong>
+                <span className="dashboard-map-domain-count">{domainTargets.length}</span>
+              </header>
+              <div className="dashboard-map-capabilities">
+                {domainTargets.length ? domainTargets.map(target => (
+                  <button
+                    key={target.id}
+                    type="button"
+                    className={`dashboard-map-capability is-${target.state}`}
+                    onClick={() => onExploreTarget(target.id)}
+                    aria-label={`${target.name} : ${target.coverageCount} application${target.coverageCount > 1 ? 's' : ''}. Explorer dans Relations`}
+                    title={`${target.name} — ${target.coverageCount} application(s)`}
+                  >
+                    <span className="dashboard-map-capability-name">{target.name}</span>
+                    <span className="dashboard-map-capability-coverage" aria-hidden="true">
+                      <b>{target.coverageCount}</b>
+                      <span>{target.coverageCount === 0 ? 'Gap' : target.coverageCount === 1 ? 'Couvert' : 'Multiple'}</span>
+                    </span>
+                  </button>
+                )) : (
+                  <span className="dashboard-map-empty">Aucun élément</span>
+                )}
+              </div>
+            </article>
+          );
+        }) : <span className="dashboard-map-empty-cell" aria-hidden="true">—</span>}
+      </div>
+    );
+  };
+
+  const mapGroups = layers.length && columns.length
+    ? layers.map(layer => ({ layer, cells: columns.map(column => mapCell(column, layer)) }))
+    : [];
+
   return (
     <section className="dashboard" data-testid="capability-dashboard" aria-label="Dashboard de couverture">
       <div className="dashboard-kpis" aria-label="Indicateurs de couverture">
@@ -71,34 +134,15 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           <div className="dashboard-progress" role="progressbar" aria-label="Couverture globale" aria-valuemin="0" aria-valuemax="100" aria-valuenow={stats.coverage}><span style={{ width: `${stats.coverage}%` }} /></div>
           <small>{stats.covered} sur {targets.length} {targetLabel} couverts</small>
         </article>
-        <article className="dashboard-kpi">
-          <span>{targetLabel.charAt(0).toUpperCase() + targetLabel.slice(1)}</span>
-          <strong>{targets.length}</strong>
-          <small>dans la cartographie active</small>
-        </article>
-        <article className="dashboard-kpi dashboard-kpi-gap">
-          <span>Gaps de couverture</span>
-          <strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong>
-          <small>{stats.gaps.length ? 'À qualifier ou à prendre en charge' : 'Aucun élément sans application'}</small>
-        </article>
-        <article className="dashboard-kpi dashboard-kpi-redundancy">
-          <span>Redondances</span>
-          <strong data-testid="dashboard-redundancy-count">{stats.redundancies.length}</strong>
-          <small>{stats.redundancies.length ? 'Plusieurs applications sur un même élément' : 'Aucune couverture multiple'}</small>
-        </article>
-        <article className="dashboard-kpi">
-          <span>Applications</span>
-          <strong>{apps.length}</strong>
-          <small>{stats.unlinkedApps.length} sans relation à une {targetSingular}</small>
-        </article>
+        <article className="dashboard-kpi"><span>{targetLabel.charAt(0).toUpperCase() + targetLabel.slice(1)}</span><strong>{targets.length}</strong><small>dans la cartographie active</small></article>
+        <article className="dashboard-kpi dashboard-kpi-gap"><span>Gaps de couverture</span><strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong><small>{stats.gaps.length ? 'À qualifier ou à prendre en charge' : 'Aucun élément sans application'}</small></article>
+        <article className="dashboard-kpi dashboard-kpi-redundancy"><span>Redondances</span><strong data-testid="dashboard-redundancy-count">{stats.redundancies.length}</strong><small>{stats.redundancies.length ? 'Plusieurs applications sur un même élément' : 'Aucune couverture multiple'}</small></article>
+        <article className="dashboard-kpi"><span>Applications</span><strong>{apps.length}</strong><small>{stats.unlinkedApps.length} sans relation à une {targetSingular}</small></article>
       </div>
 
       <section className="dashboard-panel dashboard-heatmap" data-testid="dashboard-coverage-heatmap" aria-label="Heatmap de couverture">
         <div className="dashboard-panel-heading">
-          <div>
-            <h3>Heatmap de couverture</h3>
-            <p>Vue synthétique des relations entre capacités et applications. Sélectionnez une case pour examiner les relations.</p>
-          </div>
+          <div><h3>Heatmap de couverture</h3><p>La heatmap reprend la même matrice de positionnement que la cartographie : colonnes métier en horizontal, couches en vertical et capacités dans leur domaine.</p></div>
           <span>{stats.enriched.length} éléments</span>
         </div>
         <div className="dashboard-heatmap-legend" aria-label="Légende de la couverture">
@@ -106,66 +150,32 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           <span><i className="is-covered" /> Une application</span>
           <span><i className="is-redundant" /> Plusieurs applications</span>
         </div>
-        {(() => {
-          const groups = depth === 1
-            ? [{ id: 'domains', name: 'Domaines N0', targets: stats.enriched }]
-            : [
-                ...domains.map(domain => ({
-                  id: domain.id,
-                  name: domain.name,
-                  targets: stats.enriched.filter(target => target.domainId === domain.id)
-                })).filter(group => group.targets.length),
-                {
-                  id: 'unclassified',
-                  name: 'Capacités non classées',
-                  targets: stats.enriched.filter(target => !domains.some(domain => domain.id === target.domainId))
-                }
-              ].filter(group => group.targets.length);
-          return groups.length ? (
-            <div className="dashboard-heatmap-groups">
-              {groups.map(group => (
-                <section className="dashboard-heatmap-group" key={group.id}>
-                  <h4>{group.name}</h4>
-                  <div className="dashboard-heatmap-grid">
-                    {group.targets.map(target => (
-                      <button
-                        key={target.id}
-                        type="button"
-                        className={`dashboard-heatmap-tile is-${target.state}`}
-                        onClick={() => onExploreTarget(target.id)}
-                        aria-label={`${target.name} : ${target.coverageCount} application${target.coverageCount > 1 ? 's' : ''}. Explorer dans Relations`}
-                        title={`${target.name} — ${target.coverageCount} application(s)`}
-                      >
-                        <span className="dashboard-heatmap-tile-name">{target.name}</span>
-                        <strong>{target.coverageCount}</strong>
-                        <span className="dashboard-heatmap-tile-label">{target.coverageCount === 0 ? 'Gap' : target.coverageCount === 1 ? 'Couvert' : 'Multiple'}</span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              ))}
+        {mapGroups.length ? (
+          <div className="dashboard-map" data-testid="dashboard-map-layout" style={{ '--dashboard-map-columns': columns.length }}>
+            <div className="dashboard-map-column-headings" aria-hidden="true">
+              {columns.map(column => <span key={column.id}>{column.name}</span>)}
             </div>
-          ) : <p className="dashboard-empty">Ajoutez des domaines ou des capacités pour afficher la heatmap.</p>;
-        })()}
+            {mapGroups.map(({ layer, cells }) => (
+              <div className="dashboard-map-row" key={layer.id}>
+                <div className="dashboard-map-layer-label">{layer.name}</div>
+                <div className="dashboard-map-grid">{cells}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="dashboard-empty">La cartographie active ne possède pas encore de matrice de positionnement.</p>
+        )}
       </section>
 
       <div className="dashboard-content">
         <section className="dashboard-panel dashboard-domain-panel">
-          <div className="dashboard-panel-heading">
-            <div><h3>Couverture par domaine N0</h3><p>Comparez la couverture entre domaines métier.</p></div>
-            <span>{stats.domainStats.length} domaines</span>
-          </div>
+          <div className="dashboard-panel-heading"><div><h3>Couverture par domaine N0</h3><p>Comparez la couverture entre domaines métier.</p></div><span>{stats.domainStats.length} domaines</span></div>
           {stats.domainStats.length ? (
             <div className="dashboard-domain-list">
               {stats.domainStats.map(domain => (
                 <article className="dashboard-domain-row" key={domain.id}>
-                  <div className="dashboard-domain-label">
-                    <strong>{domain.name}</strong>
-                    <span>{domain.coveredCount}/{domain.targetCount} couverts</span>
-                  </div>
-                  <div className="dashboard-domain-progress" role="progressbar" aria-label={`Couverture ${domain.name}`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={domain.coverage}>
-                    <span style={{ width: `${domain.coverage}%` }} />
-                  </div>
+                  <div className="dashboard-domain-label"><strong>{domain.name}</strong><span>{domain.coveredCount}/{domain.targetCount} couverts</span></div>
+                  <div className="dashboard-domain-progress" role="progressbar" aria-label={`Couverture ${domain.name}`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={domain.coverage}><span style={{ width: `${domain.coverage}%` }} /></div>
                   <div className="dashboard-domain-meta"><b>{domain.coverage}%</b><span>{domain.gaps.length} gap{domain.gaps.length > 1 ? 's' : ''} · {domain.redundancies.length} redondance{domain.redundancies.length > 1 ? 's' : ''}</span></div>
                   {domain.gaps.length > 0 && <div className="dashboard-domain-detail"><span>À couvrir :</span> {domain.gaps.map(target => target.name).join(', ')}</div>}
                 </article>
@@ -175,39 +185,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
         </section>
 
         <div className="dashboard-issues">
-          <section className="dashboard-panel">
-            <div className="dashboard-panel-heading">
-              <div><h3>Gaps à traiter</h3><p>Éléments sans application associée.</p></div>
-              <span className="dashboard-count is-gap">{stats.gaps.length}</span>
-            </div>
-            {stats.gaps.length ? <div className="dashboard-target-list">{stats.gaps.slice(0, 6).map(targetButton)}{stats.gaps.length > 6 && <p className="dashboard-more">+ {stats.gaps.length - 6} autres gaps</p>}</div> : <p className="dashboard-empty">La couverture est complète sur ce périmètre.</p>}
-          </section>
-          <section className="dashboard-panel">
-            <div className="dashboard-panel-heading">
-              <div><h3>Couvertures multiples</h3><p>Éléments associés à plusieurs applications.</p></div>
-              <span className="dashboard-count is-redundant">{stats.redundancies.length}</span>
-            </div>
-            {stats.redundancies.length ? <div className="dashboard-target-list">{stats.redundancies.slice(0, 6).map(targetButton)}{stats.redundancies.length > 6 && <p className="dashboard-more">+ {stats.redundancies.length - 6} autres éléments</p>}</div> : <p className="dashboard-empty">Aucune couverture multiple détectée.</p>}
-          </section>
-          <section className="dashboard-panel dashboard-unlinked-apps" data-testid="dashboard-unlinked-apps">
-            <div className="dashboard-panel-heading">
-              <div><h3>Applications sans relation</h3><p>Applications qui ne contribuent actuellement à aucune capacité de ce modèle.</p></div>
-              <span className="dashboard-count is-gap">{stats.unlinkedApps.length}</span>
-            </div>
-            {stats.unlinkedApps.length ? (
-              <div className="dashboard-app-list">
-                {stats.unlinkedApps.map(app => (
-                  <div className="dashboard-app-row" key={app.id}>
-                    <div className="dashboard-app-details">
-                      <strong>{app.name}</strong>
-                      <span>{app.code || 'Sans code'} · {app.status || 'Statut non défini'}{app.vendor ? ` · ${app.vendor}` : ''}</span>
-                    </div>
-                    <button type="button" className="dashboard-app-action" aria-label={`Relier ${app.name} à des ${targetSingular === 'domaine' ? 'domaines N0' : 'capacités N1'}`} onClick={() => onLinkApp?.(app)}>Relier…</button>
-                  </div>
-                ))}
-              </div>
-            ) : <p className="dashboard-empty">Toutes les applications sont reliées à au moins un élément de la cartographie.</p>}
-          </section>
+          <section className="dashboard-panel"><div className="dashboard-panel-heading"><div><h3>Gaps à traiter</h3><p>Éléments sans application associée.</p></div><span className="dashboard-count is-gap">{stats.gaps.length}</span></div>{stats.gaps.length ? <div className="dashboard-target-list">{stats.gaps.slice(0, 6).map(targetButton)}{stats.gaps.length > 6 && <p className="dashboard-more">+ {stats.gaps.length - 6} autres gaps</p>}</div> : <p className="dashboard-empty">La couverture est complète sur ce périmètre.</p>}</section>
+          <section className="dashboard-panel"><div className="dashboard-panel-heading"><div><h3>Couvertures multiples</h3><p>Éléments associés à plusieurs applications.</p></div><span className="dashboard-count is-redundant">{stats.redundancies.length}</span></div>{stats.redundancies.length ? <div className="dashboard-target-list">{stats.redundancies.slice(0, 6).map(targetButton)}{stats.redundancies.length > 6 && <p className="dashboard-more">+ {stats.redundancies.length - 6} autres éléments</p>}</div> : <p className="dashboard-empty">Aucune couverture multiple détectée.</p>}</section>
+          <section className="dashboard-panel dashboard-unlinked-apps" data-testid="dashboard-unlinked-apps"><div className="dashboard-panel-heading"><div><h3>Applications sans relation</h3><p>Applications qui ne contribuent actuellement à aucune capacité de ce modèle.</p></div><span className="dashboard-count is-gap">{stats.unlinkedApps.length}</span></div>{stats.unlinkedApps.length ? <div className="dashboard-app-list">{stats.unlinkedApps.map(app => <div className="dashboard-app-row" key={app.id}><div className="dashboard-app-details"><strong>{app.name}</strong><span>{app.code || 'Sans code'} · {app.status || 'Statut non défini'}{app.vendor ? ` · ${app.vendor}` : ''}</span></div><button type="button" className="dashboard-app-action" aria-label={`Relier ${app.name} à des ${targetSingular === 'domaine' ? 'domaines N0' : 'capacités N1'}`} onClick={() => onLinkApp?.(app)}>Relier…</button></div>)}</div> : <p className="dashboard-empty">Toutes les applications sont reliées à au moins un élément de la cartographie.</p>}</section>
         </div>
       </div>
 
