@@ -22,6 +22,25 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-progress[role="progressbar"]').should('have.attr', 'aria-valuenow');
   });
 
+  it('focalise les composants selon l’intention choisie', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-overview"]').should('have.class', 'is-active');
+    cy.get('.dashboard-kpis').should('be.visible');
+    cy.get('[data-testid="dashboard-overview-intro"]').should('be.visible');
+
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('.dashboard-kpis').should('not.be.visible');
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('.dashboard-footnote').should('not.be.visible');
+
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.get('.dashboard-kpis').should('not.be.visible');
+
+    cy.get('[data-testid="dashboard-view-attention"]').click();
+    cy.get('.dashboard-kpis').should('not.be.visible');
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
+  });
+
   it('affiche la heatmap dans la même matrice de positionnement que la cartographie', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
@@ -51,19 +70,14 @@ describe('Dashboard de couverture', () => {
       cy.contains('label.field', 'Étendue sur les colonnes').find('select').select('2');
       cy.contains('button', 'Enregistrer').click();
     });
-
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-domain[data-domain-id="l0-1"]')
-      .closest('.dashboard-map-cell')
-      .should('have.attr', 'data-column', 'customer')
-      .and('have.attr', 'data-layer', 'core')
-      .and('have.attr', 'style')
-      .and('contain', 'grid-column: span 2');
-    cy.get('.dashboard-map-row[data-layer="core"] .dashboard-map-cell[data-column="product"]')
-      .should('not.exist');
+      .closest('.dashboard-map-cell').should('have.attr', 'data-column', 'customer').and('have.attr', 'data-layer', 'core').and('have.attr', 'style').and('contain', 'grid-column: span 2');
+    cy.get('.dashboard-map-row[data-layer="core"] .dashboard-map-cell[data-column="product"]').should('not.exist');
     cy.get('.dashboard-map-column-headings span').should('have.length', 4);
   });
+
   it('identifie une application sans relation et permet de la relier depuis le dashboard', () => {
     cy.get('.side-add').click();
     cy.get('[role="dialog"]').within(() => {
@@ -72,20 +86,16 @@ describe('Dashboard de couverture', () => {
       cy.contains('label.field', /Éditeur \/ fournisseur/).find('input').type('Éditeur test');
       cy.contains('button', 'Créer').click();
     });
-
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-unlinked-apps"]').within(() => {
       cy.contains('Application orpheline test').should('be.visible');
       cy.get('button[aria-label="Relier Application orpheline test à des capacités N1"]').click();
     });
-
     cy.get('[role="dialog"]').should('contain.text', 'Relier « Application orpheline test »');
     cy.get('[data-testid="link-list"] input[type="checkbox"]').first().check();
     cy.get('[data-testid="link-save"]').click();
-    cy.get('[data-testid="dashboard-unlinked-apps"]')
-      .should('contain.text', 'Toutes les applications sont reliées')
-      .and('not.contain.text', 'Application orpheline test');
+    cy.get('[data-testid="dashboard-unlinked-apps"]').should('contain.text', 'Toutes les applications sont reliées').and('not.contain.text', 'Application orpheline test');
   });
 
   it('garde les quatre onglets principaux sur une seule ligne sur mobile', () => {
@@ -107,12 +117,8 @@ describe('Dashboard de couverture', () => {
   it('affiche le Dashboard comme onglet actif sans curseur hérité de Cartographie', () => {
     cy.get('[data-testid="tab-dashboard"]').click().should('have.class', 'active');
     cy.get('.toolbar-switch').should('have.css', 'grid-template-columns', 'none');
-    cy.get('.toolbar-switch').then($switch => {
-      expect(getComputedStyle($switch[0], '::before').content).to.equal('none');
-    });
-    cy.get('[data-testid="tab-dashboard"]').then($button => {
-      expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)');
-    });
+    cy.get('.toolbar-switch').then($switch => expect(getComputedStyle($switch[0], '::before').content).to.equal('none'));
+    cy.get('[data-testid="tab-dashboard"]').then($button => expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)'));
   });
 
   it('préserve le menu Outils et les libellés complets sur mobile', () => {
@@ -127,13 +133,8 @@ describe('Dashboard de couverture', () => {
   it('garde un onglet actif sans curseur violet débordant', () => {
     cy.viewport(390, 844);
     cy.get('[data-testid="tab-relations"]').click();
-    cy.get('.toolbar-switch > button.active')
-      .should('have.length', 1)
-      .and('have.css', 'animation-name', 'none')
-      .and('have.css', 'transform', 'none');
-    cy.get('.toolbar-switch > button.active').then($button => {
-      expect($button[0].getBoundingClientRect().width).to.be.lessThan(200);
-    });
+    cy.get('.toolbar-switch > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
+    cy.get('.toolbar-switch > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
   });
 
   it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
@@ -143,11 +144,9 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
     cy.get('.tree-impact-toggle[aria-pressed="true"]').should('exist');
     cy.get('[data-testid="return-to-dashboard"]').should('be.visible');
-
     cy.go('back');
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
-
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-capability[aria-label*="Explorer dans Relations"]').first().click();
     cy.get('[data-testid="return-to-dashboard"]').click();
@@ -186,5 +185,4 @@ describe('Dashboard de couverture', () => {
     });
     cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px').and('have.css', 'gap', '10px');
   });
-
 });

@@ -920,10 +920,14 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('permet de passer des indicateurs aux gaps et couvertures multiples', () => {
-    cy.get('[data-testid="dashboard-view-attention"]').click();
+    // Les KPI ne sont disponibles que dans la vue d'ensemble.
+    cy.get('[data-testid="dashboard-view-overview"]').click();
     cy.get('[data-testid="dashboard-focus-gaps"]').click();
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
+
+    // Revenir à la vue d'ensemble avant d'utiliser le second raccourci KPI.
+    cy.get('[data-testid="dashboard-view-overview"]').click();
     cy.get('[data-testid="dashboard-focus-redundancies"]').click();
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'redundant');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');

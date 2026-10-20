@@ -1,0 +1,53 @@
+/* Lot B — lecture décisionnelle : garder chaque vue focalisée sur son intention. */
+.dashboard:has([data-testid="dashboard-view-overview"].is-active) .dashboard-overview-intro {
+  box-shadow: 0 8px 28px rgba(15, 23, 42, .06);
+}
+
+.dashboard:has([data-testid="dashboard-view-overview"].is-active) .dashboard-overview-shortcuts > button {
+  min-height: 54px;
+}
+
+/* Hors pilotage, les KPI globaux ne doivent pas concurrencer le contenu d'analyse. */
+.dashboard:has([data-testid="dashboard-view-coverage"].is-active) .dashboard-kpis,
+.dashboard:has([data-testid="dashboard-view-impact"].is-active) .dashboard-kpis,
+.dashboard:has([data-testid="dashboard-view-attention"].is-active) .dashboard-kpis {
+  display: none;
+}
+
+.dashboard:has([data-testid="dashboard-view-coverage"].is-active) .dashboard-heatmap,
+.dashboard:has([data-testid="dashboard-view-impact"].is-active) .dashboard-impact-summary,
+.dashboard:has([data-testid="dashboard-view-attention"].is-active) .dashboard-gap-priorities {
+  scroll-margin-top: 16px;
+}
+
+.dashboard:has([data-testid="dashboard-view-impact"].is-active) .dashboard-impact-summary {
+  border-color: #c4b5fd;
+  box-shadow: 0 6px 22px rgba(91, 70, 190, .08);
+}
+
+.dashboard:has([data-testid="dashboard-view-attention"].is-active) .dashboard-gap-priorities {
+  border-color: #f1d39a;
+  box-shadow: 0 6px 22px rgba(180, 83, 9, .06);
+}
+
+.dashboard:has([data-testid="dashboard-view-coverage"].is-active) .dashboard-footnote,
+.dashboard:has([data-testid="dashboard-view-impact"].is-active) .dashboard-footnote,
+.dashboard:has([data-testid="dashboard-view-attention"].is-active) .dashboard-footnote {
+  display: none;
+}
+
+.app.theme-dark .dashboard:has([data-testid="dashboard-view-impact"].is-active) .dashboard-impact-summary {
+  border-color: #51458b;
+  box-shadow: none;
+}
+
+.app.theme-dark .dashboard:has([data-testid="dashboard-view-attention"].is-active) .dashboard-gap-priorities {
+  border-color: #6b4f1f;
+  box-shadow: none;
+}
+
+@media (max-width: 680px) {
+  .dashboard:has([data-testid="dashboard-view-overview"].is-active) .dashboard-overview-shortcuts > button {
+    min-height: 0;
+  }
+}
