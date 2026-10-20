@@ -917,6 +917,25 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'all');
   });
 
+  it('qualifie la priorité métier d’une capacité et filtre les gaps par priorité', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+    cy.contains('.cap', 'Achats Fournisseurs').within(() => {
+      cy.get('button[aria-label="Renommer Achats Fournisseurs"]').click();
+    });
+    cy.get('.context-menu').contains('button', 'Renommer').click();
+    cy.get('[data-testid="capability-priority"]').select('P1');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.reload();
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-heatmap-priority-filter"]').select('P1');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
+    cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 1).and('contain.text', 'Achats Fournisseurs').and('contain.text', 'P1');
+    cy.get('[data-testid="dashboard-heatmap-reset"]').click();
+    cy.get('[data-testid="dashboard-heatmap-priority-filter"]').should('have.value', 'all');
+  });
+
   it('reste utilisable sur mobile et en thème sombre', () => {
     cy.viewport(402, 874);
     cy.get('[data-testid="dashboard-heatmap-filters"]').should('be.visible');
