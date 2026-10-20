@@ -41,6 +41,31 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
   });
 
+  it('priorise les domaines avec gaps et classe la couverture du plus faible au plus fort', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+
+    cy.get('.dashboard-domain-row .dashboard-domain-progress[role="progressbar"]').then($bars => {
+      const coverageValues = [...$bars].map(bar => Number(bar.getAttribute('aria-valuenow')));
+      expect(coverageValues).to.deep.equal([...coverageValues].sort((a, b) => a - b));
+    });
+
+    cy.get('[data-testid="dashboard-view-attention"]').click();
+    cy.get('[data-testid="dashboard-gap-count"]').invoke('text').then(value => {
+      const gapCount = Number(value.trim());
+      if (gapCount > 0) {
+        cy.get('[data-testid="dashboard-no-gaps"]').should('not.exist');
+        cy.get('.dashboard-gap-domain').should('have.length.greaterThan', 0).each($domain => {
+          cy.wrap($domain).find('.dashboard-gap-domain-heading b').invoke('text').then(count => {
+            expect(Number(count.trim())).to.be.greaterThan(0);
+          });
+        });
+      } else {
+        cy.get('[data-testid="dashboard-no-gaps"]').should('be.visible');
+        cy.get('.dashboard-gap-domain').should('not.exist');
+      }
+    });
+  });
+
   it('affiche la heatmap dans la même matrice de positionnement que la cartographie', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
