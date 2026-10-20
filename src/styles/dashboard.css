@@ -239,3 +239,20 @@
 .app.theme-dark .dashboard-filter-results { border-color: #343842; }
 @media (max-width: 1000px) { .dashboard-heatmap-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dashboard-heatmap-filter-summary { justify-content: flex-start; } }
 @media (max-width: 520px) { .dashboard-heatmap-filters { grid-template-columns: minmax(0, 1fr); gap: 9px; padding: 10px; } .dashboard-heatmap-filter-summary { justify-content: space-between; } }
+
+/* Actions de forage depuis les indicateurs vers la heatmap. */
+.dashboard-heatmap { scroll-margin-top: 16px; }
+.dashboard-kpi-action, .dashboard-domain-filter-action {
+  display: inline-flex; align-items: center; justify-content: flex-start; gap: 5px;
+  width: fit-content; max-width: 100%; padding: 5px 0; border: 0; background: transparent;
+  color: #5145a8; font: inherit; font-size: 11px; font-weight: 750; text-align: left;
+  cursor: pointer;
+}
+.dashboard-kpi-action:hover, .dashboard-domain-filter-action:hover { color: #3730a3; text-decoration: underline; }
+.dashboard-kpi-action:focus-visible, .dashboard-domain-filter-action:focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; border-radius: 3px; }
+.dashboard-domain-filter-action { margin-top: 1px; }
+.app.theme-dark .dashboard-kpi-action, .app.theme-dark .dashboard-domain-filter-action { color: #c4b5fd; }
+.app.theme-dark .dashboard-kpi-action:hover, .app.theme-dark .dashboard-domain-filter-action:hover { color: #ddd6fe; }
+@media (max-width: 680px) {
+  .dashboard-kpi-action, .dashboard-domain-filter-action { font-size: 10px; }
+}
