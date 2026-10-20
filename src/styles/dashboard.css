@@ -136,3 +136,21 @@
 @supports not (background: color-mix(in srgb, black 10%, white)) { .dashboard-map-domain { background: #fff; } }
 
 @media (prefers-reduced-motion: reduce) { .dashboard-progress > span, .dashboard-domain-progress > span { transition: none; } }
+
+
+/* Finitions de la heatmap : contours nets et espacement plus proche de la cartographie. */
+.dashboard-map-domain {
+  border-radius: 10px;
+  overflow: clip;
+  background-clip: padding-box;
+  isolation: isolate;
+}
+.dashboard-map-domain-header {
+  border-radius: 9px 9px 0 0;
+}
+.dashboard-map-cell {
+  padding: 10px;
+}
+@media (max-width: 680px) {
+  .dashboard-map-cell { padding: 7px; }
+}
