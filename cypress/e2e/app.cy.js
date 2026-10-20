@@ -885,6 +885,7 @@ describe('Dashboard — filtres de la heatmap', () => {
       win.localStorage.setItem(key, JSON.stringify(model));
     });
     cy.reload();
+    cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-map-layout"]').then($map => {
       const initialColumns = $map.find('.dashboard-map-grid').first().css('grid-template-columns');
       const initialColumnHeads = $map.find('.dashboard-map-column-headings').text();
