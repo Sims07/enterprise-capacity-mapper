@@ -904,6 +904,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     });
     cy.reload();
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-map-layout"]').then($map => {
       const initialColumns = $map.find('.dashboard-map-grid').first().css('grid-template-columns');
       const initialColumnHeads = $map.find('.dashboard-map-column-headings').text();
@@ -947,6 +948,7 @@ describe('Dashboard — filtres de la heatmap', () => {
       .find('select').should('have.value', 'P2');
     cy.reload();
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
       .find('select').should('have.value', 'P2');
   });
@@ -991,6 +993,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.contains('.modal button', 'Enregistrer').click();
     cy.reload();
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').select('P1');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
     cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 1).and('contain.text', 'Achats Fournisseurs').and('contain.text', 'P1');
@@ -1005,6 +1008,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.contains('.impact-card .cap-select', 'Achats Fournisseurs').click();
 
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
     cy.get('[data-testid="dashboard-impact-summary"]').should('be.visible')
       .and('contain.text', '2 éléments sélectionnés')
       .and('contain.text', 'Manhattan WMS')
