@@ -78,6 +78,25 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-map-column-headings span').should('have.length', 4);
   });
 
+  it('permet de modifier la criticité de toute capacité N1 directement depuis la heatmap', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+
+    cy.get('.dashboard-map-capability').first().then($button => {
+      const label = $button.find('.dashboard-map-capability-name').text().trim();
+      const row = $button.closest('.dashboard-map-capability-row');
+      const select = row.find('select[data-testid^="dashboard-map-priority-select-"]');
+      expect(select, `sélecteur de criticité pour ${label}`).to.have.length(1);
+      cy.wrap(select).select('P1');
+      cy.wrap(select).should('have.value', 'P1');
+      cy.window().then(win => {
+        const saved = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+        const capabilityId = select.attr('data-testid').replace('dashboard-map-priority-select-', '');
+        expect(saved.capabilities.find(capability => capability.id === capabilityId).priority).to.equal('P1');
+      });
+    });
+  });
+
   it('identifie une application sans relation et permet de la relier depuis le dashboard', () => {
     cy.get('.side-add').click();
     cy.get('[role="dialog"]').within(() => {
