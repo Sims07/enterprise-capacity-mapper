@@ -871,6 +871,7 @@ function App() {
               onExploreTarget={exploreDashboardTarget}
               onLinkApp={openLinkForApp}
               onUpdatePriority={updateCapabilityPriority}
+              selected={selected}
             />
           ) : mode === 'relations' ? (
             <>

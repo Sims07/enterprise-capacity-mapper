@@ -975,6 +975,21 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').should('have.value', 'all');
   });
 
+  it('reflète la sélection Impact dans le dashboard et met en évidence les capacités concernées', () => {
+    cy.get('[data-testid="tab-impact"]').click();
+    cy.contains('.impact-card .cap-select', 'Gestion des Stocks & Entrepôt (WMS)').click();
+    cy.contains('.impact-card .cap-select', 'Achats Fournisseurs').click();
+
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-impact-summary"]').should('be.visible')
+      .and('contain.text', '2 éléments sélectionnés')
+      .and('contain.text', 'Manhattan WMS')
+      .and('contain.text', 'Achats Fournisseurs')
+      .and('contain.text', 'Gaps de couverture');
+    cy.get('[data-testid="dashboard-map-layout"] .dashboard-map-capability.is-impact-selected')
+      .should('have.length', 2);
+  });
+
   it('reste utilisable sur mobile et en thème sombre', () => {
     cy.viewport(402, 874);
     cy.get('[data-testid="dashboard-heatmap-filters"]').should('be.visible');

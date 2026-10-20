@@ -315,3 +315,33 @@
   .dashboard-gap-domain-list li { align-items: flex-start; }
   .dashboard-gap-priority-editor { min-width: 105px; }
 }
+
+
+/* Synthèse des impacts métier sélectionnés depuis la vue Impact. */
+.dashboard-impact-summary { display: flex; flex-direction: column; gap: 14px; border-color: #c4b5fd; background: linear-gradient(135deg, #faf8ff, #fff 58%); }
+.dashboard-impact-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.dashboard-impact-metrics article { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+.dashboard-impact-metrics strong { color: #5b46be; font-size: 25px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.dashboard-impact-metrics span { color: #64748b; font-size: 11px; font-weight: 650; }
+.dashboard-impact-metrics .has-gaps strong { color: #b45309; }
+.dashboard-impact-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.dashboard-impact-details > div { min-width: 0; }
+.dashboard-impact-details h4 { margin: 0 0 7px; font-size: 12px; }
+.dashboard-impact-details ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 18px; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+.dashboard-impact-details li span { display: block; color: #64748b; font-size: 10px; }
+.dashboard-impact-details p { margin: 0; color: #64748b; font-size: 11px; line-height: 1.5; }
+.dashboard-map-capability.is-impact-selected { outline: 2px solid #7c3aed; outline-offset: 1px; box-shadow: 0 0 0 3px rgba(124,58,237,.14); position: relative; z-index: 1; }
+.app.theme-dark .dashboard-impact-summary { background: linear-gradient(135deg, #26233b, #171a20 58%); border-color: #51458b; }
+.app.theme-dark .dashboard-impact-metrics article { background: #1d212b; border-color: #343842; }
+.app.theme-dark .dashboard-impact-metrics strong { color: #c4b5fd; }
+.app.theme-dark .dashboard-impact-metrics .has-gaps strong { color: #fbbf24; }
+.app.theme-dark .dashboard-impact-metrics span, .app.theme-dark .dashboard-impact-details li span, .app.theme-dark .dashboard-impact-details p { color: #9ca3af; }
+@media (max-width: 760px) {
+  .dashboard-impact-details { grid-template-columns: 1fr; gap: 12px; }
+}
+@media (max-width: 520px) {
+  .dashboard-impact-metrics { gap: 6px; }
+  .dashboard-impact-metrics article { padding: 9px; }
+  .dashboard-impact-metrics strong { font-size: 21px; }
+  .dashboard-impact-metrics span { font-size: 10px; }
+}
