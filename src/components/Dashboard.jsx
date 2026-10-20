@@ -99,7 +99,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
     >
       <span className="dashboard-target-name">{target.code ? `${target.code} — ` : ''}{target.name}</span>
       <span className={`dashboard-status is-${target.state}`}>{target.state === 'gap' ? 'Gap' : target.state === 'redundant' ? 'Redondance' : 'Couvert'}</span>
-      {target.state === 'gap' && <span className={`dashboard-priority is-${target.priority || 'unqualified'}`}>{target.priority || 'À qualifier'}</span>}
+      {target.state === 'gap' ? <span className={`dashboard-priority is-${target.priority || 'unqualified'}`}>{target.priority || 'À qualifier'}</span> : <span className="dashboard-priority-placeholder" aria-hidden="true" />}
       <span className="dashboard-target-apps">{target.coverageCount} application{target.coverageCount > 1 ? 's' : ''}</span>
       <span className="dashboard-target-action" aria-hidden="true">↗</span>
     </button>
