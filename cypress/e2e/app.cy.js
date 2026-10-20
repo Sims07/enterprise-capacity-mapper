@@ -930,7 +930,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
-    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-view-overview"]').click();
     cy.get('[data-testid="dashboard-domain-drilldown-l0-2"]').click();
     cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '3 / 10 éléments');
