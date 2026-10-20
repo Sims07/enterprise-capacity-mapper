@@ -154,3 +154,27 @@
 @media (max-width: 680px) {
   .dashboard-map-cell { padding: 7px; }
 }
+
+
+/* Chaque N0 est une carte indépendante, comme dans la cartographie : espace réel entre cartes. */
+.dashboard-map-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px;
+}
+.dashboard-map-cell > .dashboard-map-domain {
+  flex: 0 0 auto;
+  min-width: 0;
+  border-radius: 0;
+  overflow: visible;
+  isolation: auto;
+  background-clip: border-box;
+}
+.dashboard-map-cell > .dashboard-map-domain > .dashboard-map-domain-header {
+  border-radius: 0;
+}
+@media (max-width: 680px) {
+  .dashboard-map-cell { gap: 8px; padding: 7px; }
+}
