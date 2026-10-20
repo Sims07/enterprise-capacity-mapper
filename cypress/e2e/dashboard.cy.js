@@ -99,14 +99,20 @@ describe('Dashboard de couverture', () => {
 
   it('complète les champs manquants à l’import JSON sans écraser les criticités existantes', () => {
     const key = 'enterprise-capacity-mapper:model:v3';
-    cy.window().then(win => {
-      const legacy = JSON.parse(win.localStorage.getItem(key));
-      delete legacy.capabilities[0].priority;
-      delete legacy.capabilities[0].description;
-      legacy.capabilities[1].priority = 'P2';
-      delete legacy.applications[0].capabilityIds;
+    const legacy = {
+      schemaVersion: 3,
+      metadata: { name: 'Ancienne cartographie de test' },
+      layout: { mode: 'matrix', columns: [{ id: 'col-test', name: 'Client', order: 0 }], layers: [{ id: 'layer-test', name: 'Core', order: 0 }] },
+      domains: [{ id: 'domain-test', name: 'Domaine de test', color: 'indigo', layout: { columnId: 'col-test', layerId: 'layer-test' } }],
+      capabilities: [
+        { id: 'cap-missing-priority', domainId: 'domain-test', name: 'Capacité à qualifier' },
+        { id: 'cap-existing-priority', domainId: 'domain-test', name: 'Capacité priorisée', priority: 'P2' }
+      ],
+      applications: [{ id: 'app-test', name: 'Application sans relations' }]
+    };
+    delete legacy.capabilities[0].description;
 
-      cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="tools-menu-toggle"]').click();
       cy.get('[data-testid="import-model"]').selectFile({
         contents: JSON.stringify(legacy),
         fileName: 'ancienne-cartographie.json',
