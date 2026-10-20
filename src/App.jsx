@@ -248,6 +248,14 @@ function App() {
   };
   const replaceModel = nextModel => commitModel(nextModel);
   const update = patch => commitModel({ ...modelRef.current, ...patch });
+  const updateCapabilityPriority = (capabilityId, priority) => {
+    const current = modelRef.current;
+    update({
+      capabilities: (current.capabilities || []).map(capability =>
+        capability.id === capabilityId ? { ...capability, priority: priority || 'unqualified' } : capability
+      )
+    });
+  };
   const undo = () => {
     if (!undoStack.current.length) return;
     redoStack.current.push(modelRef.current);
@@ -862,6 +870,7 @@ function App() {
               depth={depth}
               onExploreTarget={exploreDashboardTarget}
               onLinkApp={openLinkForApp}
+              onUpdatePriority={updateCapabilityPriority}
             />
           ) : mode === 'relations' ? (
             <>
