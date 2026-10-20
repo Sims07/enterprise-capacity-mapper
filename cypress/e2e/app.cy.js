@@ -917,6 +917,20 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'all');
   });
 
+  it('qualifie la priorité directement depuis le dashboard et la conserve après rechargement', () => {
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
+    cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs').within(() => {
+      cy.get('select[aria-label="Priorité de Achats Fournisseurs"]').select('P2');
+    });
+    cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
+      .find('select').should('have.value', 'P2');
+    cy.reload();
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
+      .find('select').should('have.value', 'P2');
+    cy.get('[data-testid="dashboard-gap-priority-select-').should('not.exist');
+  });
+
   it('synthétise les gaps par domaine N0 et permet un forage par priorité', () => {
     cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
     cy.get('[data-testid="dashboard-gap-domain-l0-2"]').should('be.visible');
