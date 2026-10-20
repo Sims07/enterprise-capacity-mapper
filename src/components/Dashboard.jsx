@@ -71,6 +71,18 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
   });
   const hasActiveFilters = statusFilter !== 'all' || domainFilter !== 'all' || searchQuery.trim().length > 0;
   const resetFilters = () => { setStatusFilter('all'); setDomainFilter('all'); setSearchQuery(''); };
+  const focusCoverageState = state => {
+    setStatusFilter(state);
+    setDomainFilter('all');
+    setSearchQuery('');
+    document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const focusDomain = domainId => {
+    setDomainFilter(domainId);
+    setStatusFilter('all');
+    setSearchQuery('');
+    document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const targetButton = target => (
     <button
@@ -177,8 +189,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           <small>{stats.covered} sur {targets.length} {targetLabel} couverts</small>
         </article>
         <article className="dashboard-kpi"><span>{targetLabel.charAt(0).toUpperCase() + targetLabel.slice(1)}</span><strong>{targets.length}</strong><small>dans la cartographie active</small></article>
-        <article className="dashboard-kpi dashboard-kpi-gap"><span>Gaps de couverture</span><strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong><small>{stats.gaps.length ? 'À qualifier ou à prendre en charge' : 'Aucun élément sans application'}</small></article>
-        <article className="dashboard-kpi dashboard-kpi-redundancy"><span>Redondances</span><strong data-testid="dashboard-redundancy-count">{stats.redundancies.length}</strong><small>{stats.redundancies.length ? 'Plusieurs applications sur un même élément' : 'Aucune couverture multiple'}</small></article>
+        <article className="dashboard-kpi dashboard-kpi-gap"><span>Gaps de couverture</span><strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong><small>{stats.gaps.length ? 'À qualifier ou à prendre en charge' : 'Aucun élément sans application'}</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-gaps" onClick={() => focusCoverageState('gap')}>Afficher les gaps <span aria-hidden="true">↗</span></button></article>
+        <article className="dashboard-kpi dashboard-kpi-redundancy"><span>Redondances</span><strong data-testid="dashboard-redundancy-count">{stats.redundancies.length}</strong><small>{stats.redundancies.length ? 'Plusieurs applications sur un même élément' : 'Aucune couverture multiple'}</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-redundancies" onClick={() => focusCoverageState('redundant')}>Voir les couvertures multiples <span aria-hidden="true">↗</span></button></article>
         <article className="dashboard-kpi"><span>Applications</span><strong>{apps.length}</strong><small>{stats.unlinkedApps.length} sans relation à une {targetSingular}</small></article>
       </div>
 
@@ -249,6 +261,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
                   <div className="dashboard-domain-progress" role="progressbar" aria-label={`Couverture ${domain.name}`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={domain.coverage}><span style={{ width: `${domain.coverage}%` }} /></div>
                   <div className="dashboard-domain-meta"><b>{domain.coverage}%</b><span>{domain.gaps.length} gap{domain.gaps.length > 1 ? 's' : ''} · {domain.redundancies.length} redondance{domain.redundancies.length > 1 ? 's' : ''}</span></div>
                   {domain.gaps.length > 0 && <div className="dashboard-domain-detail"><span>À couvrir :</span> {domain.gaps.map(target => target.name).join(', ')}</div>}
+                  <button type="button" className="dashboard-domain-filter-action" data-testid={`dashboard-domain-drilldown-${domain.id}`} onClick={() => focusDomain(domain.id)}>Explorer ce domaine dans la heatmap <span aria-hidden="true">↗</span></button>
                 </article>
               ))}
             </div>
