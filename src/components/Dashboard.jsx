@@ -325,7 +325,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
             <div className="dashboard-gap-domain-grid">
               {[...stats.domainStats].filter(domain => domain.gaps.length > 0).sort((a, b) => {
                 const priorityOrder = { P1: 0, P2: 1, P3: 2, unqualified: 3 };
-                const counts = domain => domain.gaps.reduce((acc, target) => {
+                const counts = gaps => gaps.reduce((acc, target) => {
                   const priority = target.priority || 'unqualified';
                   acc[priority] = (acc[priority] || 0) + 1;
                   return acc;
