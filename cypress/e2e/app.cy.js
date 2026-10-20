@@ -850,7 +850,23 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
   });
 
+  it('propose quatre intentions et affiche la synthèse adaptée à chacune', () => {
+    cy.get('[data-testid="dashboard-view-overview"]').should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="dashboard-overview-intro"]').should('be.visible');
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-attention"]').click();
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('[data-testid="dashboard-impact-empty"]').should('be.visible');
+  });
+
   it('filtre les gaps et expose les résultats navigables', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '10 / 10 éléments');
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('gap');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
@@ -863,6 +879,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('combine recherche et domaine N0 puis réinitialise les filtres', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-search"]').type('FIN-05');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '0 / 10 éléments');
     cy.get('[data-testid="dashboard-heatmap-search"]').clear().type('Facturation');
@@ -878,6 +895,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('conserve la matrice et les extensions de colonnes pendant le filtrage', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.window().then(win => {
       const key = 'enterprise-capacity-mapper:model:v3';
       const model = JSON.parse(win.localStorage.getItem(key));
@@ -886,6 +904,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     });
     cy.reload();
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-map-layout"]').then($map => {
       const initialColumns = $map.find('.dashboard-map-grid').first().css('grid-template-columns');
       const initialColumnHeads = $map.find('.dashboard-map-column-headings').text();
@@ -901,6 +920,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('permet de passer des indicateurs aux gaps et couvertures multiples', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-focus-gaps"]').click();
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
@@ -910,6 +930,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
+    cy.get('[data-testid="dashboard-view-overview"]').click();
     cy.get('[data-testid="dashboard-domain-drilldown-l0-2"]').click();
     cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '3 / 10 éléments');
@@ -918,6 +939,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('qualifie la priorité directement depuis le dashboard et la conserve après rechargement', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs').within(() => {
       cy.get('select[aria-label="Priorité de Achats Fournisseurs"]').select('P2');
@@ -926,11 +948,13 @@ describe('Dashboard — filtres de la heatmap', () => {
       .find('select').should('have.value', 'P2');
     cy.reload();
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
       .find('select').should('have.value', 'P2');
   });
 
   it('synthétise les gaps par domaine N0 et permet un forage par priorité', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
     cy.get('[data-testid="dashboard-gap-domain-l0-2"]').should('be.visible');
     cy.get('[data-testid="dashboard-domain-gaps-l0-2"]').then($button => {
@@ -957,6 +981,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('qualifie la priorité métier d’une capacité et filtre les gaps par priorité', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
@@ -968,6 +993,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.contains('.modal button', 'Enregistrer').click();
     cy.reload();
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').select('P1');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
     cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 1).and('contain.text', 'Achats Fournisseurs').and('contain.text', 'P1');
@@ -981,6 +1007,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.contains('.impact-card .cap-select', 'Achats Fournisseurs').click();
 
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
     cy.get('[data-testid="dashboard-impact-summary"]').should('be.visible')
       .and('contain.text', '2 éléments sélectionnés')
       .and('contain.text', 'Manhattan WMS')
@@ -991,6 +1018,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('reste utilisable sur mobile et en thème sombre', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.viewport(402, 874);
     cy.get('[data-testid="dashboard-heatmap-filters"]').should('be.visible');
     cy.get('[data-testid="dashboard-heatmap-search"]').should('be.visible');
