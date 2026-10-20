@@ -24,6 +24,7 @@ describe('Dashboard de couverture', () => {
 
   it('affiche la heatmap dans la même matrice de positionnement que la cartographie', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
     cy.get('[data-testid="dashboard-map-layout"]').should('be.visible');
     cy.get('.dashboard-map-column-headings span').should('have.length', 4)
@@ -52,6 +53,7 @@ describe('Dashboard de couverture', () => {
     });
 
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-domain[data-domain-id="l0-1"]')
       .closest('.dashboard-map-cell')
       .should('have.attr', 'data-column', 'customer')
@@ -72,6 +74,7 @@ describe('Dashboard de couverture', () => {
     });
 
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-unlinked-apps"]').within(() => {
       cy.contains('Application orpheline test').should('be.visible');
       cy.get('button[aria-label="Relier Application orpheline test à des capacités N1"]').click();
@@ -135,6 +138,7 @@ describe('Dashboard de couverture', () => {
 
   it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
     cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
     cy.get('.tree-impact-toggle[aria-pressed="true"]').should('exist');
@@ -144,6 +148,7 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
 
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
     cy.get('[data-testid="return-to-dashboard"]').click();
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
@@ -161,6 +166,7 @@ describe('Dashboard de couverture', () => {
 
   it('garde des contours nets et un espacement régulier entre les domaines N0 de la heatmap', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-domain').first().should('be.visible').then($domain => {
       const style = getComputedStyle($domain[0]);
       expect(style.borderRadius).to.equal('0px');
