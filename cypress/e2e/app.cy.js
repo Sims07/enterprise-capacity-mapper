@@ -917,6 +917,23 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'all');
   });
 
+  it('synthétise les gaps par domaine N0 et permet un forage par priorité', () => {
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
+    cy.get('[data-testid="dashboard-gap-domain-l0-2"]').should('be.visible');
+    cy.get('[data-testid="dashboard-domain-gaps-l0-2"]').then($button => {
+      if (!$button.is(':disabled')) {
+        cy.wrap($button).click();
+        cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
+        cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
+        cy.get('[data-testid="dashboard-heatmap-result-count"]').invoke('text').should('match', /^\\d+ \\/ 10 éléments$/);
+      } else {
+        cy.get('[data-testid="dashboard-gap-domain-l0-2"] .dashboard-gap-domain-empty').should('be.visible');
+      }
+    });
+    cy.get('[data-testid="dashboard-gap-domain-l0-1"]').should('be.visible');
+    cy.get('[data-testid="dashboard-gap-priority-l0-1-P1"]').should('be.disabled');
+  });
+
   it('qualifie la priorité métier d’une capacité et filtre les gaps par priorité', () => {
     cy.visit('/');
     cy.clearLocalStorage();
