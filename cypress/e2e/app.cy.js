@@ -900,6 +900,23 @@ describe('Dashboard — filtres de la heatmap', () => {
     });
   });
 
+  it('permet de passer des indicateurs aux gaps et couvertures multiples', () => {
+    cy.get('[data-testid="dashboard-focus-gaps"]').click();
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
+    cy.get('[data-testid="dashboard-focus-redundancies"]').click();
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'redundant');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
+  });
+
+  it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
+    cy.get('[data-testid="dashboard-domain-drilldown-l0-2"]').click();
+    cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '3 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-search"]').should('have.value', '');
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'all');
+  });
+
   it('reste utilisable sur mobile et en thème sombre', () => {
     cy.viewport(402, 874);
     cy.get('[data-testid="dashboard-heatmap-filters"]').should('be.visible');
