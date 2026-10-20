@@ -69,14 +69,34 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
     </button>
   );
 
-  const mapCell = (column, layer) => {
+  const mapCell = (column, layer, columnIndex) => {
     const cellDomains = domains.filter(domain => {
       const domainLayout = domain.layout || {};
-      return domainLayout.columnId === column.id && domainLayout.layerId === layer.id;
+      return (domainLayout.columnId || columns[0]?.id) === column.id
+        && (domainLayout.layerId || layers[0]?.id) === layer.id;
     });
+    const coveredByPrevious = domains.some(domain => {
+      const domainLayout = domain.layout || {};
+      if ((domainLayout.layerId || layers[0]?.id) !== layer.id) return false;
+      const start = columns.findIndex(item => item.id === (domainLayout.columnId || columns[0]?.id));
+      const span = Math.max(1, Number(domainLayout.columnSpan) || 1);
+      return start >= 0 && start < columnIndex && start + span > columnIndex;
+    });
+    if (coveredByPrevious) return null;
+
+    const columnSpan = Math.max(1, Math.min(
+      columns.length - columnIndex,
+      Number(cellDomains[0]?.layout?.columnSpan) || 1
+    ));
 
     return (
-      <div className="dashboard-map-cell" key={`${layer.id}-${column.id}`} data-column={column.id} data-layer={layer.id}>
+      <div
+        className="dashboard-map-cell"
+        key={`${layer.id}-${column.id}`}
+        data-column={column.id}
+        data-layer={layer.id}
+        style={{ gridColumn: columnSpan > 1 ? `span ${columnSpan}` : undefined }}
+      >
         {cellDomains.length ? cellDomains.map(domain => {
           const domainTargets = depth === 1
             ? [enrichedById.get(domain.id)].filter(Boolean)
@@ -124,7 +144,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
   };
 
   const mapGroups = layers.length && columns.length
-    ? layers.map(layer => ({ layer, cells: columns.map(column => mapCell(column, layer)) }))
+    ? layers.map(layer => ({ layer, cells: columns.map((column, index) => mapCell(column, layer, index)) }))
     : [];
 
   return (
@@ -158,7 +178,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
               {columns.map(column => <span key={column.id}>{column.name}</span>)}
             </div>
             {mapGroups.map(({ layer, cells }) => (
-              <div className="dashboard-map-row" key={layer.id}>
+              <div className="dashboard-map-row" key={layer.id} data-layer={layer.id}>
                 <div className="dashboard-map-layer-label">{layer.name}</div>
                 <div className="dashboard-map-grid">{cells}</div>
               </div>
