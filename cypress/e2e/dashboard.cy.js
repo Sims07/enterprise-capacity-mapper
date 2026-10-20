@@ -131,7 +131,6 @@ describe('Dashboard de couverture', () => {
         expect(saved.capabilities[1].priority).to.equal('P2');
         expect(saved.applications[0].capabilityIds).to.deep.equal([]);
       });
-    });
   });
 
   it('identifie une application sans relation et permet de la relier depuis le dashboard', () => {
