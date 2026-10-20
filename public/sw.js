@@ -1,4 +1,4 @@
-const CACHE='ecm-v2.0.13';
+const CACHE='ecm-v2.0.14';
 const PRECACHE=['./','./index.html','./manifest.webmanifest','./icons/icon.svg'];
 
 self.addEventListener('install', event => {
