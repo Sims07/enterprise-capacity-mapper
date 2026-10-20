@@ -960,18 +960,21 @@ describe('Dashboard — filtres de la heatmap', () => {
   it('synthétise les gaps par domaine N0 et permet un forage par priorité', () => {
     cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
-    cy.get('[data-testid="dashboard-gap-domain-l0-2"]').should('be.visible');
-    cy.get('[data-testid="dashboard-domain-gaps-l0-2"]').then($button => {
-      if (!$button.is(':disabled')) {
-        cy.wrap($button).click();
-        cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
-        cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
-        cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '/ 10 éléments');
-      } else {
-        cy.get('[data-testid="dashboard-gap-domain-l0-2"] .dashboard-gap-domain-empty').should('be.visible');
-      }
+    cy.get('.dashboard-gap-domain').should('have.length.greaterThan', 0).each($domain => {
+      cy.wrap($domain).find('.dashboard-gap-domain-heading b').invoke('text').then(count => {
+        expect(Number(count.trim()), 'chaque domaine affiché possède au moins un gap').to.be.greaterThan(0);
+      });
     });
-    cy.get('[data-testid="dashboard-gap-domain-l0-1"]').should('be.visible');
+
+    cy.get('.dashboard-gap-domain').first().then($domain => {
+      const domainId = $domain.attr('data-testid').replace('dashboard-gap-domain-', '');
+      cy.get(`[data-testid="dashboard-domain-gaps-${domainId}"]`).should('not.be.disabled').click();
+      cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', domainId);
+      cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
+      cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '/ 10 éléments');
+    });
+
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('.dashboard-gap-priority:not(:disabled)').first().then($button => {
       const testId = $button.attr('data-testid').replace('dashboard-gap-priority-', '');
       const priority = ['unqualified', 'P1', 'P2', 'P3'].find(value => testId.endsWith(`-${value}`));

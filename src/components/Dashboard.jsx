@@ -319,9 +319,26 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
             <div><h3>Gaps prioritaires par domaine N0</h3><p>Repérez les domaines qui concentrent les gaps et explorez uniquement les éléments à traiter. Les priorités restent celles définies dans la cartographie.</p></div>
             <span>{stats.gaps.length} gaps à qualifier ou traiter</span>
           </div>
-          {stats.domainStats.length ? (
+          {stats.gaps.length === 0 ? (
+            <p className="dashboard-empty" data-testid="dashboard-no-gaps">Aucun gap détecté : tous les éléments de ce périmètre sont couverts.</p>
+          ) : (
             <div className="dashboard-gap-domain-grid">
-              {stats.domainStats.map(domain => {
+              {[...stats.domainStats].filter(domain => domain.gaps.length > 0).sort((a, b) => {
+                const priorityOrder = { P1: 0, P2: 1, P3: 2, unqualified: 3 };
+                const counts = gaps => gaps.reduce((acc, target) => {
+                  const priority = target.priority || 'unqualified';
+                  acc[priority] = (acc[priority] || 0) + 1;
+                  return acc;
+                }, {});
+                const ac = counts(a.gaps);
+                const bc = counts(b.gaps);
+                return (bc.P1 || 0) - (ac.P1 || 0)
+                  || (bc.P2 || 0) - (ac.P2 || 0)
+                  || (bc.P3 || 0) - (ac.P3 || 0)
+                  || (bc.unqualified || 0) - (ac.unqualified || 0)
+                  || b.gaps.length - a.gaps.length
+                  || a.name.localeCompare(b.name, 'fr');
+              }).map(domain => {
                 const priorityOrder = { P1: 0, P2: 1, P3: 2, unqualified: 3 };
                 const orderedGaps = [...domain.gaps].sort((a, b) => (priorityOrder[a.priority || 'unqualified'] ?? 3) - (priorityOrder[b.priority || 'unqualified'] ?? 3) || a.name.localeCompare(b.name, 'fr'));
                 const priorityCounts = {
@@ -384,7 +401,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                 );
               })}
             </div>
-          ) : <p className="dashboard-empty">Aucun domaine dans cette cartographie.</p>}
+          )}
         </section>
       )}
 
@@ -393,7 +410,11 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
           <div className="dashboard-panel-heading"><div><h3>Couverture par domaine N0</h3><p>Comparez la couverture entre domaines métier.</p></div><span>{stats.domainStats.length} domaines</span></div>
           {stats.domainStats.length ? (
             <div className="dashboard-domain-list">
-              {stats.domainStats.map(domain => (
+              {[...stats.domainStats].sort((a, b) =>
+                a.coverage - b.coverage
+                || b.gaps.length - a.gaps.length
+                || a.name.localeCompare(b.name, 'fr')
+              ).map(domain => (
                 <article className="dashboard-domain-row" key={domain.id}>
                   <div className="dashboard-domain-label"><strong>{domain.name}</strong><span>{domain.coveredCount}/{domain.targetCount} couverts</span></div>
                   <div className="dashboard-domain-progress" role="progressbar" aria-label={`Couverture ${domain.name}`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={domain.coverage}><span style={{ width: `${domain.coverage}%` }} /></div>
