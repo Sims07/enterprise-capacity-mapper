@@ -355,7 +355,8 @@
 /* Édition de criticité : le contrôle reste sous la capacité pour préserver le clic et le responsive. */
 .dashboard-map-capability-row { display: flex; flex-direction: column; align-items: stretch; gap: 5px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
 .dashboard-map-capability-row .dashboard-map-capability { display: block; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
-.dashboard-map-priority-editor { display: block; align-self: stretch; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+.dashboard-map-priority-editor { display: block; align-self: stretch; width: 100%; max-width: 118px; min-width: 0; box-sizing: border-box; }
 .dashboard-map-priority-editor select { display: block; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 5px 17px 5px 5px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; font: inherit; font-size: 10px; cursor: pointer; }
 .dashboard-map-priority-editor select:focus-visible { outline: 2px solid #6366f1; outline-offset: 1px; }
 .app.theme-dark .dashboard-map-priority-editor select { border-color: #4b5563; background: #1d212b; color: #f3f4f6; }
+@media (max-width: 560px) { .dashboard-map-priority-editor { max-width: 100%; } }
