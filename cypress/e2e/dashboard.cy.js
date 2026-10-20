@@ -147,6 +147,11 @@ describe('Dashboard de couverture', () => {
       expect(style.borderRadius).to.equal('0px');
       expect(style.overflow).to.equal('visible');
       expect(style.isolation).to.equal('auto');
+      const title = $domain.find('.dashboard-map-domain-header strong')[0];
+      const titleStyle = getComputedStyle(title);
+      expect(titleStyle.fontSize).to.equal('12px');
+      expect(titleStyle.fontWeight).to.equal('800');
+      expect(titleStyle.letterSpacing).to.equal('normal');
     });
     cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px').and('have.css', 'gap', '10px');
   });
