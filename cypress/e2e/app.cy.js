@@ -2,7 +2,7 @@ describe('Application smoke test', () => {
   const assertApplicationLoaded = () => {
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
-    cy.get('[data-testid="pwa-version"]').should('not.exist');
+    cy.get('[data-testid="pwa-version"]').should('not.be.visible');
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="pwa-version"]').should('be.visible');
     cy.get('[data-testid="pwa-version"] a').should('have.attr', 'href', 'https://github.com/Sims07/enterprise-capacity-mapper/releases').and('contain.text', 'v');
