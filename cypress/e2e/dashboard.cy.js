@@ -97,6 +97,37 @@ describe('Dashboard de couverture', () => {
     });
   });
 
+  it('complète les champs manquants à l’import JSON sans écraser les criticités existantes', () => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    cy.window().then(win => {
+      const legacy = JSON.parse(win.localStorage.getItem(key));
+      delete legacy.capabilities[0].priority;
+      delete legacy.capabilities[0].description;
+      legacy.capabilities[1].priority = 'P2';
+      delete legacy.applications[0].capabilityIds;
+
+      cy.get('[data-testid="tools-menu-toggle"]').click();
+      cy.get('[data-testid="import-model"]').selectFile({
+        contents: JSON.stringify(legacy),
+        fileName: 'ancienne-cartographie.json',
+        mimeType: 'application/json'
+      }, { force: true });
+
+      cy.get('[data-testid="tab-dashboard"]').click();
+      cy.get('[data-testid="dashboard-view-coverage"]').click();
+      cy.get(`[data-testid="dashboard-map-priority-select-${legacy.capabilities[0].id}"]`).should('have.value', 'unqualified');
+      cy.get(`[data-testid="dashboard-map-priority-select-${legacy.capabilities[1].id}"]`).should('have.value', 'P2');
+
+      cy.window().should(win2 => {
+        const saved = JSON.parse(win2.localStorage.getItem(key));
+        expect(saved.capabilities[0].priority).to.equal('unqualified');
+        expect(saved.capabilities[0].description).to.equal('');
+        expect(saved.capabilities[1].priority).to.equal('P2');
+        expect(saved.applications[0].capabilityIds).to.deep.equal([]);
+      });
+    });
+  });
+
   it('identifie une application sans relation et permet de la relier depuis le dashboard', () => {
     cy.get('.side-add').click();
     cy.get('[role="dialog"]').within(() => {
