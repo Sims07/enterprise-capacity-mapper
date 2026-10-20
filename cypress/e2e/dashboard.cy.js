@@ -139,4 +139,15 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-kpi').should('have.length', 5);
     cy.get('.app.theme-dark .dashboard-panel').should('have.css', 'background-color', 'rgb(23, 26, 32)');
   });
+
+  it('garde des contours nets et un espacement régulier entre les domaines N0 de la heatmap', () => {
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('.dashboard-map-domain').first().should('be.visible').then($domain => {
+      const style = getComputedStyle($domain[0]);
+      expect(style.borderRadius).to.equal('10px');
+      expect(style.overflow).to.equal('clip');
+    });
+    cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px');
+  });
+
 });
