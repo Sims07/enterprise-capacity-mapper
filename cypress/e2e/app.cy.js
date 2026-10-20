@@ -850,6 +850,21 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
   });
 
+  it('propose quatre intentions et affiche la synthèse adaptée à chacune', () => {
+    cy.get('[data-testid="dashboard-view-overview"]').should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="dashboard-overview-intro"]').should('be.visible');
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-attention"]').click();
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('[data-testid="dashboard-impact-empty"]').should('be.visible');
+  });
+
   it('filtre les gaps et expose les résultats navigables', () => {
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '10 / 10 éléments');
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('gap');
