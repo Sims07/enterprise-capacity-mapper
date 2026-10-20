@@ -78,20 +78,20 @@ describe('Dashboard de couverture', () => {
     cy.get('.dashboard-map-column-headings span').should('have.length', 4);
   });
 
-  it('permet de modifier la criticité de toute capacité N1 directement depuis la heatmap', () => {
+  it('garde la heatmap sans éditeur de criticité et permet de la modifier dans les points d’attention', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]')
+      .find('select[data-testid^="dashboard-map-priority-select-"]').should('not.exist');
 
-    cy.get('.dashboard-map-capability').first().then($button => {
-      const label = $button.find('.dashboard-map-capability-name').text().trim();
-      const row = $button.closest('.dashboard-map-capability-row');
-      const select = row.find('select[data-testid^="dashboard-map-priority-select-"]');
-      expect(select, `sélecteur de criticité pour ${label}`).to.have.length(1);
-      cy.wrap(select).select('P1');
-      cy.wrap(select).should('have.value', 'P1');
-      cy.window().then(win => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
+    cy.get('[data-testid^="dashboard-gap-priority-select-"]').first().then($select => {
+      const select = cy.wrap($select);
+      const capabilityId = $select.attr('data-testid').replace('dashboard-gap-priority-select-', '');
+      select.select('P1').should('have.value', 'P1');
+      cy.window().should(win => {
         const saved = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
-        const capabilityId = select.attr('data-testid').replace('dashboard-map-priority-select-', '');
         expect(saved.capabilities.find(capability => capability.id === capabilityId).priority).to.equal('P1');
       });
     });
@@ -120,9 +120,9 @@ describe('Dashboard de couverture', () => {
       }, { force: true });
 
       cy.get('[data-testid="tab-dashboard"]').click();
-      cy.get('[data-testid="dashboard-view-coverage"]').click();
-      cy.get(`[data-testid="dashboard-map-priority-select-${legacy.capabilities[0].id}"]`).should('have.value', 'unqualified');
-      cy.get(`[data-testid="dashboard-map-priority-select-${legacy.capabilities[1].id}"]`).should('have.value', 'P2');
+      cy.get('[data-testid="dashboard-view-attention"]').click();
+      cy.get(`[data-testid="dashboard-gap-priority-select-${legacy.capabilities[0].id}"]`).should('have.value', 'unqualified');
+      cy.get(`[data-testid="dashboard-gap-priority-select-${legacy.capabilities[1].id}"]`).should('have.value', 'P2');
 
       cy.window().should(win2 => {
         const saved = JSON.parse(win2.localStorage.getItem(key));
