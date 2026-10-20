@@ -5,7 +5,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/Sims07/enterprise-capacity-mapper)](https://github.com/Sims07/enterprise-capacity-mapper/issues)
 [![License](https://img.shields.io/github/license/Sims07/enterprise-capacity-mapper)](https://github.com/Sims07/enterprise-capacity-mapper)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
-[![React](https://img.shields.io/badge/React-Vite-646CFF?logo= vite&logoColor=white)](https://github.com/Sims07/enterprise-capacity-mapper)
+[![React](https://img.shields.io/badge/React-Vite-646CFF?logo=vite&logoColor=white)](https://github.com/Sims07/enterprise-capacity-mapper)
 [![Cypress E2E](https://img.shields.io/badge/tests-Cypress%20E2E-17202C?logo=cypress&logoColor=white)](https://github.com/Sims07/enterprise-capacity-mapper/tree/main/cypress/e2e)
 
 
