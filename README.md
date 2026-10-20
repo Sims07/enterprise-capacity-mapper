@@ -1,5 +1,13 @@
 # Enterprise Capacity Mapper
 
+[![Deploy PWA to GitHub Pages](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
+[![Latest release](https://img.shields.io/github/v/release/Sims07/enterprise-capacity-mapper?display_name=tag&sort=semver)](https://github.com/Sims07/enterprise-capacity-mapper/releases)
+[![GitHub issues](https://img.shields.io/github/issues/Sims07/enterprise-capacity-mapper)](https://github.com/Sims07/enterprise-capacity-mapper/issues)
+[![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
+[![React](https://img.shields.io/badge/React-Vite-646CFF?logo=vite&logoColor=white)](https://github.com/Sims07/enterprise-capacity-mapper)
+
+
+
 Application PWA de cartographie des capacités métier et de leur couverture applicative.
 
 ## Cible d'architecture
