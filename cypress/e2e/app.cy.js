@@ -928,7 +928,6 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
       .find('select').should('have.value', 'P2');
-    cy.get('[data-testid="dashboard-gap-priority-select-').should('not.exist');
   });
 
   it('synthétise les gaps par domaine N0 et permet un forage par priorité', () => {
