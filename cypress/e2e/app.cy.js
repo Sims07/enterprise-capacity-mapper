@@ -931,7 +931,14 @@ describe('Dashboard — filtres de la heatmap', () => {
       }
     });
     cy.get('[data-testid="dashboard-gap-domain-l0-1"]').should('be.visible');
-    cy.get('[data-testid="dashboard-gap-priority-l0-1-P1"]').should('be.disabled');
+    cy.get('.dashboard-gap-priority:not(:disabled)').first().then($button => {
+      const [, domainId, priority] = $button.attr('data-testid').replace('dashboard-gap-priority-', '').split(/-(?=[^-]+$)/);
+      cy.wrap($button).click();
+      cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', domainId);
+      cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
+      cy.get('[data-testid="dashboard-heatmap-priority-filter"]').should('have.value', priority);
+      cy.get('[data-testid="dashboard-heatmap-result-count"]').invoke('text').should('match', /^\\d+ \/ 10 éléments$/);
+    });
   });
 
   it('qualifie la priorité métier d’une capacité et filtre les gaps par priorité', () => {
