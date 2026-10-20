@@ -87,7 +87,10 @@ function normalizeModel(model){
  if(!model)return model;
  const layout=model.layout||{mode:'matrix',columns:[{id:'customer',name:'Client',order:0},{id:'product',name:'Produit',order:1},{id:'operations',name:'Opérations',order:2},{id:'support',name:'Support',order:3}],layers:[{id:'strategic',name:'Stratégique',order:0},{id:'core',name:'Core / Value',order:1},{id:'support',name:'Support',order:2}]};
  const columns=layout.columns?.length?layout.columns:[{id:'default',name:'Général',order:0}]; const layers=layout.layers?.length?layout.layers:[{id:'default',name:'Principal',order:0}];
- return {...model,schemaVersion:3,layout:{...layout,mode:layout.mode||'matrix',columns,layers},domains:(model.domains||[]).map((d,i)=>({...d,layout:{...(d.layout||{}),columnId:d.layout?.columnId||columns[i%columns.length].id,layerId:d.layout?.layerId||layers[0].id}}))};
+ const domains=(model.domains||[]).map((d,i)=>({...d,description:d.description??'',color:d.color||'indigo',layout:{...(d.layout||{}),columnId:d.layout?.columnId||columns[i%columns.length].id,layerId:d.layout?.layerId||layers[0].id}}));
+ const capabilities=(model.capabilities||[]).map(capability=>({...capability,description:capability.description??'',priority:['P1','P2','P3','unqualified'].includes(capability.priority)?capability.priority:'unqualified'}));
+ const applications=(model.applications||[]).map(application=>({...application,capabilityIds:Array.isArray(application.capabilityIds)?application.capabilityIds:[],description:application.description??''}));
+ return {...model,schemaVersion:3,layout:{...layout,mode:layout.mode||'matrix',columns,layers},domains,capabilities,applications};
 }
 
 
