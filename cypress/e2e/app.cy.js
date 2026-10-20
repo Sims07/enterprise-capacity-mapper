@@ -921,8 +921,8 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
-    cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
-      cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').click();
+    cy.contains('.cap', 'Achats Fournisseurs').within(() => {
+      cy.get('button[aria-label="Renommer Achats Fournisseurs"]').click();
     });
     cy.get('.context-menu').contains('button', 'Renommer').click();
     cy.get('[data-testid="capability-priority"]').select('P1');
@@ -931,7 +931,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').select('P1');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
-    cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 1).and('contain.text', 'Gestion des Prospects & Leads').and('contain.text', 'P1');
+    cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 1).and('contain.text', 'Achats Fournisseurs').and('contain.text', 'P1');
     cy.get('[data-testid="dashboard-heatmap-reset"]').click();
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').should('have.value', 'all');
   });
