@@ -1002,7 +1002,6 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('reflète la sélection Impact dans le dashboard et met en évidence les capacités concernées', () => {
-    cy.get('[data-testid="dashboard-view-impact"]').click();
     cy.get('[data-testid="tab-impact"]').click();
     cy.contains('.impact-card .cap-select', 'Gestion des Stocks & Entrepôt (WMS)').click();
     cy.contains('.impact-card .cap-select', 'Achats Fournisseurs').click();
