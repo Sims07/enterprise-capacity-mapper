@@ -104,11 +104,21 @@ describe('Dashboard de couverture', () => {
     });
   });
 
-  it('permet d’ouvrir dans Relations un gap depuis le dashboard', () => {
+  it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
     cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
     cy.get('.tree-impact-toggle[aria-pressed="true"]').should('exist');
+    cy.get('[data-testid="return-to-dashboard"]').should('be.visible');
+
+    cy.go('back');
+    cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
+    cy.get('[data-testid="capability-dashboard"]').should('be.visible');
+
+    cy.get('.dashboard-target[aria-label*="dans Relations"]').first().click();
+    cy.get('[data-testid="return-to-dashboard"]').click();
+    cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
+    cy.get('[data-testid="capability-dashboard"]').should('be.visible');
   });
 
   it('reste lisible en thème sombre', () => {
