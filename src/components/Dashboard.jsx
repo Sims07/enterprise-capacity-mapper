@@ -16,6 +16,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
   const [statusFilter, setStatusFilter] = useState('all');
   const [domainFilter, setDomainFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
   const stats = useMemo(() => {
     const enriched = targets.map(target => {
@@ -23,7 +24,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
       return { ...target, linkedApps, coverageCount: linkedApps.length, state: coverageState(linkedApps.length) };
     });
     const covered = enriched.filter(target => target.coverageCount > 0).length;
-    const gaps = enriched.filter(target => target.coverageCount === 0);
+    const priorityOrder = { P1: 0, P2: 1, P3: 2, unqualified: 3 };
+    const gaps = enriched.filter(target => target.coverageCount === 0).sort((a, b) => (priorityOrder[a.priority || 'unqualified'] ?? 3) - (priorityOrder[b.priority || 'unqualified'] ?? 3) || a.name.localeCompare(b.name, 'fr'));
     const redundancies = enriched.filter(target => target.coverageCount > 1);
     const relationCount = enriched.reduce((sum, target) => sum + target.coverageCount, 0);
     const domainStats = domains.map(domain => {
@@ -61,6 +63,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
     const targetDomainId = depth === 1 ? target.id : target.domainId;
     if (statusFilter !== 'all' && target.state !== statusFilter) return false;
     if (domainFilter !== 'all' && targetDomainId !== domainFilter) return false;
+    if (priorityFilter !== 'all' && (target.state !== 'gap' || (target.priority || 'unqualified') !== priorityFilter)) return false;
     if (!normalizedQuery) return true;
     const searchableText = [target.name, target.code, domain?.name, domain?.code].filter(Boolean).join(' ').toLocaleLowerCase('fr');
     return searchableText.includes(normalizedQuery);
@@ -69,18 +72,20 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
     const domain = depth === 1 ? target : domains.find(item => item.id === target.domainId);
     return matchesFilters(target, domain);
   });
-  const hasActiveFilters = statusFilter !== 'all' || domainFilter !== 'all' || searchQuery.trim().length > 0;
-  const resetFilters = () => { setStatusFilter('all'); setDomainFilter('all'); setSearchQuery(''); };
+  const hasActiveFilters = statusFilter !== 'all' || domainFilter !== 'all' || searchQuery.trim().length > 0 || priorityFilter !== 'all';
+  const resetFilters = () => { setStatusFilter('all'); setDomainFilter('all'); setSearchQuery(''); setPriorityFilter('all'); };
   const focusCoverageState = state => {
     setStatusFilter(state);
     setDomainFilter('all');
     setSearchQuery('');
+    setPriorityFilter('all');
     document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const focusDomain = domainId => {
     setDomainFilter(domainId);
     setStatusFilter('all');
     setSearchQuery('');
+    setPriorityFilter('all');
     document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -94,6 +99,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
     >
       <span className="dashboard-target-name">{target.code ? `${target.code} — ` : ''}{target.name}</span>
       <span className={`dashboard-status is-${target.state}`}>{target.state === 'gap' ? 'Gap' : target.state === 'redundant' ? 'Redondance' : 'Couvert'}</span>
+      {target.state === 'gap' && <span className={`dashboard-priority is-${target.priority || 'unqualified'}`}>{target.priority || 'À qualifier'}</span>}
       <span className="dashboard-target-apps">{target.coverageCount} application{target.coverageCount > 1 ? 's' : ''}</span>
       <span className="dashboard-target-action" aria-hidden="true">↗</span>
     </button>
@@ -189,7 +195,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
           <small>{stats.covered} sur {targets.length} {targetLabel} couverts</small>
         </article>
         <article className="dashboard-kpi"><span>{targetLabel.charAt(0).toUpperCase() + targetLabel.slice(1)}</span><strong>{targets.length}</strong><small>dans la cartographie active</small></article>
-        <article className="dashboard-kpi dashboard-kpi-gap"><span>Gaps de couverture</span><strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong><small>{stats.gaps.length ? 'À qualifier ou à prendre en charge' : 'Aucun élément sans application'}</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-gaps" onClick={() => focusCoverageState('gap')}>Afficher les gaps <span aria-hidden="true">↗</span></button></article>
+        <article className="dashboard-kpi dashboard-kpi-gap"><span>Gaps de couverture</span><strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong><small>{stats.gaps.filter(target => target.priority === 'P1').length} P1 · {stats.gaps.filter(target => target.priority === 'P2').length} P2 · {stats.gaps.filter(target => target.priority === 'P3').length} P3</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-gaps" onClick={() => focusCoverageState('gap')}>Afficher les gaps <span aria-hidden="true">↗</span></button></article>
         <article className="dashboard-kpi dashboard-kpi-redundancy"><span>Redondances</span><strong data-testid="dashboard-redundancy-count">{stats.redundancies.length}</strong><small>{stats.redundancies.length ? 'Plusieurs applications sur un même élément' : 'Aucune couverture multiple'}</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-redundancies" onClick={() => focusCoverageState('redundant')}>Voir les couvertures multiples <span aria-hidden="true">↗</span></button></article>
         <article className="dashboard-kpi"><span>Applications</span><strong>{apps.length}</strong><small>{stats.unlinkedApps.length} sans relation à une {targetSingular}</small></article>
       </div>
@@ -213,6 +219,12 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
             <span>État de couverture</span>
             <select data-testid="dashboard-heatmap-status-filter" aria-label="Filtrer par état de couverture" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
               <option value="all">Tous les états</option><option value="gap">Gaps</option><option value="covered">Couvertes (1 application)</option><option value="redundant">Couvertures multiples</option>
+            </select>
+          </label>
+          <label className="dashboard-heatmap-filter">
+            <span>Priorité des gaps</span>
+            <select data-testid="dashboard-heatmap-priority-filter" aria-label="Filtrer les gaps par priorité" value={priorityFilter} onChange={event => setPriorityFilter(event.target.value)}>
+              <option value="all">Toutes les priorités</option><option value="unqualified">À qualifier</option><option value="P1">P1 — Critique</option><option value="P2">P2 — Élevée</option><option value="P3">P3 — Normale</option>
             </select>
           </label>
           <label className="dashboard-heatmap-filter">
