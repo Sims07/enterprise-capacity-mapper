@@ -17,6 +17,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const [domainFilter, setDomainFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [activeView, setActiveView] = useState('overview');
 
   const stats = useMemo(() => {
     const enriched = targets.map(target => {
@@ -79,6 +80,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const hasActiveFilters = statusFilter !== 'all' || domainFilter !== 'all' || searchQuery.trim().length > 0 || priorityFilter !== 'all';
   const resetFilters = () => { setStatusFilter('all'); setDomainFilter('all'); setSearchQuery(''); setPriorityFilter('all'); };
   const focusCoverageState = state => {
+    setActiveView('coverage');
     setStatusFilter(state);
     setDomainFilter('all');
     setSearchQuery('');
@@ -86,6 +88,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
     document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const focusDomain = domainId => {
+    setActiveView('coverage');
     setDomainFilter(domainId);
     setStatusFilter('all');
     setSearchQuery('');
@@ -93,6 +96,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
     document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const focusDomainGaps = (domainId, priority = 'all') => {
+    setActiveView('coverage');
     setDomainFilter(domainId);
     setStatusFilter('gap');
     setSearchQuery('');
@@ -198,7 +202,15 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
 
   return (
     <section className="dashboard" data-testid="capability-dashboard" aria-label="Dashboard de couverture">
-      {impactTargets.length > 0 && (
+      <nav className="dashboard-intent-nav" aria-label="Intentions du dashboard" data-testid="dashboard-intent-nav">
+        <button type="button" data-testid="dashboard-view-overview" className={activeView === 'overview' ? 'is-active' : ''} aria-pressed={activeView === 'overview'} onClick={() => setActiveView('overview')}><span className="dashboard-intent-eyebrow">01 · Piloter</span><strong>Vue d’ensemble</strong><small>Repérer rapidement les signaux clés</small></button>
+        <button type="button" data-testid="dashboard-view-coverage" className={activeView === 'coverage' ? 'is-active' : ''} aria-pressed={activeView === 'coverage'} onClick={() => setActiveView('coverage')}><span className="dashboard-intent-eyebrow">02 · Explorer</span><strong>Analyser la couverture</strong><small>Cartographier et filtrer les capacités</small></button>
+        <button type="button" data-testid="dashboard-view-impact" className={activeView === 'impact' ? 'is-active' : ''} aria-pressed={activeView === 'impact'} onClick={() => setActiveView('impact')}><span className="dashboard-intent-eyebrow">03 · Comprendre</span><strong>Comprendre les impacts</strong><small>Relier sélection, applications et gaps</small></button>
+        <button type="button" data-testid="dashboard-view-attention" className={activeView === 'attention' ? 'is-active' : ''} aria-pressed={activeView === 'attention'} onClick={() => setActiveView('attention')}><span className="dashboard-intent-eyebrow">04 · Agir</span><strong>Examiner les points d’attention</strong><small>Prioriser les gaps et les situations à revoir</small></button>
+      </nav>
+      {activeView === 'overview' && <section className="dashboard-overview-intro" data-testid="dashboard-overview-intro"><div><span className="dashboard-overview-kicker">PILOTAGE DE LA CARTOGRAPHIE</span><h2>Où souhaitez-vous concentrer votre analyse ?</h2><p>Commencez par les indicateurs globaux, puis choisissez une intention pour approfondir sans parcourir toutes les sections.</p></div><div className="dashboard-overview-shortcuts"><button type="button" onClick={() => setActiveView('coverage')}><strong>Analyser la couverture</strong><span>Comparer les capacités dans la heatmap <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => setActiveView('impact')}><strong>Comprendre les impacts</strong><span>{impactTargets.length ? `${impactTargets.length} élément(s) sélectionné(s) depuis Impact` : 'Examiner une sélection issue de la vue Impact'} <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => setActiveView('attention')}><strong>Examiner les points d’attention</strong><span>{stats.gaps.length} gaps · {stats.redundancies.length} couvertures multiples <b aria-hidden="true">↗</b></span></button></div></section>}
+      {activeView === 'impact' && impactTargets.length === 0 && <section className="dashboard-panel dashboard-impact-empty" data-testid="dashboard-impact-empty"><h3>Aucune sélection d’impact active</h3><p>Ouvrez l’onglet Impact, sélectionnez les capacités à examiner, puis revenez ici. La synthèse et la heatmap mettront en évidence les éléments concernés.</p><button type="button" onClick={() => setActiveView('coverage')}>Analyser la couverture à la place</button></section>}
+      {activeView === 'impact' && impactTargets.length > 0 && (
         <section className="dashboard-panel dashboard-impact-summary" data-testid="dashboard-impact-summary" aria-label="Synthèse des impacts sélectionnés">
           <div className="dashboard-panel-heading">
             <div><h3>Impacts sélectionnés</h3><p>Les éléments choisis dans la vue Impact, avec leurs applications et gaps associés. Les indicateurs globaux ci-dessous restent calculés sur toute la cartographie.</p></div>
@@ -239,7 +251,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         <article className="dashboard-kpi"><span>Applications</span><strong>{apps.length}</strong><small>{stats.unlinkedApps.length} sans relation à une {targetSingular}</small></article>
       </div>
 
-      <section className="dashboard-panel dashboard-heatmap" data-testid="dashboard-coverage-heatmap" aria-label="Heatmap de couverture">
+      {(activeView === 'coverage' || activeView === 'impact') && <section className="dashboard-panel dashboard-heatmap" data-testid="dashboard-coverage-heatmap" aria-label="Heatmap de couverture">
         <div className="dashboard-panel-heading">
           <div><h3>Heatmap de couverture</h3><p>La heatmap reprend la même matrice de positionnement que la cartographie : colonnes métier en horizontal, couches en vertical et capacités dans leur domaine.</p></div>
           <span>{stats.enriched.length} éléments</span>
@@ -299,9 +311,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
             {filteredTargets.length ? <div className="dashboard-target-list">{filteredTargets.map(targetButton)}</div> : <p className="dashboard-empty">Aucun élément ne correspond à ces critères. Essayez d’élargir les filtres.</p>}
           </section>
         )}
-      </section>
+      </section>}
 
-      {depth !== 1 && (
+      {activeView === 'attention' && depth !== 1 && (
         <section className="dashboard-panel dashboard-gap-priorities" data-testid="dashboard-gap-priorities" aria-label="Gaps prioritaires par domaine N0">
           <div className="dashboard-panel-heading">
             <div><h3>Gaps prioritaires par domaine N0</h3><p>Repérez les domaines qui concentrent les gaps et explorez uniquement les éléments à traiter. Les priorités restent celles définies dans la cartographie.</p></div>
@@ -376,7 +388,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         </section>
       )}
 
-      <div className="dashboard-content">
+      {(activeView === 'overview' || activeView === 'attention') && <div className={`dashboard-content${activeView === 'overview' ? ' is-overview' : ''}`}>
         <section className="dashboard-panel dashboard-domain-panel">
           <div className="dashboard-panel-heading"><div><h3>Couverture par domaine N0</h3><p>Comparez la couverture entre domaines métier.</p></div><span>{stats.domainStats.length} domaines</span></div>
           {stats.domainStats.length ? (
@@ -394,12 +406,12 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
           ) : <p className="dashboard-empty">Aucun domaine dans cette cartographie.</p>}
         </section>
 
-        <div className="dashboard-issues">
+        {activeView === 'attention' && <div className="dashboard-issues">
           <section className="dashboard-panel"><div className="dashboard-panel-heading"><div><h3>Gaps à traiter</h3><p>Éléments sans application associée.</p></div><span className="dashboard-count is-gap">{stats.gaps.length}</span></div>{stats.gaps.length ? <div className="dashboard-target-list">{stats.gaps.slice(0, 6).map(targetButton)}{stats.gaps.length > 6 && <p className="dashboard-more">+ {stats.gaps.length - 6} autres gaps</p>}</div> : <p className="dashboard-empty">La couverture est complète sur ce périmètre.</p>}</section>
           <section className="dashboard-panel"><div className="dashboard-panel-heading"><div><h3>Couvertures multiples</h3><p>Éléments associés à plusieurs applications.</p></div><span className="dashboard-count is-redundant">{stats.redundancies.length}</span></div>{stats.redundancies.length ? <div className="dashboard-target-list">{stats.redundancies.slice(0, 6).map(targetButton)}{stats.redundancies.length > 6 && <p className="dashboard-more">+ {stats.redundancies.length - 6} autres éléments</p>}</div> : <p className="dashboard-empty">Aucune couverture multiple détectée.</p>}</section>
           <section className="dashboard-panel dashboard-unlinked-apps" data-testid="dashboard-unlinked-apps"><div className="dashboard-panel-heading"><div><h3>Applications sans relation</h3><p>Applications qui ne contribuent actuellement à aucune capacité de ce modèle.</p></div><span className="dashboard-count is-gap">{stats.unlinkedApps.length}</span></div>{stats.unlinkedApps.length ? <div className="dashboard-app-list">{stats.unlinkedApps.map(app => <div className="dashboard-app-row" key={app.id}><div className="dashboard-app-details"><strong>{app.name}</strong><span>{app.code || 'Sans code'} · {app.status || 'Statut non défini'}{app.vendor ? ` · ${app.vendor}` : ''}</span></div><button type="button" className="dashboard-app-action" aria-label={`Relier ${app.name} à des ${targetSingular === 'domaine' ? 'domaines N0' : 'capacités N1'}`} onClick={() => onLinkApp?.(app)}>Relier…</button></div>)}</div> : <p className="dashboard-empty">Toutes les applications sont reliées à au moins un élément de la cartographie.</p>}</section>
-        </div>
-      </div>
+        </div>}
+      </div>}
 
       <p className="dashboard-footnote">Les indicateurs décrivent les relations présentes dans la cartographie ; une redondance n’est pas nécessairement une anomalie. Vérifiez la criticité et le rôle des applications avant toute rationalisation.</p>
     </section>
