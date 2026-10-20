@@ -839,3 +839,67 @@ describe('Application smoke test', () => {
     });
   });
 });
+
+describe('Dashboard — filtres de la heatmap', () => {
+  beforeEach(() => {
+    cy.on('uncaught:exception', err => { throw err; });
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="capability-dashboard"]').should('be.visible');
+  });
+
+  it('filtre les gaps et expose les résultats navigables', () => {
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '10 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('gap');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
+    cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 2);
+    cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').first().click();
+    cy.get('[data-testid="return-to-dashboard"]').should('be.visible');
+    cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
+    cy.get('[data-testid="return-to-dashboard"]').click();
+    cy.get('[data-testid="capability-dashboard"]').should('be.visible');
+  });
+
+  it('combine recherche et domaine N0 puis réinitialise les filtres', () => {
+    cy.get('[data-testid="dashboard-heatmap-search"]').type('FIN-05');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '0 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-search"]').clear().type('Facturation');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-domain-filter"]').select('l0-2');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
+    cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 1).and('contain.text', 'Facturation');
+    cy.get('[data-testid="dashboard-heatmap-reset"]').click();
+    cy.get('[data-testid="dashboard-heatmap-search"]').should('have.value', '');
+    cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'all');
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'all');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '10 / 10 éléments');
+  });
+
+  it('conserve la matrice et les extensions de colonnes pendant le filtrage', () => {
+    cy.get('[data-testid="dashboard-map-layout"]').then($map => {
+      const initialColumns = $map.find('.dashboard-map-grid').first().css('grid-template-columns');
+      const initialColumnHeads = $map.find('.dashboard-map-column-headings').text();
+      const initialSpans = $map.find('.dashboard-map-cell[style*="span"]').length;
+      cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('gap');
+      cy.get('[data-testid="dashboard-map-layout"]').should($filteredMap => {
+        expect($filteredMap.find('.dashboard-map-grid').first().css('grid-template-columns')).to.equal(initialColumns);
+        expect($filteredMap.find('.dashboard-map-column-headings').text()).to.equal(initialColumnHeads);
+        expect($filteredMap.find('.dashboard-map-cell[style*="span"]').length).to.equal(initialSpans);
+      });
+    });
+  });
+
+  it('reste utilisable sur mobile et en thème sombre', () => {
+    cy.viewport(402, 874);
+    cy.get('[data-testid="dashboard-heatmap-filters"]').should('be.visible');
+    cy.get('[data-testid="dashboard-heatmap-search"]').should('be.visible');
+    cy.get('html').then($html => expect($html[0].scrollWidth).to.be.at.most(402));
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('redundant');
+    cy.get('[data-testid="dashboard-filter-results"]').should('be.visible');
+  });
+});
