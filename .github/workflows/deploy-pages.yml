@@ -20,6 +20,28 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+      - name: Increment PWA version after merge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          npm version patch --no-git-tag-version
+          VERSION="$(node -p 'require("./package.json").version')"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          export VERSION
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const path = 'public/sw.js';
+          const source = fs.readFileSync(path, 'utf8');
+          const cacheVersion = `ecm-v${process.env.VERSION}`;
+          const updated = source.replace(/^const CACHE='[^']+';/m, `const CACHE='${cacheVersion}';`);
+          if (updated === source && !source.includes(`const CACHE='${cacheVersion}';`)) {
+            throw new Error('Could not update the PWA service worker cache version');
+          }
+          fs.writeFileSync(path, updated);
+          NODE
+          git add package.json package-lock.json public/sw.js
+          git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
+          git push
       - run: npm install
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
@@ -61,6 +83,8 @@ jobs:
     needs: deploy
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: main
       - name: Create a GitHub Release for this deployment
         env:
           GH_TOKEN: ${{ github.token }}
