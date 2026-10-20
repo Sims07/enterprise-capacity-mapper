@@ -866,6 +866,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('filtre les gaps et expose les résultats navigables', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '10 / 10 éléments');
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('gap');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
@@ -878,6 +879,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('combine recherche et domaine N0 puis réinitialise les filtres', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-search"]').type('FIN-05');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '0 / 10 éléments');
     cy.get('[data-testid="dashboard-heatmap-search"]').clear().type('Facturation');
@@ -893,6 +895,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('conserve la matrice et les extensions de colonnes pendant le filtrage', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.window().then(win => {
       const key = 'enterprise-capacity-mapper:model:v3';
       const model = JSON.parse(win.localStorage.getItem(key));
@@ -916,6 +919,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('permet de passer des indicateurs aux gaps et couvertures multiples', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-focus-gaps"]').click();
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'gap');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
@@ -925,6 +929,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-domain-drilldown-l0-2"]').click();
     cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '3 / 10 éléments');
@@ -933,6 +938,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('qualifie la priorité directement depuis le dashboard et la conserve après rechargement', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs').within(() => {
       cy.get('select[aria-label="Priorité de Achats Fournisseurs"]').select('P2');
@@ -946,6 +952,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('synthétise les gaps par domaine N0 et permet un forage par priorité', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
     cy.get('[data-testid="dashboard-gap-domain-l0-2"]').should('be.visible');
     cy.get('[data-testid="dashboard-domain-gaps-l0-2"]').then($button => {
@@ -972,6 +979,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('qualifie la priorité métier d’une capacité et filtre les gaps par priorité', () => {
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
@@ -991,6 +999,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('reflète la sélection Impact dans le dashboard et met en évidence les capacités concernées', () => {
+    cy.get('[data-testid="dashboard-view-impact"]').click();
     cy.get('[data-testid="tab-impact"]').click();
     cy.contains('.impact-card .cap-select', 'Gestion des Stocks & Entrepôt (WMS)').click();
     cy.contains('.impact-card .cap-select', 'Achats Fournisseurs').click();
@@ -1006,6 +1015,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('reste utilisable sur mobile et en thème sombre', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.viewport(402, 874);
     cy.get('[data-testid="dashboard-heatmap-filters"]').should('be.visible');
     cy.get('[data-testid="dashboard-heatmap-search"]').should('be.visible');
