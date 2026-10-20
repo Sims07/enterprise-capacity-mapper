@@ -5,7 +5,7 @@ const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color :
 const linksFor = (app, targetId) => (app.capabilityIds || []).includes(targetId);
 const coverageState = count => count === 0 ? 'gap' : count === 1 ? 'covered' : 'redundant';
 
-export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -314,13 +314,25 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp }) 
                     </div>
                     {orderedGaps.length ? (
                       <ul className="dashboard-gap-domain-list">
-                        {orderedGaps.slice(0, 3).map(target => (
-                          <li key={target.id}>
+                        {orderedGaps.map(target => (
+                          <li key={target.id} data-testid={`dashboard-gap-row-${target.id}`}>
                             <button type="button" onClick={() => onExploreTarget(target.id)} aria-label={`Explorer le gap ${target.name} dans Relations`}>{target.name}</button>
-                            <span className={`dashboard-priority is-${target.priority || 'unqualified'}`}>{target.priority || 'À qualifier'}</span>
+                            <label className="dashboard-gap-priority-editor">
+                              <span className="dashboard-visually-hidden">Priorité de {target.name}</span>
+                              <select
+                                value={target.priority || 'unqualified'}
+                                data-testid={`dashboard-gap-priority-select-${target.id}`}
+                                aria-label={`Priorité de ${target.name}`}
+                                onChange={event => onUpdatePriority?.(target.id, event.target.value)}
+                              >
+                                <option value="unqualified">À qualifier</option>
+                                <option value="P1">P1 — Critique</option>
+                                <option value="P2">P2 — Élevée</option>
+                                <option value="P3">P3 — Normale</option>
+                              </select>
+                            </label>
                           </li>
                         ))}
-                        {orderedGaps.length > 3 && <li className="dashboard-gap-domain-more">+ {orderedGaps.length - 3} autres gaps</li>}
                       </ul>
                     ) : <p className="dashboard-gap-domain-empty">Aucun gap détecté dans ce domaine.</p>}
                     <button type="button" className="dashboard-domain-filter-action" data-testid={`dashboard-domain-gaps-${domain.id}`} disabled={!orderedGaps.length} onClick={() => focusDomainGaps(domain.id)}>Afficher les gaps de ce domaine <span aria-hidden="true">↗</span></button>

@@ -301,3 +301,17 @@
 .app.theme-dark .dashboard-gap-domain-list li > button { color: #e5e7eb; }
 .app.theme-dark .dashboard-gap-priority:not(:disabled):hover { background: #342c56; border-color: #51458b; }
 @media (max-width: 520px) { .dashboard-gap-priority-counts { gap: 4px; } .dashboard-gap-priority { padding: 6px 5px; } .dashboard-gap-priority span { font-size: 8px; } }
+
+
+/* Qualification directe de la priorité métier depuis les cartes de gaps du dashboard. */
+.dashboard-gap-domain-list li { align-items: center; }
+.dashboard-gap-domain-list li > button { flex: 1 1 auto; }
+.dashboard-gap-priority-editor { display: block; flex: 0 0 auto; min-width: 112px; max-width: 48%; }
+.dashboard-gap-priority-editor select { width: 100%; min-width: 0; padding: 5px 20px 5px 7px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #334155; font: inherit; font-size: 10px; cursor: pointer; }
+.dashboard-gap-priority-editor select:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+.dashboard-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.app.theme-dark .dashboard-gap-priority-editor select { border-color: #4b5563; background: #1d212b; color: #f3f4f6; }
+@media (max-width: 520px) {
+  .dashboard-gap-domain-list li { align-items: flex-start; }
+  .dashboard-gap-priority-editor { min-width: 105px; }
+}
