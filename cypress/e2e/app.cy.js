@@ -878,15 +878,23 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('conserve la matrice et les extensions de colonnes pendant le filtrage', () => {
+    cy.window().then(win => {
+      const key = 'enterprise-capacity-mapper:model:v3';
+      const model = JSON.parse(win.localStorage.getItem(key));
+      model.domains.find(domain => domain.id === 'l0-1').layout.columnSpan = 2;
+      win.localStorage.setItem(key, JSON.stringify(model));
+    });
+    cy.reload();
     cy.get('[data-testid="dashboard-map-layout"]').then($map => {
       const initialColumns = $map.find('.dashboard-map-grid').first().css('grid-template-columns');
       const initialColumnHeads = $map.find('.dashboard-map-column-headings').text();
-      const initialSpans = $map.find('.dashboard-map-cell[style*="span"]').length;
+      const initialSpans = $map.find('.dashboard-map-cell[style*="span 2"]').length;
+      expect(initialSpans, 'au moins un domaine N0 occupe deux colonnes').to.be.greaterThan(0);
       cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('gap');
       cy.get('[data-testid="dashboard-map-layout"]').should($filteredMap => {
         expect($filteredMap.find('.dashboard-map-grid').first().css('grid-template-columns')).to.equal(initialColumns);
         expect($filteredMap.find('.dashboard-map-column-headings').text()).to.equal(initialColumnHeads);
-        expect($filteredMap.find('.dashboard-map-cell[style*="span"]').length).to.equal(initialSpans);
+        expect($filteredMap.find('.dashboard-map-cell[style*="span 2"]').length).to.equal(initialSpans);
       });
     });
   });
