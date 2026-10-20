@@ -5,6 +5,27 @@ describe('Dashboard de couverture', () => {
     cy.reload();
   });
 
+  it('garde les cartes du dashboard dans leurs limites sans chevauchement en vue dépliée', () => {
+    cy.viewport(1280, 900);
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-overview"]').should('be.visible');
+    cy.get('.dashboard-intent-nav > button').should('have.length', 4).then($cards => {
+      const rects = [...$cards].map(card => card.getBoundingClientRect());
+      for (let i = 0; i < rects.length; i += 1) for (let j = i + 1; j < rects.length; j += 1) {
+        const overlaps = rects[i].left < rects[j].right && rects[i].right > rects[j].left && rects[i].top < rects[j].bottom && rects[i].bottom > rects[j].top;
+        expect(overlaps, 'les cartes ne se chevauchent pas').to.equal(false);
+      }
+    });
+    cy.get('.dashboard-overview-intro').should('be.visible').then($intro => {
+      const intro = $intro[0].getBoundingClientRect();
+      const shortcuts = $intro.find('.dashboard-overview-shortcuts')[0].getBoundingClientRect();
+      expect(shortcuts.left).to.be.at.least(intro.left);
+      expect(shortcuts.right).to.be.at.most(intro.right);
+      expect(shortcuts.top).to.be.at.least(intro.top);
+      expect(shortcuts.bottom).to.be.at.most(intro.bottom);
+    });
+  });
+
   it('présente des indicateurs calculés depuis la cartographie active', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
