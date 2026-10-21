@@ -5,19 +5,21 @@ describe('Navigation rationalisée', () => {
 
   it('présente une navigation principale sans titres de groupe redondants', () => {
     cy.get('.primary-navigation').should('be.visible');
-    cy.get('.primary-navigation > button').should('have.length', 3);
+    cy.get('.primary-navigation > button').should('have.length', 4);
     cy.get('[data-testid="nav-cartography"]').should('contain.text', 'Cartographie');
     cy.get('[data-testid="nav-analysis"]').should('contain.text', 'Analyse');
     cy.get('[data-testid="primary-library"]').should('contain.text', 'Bibliothèque');
     cy.contains('.primary-navigation', 'Construire').should('not.exist');
     cy.contains('.primary-navigation', 'Analyser').should('not.exist');
     cy.contains('.primary-navigation', 'Gérer').should('not.exist');
-    cy.get('[data-testid="tools-menu-toggle"]').should('contain.text', 'Outils');
+    cy.get('[data-testid="nav-tools"]').should('contain.text', 'Outils');
   });
 
   it('ouvre la bibliothèque depuis la navigation principale', () => {
-    cy.get('[data-testid="primary-library"]').click();
-    cy.get('.modal').should('be.visible').and('contain.text', 'Mes cartographies');
+    cy.get('[data-testid="primary-library"]').click().should('have.class', 'active');
+    cy.get('[data-testid="library-page"]').should('be.visible').and('contain.text', 'Bibliothèque');
+    cy.get('[data-testid="recent-maps-list"]').should('exist');
+    cy.get('.modal').should('not.exist');
   });
 
   it('regroupe les vues d’analyse dans une navigation secondaire', () => {
