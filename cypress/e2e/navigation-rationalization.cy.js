@@ -125,14 +125,16 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="analysis-subnav"]').should('be.visible').and('have.class', 'is-active');
     cy.get('[data-testid="tab-dashboard"]').should('contain.text', "Vue d'ensemble");
     cy.get('[data-testid="tab-relations"]').should('be.visible');
-    cy.get('[data-testid="tab-impact"]').should('be.visible');
+    cy.get('[data-testid="tab-impact"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-impact"]').should('be.visible').and('contain.text', 'Comprendre les impacts');
 
     cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
     cy.get('[data-testid="tab-dashboard"]').click().should('have.class', 'active');
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
-    cy.get('[data-testid="tab-impact"]').click().should('have.class', 'active');
-    cy.get('[data-testid="impact-view"]').should('be.visible').and('contain.text', "SIMULATION D'IMPACT");
-    cy.get('h2').contains('Projet / fonctionnalité').should('be.visible');
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.get('[data-testid="impact-view"]').should('be.visible').and('contain.text', 'Capacités à analyser');
+    cy.get('[data-testid="dashboard-impact-empty"]').should('be.visible');
   });
 
   it('revient à la cartographie sans perdre les vues d’analyse', () => {
@@ -142,6 +144,6 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="analysis-subnav"]').should('not.exist');
     cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
     cy.get('[data-testid="analysis-subnav"]').should('be.visible');
-    cy.get('[data-testid="tab-impact"]').click().should('have.class', 'active');
+    cy.get('[data-testid="dashboard-view-impact"]').should('be.visible');
   });
 });
