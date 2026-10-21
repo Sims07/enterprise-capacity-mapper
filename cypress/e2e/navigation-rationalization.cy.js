@@ -71,6 +71,7 @@ describe('Navigation rationalisée', () => {
   });
 
   it('regroupe les vues d’analyse dans une navigation secondaire', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="analysis-subnav"]').should('be.visible');
     cy.get('[data-testid="tab-dashboard"]').should('contain.text', "Vue d'ensemble");
     cy.get('[data-testid="tab-relations"]').should('be.visible');
@@ -83,8 +84,10 @@ describe('Navigation rationalisée', () => {
   });
 
   it('revient à la cartographie sans perdre les vues d’analyse', () => {
-    cy.get('[data-testid="nav-cartography"]').click().should('have.class', 'active');
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
+    cy.get('[data-testid="nav-cartography"]').click().should('have.class', 'active');
+    cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
     cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
     cy.get('[data-testid="tab-impact"]').click().should('have.class', 'active');
   });
