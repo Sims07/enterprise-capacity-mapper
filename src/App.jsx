@@ -177,15 +177,6 @@ function App() {
   const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
-  const openLocalMaps = () => {
-    try {
-      setLocalMaps(loadLocalMaps());
-      setRecentMaps(loadRecentMaps());
-      setModal('local-maps');
-    } catch (error) {
-      notify(`Impossible de lire la bibliothèque locale : ${error.message}`);
-    }
-  };
   const saveCurrentLocalMap = () => {
     try {
       const entries = loadLocalMaps();
@@ -803,7 +794,18 @@ function App() {
                     <span className="new-map-button-mark" aria-hidden="true">+</span>
                     <span>Nouvelle cartographie</span>
                   </button>
-                  <button type="button" className="secondary" data-testid="open-local-maps" onClick={() => { closeToolsMenu(); openLocalMaps(); }}>▤ Mes cartographies</button>
+                  <button type="button" className="secondary" data-testid="open-local-maps" onClick={() => {
+                    closeToolsMenu();
+                    try {
+                      setLocalMaps(loadLocalMaps());
+                      setRecentMaps(loadRecentMaps());
+                      setPendingLocalMap(null);
+                      setModal(null);
+                      setMode('library');
+                    } catch (error) {
+                      notify(`Impossible de lire la bibliothèque locale : ${error.message}`);
+                    }
+                  }}>▤ Bibliothèque</button>
                   <button type="button" className="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
@@ -849,11 +851,62 @@ function App() {
 
       {mode === 'library' ? (
         <section className="standalone-page library-page" data-testid="library-page">
-          <div className="standalone-page-heading"><div><div className="eyebrow">GESTION DES CARTOGRAPHIES</div><h2>Bibliothèque</h2><p>Retrouvez vos cartographies récentes et celles enregistrées sur cet appareil.</p></div><button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button></div>
-          <h3 className="local-map-section-title">Récemment ouvertes</h3>
-          {recentMaps.length ? <div className="local-map-list" data-testid="recent-maps-list">{recentMaps.map(saved => <div className="local-map-row" key={saved.id}><div><strong>{saved.name}</strong><span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span></div><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir</button></div>)}</div> : <p className="local-map-empty">Aucune cartographie récente.</p>}
-          <h3 className="local-map-section-title">Cartographies enregistrées</h3>
-          {localMaps.length ? <div className="local-map-list" data-testid="saved-maps-list">{localMaps.map(saved => <div className="local-map-row" key={saved.id}><div><strong>{saved.name}</strong><span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span></div><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir</button></div>)}</div> : <p className="local-map-empty">Aucune sauvegarde nommée. Utilisez « Sauvegarder » pour en ajouter une.</p>}
+          <div className="standalone-page-heading library-page-heading" data-testid="library-page-heading">
+            <div>
+              <div className="eyebrow">ESPACE DE TRAVAIL · STOCKAGE LOCAL</div>
+              <h2>Bibliothèque de cartographies</h2>
+              <p>Retrouvez vos modèles récents, gérez les sauvegardes de cet appareil et rouvrez une cartographie sans quitter cet espace.</p>
+            </div>
+            <div className="library-page-actions">
+              <button type="button" className="secondary" data-testid="back-to-cartography" onClick={() => setMode('editor')}>Retour à la cartographie</button>
+              <button type="button" className="primary" data-testid="save-current-from-library" onClick={saveCurrentLocalMap}>＋ Sauvegarder la cartographie actuelle</button>
+            </div>
+          </div>
+
+          <div className="library-stats" aria-label="Résumé de la bibliothèque">
+            <article className="library-stat-card"><span>Cartographie active</span><strong>{model.metadata?.name || 'Sans nom'}</strong><small>{model.domains.length} domaines N0 · {model.capabilities.length} capacités N1</small></article>
+            <article className="library-stat-card"><span>Récemment ouvertes</span><strong data-testid="recent-maps-count">{recentMaps.length}</strong><small>Jusqu’à 10 cartographies conservées dans l’historique</small></article>
+            <article className="library-stat-card"><span>Sauvegardes locales</span><strong data-testid="saved-maps-count">{localMaps.length}</strong><small>Disponibles sur cet appareil</small></article>
+          </div>
+
+          <section className="library-section" aria-labelledby="recent-maps-heading">
+            <div className="library-section-heading"><div><h3 id="recent-maps-heading">Récemment ouvertes</h3><p>Reprenez rapidement un modèle utilisé dernièrement.</p></div></div>
+            {recentMaps.length ? (
+              <div className="library-card-grid" data-testid="recent-maps-list">
+                {recentMaps.map(saved => (
+                  <article className="library-map-card" key={saved.id}>
+                    <div className="library-map-card-top"><span className="library-map-type">RÉCENT</span><span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleDateString() : 'Historique'}</span></div>
+                    <h4>{saved.name}</h4>
+                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
+                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
+                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir cette cartographie</button></div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="library-empty-state" data-testid="recent-maps-empty"><strong>Aucune cartographie récente</strong><p>Les cartographies que vous ouvrez apparaîtront ici pour vous permettre de les retrouver facilement.</p></div>
+            )}
+          </section>
+
+          <section className="library-section" aria-labelledby="saved-maps-heading">
+            <div className="library-section-heading"><div><h3 id="saved-maps-heading">Cartographies enregistrées</h3><p>Les versions nommées que vous avez choisi de conserver localement.</p></div><span className="library-section-count">{localMaps.length} sauvegarde(s)</span></div>
+            {localMaps.length ? (
+              <div className="library-card-grid" data-testid="saved-maps-list">
+                {localMaps.map(saved => (
+                  <article className="library-map-card" key={saved.id}>
+                    <div className="library-map-card-top"><span className="library-map-type saved">SAUVEGARDE</span><span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleDateString() : 'Enregistrée localement'}</span></div>
+                    <h4>{saved.name}</h4>
+                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
+                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
+                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir cette cartographie</button></div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="library-empty-state" data-testid="saved-maps-empty"><strong>Aucune sauvegarde nommée</strong><p>Enregistrez la cartographie active pour lui donner un nom et la retrouver ici, même après avoir travaillé sur un autre modèle.</p><button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button></div>
+            )}
+          </section>
+
           {pendingLocalMap && <div className="library-load-confirm" role="group" aria-label="Confirmer le chargement"><p>Ouvrir « {pendingLocalMap.name} » remplacera la cartographie actuellement affichée.</p><button type="button" className="secondary" onClick={() => setPendingLocalMap(null)}>Annuler</button><button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button></div>}
         </section>
       ) : (
