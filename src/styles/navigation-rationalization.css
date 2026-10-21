@@ -419,3 +419,65 @@
   border-color: #3b4658;
   color: #e5e7eb;
 }
+
+
+/* Navigation secondaire persistante hors Bibliothèque : les vues d’analyse restent découvrables. */
+.analysis-subnav {
+  position: relative;
+  z-index: 2;
+  display: flex !important;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-height: 42px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+}
+.analysis-subnav > button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-height: 30px;
+  border-width: 1px;
+  margin: 0;
+  transform: none !important;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease !important;
+}
+.analysis-subnav > button:hover {
+  transform: none !important;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel,
+.toolbar-switch.primary-navigation .toolbar-tools-panel * {
+  box-sizing: border-box;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel button,
+.toolbar-switch.primary-navigation .toolbar-tools-panel .toolbar-import {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  height: auto;
+  margin: 0;
+  padding: 9px 10px;
+  border-width: 1px !important;
+  line-height: 1.35;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease !important;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel button:hover,
+.toolbar-switch.primary-navigation .toolbar-tools-panel .toolbar-import:hover {
+  min-height: 38px;
+  margin: 0;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel button:focus-visible {
+  outline-offset: -2px;
+}
+@media (max-width: 900px) {
+  .analysis-subnav {
+    padding-inline: 14px;
+  }
+}
