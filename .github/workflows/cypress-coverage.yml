@@ -34,6 +34,12 @@ jobs:
         env:
           COVERAGE: 'true'
 
+      # Simulate the repository subpath used by GitHub Pages so path-specific Cypress specs load their assets.
+      - name: Mirror build under the GitHub Pages repository path
+        run: |
+          mkdir -p dist/enterprise-capacity-mapper
+          find dist -mindepth 1 -maxdepth 1 ! -name enterprise-capacity-mapper -exec cp -R {} dist/enterprise-capacity-mapper/ \\\;
+
       - name: Start preview server
         run: npm run preview -- --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
 
