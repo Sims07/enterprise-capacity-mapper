@@ -779,7 +779,7 @@ function App() {
         <div className="toolbar">
           <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
             <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
-            <button type="button" className={mode !== 'editor' ? 'active' : ''} data-testid="nav-analysis" aria-current={mode !== 'editor' ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
+            <button type="button" className={['dashboard', 'relations', 'impact'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
             <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setMode('library'); setModal(null); }}>▤ Bibliothèque</button>
             <button type="button" className={mode === 'tools' ? 'active' : ''} data-testid="nav-tools" aria-current={mode === 'tools' ? 'page' : undefined} onClick={() => { setMode('tools'); setModal(null); }}>Outils</button>
             <details
