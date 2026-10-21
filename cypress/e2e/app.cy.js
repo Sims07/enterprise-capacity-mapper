@@ -186,7 +186,7 @@ describe('Application smoke test', () => {
 
     cy.reload();
     cy.get('[data-testid="primary-library"]').click();
-    cy.get('[data-testid="saved-maps-list"]').contains('.library-map-card', 'Cartographie locale QA').should('be.visible');
+    cy.get('[data-testid="saved-maps-list"]').contains('.library-map-card', 'Cartographie locale QA').should('be.visible').within(() => {\n      cy.get('.library-map-date').should('contain.text', ':');\n    });
     cy.get('[data-testid="back-to-cartography"]').click();
     cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
       cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').click();
