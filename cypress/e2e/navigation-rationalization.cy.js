@@ -60,9 +60,10 @@ describe('Navigation rationalisée', () => {
   it('affiche la confirmation de chargement dans la page bibliothèque', () => {
     cy.window().then(win => {
       const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+      model.metadata = { ...model.metadata, name: 'Cartographie à ouvrir test' };
       win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify([{
         id: 'recent-test',
-        name: 'Cartographie de test',
+        name: 'Cartographie à ouvrir test',
         model,
         openedAt: new Date().toISOString()
       }]));
@@ -76,6 +77,10 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="library-page"]').should('not.exist');
     cy.get('.workspace').should('be.visible');
     cy.get('[data-testid="confirm-load-local-map"]').should('not.exist');
+    cy.window().then(win => {
+      const loadedModel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+      expect(loadedModel.metadata.name).to.equal('Cartographie à ouvrir test');
+    });
   });
 
   it('regroupe les vues d’analyse dans une navigation secondaire', () => {
