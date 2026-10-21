@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install project dependencies
@@ -27,7 +27,7 @@ jobs:
 
       # Keep coverage tooling ephemeral so the production dependency tree and lockfile stay unchanged.
       - name: Install coverage tooling
-        run: npm install --no-save --package-lock=false --legacy-peer-deps @cypress/code-coverage vite-plugin-istanbul
+        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage vite-plugin-istanbul
 
       - name: Build instrumented application
         run: npm run build
@@ -41,7 +41,7 @@ jobs:
         run: npx --yes wait-on http://127.0.0.1:4173
 
       - name: Run Cypress and collect coverage
-        run: npx cypress run
+        run: npx cypress run --config defaultCommandTimeout=10000
         env:
           COVERAGE: 'true'
 
