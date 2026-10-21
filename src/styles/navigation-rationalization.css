@@ -108,3 +108,33 @@
     flex: 0 0 auto;
   }
 }
+
+.app.theme-dark .primary-navigation .toolbar-tools > summary {
+  background: #171a20;
+  color: #e5e7eb;
+  border-color: #3f4652;
+}
+
+.app.theme-dark .analysis-subnav {
+  background: #171a20;
+  border-color: #303640;
+}
+
+.app.theme-dark .analysis-subnav-label {
+  color: #9ca3af;
+}
+
+.app.theme-dark .analysis-subnav > button {
+  color: #a1a1aa;
+}
+
+.app.theme-dark .analysis-subnav > button:hover {
+  color: #c7d2fe;
+  background: #242735;
+}
+
+.app.theme-dark .analysis-subnav > button.active {
+  color: #c7d2fe;
+  background: #27243f;
+  border-color: #454064;
+}
