@@ -62,9 +62,11 @@ describe('Impact selection on the capability map', () => {
     cy.get('.cap.impact-selected').should('contain.text', 'Gestion des Prospects & Leads');
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="dashboard-view-impact"]').click();
-    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'CRM-01 — Gestion des Prospects & Leads').should('have.attr', 'aria-pressed', 'true');
-    cy.get('[data-testid="clear-impact-selection"]').click();
-    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads').should('have.attr', 'aria-pressed', 'false');
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'CRM-01 — Gestion des Prospects & Leads')
+      .should('have.attr', 'aria-pressed', 'true')
+      .click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'CRM-01 — Gestion des Prospects & Leads')
+      .should('have.attr', 'aria-pressed', 'false');
   });
 
   it('rend le surlignage violet clairement visible en thème clair en mode cartographie normal', () => {
