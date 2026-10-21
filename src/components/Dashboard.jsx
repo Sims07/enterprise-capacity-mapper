@@ -209,12 +209,6 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         <button type="button" data-testid="dashboard-view-attention" className={activeView === 'attention' ? 'is-active' : ''} aria-pressed={activeView === 'attention'} onClick={() => setActiveView('attention')}><span className="dashboard-intent-eyebrow">04 · Agir</span><strong>Examiner les points d’attention</strong><small>Prioriser les gaps et les situations à revoir</small></button>
       </nav>
       {activeView === 'overview' && <section className="dashboard-overview-intro" data-testid="dashboard-overview-intro"><div><span className="dashboard-overview-kicker">PILOTAGE DE LA CARTOGRAPHIE</span><h2>Où souhaitez-vous concentrer votre analyse ?</h2><p>Commencez par les indicateurs globaux, puis choisissez une intention pour approfondir sans parcourir toutes les sections.</p></div><div className="dashboard-overview-shortcuts"><button type="button" onClick={() => setActiveView('coverage')}><strong>Analyser la couverture</strong><span>Comparer les capacités dans la heatmap <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => setActiveView('impact')}><strong>Comprendre les impacts</strong><span>{impactTargets.length ? `${impactTargets.length} élément(s) sélectionné(s) depuis Impact` : 'Sélectionner les capacités et mesurer leurs effets'} <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => setActiveView('attention')}><strong>Examiner les points d’attention</strong><span>{stats.gaps.length} gaps · {stats.redundancies.length} couvertures multiples <b aria-hidden="true">↗</b></span></button></div></section>}
-      {activeView === 'impact' && impactTargets.length === 0 && (
-        <section className="dashboard-panel dashboard-impact-empty" data-testid="dashboard-impact-empty">
-          <h3>Aucune sélection d’impact active</h3>
-          <p>Sélectionnez les capacités métier ci-dessous pour voir immédiatement les applications concernées et les gaps de couverture.</p>
-        </section>
-      )}
       {activeView === 'impact' && (
         <section className="dashboard-panel dashboard-impact-selector" data-testid="impact-view">
           <div className="dashboard-panel-heading">
@@ -222,6 +216,12 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
             <span>{selected.length} sélectionnée(s)</span>
           </div>
           <div className="dashboard-impact-select-list">{stats.enriched.map(target => <button type="button" key={target.id} className={selected.includes(target.id) ? 'is-selected' : ''} aria-pressed={selected.includes(target.id)} onClick={() => onToggleTarget?.(target.id)}>{selected.includes(target.id) ? '✓' : '+'} {target.code ? `${target.code} — ` : ''}{target.name}<span>{target.coverageCount} application{target.coverageCount === 1 ? '' : 's'}</span></button>)}</div>
+        </section>
+      )}
+      {activeView === 'impact' && impactTargets.length === 0 && (
+        <section className="dashboard-panel dashboard-impact-empty" data-testid="dashboard-impact-empty">
+          <h3>Aucune sélection d’impact active</h3>
+          <p>Sélectionnez les capacités métier ci-dessous pour voir immédiatement les applications concernées et les gaps de couverture.</p>
         </section>
       )}
       {activeView === 'impact' && impactTargets.length > 0 && (
