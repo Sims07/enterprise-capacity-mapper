@@ -364,3 +364,58 @@
 .toolbar-switch .toolbar-tools > .toolbar-tools-toggle { border: 1px solid #cbd5e1 !important; background: #fff !important; color: #334155 !important; }
 
 .toolbar-switch .toolbar-tools.is-open > .toolbar-tools-toggle, .toolbar-switch .toolbar-tools > .toolbar-tools-toggle:hover { border-color: #a5b4fc !important; background: #fafaff !important; color: #3730a3 !important; }
+
+
+/* Correctifs de robustesse : navigation primaire et menu Outils au-dessus du contenu. */
+.toolbar-switch.primary-navigation {
+  display: flex !important;
+  position: relative;
+  align-items: center;
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+  min-width: 0;
+}
+.toolbar-switch.primary-navigation > button {
+  flex: 0 0 auto;
+}
+.toolbar-switch.primary-navigation > .toolbar-tools {
+  position: relative;
+  flex: 0 0 auto;
+  z-index: 1001;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1002;
+  min-width: 240px;
+  max-width: min(280px, calc(100vw - 24px));
+  max-height: min(72vh, 560px);
+  overflow-y: auto;
+  background: var(--panel, #fff);
+  border: 1px solid var(--border-strong, #cbd5e1);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 18%);
+}
+@media (max-width: 900px) {
+  .toolbar-switch.primary-navigation {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+  }
+  .toolbar-switch.primary-navigation .toolbar-tools-panel {
+    position: fixed;
+    top: 142px;
+    right: 12px;
+    z-index: 10020;
+    width: min(280px, calc(100vw - 24px));
+    max-height: calc(100dvh - 160px);
+  }
+}
+.app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools-panel {
+  background: #171a20;
+  border-color: #3b4658;
+  color: #e5e7eb;
+}
