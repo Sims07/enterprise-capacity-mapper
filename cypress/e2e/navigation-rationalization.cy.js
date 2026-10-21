@@ -73,7 +73,7 @@ describe('Navigation rationalisée', () => {
     cy.get('.modal').should('not.exist');
   });
 
-  it('affiche la confirmation de chargement dans la page bibliothèque', () => {
+  it('confirme le remplacement par une popup depuis la bibliothèque', () => {
     cy.window().then(win => {
       const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
       model.metadata = { ...model.metadata, name: 'Cartographie à ouvrir test' };
@@ -87,8 +87,7 @@ describe('Navigation rationalisée', () => {
     cy.reload();
     cy.get('[data-testid="primary-library"]').click();
     cy.get('[data-testid="recent-maps-list"]').contains('button', 'Ouvrir cette cartographie').click();
-    cy.get('[aria-label="Confirmer le chargement"]').should('be.visible');
-    cy.get('.modal').should('not.exist');
+    cy.get('.modal[role="dialog"]').should('be.visible').and('contain.text', 'remplacera la cartographie actuellement affichée');
     cy.get('[data-testid="confirm-load-local-map"]').should('be.visible').click();
     cy.get('[data-testid="library-page"]').should('not.exist');
     cy.get('[data-testid="nav-cartography"]').should('have.class', 'active');
@@ -98,6 +97,26 @@ describe('Navigation rationalisée', () => {
       const loadedModel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
       expect(loadedModel.metadata.name).to.equal('Cartographie à ouvrir test');
     });
+  });
+
+
+  it('permet d’annuler la popup de remplacement sans quitter la bibliothèque', () => {
+    cy.window().then(win => {
+      const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+      win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify([{
+        id: 'recent-cancel-test',
+        name: 'Cartographie à ne pas ouvrir',
+        model,
+        openedAt: new Date().toISOString()
+      }]));
+    });
+    cy.reload();
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="recent-maps-list"]').contains('button', 'Ouvrir cette cartographie').click();
+    cy.get('.modal[role="dialog"]').should('be.visible');
+    cy.get('.modal').contains('button', 'Annuler').click();
+    cy.get('.modal').should('not.exist');
+    cy.get('[data-testid="library-page"]').should('be.visible');
   });
 
   it('regroupe les vues d’analyse dans une navigation secondaire', () => {
