@@ -45,7 +45,7 @@ jobs:
       - name: Install project dependencies
         run: npm install
       - name: Install coverage tooling
-        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage vite-plugin-istanbul
+        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       # Build a dedicated instrumented bundle first, then test the exact static files served to Cypress.
@@ -83,8 +83,22 @@ jobs:
         run: |
           echo '--- Vite preview log ---'
           cat /tmp/vite-preview.log || true
-          echo '--- Instrumented built JavaScript markers ---'
-          grep -R -m 8 -E '__coverage__|cov_[A-Za-z0-9_]+' dist-coverage/assets || echo 'No Istanbul markers found in dist-coverage/assets'
+          echo '--- Instrumentation marker summary ---'
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const dir = 'dist-coverage/assets';
+          const files = fs.readdirSync(dir).filter(file => /\\.js$/.test(file));
+          const results = files.map(file => {
+            const source = fs.readFileSync(path.join(dir, file), 'utf8');
+            return { file, hasCoverageMap: source.includes('__coverage__'), hasCounters: /s\\[\\d+\\]\\+\\+/.test(source) };
+          });
+          console.log(JSON.stringify(results, null, 2));
+          if (!results.some(result => result.hasCoverageMap && result.hasCounters)) {
+            console.error('No instrumented JavaScript bundle was found.');
+            process.exitCode = 1;
+          }
+          NODE
       - name: Verify Cypress produced coverage data
         if: always()
         run: |
