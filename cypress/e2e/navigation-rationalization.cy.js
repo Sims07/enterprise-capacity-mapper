@@ -123,6 +123,8 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="analysis-view-switch"]').should('not.exist');
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="analysis-view-switch"]').should('be.visible');
+    cy.get('.analysis-subnav').should('not.exist');
+    cy.get('main [data-testid="analysis-view-switch"]').should('exist');
     cy.get('[data-testid="tab-dashboard"]').should('contain.text', "Vue d'ensemble");
     cy.get('[data-testid="tab-relations"]').should('contain.text', 'Gérer les relations');
     cy.get('[data-testid="tab-impact"]').should('not.exist');
