@@ -4,7 +4,7 @@ describe('Instrumentation Istanbul pour Cypress', () => {
     cy.window().should((win) => {
       expect(win.__coverage__, 'window.__coverage__').to.be.an('object');
       const sourceFiles = Object.keys(win.__coverage__).filter((file) =>
-        /[/\\\\]src[/\\\\]/.test(file),
+        file.includes('/src/') || file.includes('\\\\src\\\\'),
       );
       expect(sourceFiles, 'fichiers src instrumentés').to.have.length.greaterThan(0);
 
