@@ -289,3 +289,6 @@
   .library-page-actions > button { flex: 1 1 auto; }
   .library-section-heading { align-items: flex-start; flex-direction: column; }
 }
+
+/* Outils panel stacking */
+.primary-navigation .toolbar-tools.is-open { z-index: 1001; }
