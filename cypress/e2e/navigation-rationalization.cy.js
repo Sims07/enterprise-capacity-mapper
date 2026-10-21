@@ -17,16 +17,57 @@ describe('Navigation rationalisée', () => {
 
   it('ouvre la bibliothèque depuis la navigation principale', () => {
     cy.get('[data-testid="primary-library"]').click().should('have.class', 'active');
-    cy.get('[data-testid="library-page"]').should('be.visible').and('contain.text', 'Bibliothèque');
+    cy.get('[data-testid="library-page"]').should('be.visible').and('contain.text', 'Bibliothèque de cartographies');
+    cy.get('[data-testid="library-page-heading"]').should('be.visible');
+    cy.get('[data-testid="recent-maps-count"]').should('be.visible');
+    cy.get('[data-testid="saved-maps-count"]').should('be.visible');
     cy.get('.modal').should('not.exist');
   });
 
-  it('ouvre Outils comme un espace dédié avec import, export et affichage', () => {
+  it('ouvre Outils comme un menu déroulant sans ajouter une entrée principale', () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
     cy.get('[data-testid="export-model"]').should('be.visible');
     cy.get('[data-testid="import-model"]').should('exist');
     cy.get('[data-testid="theme-toggle"]').should('be.visible');
+    cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+  });
+
+  it('garde le panneau Outils visible sur mobile malgré la navigation défilante', () => {
+    cy.viewport(390, 844);
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('.toolbar-tools-panel').should('be.visible').then($panel => {
+      const rect = $panel[0].getBoundingClientRect();
+      expect(rect.left).to.be.at.least(0);
+      expect(rect.right).to.be.at.most(390);
+      expect(rect.top).to.be.at.least(0);
+      expect(rect.bottom).to.be.at.most(844);
+    });
+  });
+
+  it('ouvre la bibliothèque depuis Outils sans afficher de popup', () => {
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="open-local-maps"]').click();
+    cy.get('[data-testid="library-page"]').should('be.visible');
+    cy.get('.modal').should('not.exist');
+  });
+
+  it('affiche la confirmation de chargement dans la page bibliothèque', () => {
+    cy.window().then(win => {
+      const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+      win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify([{
+        id: 'recent-test',
+        name: 'Cartographie de test',
+        model,
+        openedAt: new Date().toISOString()
+      }]));
+    });
+    cy.reload();
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="recent-maps-list"]').contains('button', 'Ouvrir cette cartographie').click();
+    cy.get('[aria-label="Confirmer le chargement"]').should('be.visible');
+    cy.get('.modal').should('not.exist');
+    cy.get('[data-testid="confirm-load-local-map"]').should('be.visible');
   });
 
   it('regroupe les vues d’analyse dans une navigation secondaire', () => {
