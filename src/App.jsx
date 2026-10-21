@@ -859,12 +859,6 @@ function App() {
         </div>
       </header>
 
-      {['dashboard', 'relations'].includes(mode) && <nav className="analysis-subnav is-active" aria-label="Vues d'analyse" data-testid="analysis-subnav">
-        <span className="analysis-subnav-label">Analyse</span>
-        <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-current={mode === 'dashboard' ? 'page' : undefined} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
-        <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-current={mode === 'relations' ? 'page' : undefined} onClick={() => setMode('relations')}>Relations</button>
-      </nav>}
-
       {mode === 'library' ? (
         <section className="standalone-page library-page" data-testid="library-page">
           <div className="standalone-page-heading library-page-heading" data-testid="library-page-heading">
@@ -952,6 +946,12 @@ function App() {
         </aside>
 
         <main>
+          {['dashboard', 'relations'].includes(mode) && (
+            <div className="analysis-view-switch" role="group" aria-label="Mode d'analyse" data-testid="analysis-view-switch">
+              <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-pressed={mode === 'dashboard'} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
+              <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-pressed={mode === 'relations'} onClick={() => setMode('relations')}>Gérer les relations</button>
+            </div>
+          )}
           {mode === 'dashboard' ? (
             <Dashboard
               model={model}
