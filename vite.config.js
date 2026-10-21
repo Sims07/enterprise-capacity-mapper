@@ -11,7 +11,9 @@ export default defineConfig(async () => {
       include: ['src/**/*'],
       exclude: ['node_modules/**', 'cypress/**', '**/*.cy.{js,jsx,ts,tsx}'],
       extension: ['.js', '.jsx', '.ts', '.tsx'],
-      requireEnv: false,
+      // Le plugin doit lire CYPRESS_COVERAGE pour s'intégrer à @cypress/code-coverage.
+      cypress: true,
+      requireEnv: true,
       forceBuildInstrument: true,
     }));
   }
