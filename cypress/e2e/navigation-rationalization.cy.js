@@ -18,7 +18,15 @@ describe('Navigation rationalisée', () => {
   it('ouvre la bibliothèque depuis la navigation principale', () => {
     cy.get('[data-testid="primary-library"]').click().should('have.class', 'active');
     cy.get('[data-testid="library-page"]').should('be.visible').and('contain.text', 'Bibliothèque');
-    cy.get('[data-testid="recent-maps-list"]').should('exist');
+    cy.get('.modal').should('not.exist');
+  });
+
+  it('ouvre Outils comme un espace dédié avec import, export et affichage', () => {
+    cy.get('[data-testid="nav-tools"]').click().should('have.class', 'active');
+    cy.get('[data-testid="tools-page"]').should('be.visible');
+    cy.get('[data-testid="export-model"]').should('be.visible');
+    cy.get('[data-testid="import-model"]').should('exist');
+    cy.get('[data-testid="theme-toggle"]').should('be.visible');
     cy.get('.modal').should('not.exist');
   });
 
