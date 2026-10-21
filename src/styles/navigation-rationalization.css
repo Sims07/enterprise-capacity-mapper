@@ -61,7 +61,18 @@
 
 @media (max-width: 760px) {
   .toolbar-switch {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .toolbar-switch > button,
+  .toolbar-switch > .primary-nav-group-label {
+    flex: 0 0 auto;
   }
 
   .primary-nav-library {
