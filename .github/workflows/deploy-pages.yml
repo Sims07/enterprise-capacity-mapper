@@ -53,6 +53,7 @@ jobs:
         run: npm run build
         env:
           COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
       - name: Prepare GitHub Pages preview paths
         run: |
           mkdir -p /tmp/github-pages-preview/enterprise-capacity-mapper
@@ -76,6 +77,14 @@ jobs:
         run: npx cypress run --config defaultCommandTimeout=10000
         env:
           COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
+      - name: Verify Cypress produced coverage data
+        if: always()
+        run: |
+          if ! find .nyc_output -type f -name '*.json' -size +2c -print -quit 2>/dev/null | grep -q .; then
+            echo 'No non-empty Istanbul coverage data was produced by Cypress.'
+            exit 1
+          fi
       - name: Generate HTML and text coverage reports
         if: always()
         run: npx --yes nyc report --reporter=text-summary --reporter=html --reporter=lcov
@@ -102,6 +111,7 @@ jobs:
         run: npm run build
         env:
           COVERAGE: 'false'
+          CYPRESS_COVERAGE: 'false'
       - uses: actions/upload-pages-artifact@v4
         if: success()
         with:
