@@ -135,6 +135,10 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="dashboard-view-impact"]').click();
     cy.get('[data-testid="impact-view"]').should('be.visible').and('contain.text', 'Capacités à analyser');
     cy.get('[data-testid="dashboard-impact-empty"]').should('be.visible');
+    cy.get('[data-testid="impact-view"] .dashboard-impact-select-list button').first().click();
+    cy.get('[data-testid="dashboard-impact-empty"]').should('not.exist');
+    cy.get('[data-testid="dashboard-impact-summary"]').should('be.visible').and('contain.text', 'Éléments sollicités');
+    cy.get('[data-testid="impact-view"] .dashboard-impact-select-list button[aria-pressed="true"]').should('have.length', 1);
   });
 
   it('revient à la cartographie sans perdre les vues d’analyse', () => {
