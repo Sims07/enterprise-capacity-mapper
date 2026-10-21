@@ -19,7 +19,7 @@
   margin-left: 0.1rem;
 }
 
-.primary-navigation .toolbar-tools > summary {
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -35,12 +35,12 @@
   white-space: nowrap;
 }
 
-.primary-navigation .toolbar-tools > summary::-webkit-details-marker {
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle::-webkit-details-marker {
   display: none;
 }
 
 .primary-navigation .toolbar-tools[open] > summary,
-.primary-navigation .toolbar-tools > summary:hover {
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle:hover {
   border-color: #a5b4fc;
   background: #fafaff;
 }
@@ -109,7 +109,7 @@
   }
 }
 
-.app.theme-dark .primary-navigation .toolbar-tools > summary {
+.app.theme-dark .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
   background: #171a20;
   color: #e5e7eb;
   border-color: #3f4652;
