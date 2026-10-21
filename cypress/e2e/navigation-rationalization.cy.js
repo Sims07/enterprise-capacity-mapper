@@ -19,6 +19,8 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="primary-library"]').click().should('have.class', 'active');
     cy.get('[data-testid="library-page"]').should('be.visible').and('contain.text', 'Bibliothèque de cartographies');
     cy.get('[data-testid="library-page-heading"]').should('be.visible');
+    cy.get('[data-testid="back-to-cartography"]').should('have.css', 'border-radius', '8px');
+    cy.get('[data-testid="save-current-from-library"]').should('have.css', 'background-color', 'rgb(79, 70, 229)');
     cy.get('[data-testid="recent-maps-count"]').should('be.visible');
     cy.get('[data-testid="saved-maps-count"]').should('be.visible');
     cy.get('.modal').should('not.exist');
@@ -26,11 +28,14 @@ describe('Navigation rationalisée', () => {
 
   it('ouvre Outils comme un menu déroulant sans ajouter une entrée principale', () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
+    cy.get('.toolbar-tools-panel').should('be.visible');
     cy.get('[data-testid="export-model"]').should('be.visible');
     cy.get('[data-testid="import-model"]').should('exist');
     cy.get('[data-testid="theme-toggle"]').should('be.visible');
-    cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('.toolbar-tools-panel').should('not.exist');
   });
 
   it('garde le panneau Outils visible sur mobile malgré la navigation défilante', () => {
