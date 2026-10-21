@@ -144,9 +144,9 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="dashboard-unlinked-apps"]').should('contain.text', 'Toutes les applications sont reliées').and('not.contain.text', 'Application orpheline test');
   });
 
-  it('garde les quatre onglets principaux sur une seule ligne sur mobile', () => {
+  it('garde les cinq onglets principaux sur une seule ligne sur mobile', () => {
     cy.viewport(390, 844);
-    cy.get('.toolbar-switch > button').should('have.length', 4).then($tabs => {
+    cy.get('.toolbar-switch > button').should('have.length', 5).then($tabs => {
       const tops = [...$tabs].map(tab => tab.getBoundingClientRect().top);
       expect(Math.max(...tops) - Math.min(...tops)).to.be.lessThan(1);
     });
