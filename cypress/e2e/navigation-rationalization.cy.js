@@ -86,6 +86,7 @@ describe('Navigation rationalisée', () => {
         applications: []
       };
       model.metadata = { ...model.metadata, name: 'Cartographie à ouvrir test' };
+      win.localStorage.setItem('enterprise-capacity-mapper:model:v3', JSON.stringify(model));
       win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify([{
         id: 'recent-test',
         name: 'Cartographie à ouvrir test',
