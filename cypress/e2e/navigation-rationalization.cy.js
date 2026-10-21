@@ -119,12 +119,12 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="library-page"]').should('be.visible');
   });
 
-  it('affiche la navigation secondaire uniquement dans les vues d’analyse', () => {
-    cy.get('[data-testid="analysis-subnav"]').should('not.exist');
+  it('propose un switch de vue compact dans Analyse, sans sous-menu', () => {
+    cy.get('[data-testid="analysis-view-switch"]').should('not.exist');
     cy.get('[data-testid="nav-analysis"]').click();
-    cy.get('[data-testid="analysis-subnav"]').should('be.visible').and('have.class', 'is-active');
+    cy.get('[data-testid="analysis-view-switch"]').should('be.visible');
     cy.get('[data-testid="tab-dashboard"]').should('contain.text', "Vue d'ensemble");
-    cy.get('[data-testid="tab-relations"]').should('be.visible');
+    cy.get('[data-testid="tab-relations"]').should('contain.text', 'Gérer les relations');
     cy.get('[data-testid="tab-impact"]').should('not.exist');
     cy.get('[data-testid="dashboard-view-impact"]').should('be.visible').and('contain.text', 'Comprendre les impacts');
 
@@ -145,9 +145,9 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
     cy.get('[data-testid="nav-cartography"]').click().should('have.class', 'active');
-    cy.get('[data-testid="analysis-subnav"]').should('not.exist');
+    cy.get('[data-testid="analysis-view-switch"]').should('not.exist');
     cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
-    cy.get('[data-testid="analysis-subnav"]').should('be.visible');
+    cy.get('[data-testid="analysis-view-switch"]').should('be.visible');
     cy.get('[data-testid="dashboard-view-impact"]').should('be.visible');
   });
 });
