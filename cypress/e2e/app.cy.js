@@ -186,7 +186,7 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="recent-maps-list"]').contains('.library-map-card', 'Sauvegarde à conserver')
       .find('[data-testid^="remove-recent-"]').click();
 
-    cy.get('[data-testid="recent-maps-list"]').should('not.contain.text', 'Sauvegarde à conserver');
+    cy.get('[data-testid="recent-maps-empty"]').should('be.visible');
     cy.get('[data-testid="saved-maps-list"]').should('contain.text', 'Sauvegarde à conserver');
     cy.window().then(window => {
       const recent = JSON.parse(window.localStorage.getItem('enterprise-capacity-mapper:recent-maps:v1') || '[]');
