@@ -170,6 +170,32 @@ describe('Application smoke test', () => {
     cy.contains('.cap', 'Qualification des prospects').should('exist');
   });
 
+  it('retire une cartographie des récents sans supprimer sa sauvegarde locale', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    openToolsMenu();
+    cy.get('[data-testid="save-local-map"]').click();
+    cy.get('[data-testid="local-map-name"]').clear().type('Sauvegarde à conserver');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="library-content-grid"]').should('have.css', 'display', 'grid');
+    cy.get('[data-testid="saved-maps-list"]').should('be.visible');
+    cy.get('[data-testid="recent-maps-list"]').contains('.library-map-card', 'Sauvegarde à conserver')
+      .find('[data-testid^="remove-recent-"]').click();
+
+    cy.get('[data-testid="recent-maps-list"]').should('not.contain.text', 'Sauvegarde à conserver');
+    cy.get('[data-testid="saved-maps-list"]').should('contain.text', 'Sauvegarde à conserver');
+    cy.window().then(window => {
+      const recent = JSON.parse(window.localStorage.getItem('enterprise-capacity-mapper:recent-maps:v1') || '[]');
+      const saved = JSON.parse(window.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
+      expect(recent.map(map => map.name)).not.to.include('Sauvegarde à conserver');
+      expect(saved.map(map => map.name)).to.include('Sauvegarde à conserver');
+    });
+  });
+
   it('enregistre une cartographie localement et permet de la rouvrir après rechargement', () => {
     cy.visit('/');
     cy.clearLocalStorage();
