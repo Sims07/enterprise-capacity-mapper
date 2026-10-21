@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'node:path';
 
 export default defineConfig(async () => {
   const plugins = [react()];
@@ -8,11 +9,14 @@ export default defineConfig(async () => {
   if (process.env.COVERAGE === 'true') {
     const { default: istanbul } = await import('vite-plugin-istanbul');
     plugins.push(istanbul({
-      include: ['src/**/*'],
+      include: [path.resolve(process.cwd(), 'src/**/*')],
       exclude: ['node_modules/**', 'cypress/**', '**/*.cy.{js,jsx,ts,tsx}'],
       extension: ['.js', '.jsx', '.ts', '.tsx'],
       requireEnv: true,
       cypress: true,
+      // Le plugin n'est chargé que sur le serveur de test ; ne pas le désactiver
+      // selon le mode de build résolu par Vite en CI.
+      checkProd: false,
     }));
   }
 
@@ -22,7 +26,7 @@ export default defineConfig(async () => {
     plugins,
     // Le serveur de test reproduit le sous-chemin GitHub Pages ; la production conserve sa base relative.
     base: coverageMode ? '/enterprise-capacity-mapper/' : './',
-    build: { target: 'es2020' },
+    build: { target: 'es2020', sourcemap: coverageMode },
     server: {
       host: '0.0.0.0',
       port: 5173,
