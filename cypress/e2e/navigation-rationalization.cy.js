@@ -140,6 +140,11 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="impact-view"] .dashboard-impact-select-list button').first().click();
     cy.get('[data-testid="dashboard-impact-empty"]').should('not.exist');
     cy.get('[data-testid="dashboard-impact-summary"]').should('be.visible').and('contain.text', 'Éléments sollicités');
+    cy.get('[data-testid="impact-view"]').then($selector => {
+      cy.get('[data-testid="dashboard-impact-summary"]').then($summary => {
+        expect($selector[0].compareDocumentPosition($summary[0]) & Node.DOCUMENT_POSITION_FOLLOWING).to.equal(Node.DOCUMENT_POSITION_FOLLOWING);
+      });
+    });
     cy.get('[data-testid="impact-view"] .dashboard-impact-select-list button[aria-pressed="true"]').should('have.length', 1);
   });
 
