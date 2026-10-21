@@ -138,3 +138,99 @@
   background: #27243f;
   border-color: #454064;
 }
+
+
+/* Bibliothèque et Outils sont des espaces de travail, pas des fenêtres modales. */
+.standalone-page {
+  margin: 24px auto;
+  padding: 24px;
+  width: min(1100px, calc(100% - 32px));
+  background: var(--panel, #fff);
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
+}
+
+.standalone-page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.standalone-page-heading h2 {
+  margin: 4px 0 8px;
+}
+
+.standalone-page-heading p {
+  margin: 0;
+  color: var(--muted, #64748b);
+}
+
+.tools-page-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tools-page-grid > section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 10px;
+}
+
+.tools-page-grid h3 {
+  margin: 0 0 4px;
+}
+
+.library-page .local-map-section-title {
+  margin-top: 24px;
+}
+
+.library-load-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 10px;
+}
+
+.library-load-confirm p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.app.theme-dark .standalone-page,
+.app.theme-dark .tools-page-grid > section,
+.app.theme-dark .library-load-confirm {
+  background: #171a20;
+  border-color: #303640;
+}
+
+.app.theme-dark .standalone-page-heading p {
+  color: #9ca3af;
+}
+
+@media (max-width: 640px) {
+  .standalone-page {
+    width: calc(100% - 20px);
+    margin: 12px auto;
+    padding: 16px;
+  }
+
+  .standalone-page-heading {
+    flex-direction: column;
+  }
+
+  .tools-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
