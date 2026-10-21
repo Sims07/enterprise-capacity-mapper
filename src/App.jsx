@@ -873,7 +873,7 @@ function App() {
               <div className="library-card-grid" data-testid="recent-maps-list">
                 {recentMaps.map(saved => (
                   <article className="library-map-card" key={saved.id}>
-                    <div className="library-map-card-top"><span className="library-map-type">RÉCENT</span><span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleDateString() : 'Historique'}</span></div>
+                    <div className="library-map-card-top"><span className="library-map-type">RÉCENT</span><span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Historique sans date'}</span></div>
                     <h4>{saved.name}</h4>
                     <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
                     <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
@@ -892,7 +892,7 @@ function App() {
               <div className="library-card-grid" data-testid="saved-maps-list">
                 {localMaps.map(saved => (
                   <article className="library-map-card" key={saved.id}>
-                    <div className="library-map-card-top"><span className="library-map-type saved">SAUVEGARDE</span><span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleDateString() : 'Enregistrée localement'}</span></div>
+                    <div className="library-map-card-top"><span className="library-map-type saved">SAUVEGARDE</span><span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Enregistrée localement'}</span></div>
                     <h4>{saved.name}</h4>
                     <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
                     <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
