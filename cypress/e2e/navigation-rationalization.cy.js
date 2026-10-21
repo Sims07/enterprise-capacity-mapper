@@ -119,10 +119,10 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="library-page"]').should('be.visible');
   });
 
-  it('regroupe les vues d’analyse dans une navigation secondaire', () => {
-    cy.get('[data-testid="analysis-subnav"]').should('be.visible');
+  it('affiche la navigation secondaire uniquement dans les vues d’analyse', () => {
+    cy.get('[data-testid="analysis-subnav"]').should('not.exist');
     cy.get('[data-testid="nav-analysis"]').click();
-    cy.get('[data-testid="analysis-subnav"]').should('have.class', 'is-active');
+    cy.get('[data-testid="analysis-subnav"]').should('be.visible').and('have.class', 'is-active');
     cy.get('[data-testid="tab-dashboard"]').should('contain.text', "Vue d'ensemble");
     cy.get('[data-testid="tab-relations"]').should('be.visible');
     cy.get('[data-testid="tab-impact"]').should('be.visible');
@@ -139,8 +139,9 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
     cy.get('[data-testid="nav-cartography"]').click().should('have.class', 'active');
+    cy.get('[data-testid="analysis-subnav"]').should('not.exist');
     cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
-    cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
+    cy.get('[data-testid="analysis-subnav"]').should('be.visible');
     cy.get('[data-testid="tab-impact"]').click().should('have.class', 'active');
   });
 });
