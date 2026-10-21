@@ -512,3 +512,30 @@
   .library-map-card { transition: none; }
   .library-map-card:hover { transform: none; }
 }
+
+
+/* Bibliothèque : mettre les sauvegardes au premier plan et limiter le défilement vertical. */
+.library-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+.library-content-grid .library-section { min-width: 0; margin-block: 1rem 1.25rem; }
+.library-content-grid .library-card-grid { grid-template-columns: minmax(0, 1fr); gap: .7rem; }
+.library-content-grid .library-map-card { gap: .55rem; padding: .9rem; }
+.library-content-grid .library-map-description { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.library-content-grid .library-map-metrics { gap: .35rem; }
+.library-content-grid .library-map-metrics span { padding: .3rem .4rem; }
+.library-map-card-actions { flex-wrap: wrap; gap: .5rem; }
+.library-map-card-actions .library-remove-recent { width: auto; border: 0; background: transparent; color: var(--muted, #64748b); padding: .45rem .2rem; font-size: .82rem; }
+.library-map-card-actions .library-remove-recent:hover { color: var(--danger, #b91c1c); text-decoration: underline; }
+.library-recent-section .library-map-card-actions button:first-child { flex: 1 1 100%; }
+.library-saved-section .library-map-card-actions button { width: 100%; }
+@media (max-width: 900px) {
+  .library-content-grid { grid-template-columns: minmax(0, 1fr); gap: .25rem; }
+  .library-content-grid .library-card-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+}
+@media (max-width: 760px) {
+  .library-content-grid .library-card-grid { grid-template-columns: minmax(0, 1fr); }
+}
