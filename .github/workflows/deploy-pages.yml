@@ -56,6 +56,7 @@ jobs:
         env:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
       - name: Wait for instrumented Vite server
         run: |
           for attempt in $(seq 1 30); do
@@ -71,6 +72,7 @@ jobs:
         env:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
       - name: Verify Cypress produced coverage data
         if: always()
         run: |
