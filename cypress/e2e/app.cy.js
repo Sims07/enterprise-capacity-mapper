@@ -846,6 +846,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
   });
@@ -903,6 +904,7 @@ describe('Dashboard — filtres de la heatmap', () => {
       win.localStorage.setItem(key, JSON.stringify(model));
     });
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-map-layout"]').then($map => {
@@ -951,6 +953,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
       .find('select').should('have.value', 'P2');
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
@@ -1008,13 +1011,10 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').should('have.value', 'all');
   });
 
-  it('reflète la sélection Impact dans le dashboard et met en évidence les capacités concernées', () => {
-    cy.get('[data-testid="tab-impact"]').click();
-    cy.contains('.impact-card .cap-select', 'Gestion des Stocks & Entrepôt (WMS)').click();
-    cy.contains('.impact-card .cap-select', 'Achats Fournisseurs').click();
-
-    cy.get('[data-testid="tab-dashboard"]').click();
+  it('calcule les impacts directement dans le dashboard et met en évidence les capacités concernées', () => {
     cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'Gestion des Stocks & Entrepôt (WMS)').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'Achats Fournisseurs').click();
     cy.get('[data-testid="dashboard-impact-summary"]').should('be.visible')
       .and('contain.text', '2 éléments sélectionnés')
       .and('contain.text', 'Manhattan WMS')
