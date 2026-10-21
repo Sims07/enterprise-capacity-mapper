@@ -187,6 +187,7 @@ describe('Dashboard de couverture', () => {
 
   it('garde un onglet actif sans curseur violet débordant', () => {
     cy.viewport(390, 844);
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click();
     cy.get('.analysis-subnav > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
     cy.get('.analysis-subnav > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
