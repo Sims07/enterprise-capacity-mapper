@@ -9,6 +9,8 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   it('ferme Outils lorsqu’on clique ailleurs et avec Echap', () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
+    cy.get('[data-testid="open-local-maps"]').should('not.exist');
+    cy.get('[data-testid="primary-library"]').should('be.visible');
     cy.get('[data-testid="nav-cartography"]').click();
     cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
 
