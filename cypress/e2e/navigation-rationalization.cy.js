@@ -72,7 +72,10 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="recent-maps-list"]').contains('button', 'Ouvrir cette cartographie').click();
     cy.get('[aria-label="Confirmer le chargement"]').should('be.visible');
     cy.get('.modal').should('not.exist');
-    cy.get('[data-testid="confirm-load-local-map"]').should('be.visible');
+    cy.get('[data-testid="confirm-load-local-map"]').should('be.visible').click();
+    cy.get('[data-testid="library-page"]').should('not.exist');
+    cy.get('.workspace').should('be.visible');
+    cy.get('[data-testid="confirm-load-local-map"]').should('not.exist');
   });
 
   it('regroupe les vues d’analyse dans une navigation secondaire', () => {
@@ -86,6 +89,8 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="tab-dashboard"]').click().should('have.class', 'active');
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
     cy.get('[data-testid="tab-impact"]').click().should('have.class', 'active');
+    cy.get('[data-testid="impact-view"]').should('be.visible').and('contain.text', "SIMULATION D'IMPACT");
+    cy.get('h2').contains('Projet / fonctionnalité').should('be.visible');
   });
 
   it('revient à la cartographie sans perdre les vues d’analyse', () => {
