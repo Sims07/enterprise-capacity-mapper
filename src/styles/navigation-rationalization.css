@@ -45,7 +45,7 @@
   background: #fafaff;
 }
 
-.analysis-subnav {
+.analysis-view-switch {
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -55,7 +55,7 @@
   border-bottom: 1px solid var(--border, #e3e8f0);
 }
 
-.analysis-subnav-label {
+.analysis-view-switch-label {
   margin-right: 0.35rem;
   color: var(--muted, #64748b);
   font-size: 10px;
@@ -64,7 +64,7 @@
   letter-spacing: 0.06em;
 }
 
-.analysis-subnav > button {
+.analysis-view-switch > button {
   border: 1px solid transparent;
   background: transparent;
   color: #64748b;
@@ -76,12 +76,12 @@
   white-space: nowrap;
 }
 
-.analysis-subnav > button:hover {
+.analysis-view-switch > button:hover {
   color: #312e81;
   background: #f5f5ff;
 }
 
-.analysis-subnav > button.active {
+.analysis-view-switch > button.active {
   color: #3730a3;
   background: #eef2ff;
   border-color: #e0e7ff;
@@ -96,7 +96,7 @@
     -webkit-overflow-scrolling: auto;
   }
 
-  .analysis-subnav {
+  .analysis-view-switch {
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -104,7 +104,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .analysis-subnav > * {
+  .analysis-view-switch > * {
     flex: 0 0 auto;
   }
 }
@@ -115,25 +115,25 @@
   border-color: #3f4652;
 }
 
-.app.theme-dark .analysis-subnav {
+.app.theme-dark .analysis-view-switch {
   background: #171a20;
   border-color: #303640;
 }
 
-.app.theme-dark .analysis-subnav-label {
+.app.theme-dark .analysis-view-switch-label {
   color: #9ca3af;
 }
 
-.app.theme-dark .analysis-subnav > button {
+.app.theme-dark .analysis-view-switch > button {
   color: #a1a1aa;
 }
 
-.app.theme-dark .analysis-subnav > button:hover {
+.app.theme-dark .analysis-view-switch > button:hover {
   color: #c7d2fe;
   background: #242735;
 }
 
-.app.theme-dark .analysis-subnav > button.active {
+.app.theme-dark .analysis-view-switch > button.active {
   color: #c7d2fe;
   background: #27243f;
   border-color: #454064;
@@ -422,7 +422,7 @@
 
 
 /* Navigation secondaire persistante hors Bibliothèque : les vues d’analyse restent découvrables. */
-.analysis-subnav {
+.analysis-view-switch {
   position: relative;
   z-index: 2;
   display: flex !important;
@@ -433,7 +433,7 @@
   overflow-y: hidden;
   box-sizing: border-box;
 }
-.analysis-subnav > button {
+.analysis-view-switch > button {
   box-sizing: border-box;
   flex: 0 0 auto;
   min-height: 30px;
@@ -442,7 +442,7 @@
   transform: none !important;
   transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease !important;
 }
-.analysis-subnav > button:hover {
+.analysis-view-switch > button:hover {
   transform: none !important;
 }
 .toolbar-switch.primary-navigation .toolbar-tools-panel,
@@ -477,7 +477,7 @@
   outline-offset: -2px;
 }
 @media (max-width: 900px) {
-  .analysis-subnav {
+  .analysis-view-switch {
     padding-inline: 14px;
   }
 }
@@ -501,4 +501,53 @@
     width: calc(100% - 20px);
     margin-block: 12px;
   }
+}
+
+
+/* Le choix de vue reste dans l’espace Analyse, sans créer une barre de navigation dédiée. */
+.analysis-view-switch {
+  display: inline-flex !important;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 0;
+  margin: 0 0 16px;
+  padding: 3px;
+  gap: 3px;
+  overflow: visible;
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 10px;
+  background: var(--panel, #fff);
+}
+.analysis-view-switch > button {
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 700;
+}
+.analysis-view-switch > button.active {
+  border-color: #e0e7ff;
+  background: #eef2ff;
+  color: #3730a3;
+}
+.analysis-view-switch > button:hover {
+  background: var(--bg, #f8fafc);
+}
+.app.theme-dark .analysis-view-switch {
+  background: #171a20;
+  border-color: #303640;
+}
+.app.theme-dark .analysis-view-switch > button {
+  color: #a1a1aa;
+}
+.app.theme-dark .analysis-view-switch > button.active {
+  color: #c7d2fe;
+  background: #27243f;
+  border-color: #454064;
+}
+@media (max-width: 760px) {
+  .analysis-view-switch { margin-bottom: 12px; }
+  .analysis-view-switch > button { padding-inline: 9px; }
 }
