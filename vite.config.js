@@ -2,25 +2,42 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(async () => {
+  const coverageMode = process.env.COVERAGE === 'true';
   const plugins = [react()];
 
-  // L'instrumentation est réservée au serveur de test, jamais au build publié.
-  if (process.env.COVERAGE === 'true') {
-    const { default: istanbul } = await import('vite-plugin-istanbul');
-    plugins.push(istanbul({
-      include: ['**/src/**/*'],
-      exclude: ['node_modules/**', 'cypress/**', '**/*.cy.{js,jsx,ts,tsx}'],
-      extension: ['.js', '.jsx', '.ts', '.tsx'],
-      requireEnv: true,
-      cypress: true,
-      // Le plugin n'est chargé que sur le serveur de test ; ne pas le désactiver
-      // selon le mode de build résolu par Vite en CI.
-      checkProd: false,
-      forceBuildInstrument: true,
-    }));
-  }
+  // Instrumentation explicite après la transformation React, uniquement dans le build de test.
+  // Le plugin Vite générique a laissé le bundle compilé sans compteurs dans la CI.
+  if (coverageMode) {
+    const { createInstrumenter } = await import('istanbul-lib-instrument');
+    const instrumenter = createInstrumenter({
+      coverageVariable: '__coverage__',
+      compact: false,
+      preserveComments: true,
+      produceSourceMap: true,
+    });
 
-  const coverageMode = process.env.COVERAGE === 'true';
+    plugins.push({
+      name: 'ecm-cypress-istanbul-instrumentation',
+      enforce: 'post',
+      apply: 'build',
+      transform(code, id) {
+        const filename = id.split('?')[0];
+        if (!filename.includes('/src/') || !/\\.(?:js|jsx|ts|tsx)$/.test(filename)) {
+          return null;
+        }
+
+        try {
+          const instrumented = instrumenter.instrumentSync(code, filename);
+          return {
+            code: instrumented,
+            map: instrumenter.lastSourceMap() || null,
+          };
+        } catch (error) {
+          this.error(`Istanbul instrumentation failed for ${filename}: ${error.message}`);
+        }
+      },
+    });
+  }
 
   return {
     plugins,
@@ -32,8 +49,6 @@ export default defineConfig(async () => {
       port: 5173,
       strictPort: true,
       allowedHosts: ['.app.github.dev'],
-      // En CI, Cypress utilise HTTP local : ne pas tenter d'ouvrir le WebSocket WSS
-      // configuré pour l'accès distant via GitHub Codespaces.
       hmr: coverageMode ? false : {
         protocol: 'wss',
         clientPort: 443
