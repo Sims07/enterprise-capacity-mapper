@@ -13,18 +13,18 @@ Donner une structure de navigation explicite, sans ajouter de titres redondants 
 
 ## Navigation secondaire de l’analyse
 
-Les vues **Vue d'ensemble**, **Relations** et **Impact** sont regroupées sous une barre secondaire unique. Elles restent toutes accessibles directement, mais ne sont plus présentées comme des espaces principaux concurrents.
+Les vues **Vue d'ensemble** et **Relations** sont regroupées sous une barre secondaire dédiée à l’analyse. La simulation d’impact est intégrée à l’intention **Comprendre les impacts** du Dashboard : elle n’est plus une page de navigation distincte.
 
 - La vue d'ensemble est le point d'entrée de l'analyse et affiche le Dashboard.
 - Relations reste accessible pour explorer les liens entre applications et capacités.
-- Impact reste accessible pour comprendre les conséquences liées à une capacité.
+- Comprendre les impacts permet de sélectionner les capacités d’un projet et de consulter dans la même vue les applications impactées et les gaps.
 - Bibliothèque et Outils sont accessibles depuis leur propre entrée, sans libellés de groupe « Construire », « Analyser » ou « Gérer ».
 
 ## Critères d'acceptation
 
 - Une seule navigation principale, sans titres de groupe redondants.
 - Les quatre intentions sont identifiables : Cartographie, Analyse, Bibliothèque et Outils.
-- Dashboard, Relations et Impact restent fonctionnels et sont regroupés dans la navigation secondaire.
+- Dashboard et Relations restent dans la navigation secondaire. La simulation d’impact est intégrée au Dashboard, sans page Impact séparée.
 - La bibliothèque ouvre la même gestion locale des cartographies.
 - La navigation principale reste sur une seule ligne sur mobile, avec défilement horizontal si nécessaire.
 - Les tests Cypress de navigation et les tests fonctionnels existants restent compatibles.
