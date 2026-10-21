@@ -27,7 +27,7 @@ jobs:
 
       # Keep coverage tooling ephemeral so the production dependency tree and lockfile stay unchanged.
       - name: Install coverage tooling
-        run: npm install --no-save --package-lock=false @cypress/code-coverage vite-plugin-istanbul
+        run: npm install --no-save --package-lock=false --legacy-peer-deps @cypress/code-coverage vite-plugin-istanbul
 
       - name: Build instrumented application
         run: npm run build
