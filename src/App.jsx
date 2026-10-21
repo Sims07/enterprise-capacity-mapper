@@ -811,18 +811,6 @@ function App() {
                     <span className="new-map-button-mark" aria-hidden="true">+</span>
                     <span>Nouvelle cartographie</span>
                   </button>
-                  <button type="button" className="secondary" data-testid="open-local-maps" onClick={() => {
-                    closeToolsMenu();
-                    try {
-                      setLocalMaps(loadLocalMaps());
-                      setRecentMaps(loadRecentMaps());
-                      setPendingLocalMap(null);
-                      setModal(null);
-                      setMode('library');
-                    } catch (error) {
-                      notify(`Impossible de lire la bibliothèque locale : ${error.message}`);
-                    }
-                  }}>▤ Bibliothèque</button>
                   <button type="button" className="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
