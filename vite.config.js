@@ -9,7 +9,7 @@ export default defineConfig(async () => {
   if (process.env.COVERAGE === 'true') {
     const { default: istanbul } = await import('vite-plugin-istanbul');
     plugins.push(istanbul({
-      include: [path.resolve(process.cwd(), 'src/**/*')],
+      include: ['**/src/**/*'],
       exclude: ['node_modules/**', 'cypress/**', '**/*.cy.{js,jsx,ts,tsx}'],
       extension: ['.js', '.jsx', '.ts', '.tsx'],
       requireEnv: true,
@@ -17,6 +17,7 @@ export default defineConfig(async () => {
       // Le plugin n'est chargé que sur le serveur de test ; ne pas le désactiver
       // selon le mode de build résolu par Vite en CI.
       checkProd: false,
+      forceBuildInstrument: true,
     }));
   }
 
