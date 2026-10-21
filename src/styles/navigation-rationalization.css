@@ -89,11 +89,11 @@
 
 @media (max-width: 900px) {
   .primary-navigation {
+    display: flex;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    flex-wrap: wrap;
+    -webkit-overflow-scrolling: auto;
   }
 
   .analysis-subnav {
