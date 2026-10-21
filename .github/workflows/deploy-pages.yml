@@ -73,6 +73,13 @@ jobs:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
           CYPRESS_COVERAGE: 'true'
+      - name: Diagnose Vite instrumentation output
+        if: always()
+        run: |
+          echo '--- Vite server log ---'
+          cat /tmp/vite-dev.log || true
+          echo '--- Instrumented main module markers ---'
+          curl --fail --silent http://127.0.0.1:4173/src/main.jsx | grep -m 8 -E '__coverage__|cov_[A-Za-z0-9_]+' || echo 'No Istanbul markers found in /src/main.jsx'
       - name: Verify Cypress produced coverage data
         if: always()
         run: |
