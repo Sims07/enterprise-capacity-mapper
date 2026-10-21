@@ -24,11 +24,10 @@ const enhanceNavigation = () => {
   dashboardButton.classList.add('primary-nav-item', 'primary-nav-analysis');
 
   // Dashboard devient la porte d'entrée « Analyse », sans casser son testid existant.
-  if (dashboardButton.dataset.rationalizedLabel !== 'true') {
+  if (!dashboardButton.querySelector('small') || !dashboardButton.textContent.includes('Analyse')) {
     dashboardButton.innerHTML = '<span>▥ Analyse</span><small>Dashboard</small>';
     dashboardButton.setAttribute('aria-label', 'Analyse — Dashboard');
     dashboardButton.title = 'Analyse — Dashboard';
-    dashboardButton.dataset.rationalizedLabel = 'true';
   }
 
   if (!switcher.querySelector('[data-nav-group="build"]')) {
