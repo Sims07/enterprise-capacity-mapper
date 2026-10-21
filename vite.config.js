@@ -15,17 +15,21 @@ export default defineConfig(async () => {
     }));
   }
 
+  const coverageMode = process.env.COVERAGE === 'true';
+
   return {
     plugins,
     // Le serveur de test reproduit le sous-chemin GitHub Pages ; la production conserve sa base relative.
-    base: process.env.COVERAGE === 'true' ? '/enterprise-capacity-mapper/' : './',
+    base: coverageMode ? '/enterprise-capacity-mapper/' : './',
     build: { target: 'es2020' },
     server: {
       host: '0.0.0.0',
       port: 5173,
       strictPort: true,
       allowedHosts: ['.app.github.dev'],
-      hmr: {
+      // En CI, Cypress utilise HTTP local : ne pas tenter d'ouvrir le WebSocket WSS
+      // configuré pour l'accès distant via GitHub Codespaces.
+      hmr: coverageMode ? false : {
         protocol: 'wss',
         clientPort: 443
       }
