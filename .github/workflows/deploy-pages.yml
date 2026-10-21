@@ -48,24 +48,29 @@ jobs:
         run: npm install --no-save --legacy-peer-deps @cypress/code-coverage vite-plugin-istanbul
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
-      # Cypress runs once against Vite's instrumented dev server; vite-plugin-istanbul is intended for this mode.
-      - name: Start instrumented Vite server
-        run: |
-          npm run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/vite-dev.log 2>&1 &
-          echo $! > /tmp/vite-dev.pid
+      # Build a dedicated instrumented bundle first, then test the exact static files served to Cypress.
+      - name: Build instrumented application for coverage
+        run: npm run build -- --outDir dist-coverage
         env:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
           CYPRESS_COVERAGE: 'true'
-      - name: Wait for instrumented Vite server
+      - name: Start instrumented static preview
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 --strictPort --outDir dist-coverage > /tmp/vite-preview.log 2>&1 &
+          echo $! > /tmp/vite-preview.pid
+        env:
+          COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
+      - name: Wait for instrumented static preview
         run: |
           for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null && curl --fail --silent http://127.0.0.1:4173/enterprise-capacity-mapper/ > /dev/null; then
+            if curl --fail --silent http://127.0.0.1:4173/enterprise-capacity-mapper/ > /dev/null; then
               exit 0
             fi
             sleep 1
           done
-          cat /tmp/vite-dev.log
+          cat /tmp/vite-preview.log
           exit 1
       - name: Run Cypress once and collect coverage
         run: npx cypress run --config defaultCommandTimeout=10000
@@ -76,10 +81,10 @@ jobs:
       - name: Diagnose Vite instrumentation output
         if: always()
         run: |
-          echo '--- Vite server log ---'
-          cat /tmp/vite-dev.log || true
-          echo '--- Instrumented main module markers ---'
-          curl --fail --silent http://127.0.0.1:4173/src/main.jsx | grep -m 8 -E '__coverage__|cov_[A-Za-z0-9_]+' || echo 'No Istanbul markers found in /src/main.jsx'
+          echo '--- Vite preview log ---'
+          cat /tmp/vite-preview.log || true
+          echo '--- Instrumented built JavaScript markers ---'
+          grep -R -m 8 -E '__coverage__|cov_[A-Za-z0-9_]+' dist-coverage/assets || echo 'No Istanbul markers found in dist-coverage/assets'
       - name: Verify Cypress produced coverage data
         if: always()
         run: |
@@ -125,8 +130,8 @@ jobs:
       - name: Stop instrumented Vite server
         if: always()
         run: |
-          if [ -f /tmp/vite-dev.pid ]; then
-            kill "$(cat /tmp/vite-dev.pid)" 2>/dev/null || true
+          if [ -f /tmp/vite-preview.pid ]; then
+            kill "$(cat /tmp/vite-preview.pid)" 2>/dev/null || true
           fi
       # Rebuild without instrumentation so the published PWA remains a normal production build.
       - name: Build production application
