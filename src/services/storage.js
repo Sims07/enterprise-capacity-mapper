@@ -37,6 +37,12 @@ export function saveLocalMap({id,name,model}){
 export function loadRecentMaps(){
   return loadMapCollection(RECENT_MAPS_KEY,'La liste des cartographies récentes est invalide.');
 }
+export function removeRecentMap(id){
+  const entries=loadRecentMaps();
+  const next=entries.filter(entry=>entry.id!==id);
+  localStorage.setItem(RECENT_MAPS_KEY,JSON.stringify(next));
+  return next;
+}
 export function recordRecentMap({id,name,model}){
   const entries=loadRecentMaps();
   const recent={id,name:name.trim()||model.metadata?.name||'Cartographie sans nom',model:validateModel(model),openedAt:new Date().toISOString()};
