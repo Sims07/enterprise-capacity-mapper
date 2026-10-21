@@ -30,7 +30,11 @@ describe('Contrastes du thème sombre', () => {
       .and('have.css', 'border-color', 'rgb(69, 90, 118)');
     // Le panneau Outils est monté uniquement lorsqu'il est ouvert.
     openToolsMenu();
-    cy.get('.app.theme-dark .toolbar-tools-panel').should('be.visible').and('have.css', 'background-color', 'rgb(17, 28, 46)');
+    cy.get('.app.theme-dark .toolbar-tools-panel')
+      .should('be.visible')
+      .should(($panel) => {
+        expect($panel.css('background-color')).to.equal('rgb(17, 28, 46)');
+      });
     cy.get('[data-testid="undo-button"], [data-testid="redo-button"]').each(($button) => {
       cy.wrap($button).should('be.visible').and('have.css', 'opacity', '1');
       cy.wrap($button).find('.history-button-label').should('have.css', 'color', 'rgb(203, 213, 225)');
