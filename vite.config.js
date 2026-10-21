@@ -12,6 +12,7 @@ export default defineConfig(async () => {
       exclude: ['node_modules/**', 'cypress/**', '**/*.cy.{js,jsx,ts,tsx}'],
       extension: ['.js', '.jsx', '.ts', '.tsx'],
       requireEnv: true,
+      cypress: true,
     }));
   }
 
