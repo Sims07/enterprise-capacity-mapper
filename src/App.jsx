@@ -138,7 +138,6 @@ function App() {
   };
 
   const closeToolsMenu = () => {
-    if (toolsMenuRef.current) toolsMenuRef.current.open = false;
     setToolsMenuOpen(false);
   };
 
@@ -772,22 +771,24 @@ function App() {
             <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
             <button type="button" className={['dashboard', 'relations', 'impact'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
             <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setPendingLocalMap(null); setMode('library'); setModal(null); }}>▤ Bibliothèque</button>
-            <details
-              className="toolbar-tools"
+            <div
+              className={'toolbar-tools' + (toolsMenuOpen ? ' is-open' : '')}
               data-testid="tools-menu"
               ref={toolsMenuRef}
-              onToggle={event => setToolsMenuOpen(event.currentTarget.open)}
             >
-              <summary
+              <button
+                type="button"
+                className="toolbar-tools-toggle"
                 data-testid="tools-menu-toggle"
                 ref={toolsMenuToggleRef}
                 aria-label="Ouvrir le menu Outils"
                 aria-haspopup="true"
                 aria-expanded={toolsMenuOpen}
+                onClick={() => setToolsMenuOpen(open => !open)}
               >
                 <span>Outils</span><span aria-hidden="true">⌄</span>
-              </summary>
-              <div className="toolbar-tools-panel" aria-label="Outils et actions">
+              </button>
+              {toolsMenuOpen && <div className="toolbar-tools-panel" aria-label="Outils et actions">
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-maps">
                   <h3 id="tools-group-maps" className="toolbar-menu-heading">Cartographie</h3>
                   <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
@@ -824,8 +825,8 @@ function App() {
                   <h3 id="tools-group-version" className="toolbar-menu-heading">Version</h3>
                   <PwaUpdateNotice />
                 </section>
-              </div>
-            </details>
+              </div>}
+            </div>
           </nav>
           <div className="toolbar-actions">
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
