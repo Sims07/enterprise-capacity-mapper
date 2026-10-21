@@ -159,7 +159,7 @@ describe('Dashboard de couverture', () => {
     });
   });
 
-  it('garde le surlignage actif sur les vues de navigation secondaire', () => {
+  it('garde le surlignage actif sur le switch de vue Analyse', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     const tabs = ['[data-testid="tab-relations"]', '[data-testid="tab-dashboard"]'];
     tabs.forEach(selector => {
