@@ -96,7 +96,7 @@ describe('Navigation rationalisée', () => {
     });
     cy.reload();
     cy.get('[data-testid="primary-library"]').click();
-    cy.get('[data-testid="recent-maps-list"]').contains('button', 'Ouvrir cette cartographie').click();
+    cy.get('[data-testid="recent-maps-list"] .library-map-card').contains('h4', 'Cartographie à ouvrir test').parents('.library-map-card').contains('button', 'Ouvrir cette cartographie').click();
     cy.get('.modal[role="dialog"]').should('be.visible').and('contain.text', 'remplacera la cartographie actuellement affichée');
     cy.get('[data-testid="confirm-load-local-map"]').should('be.visible').click();
     cy.get('[data-testid="library-page"]').should('not.exist');
