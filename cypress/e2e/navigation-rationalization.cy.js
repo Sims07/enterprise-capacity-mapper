@@ -38,6 +38,22 @@ describe('Navigation rationalisée', () => {
     cy.get('.toolbar-tools-panel').should('not.exist');
   });
 
+  it('garde les dimensions des actions Outils stables au survol', () => {
+    cy.get('[data-testid="tools-menu-toggle"]').click();
+    cy.get('[data-testid="export-model"]').should('be.visible').then($button => {
+      const before = $button[0].getBoundingClientRect();
+      const initial = { width: before.width, height: before.height, top: before.top, left: before.left };
+      cy.wrap($button).trigger('mouseover');
+      cy.get('[data-testid="export-model"]').should($hovered => {
+        const after = $hovered[0].getBoundingClientRect();
+        expect(after.width).to.equal(initial.width);
+        expect(after.height).to.equal(initial.height);
+        expect(after.top).to.equal(initial.top);
+        expect(after.left).to.equal(initial.left);
+      });
+    });
+  });
+
   it('garde le panneau Outils visible sur mobile malgré la navigation défilante', () => {
     cy.viewport(390, 844);
     cy.get('[data-testid="tools-menu-toggle"]').click();
