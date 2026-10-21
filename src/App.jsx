@@ -915,7 +915,7 @@ function App() {
                     <h4>{saved.name}</h4>
                     <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
                     <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
-                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir cette cartographie</button></div>
+                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button></div>
                   </article>
                 ))}
               </div>
@@ -1163,10 +1163,10 @@ function App() {
       )}
 
       {modal === 'confirm-local-map' && pendingLocalMap && (
-        <Modal title="Ouvrir une cartographie" onClose={() => { setModal('local-maps'); setPendingLocalMap(null); }}>
+        <Modal title="Ouvrir une cartographie" onClose={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>
           <p>Ouvrir « {pendingLocalMap.name} » remplacera la cartographie actuellement affichée. Enregistrez vos dernières modifications avant de continuer si nécessaire.</p>
           <div className="modal-actions">
-            <button type="button" onClick={() => { setModal('local-maps'); setPendingLocalMap(null); }}>Annuler</button>
+            <button type="button" onClick={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>Annuler</button>
             <button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button>
           </div>
         </Modal>
