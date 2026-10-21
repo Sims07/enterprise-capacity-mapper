@@ -972,7 +972,7 @@ function App() {
               />
             </>
           ) : mode === 'impact' ? (
-            <section className="impact">
+            <section className="impact" data-testid="impact-view">
               <div className="hero">
                 <div>
                   <div className="eyebrow">SIMULATION D'IMPACT</div>
