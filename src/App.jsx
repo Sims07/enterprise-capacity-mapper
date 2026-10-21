@@ -777,12 +777,11 @@ function App() {
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
-          <div className="toolbar-switch">
-            <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
-            <button type="button" className={mode === 'relations' ? 'active' : ''} data-testid="tab-relations" onClick={() => setMode('relations')}>⛓ Relations</button>
-            <button type="button" data-testid="tab-impact" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
-            <button type="button" className={mode === 'dashboard' ? 'active' : ''} data-testid="tab-dashboard" onClick={() => setMode('dashboard')}>▥ Dashboard</button>
-          </div>
+          <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
+            <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
+            <button type="button" className={mode !== 'editor' ? 'active' : ''} data-testid="nav-analysis" aria-current={mode !== 'editor' ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
+            <button type="button" data-testid="primary-library" onClick={openLocalMaps}>▤ Bibliothèque</button>
+          </nav>
           <div className="toolbar-actions">
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
@@ -839,6 +838,13 @@ function App() {
           </div>
         </div>
       </header>
+
+      <nav className="analysis-subnav" aria-label="Vues d'analyse" data-testid="analysis-subnav">
+        <span className="analysis-subnav-label">Analyse</span>
+        <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-current={mode === 'dashboard' ? 'page' : undefined} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
+        <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-current={mode === 'relations' ? 'page' : undefined} onClick={() => setMode('relations')}>Relations</button>
+        <button type="button" data-testid="tab-impact" className={mode === 'impact' ? 'active' : ''} aria-current={mode === 'impact' ? 'page' : undefined} onClick={() => setMode('impact')}>Impact</button>
+      </nav>
 
       <div className="workspace">
         <aside id="app-inventory">
