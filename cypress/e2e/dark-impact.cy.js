@@ -13,11 +13,12 @@ describe('Impact selection on the capability map', () => {
   };
 
   const selectImpactAndReturnToMap = () => {
-    cy.get('header').contains('button', 'Impact').click();
-    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'CRM-01 — Gestion des Prospects & Leads')
       .click()
       .should('have.attr', 'aria-pressed', 'true');
-    cy.get('header').contains('button', 'Cartographie').click();
+    cy.get('[data-testid="nav-cartography"]').click();
     cy.get('.cap.impact-selected').should('have.length.greaterThan', 0);
   };
 
@@ -59,8 +60,9 @@ describe('Impact selection on the capability map', () => {
     cy.visit('/');
     cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click();
     cy.get('.cap.impact-selected').should('contain.text', 'Gestion des Prospects & Leads');
-    cy.get('header').contains('button', 'Impact').click();
-    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads').should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'CRM-01 — Gestion des Prospects & Leads').should('have.attr', 'aria-pressed', 'true');
     cy.get('[data-testid="clear-impact-selection"]').click();
     cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads').should('have.attr', 'aria-pressed', 'false');
   });
