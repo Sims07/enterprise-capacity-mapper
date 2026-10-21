@@ -859,7 +859,7 @@ function App() {
         </div>
       </header>
 
-      {mode !== 'library' && <nav className={'analysis-subnav' + (['dashboard', 'relations', 'impact'].includes(mode) ? ' is-active' : '')} aria-label="Vues d'analyse" data-testid="analysis-subnav">
+      {['dashboard', 'relations', 'impact'].includes(mode) && <nav className="analysis-subnav is-active" aria-label="Vues d'analyse" data-testid="analysis-subnav">
         <span className="analysis-subnav-label">Analyse</span>
         <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-current={mode === 'dashboard' ? 'page' : undefined} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
         <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-current={mode === 'relations' ? 'page' : undefined} onClick={() => setMode('relations')}>Relations</button>
