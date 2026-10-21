@@ -362,6 +362,7 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Dark Linear').click();
     cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="theme-toggle"]').should('have.attr', 'aria-pressed', 'true').and('contain.text', 'Thème clair');
     cy.window().then(win => {
       expect(win.localStorage.getItem('enterprise-capacity-mapper:theme')).to.equal('dark');
