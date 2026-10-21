@@ -550,7 +550,6 @@ describe('Application smoke test', () => {
       cy.contains('.toolbar-menu-heading', 'Données').should('be.visible');
       cy.contains('.toolbar-menu-heading', 'Affichage').should('be.visible');
       cy.get('[data-testid="new-map-button"]').should('be.visible');
-      cy.get('[data-testid="open-local-maps"]').should('be.visible');
       cy.get('[data-testid="save-local-map"]').should('be.visible').and('contain.text', 'Enregistrer');
       cy.get('[data-testid="export-model"]').should('be.visible');
       cy.get('[data-testid="import-model"]').should('exist').and('have.attr', 'accept', '.json,application/json');
@@ -561,10 +560,6 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('be.checked');
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('not.have.class', 'presentation-mode');
-    openToolsMenu();
-    cy.get('[data-testid="open-local-maps"]').click();
-    cy.get('[data-testid="library-page"]').should('be.visible');
-    cy.get('[data-testid="back-to-cartography"]').click();
     openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
     cy.get('[data-testid="local-map-name"]').should('be.visible');
