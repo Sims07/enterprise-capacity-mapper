@@ -362,3 +362,5 @@
 }
 
 .toolbar-switch .toolbar-tools > .toolbar-tools-toggle { border: 1px solid #cbd5e1 !important; background: #fff !important; color: #334155 !important; }
+
+.toolbar-switch .toolbar-tools.is-open > .toolbar-tools-toggle, .toolbar-switch .toolbar-tools > .toolbar-tools-toggle:hover { border-color: #a5b4fc !important; background: #fafaff !important; color: #3730a3 !important; }
