@@ -72,6 +72,7 @@ describe('Relations applications ↔ capacités', () => {
     node('Achats Fournisseurs').should('contain.text', 'Odoo Invoice').and('contain.text', 'Couvert');
     cy.get('.drop-over').should('not.exist');
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click();
     node('Achats Fournisseurs').should('contain.text', 'Odoo Invoice');
   });
