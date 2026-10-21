@@ -42,17 +42,26 @@ jobs:
           git add package.json package-lock.json public/sw.js
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
-      - run: npm install
+      - name: Install project dependencies
+        run: npm install
+      - name: Install coverage tooling
+        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage vite-plugin-istanbul
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
-      - run: npm run build
+      # Cypress runs once, against the instrumented build, so the same run generates both test results and coverage.
+      - name: Build instrumented application
+        run: npm run build
+        env:
+          COVERAGE: 'true'
       - name: Prepare GitHub Pages preview paths
         run: |
           mkdir -p /tmp/github-pages-preview/enterprise-capacity-mapper
           cp -a dist/. /tmp/github-pages-preview/
           cp -a dist/. /tmp/github-pages-preview/enterprise-capacity-mapper/
       - name: Start preview server
-        run: npm run preview -- --outDir /tmp/github-pages-preview --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
+        run: |
+          npm run preview -- --outDir /tmp/github-pages-preview --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
+          echo $! > /tmp/vite-preview.pid
       - name: Wait for preview server
         run: |
           for attempt in $(seq 1 30); do
@@ -63,47 +72,7 @@ jobs:
           done
           cat /tmp/vite-preview.log
           exit 1
-      - run: npm run test:e2e
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: ./dist
-  cypress-coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - name: Install project dependencies
-        run: npm ci
-      # Coverage tools are installed only in this job; the production build and lockfile stay unchanged.
-      - name: Install coverage tooling
-        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage vite-plugin-istanbul
-      - name: Build instrumented application
-        run: npm run build
-        env:
-          COVERAGE: 'true'
-      # Mirror both root and repository subpath because the original specs cover both URL forms.
-      - name: Prepare GitHub Pages preview paths
-        run: |
-          mkdir -p dist/enterprise-capacity-mapper
-          find dist -mindepth 1 -maxdepth 1 ! -name enterprise-capacity-mapper -exec cp -R {} dist/enterprise-capacity-mapper/ \;
-      - name: Start preview server
-        run: npm run preview -- --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
-      - name: Wait for preview server
-        run: |
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:4173/enterprise-capacity-mapper/ > /dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          cat /tmp/vite-preview.log
-          exit 1
-      - name: Run Cypress and collect coverage
+      - name: Run Cypress once and collect coverage
         run: npx cypress run --config defaultCommandTimeout=10000
         env:
           COVERAGE: 'true'
@@ -121,6 +90,22 @@ jobs:
             .nyc_output/
           if-no-files-found: warn
           retention-days: 14
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f /tmp/vite-preview.pid ]; then
+            kill "$(cat /tmp/vite-preview.pid)" 2>/dev/null || true
+          fi
+      # Rebuild without instrumentation so the published PWA remains a normal production build.
+      - name: Build production application
+        if: success()
+        run: npm run build
+        env:
+          COVERAGE: 'false'
+      - uses: actions/upload-pages-artifact@v4
+        if: success()
+        with:
+          path: ./dist
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
