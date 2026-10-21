@@ -1,6 +1,8 @@
 describe('Navigation rationalisée', () => {
   beforeEach(() => {
     cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
   });
 
   it('présente une navigation principale sans titres de groupe redondants', () => {
@@ -75,7 +77,14 @@ describe('Navigation rationalisée', () => {
 
   it('confirme le remplacement par une popup depuis la bibliothèque', () => {
     cy.window().then(win => {
-      const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+      const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')) || {
+        schemaVersion: 3,
+        layout: { mode: 'matrix', columns: [], layers: [] },
+        metadata: { name: 'Cartographie de test' },
+        domains: [],
+        capabilities: [],
+        applications: []
+      };
       model.metadata = { ...model.metadata, name: 'Cartographie à ouvrir test' };
       win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify([{
         id: 'recent-test',
@@ -102,7 +111,14 @@ describe('Navigation rationalisée', () => {
 
   it('permet d’annuler la popup de remplacement sans quitter la bibliothèque', () => {
     cy.window().then(win => {
-      const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+      const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')) || {
+        schemaVersion: 3,
+        layout: { mode: 'matrix', columns: [], layers: [] },
+        metadata: { name: 'Cartographie de test' },
+        domains: [],
+        capabilities: [],
+        applications: []
+      };
       win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify([{
         id: 'recent-cancel-test',
         name: 'Cartographie à ne pas ouvrir',
