@@ -292,3 +292,5 @@
 
 /* Outils panel stacking */
 .primary-navigation .toolbar-tools.is-open { z-index: 1001; }
+
+.primary-navigation .toolbar-tools-panel { position: absolute; top: calc(100% + 8px); right: 0; z-index: 1002; width: min(280px, calc(100vw - 24px)); max-height: min(72vh, 560px); overflow-y: auto; }
