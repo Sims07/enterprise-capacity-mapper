@@ -481,3 +481,24 @@
     padding-inline: 14px;
   }
 }
+
+
+/* La bibliothèque est une page sœur de .workspace : elle doit gérer son propre défilement. */
+.app > .standalone-page {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-block: 12px;
+}
+.app > .library-page {
+  width: min(1240px, calc(100% - 32px));
+  max-width: 1240px;
+}
+@media (max-width: 640px) {
+  .app > .library-page {
+    width: calc(100% - 20px);
+    margin-block: 12px;
+  }
+}
