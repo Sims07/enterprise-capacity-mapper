@@ -780,12 +780,14 @@ function App() {
           <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
             <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
             <button type="button" className={mode !== 'editor' ? 'active' : ''} data-testid="nav-analysis" aria-current={mode !== 'editor' ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
-            <button type="button" data-testid="primary-library" onClick={openLocalMaps}>▤ Bibliothèque</button>
+            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setMode('library'); setModal(null); }}>▤ Bibliothèque</button>
+            <button type="button" className={mode === 'tools' ? 'active' : ''} data-testid="nav-tools" aria-current={mode === 'tools' ? 'page' : undefined} onClick={() => { setMode('tools'); setModal(null); }}>Outils</button>
             <details
               className="toolbar-tools"
               data-testid="tools-menu"
               ref={toolsMenuRef}
               onToggle={event => setToolsMenuOpen(event.currentTarget.open)}
+              hidden
             >
               <summary
                 data-testid="tools-menu-toggle"
@@ -840,13 +842,32 @@ function App() {
         </div>
       </header>
 
-      <nav className="analysis-subnav" aria-label="Vues d'analyse" data-testid="analysis-subnav">
+      {['dashboard', 'relations', 'impact'].includes(mode) && <nav className="analysis-subnav" aria-label="Vues d'analyse" data-testid="analysis-subnav">
         <span className="analysis-subnav-label">Analyse</span>
         <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-current={mode === 'dashboard' ? 'page' : undefined} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
         <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-current={mode === 'relations' ? 'page' : undefined} onClick={() => setMode('relations')}>Relations</button>
         <button type="button" data-testid="tab-impact" className={mode === 'impact' ? 'active' : ''} aria-current={mode === 'impact' ? 'page' : undefined} onClick={() => setMode('impact')}>Impact</button>
-      </nav>
+      </nav>}
 
+      {mode === 'library' ? (
+        <section className="standalone-page library-page" data-testid="library-page">
+          <div className="standalone-page-heading"><div><div className="eyebrow">GESTION DES CARTOGRAPHIES</div><h2>Bibliothèque</h2><p>Retrouvez vos cartographies récentes et celles enregistrées sur cet appareil.</p></div><button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button></div>
+          <h3 className="local-map-section-title">Récemment ouvertes</h3>
+          {recentMaps.length ? <div className="local-map-list" data-testid="recent-maps-list">{recentMaps.map(saved => <div className="local-map-row" key={saved.id}><div><strong>{saved.name}</strong><span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span></div><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir</button></div>)}</div> : <p className="local-map-empty">Aucune cartographie récente.</p>}
+          <h3 className="local-map-section-title">Cartographies enregistrées</h3>
+          {localMaps.length ? <div className="local-map-list" data-testid="saved-maps-list">{localMaps.map(saved => <div className="local-map-row" key={saved.id}><div><strong>{saved.name}</strong><span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span></div><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir</button></div>)}</div> : <p className="local-map-empty">Aucune sauvegarde nommée. Utilisez « Sauvegarder » pour en ajouter une.</p>}
+        </section>
+      ) : mode === 'tools' ? (
+        <section className="standalone-page tools-page" data-testid="tools-page">
+          <div className="standalone-page-heading"><div><div className="eyebrow">ACTIONS TRANSVERSES</div><h2>Outils</h2><p>Importez, exportez et personnalisez votre environnement de travail.</p></div></div>
+          <div className="tools-page-grid">
+            <section><h3>Cartographie</h3><button type="button" className="secondary" data-testid="tools-new-map" onClick={openWizard}>＋ Nouvelle cartographie</button><button type="button" className="secondary" onClick={saveCurrentLocalMap}>Enregistrer la cartographie</button></section>
+            <section><h3>Données</h3><button type="button" className="secondary" data-testid="export-model" onClick={() => exportModel(model)}>↓ Exporter en JSON</button><label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={importJson} /></label></section>
+            <section><h3>Affichage</h3><button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => setDarkMode(value => !value)}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button></section>
+            <section><h3>Version</h3><PwaUpdateNotice /></section>
+          </div>
+        </section>
+      ) : (
       <div className="workspace">
         <aside id="app-inventory">
           <div className="panel-title">
@@ -1000,6 +1021,7 @@ function App() {
           )}
         </main>
       </div>
+      )}
 
       {contextMenu && (
         <div
