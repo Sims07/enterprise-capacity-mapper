@@ -780,14 +780,12 @@ function App() {
           <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
             <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
             <button type="button" className={['dashboard', 'relations', 'impact'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
-            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setMode('library'); setModal(null); }}>▤ Bibliothèque</button>
-            <button type="button" className={mode === 'tools' ? 'active' : ''} data-testid="nav-tools" aria-current={mode === 'tools' ? 'page' : undefined} onClick={() => { setMode('tools'); setModal(null); }}>Outils</button>
+            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setPendingLocalMap(null); setMode('library'); setModal(null); }}>▤ Bibliothèque</button>
             <details
               className="toolbar-tools"
               data-testid="tools-menu"
               ref={toolsMenuRef}
               onToggle={event => setToolsMenuOpen(event.currentTarget.open)}
-              hidden
             >
               <summary
                 data-testid="tools-menu-toggle"
@@ -857,16 +855,6 @@ function App() {
           <h3 className="local-map-section-title">Cartographies enregistrées</h3>
           {localMaps.length ? <div className="local-map-list" data-testid="saved-maps-list">{localMaps.map(saved => <div className="local-map-row" key={saved.id}><div><strong>{saved.name}</strong><span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span></div><button type="button" className="secondary" onClick={() => setPendingLocalMap(saved)}>Ouvrir</button></div>)}</div> : <p className="local-map-empty">Aucune sauvegarde nommée. Utilisez « Sauvegarder » pour en ajouter une.</p>}
           {pendingLocalMap && <div className="library-load-confirm" role="group" aria-label="Confirmer le chargement"><p>Ouvrir « {pendingLocalMap.name} » remplacera la cartographie actuellement affichée.</p><button type="button" className="secondary" onClick={() => setPendingLocalMap(null)}>Annuler</button><button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button></div>}
-        </section>
-      ) : mode === 'tools' ? (
-        <section className="standalone-page tools-page" data-testid="tools-page">
-          <div className="standalone-page-heading"><div><div className="eyebrow">ACTIONS TRANSVERSES</div><h2>Outils</h2><p>Importez, exportez et personnalisez votre environnement de travail.</p></div></div>
-          <div className="tools-page-grid">
-            <section><h3>Cartographie</h3><button type="button" className="secondary" data-testid="tools-new-map" onClick={openWizard}>＋ Nouvelle cartographie</button><button type="button" className="secondary" onClick={saveCurrentLocalMap}>Enregistrer la cartographie</button></section>
-            <section><h3>Données</h3><button type="button" className="secondary" data-testid="export-model" onClick={() => exportModel(model)}>↓ Exporter en JSON</button><label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={importJson} /></label></section>
-            <section><h3>Affichage</h3><button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => setDarkMode(value => !value)}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button></section>
-            <section><h3>Version</h3><PwaUpdateNotice /></section>
-          </div>
         </section>
       ) : (
       <div className="workspace">
