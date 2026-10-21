@@ -1,17 +1,11 @@
-const NAVIGATION_MARK = 'data-navigation-rationalized';
-
 const enhanceNavigation = () => {
   const switcher = document.querySelector('.toolbar-switch');
-  if (!switcher || switcher.dataset.navigationRationalized === 'true') return;
+  if (!switcher) return;
 
   const buttons = Array.from(switcher.querySelectorAll(':scope > button'));
   if (buttons.length < 4) return;
 
   const [editorButton, relationsButton, impactButton, dashboardButton] = buttons;
-
-  switcher.dataset.navigationRationalized = 'true';
-  switcher.setAttribute('aria-label', 'Navigation principale');
-
   const makeGroupLabel = (text, key) => {
     const label = document.createElement('span');
     label.className = 'primary-nav-group-label';
@@ -21,17 +15,20 @@ const enhanceNavigation = () => {
     return label;
   };
 
+  switcher.dataset.navigationRationalized = 'true';
+  switcher.setAttribute('aria-label', 'Navigation principale');
+
   editorButton.classList.add('primary-nav-item', 'primary-nav-editor');
   relationsButton.classList.add('primary-nav-item', 'primary-nav-analysis');
   impactButton.classList.add('primary-nav-item', 'primary-nav-analysis');
   dashboardButton.classList.add('primary-nav-item', 'primary-nav-analysis');
 
   // Dashboard devient la porte d'entrée « Analyse », sans casser son testid existant.
-  if (!dashboardButton.dataset.originalLabel) {
-    dashboardButton.dataset.originalLabel = dashboardButton.textContent.trim();
+  if (dashboardButton.dataset.rationalizedLabel !== 'true') {
     dashboardButton.innerHTML = '<span>▥ Analyse</span><small>Dashboard</small>';
     dashboardButton.setAttribute('aria-label', 'Analyse — Dashboard');
     dashboardButton.title = 'Analyse — Dashboard';
+    dashboardButton.dataset.rationalizedLabel = 'true';
   }
 
   if (!switcher.querySelector('[data-nav-group="build"]')) {
@@ -54,19 +51,14 @@ const enhanceNavigation = () => {
       if (openLocalMaps) openLocalMaps.click();
     });
 
-    const manageLabel = makeGroupLabel('Gérer', 'manage');
-    switcher.append(manageLabel, libraryButton);
+    switcher.append(makeGroupLabel('Gérer', 'manage'), libraryButton);
   }
-
-  switcher.dataset[ NAVIGATION_MARK ] = 'true';
 };
 
 const startNavigationRationalization = () => {
   enhanceNavigation();
-
   const observer = new MutationObserver(() => enhanceNavigation());
   observer.observe(document.body, { childList: true, subtree: true });
-
   return () => observer.disconnect();
 };
 
