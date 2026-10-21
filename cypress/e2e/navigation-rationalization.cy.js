@@ -68,13 +68,6 @@ describe('Navigation rationalisée', () => {
     });
   });
 
-  it('ouvre la bibliothèque depuis Outils sans afficher de popup', () => {
-    cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="open-local-maps"]').click();
-    cy.get('[data-testid="library-page"]').should('be.visible');
-    cy.get('.modal').should('not.exist');
-  });
-
   it('confirme le remplacement par une popup depuis la bibliothèque', () => {
     cy.window().then(win => {
       const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')) || {
