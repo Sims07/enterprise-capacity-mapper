@@ -30,7 +30,7 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
-    cy.get('[data-testid="tab-impact"]').next('[data-testid="tab-dashboard"]').should('exist');
+    cy.get('[data-testid="analysis-subnav"] [data-testid="tab-dashboard"]').should('exist');
     cy.get('[data-testid="capability-dashboard"]').should('have.attr', 'aria-label', 'Dashboard de couverture');
     cy.get('[data-testid="dashboard-coverage-rate"]').should('contain.text', '%');
     cy.get('[data-testid="dashboard-gap-count"]').invoke('text').then(value => {
@@ -144,9 +144,9 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="dashboard-unlinked-apps"]').should('contain.text', 'Toutes les applications sont reliées').and('not.contain.text', 'Application orpheline test');
   });
 
-  it('garde les cinq onglets principaux sur une seule ligne sur mobile', () => {
+  it('garde la navigation principale sur une seule ligne sur mobile', () => {
     cy.viewport(390, 844);
-    cy.get('.toolbar-switch > button').should('have.length', 5).then($tabs => {
+    cy.get('.toolbar-switch > button').should('have.length', 3).then($tabs => {
       const tops = [...$tabs].map(tab => tab.getBoundingClientRect().top);
       expect(Math.max(...tops) - Math.min(...tops)).to.be.lessThan(1);
     });
@@ -156,14 +156,14 @@ describe('Dashboard de couverture', () => {
     const tabs = ['[data-testid="tab-relations"]', '[data-testid="tab-impact"]', '[data-testid="tab-dashboard"]'];
     tabs.forEach(selector => {
       cy.get(selector).click().should('have.class', 'active');
-      cy.get('.toolbar-switch > button.active').should('have.length', 1).and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
+      cy.get('.analysis-subnav > button.active').should('have.length', 1).and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
     });
   });
 
   it('affiche le Dashboard comme onglet actif sans curseur hérité de Cartographie', () => {
     cy.get('[data-testid="tab-dashboard"]').click().should('have.class', 'active');
-    cy.get('.toolbar-switch').should('have.css', 'grid-template-columns', 'none');
-    cy.get('.toolbar-switch').then($switch => expect(getComputedStyle($switch[0], '::before').content).to.equal('none'));
+    cy.get('.analysis-subnav').should('be.visible');
+    cy.get('.analysis-subnav').then($switch => expect(getComputedStyle($switch[0], '::before').content).to.equal('none'));
     cy.get('[data-testid="tab-dashboard"]').then($button => expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)'));
   });
 
@@ -179,8 +179,8 @@ describe('Dashboard de couverture', () => {
   it('garde un onglet actif sans curseur violet débordant', () => {
     cy.viewport(390, 844);
     cy.get('[data-testid="tab-relations"]').click();
-    cy.get('.toolbar-switch > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
-    cy.get('.toolbar-switch > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
+    cy.get('.analysis-subnav > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
+    cy.get('.analysis-subnav > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
   });
 
   it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
