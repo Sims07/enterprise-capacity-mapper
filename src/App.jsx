@@ -66,7 +66,7 @@ function App() {
   const undoStack = useRef([]);
   const redoStack = useRef([]);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
-  const [mode, setMode] = useState('editor'); // 'editor', 'relations', 'impact' ou 'dashboard'
+  const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
   const dashboardHistoryEntry = useRef(false);
   const [pickedApps, setPickedApps] = useState([]);
@@ -859,11 +859,10 @@ function App() {
         </div>
       </header>
 
-      {['dashboard', 'relations', 'impact'].includes(mode) && <nav className="analysis-subnav is-active" aria-label="Vues d'analyse" data-testid="analysis-subnav">
+      {['dashboard', 'relations'].includes(mode) && <nav className="analysis-subnav is-active" aria-label="Vues d'analyse" data-testid="analysis-subnav">
         <span className="analysis-subnav-label">Analyse</span>
         <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-current={mode === 'dashboard' ? 'page' : undefined} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
         <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-current={mode === 'relations' ? 'page' : undefined} onClick={() => setMode('relations')}>Relations</button>
-        <button type="button" data-testid="tab-impact" className={mode === 'impact' ? 'active' : ''} aria-current={mode === 'impact' ? 'page' : undefined} onClick={() => setMode('impact')}>Impact</button>
       </nav>}
 
       {mode === 'library' ? (
@@ -961,6 +960,7 @@ function App() {
               onLinkApp={openLinkForApp}
               onUpdatePriority={updateCapabilityPriority}
               selected={selected}
+              onToggleTarget={toggleCap}
             />
           ) : mode === 'relations' ? (
             <>
@@ -986,72 +986,6 @@ function App() {
               onToggleSelection={toggleCap}
               />
             </>
-          ) : mode === 'impact' ? (
-            <section className="impact" data-testid="impact-view">
-              <div className="hero">
-                <div>
-                  <div className="eyebrow">SIMULATION D'IMPACT</div>
-                  <h2>Projet / fonctionnalité</h2>
-                  <p>Sélectionnez les capacités métier sollicitées : on cherche « ce que l’entreprise doit savoir faire », pas une liste d’applications ou de processus.</p>
-                </div>
-                <div className="metric">
-                  <strong>{selected.length}</strong>
-                  <span>{relationLabel}s</span>
-                </div>
-                <div className="metric">
-                  <strong>{touched.length}</strong>
-                  <span>applications</span>
-                </div>
-                <div className="metric danger">
-                  <strong>{gaps.length}</strong>
-                  <span>gaps</span>
-                </div>
-              </div>
-
-              <div className="impact-grid">
-                <div className="impact-card">
-                  <div className="impact-card-heading">
-                    <h3>Éléments sollicités</h3>
-                    {selected.length > 0 && <button type="button" className="impact-clear-selection" data-testid="clear-impact-selection" onClick={() => setSelected([])}>Effacer la sélection</button>}
-                  </div>
-                  <p className="context-help">N0 : grand domaine métier. N1 : capacité détaillée et relativement stable. Vous pouvez aussi sélectionner directement un élément depuis la cartographie ou Relations.</p>
-                  {mappedItems.map(c => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={'cap-select ' + (selected.includes(c.id) ? 'selected' : '')}
-                      aria-pressed={selected.includes(c.id)}
-                      onClick={() => toggleCap(c.id)}
-                    >
-                      {selected.includes(c.id) ? '✓' : '○'} {c.code} — {c.name}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="impact-card">
-                  <h3>Applications impactées</h3>
-                  {touched.length ? (
-                    touched.map(a => (
-                      <div className="result-row" key={a.id}>
-                        <b>{a.name}</b>
-                        <span>{a.status}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="empty">Aucune application impactée.</p>
-                  )}
-
-                  {gaps.length > 0 && (
-                    <div className="gap-box">
-                      <b>⚠ {gaps.length} gap(s) de couverture</b>
-                      {gaps.map(c => (
-                        <div key={c.id}>{c.code} — {c.name}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
           ) : (
             <>
               <div className="map-controls-row">
