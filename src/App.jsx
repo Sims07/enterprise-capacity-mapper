@@ -209,19 +209,35 @@ function App() {
   };
   const confirmLoadLocalMap = () => {
     if (!pendingLocalMap) return;
+    const saved = pendingLocalMap;
     try {
-      replaceModel(pendingLocalMap.model);
-      recordRecentMap({ id: pendingLocalMap.id, name: pendingLocalMap.name, model: pendingLocalMap.model });
-      setActiveRecentMapId(pendingLocalMap.id);
-      setLocalMapId(pendingLocalMap.id);
-      localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, pendingLocalMap.id);
+      if (!saved.model || !Array.isArray(saved.model.domains) || !Array.isArray(saved.model.capabilities)) {
+        throw new Error('le modèle enregistré est incomplet ou invalide');
+      }
+
+      // Le stockage de l’identifiant actif ne doit pas bloquer l’ouverture de la cartographie.
+      replaceModel(saved.model);
       setSelected([]);
       setMapQuery('');
-      setMode('editor');
       setPresentation(false);
       setModal(null);
       setPendingLocalMap(null);
-      notify(`Cartographie « ${pendingLocalMap.name} » chargée`);
+      setMode('editor');
+
+      try {
+        setActiveRecentMapId(saved.id);
+        setLocalMapId(saved.id);
+        localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
+      } catch (storageError) {
+        notify(`Cartographie « ${saved.name} » ouverte, mais son identifiant actif n’a pas pu être mémorisé.`);
+      }
+
+      try {
+        recordRecentMap({ id: saved.id, name: saved.name, model: saved.model });
+      } catch (historyError) {
+        // L’ouverture reste prioritaire si l’historique local est indisponible.
+      }
+      notify(`Cartographie « ${saved.name} » chargée`);
     } catch (error) {
       notify(`Impossible de charger la cartographie : ${error.message}`);
     }
@@ -843,7 +859,7 @@ function App() {
         </div>
       </header>
 
-      {['dashboard', 'relations', 'impact'].includes(mode) && <nav className="analysis-subnav" aria-label="Vues d'analyse" data-testid="analysis-subnav">
+      {mode !== 'library' && <nav className={'analysis-subnav' + (['dashboard', 'relations', 'impact'].includes(mode) ? ' is-active' : '')} aria-label="Vues d'analyse" data-testid="analysis-subnav">
         <span className="analysis-subnav-label">Analyse</span>
         <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-current={mode === 'dashboard' ? 'page' : undefined} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
         <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-current={mode === 'relations' ? 'page' : undefined} onClick={() => setMode('relations')}>Relations</button>
