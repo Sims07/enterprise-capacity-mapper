@@ -75,6 +75,7 @@ describe('Navigation rationalisée', () => {
     cy.get('.modal').should('not.exist');
     cy.get('[data-testid="confirm-load-local-map"]').should('be.visible').click();
     cy.get('[data-testid="library-page"]').should('not.exist');
+    cy.get('[data-testid="nav-cartography"]').should('have.class', 'active');
     cy.get('.workspace').should('be.visible');
     cy.get('[data-testid="confirm-load-local-map"]').should('not.exist');
     cy.window().then(win => {
@@ -84,8 +85,9 @@ describe('Navigation rationalisée', () => {
   });
 
   it('regroupe les vues d’analyse dans une navigation secondaire', () => {
-    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="analysis-subnav"]').should('be.visible');
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="analysis-subnav"]').should('have.class', 'is-active');
     cy.get('[data-testid="tab-dashboard"]').should('contain.text', "Vue d'ensemble");
     cy.get('[data-testid="tab-relations"]').should('be.visible');
     cy.get('[data-testid="tab-impact"]').should('be.visible');
