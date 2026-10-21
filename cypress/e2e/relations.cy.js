@@ -5,6 +5,7 @@ describe('Relations applications ↔ capacités', () => {
     cy.reload();
   };
   const openTree = () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click();
     cy.get('.coverage-tree').should('be.visible');
   };
@@ -36,8 +37,9 @@ describe('Relations applications ↔ capacités', () => {
 
   it('met en évidence les capacités impactées dans l’onglet Relations', () => {
     fresh();
-    cy.get('header').contains('button', 'Impact').click();
-    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'CRM-01 — Gestion des Prospects & Leads')
       .click()
       .should('have.attr', 'aria-pressed', 'true');
     openTree();
@@ -57,7 +59,7 @@ describe('Relations applications ↔ capacités', () => {
       .find('[data-testid="tree-impact-toggle"]')
       .should('have.attr', 'aria-pressed', 'true');
     cy.get('.tree-row.impact-highlight').should('contain.text', 'Gestion des Prospects & Leads');
-    cy.get('header').contains('button', 'Cartographie').click();
+    cy.get('[data-testid="nav-cartography"]').click();
     cy.get('.cap.impact-selected').should('contain.text', 'Gestion des Prospects & Leads');
     cy.get('[data-testid="map-cap-select"]').contains('Gestion des Prospects & Leads').click();
     cy.get('.cap.impact-selected').should('not.exist');
@@ -70,6 +72,7 @@ describe('Relations applications ↔ capacités', () => {
     node('Achats Fournisseurs').should('contain.text', 'Odoo Invoice').and('contain.text', 'Couvert');
     cy.get('.drop-over').should('not.exist');
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click();
     node('Achats Fournisseurs').should('contain.text', 'Odoo Invoice');
   });
@@ -269,9 +272,9 @@ describe('Relations applications ↔ capacités', () => {
           .not.to.equal('transparent');
       });
 
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     assertActiveTabHasVisualDistinction();
@@ -287,8 +290,8 @@ describe('Relations applications ↔ capacités', () => {
       });
 
     // Revenir au thème clair doit aussi restaurer l'apparence des onglets d'en-tête.
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
     assertActiveTabHasVisualDistinction();
@@ -315,9 +318,9 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('.tree-app').first()
       .should('have.css', 'background-color', 'rgb(255, 255, 255)');
 
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.panel-title em')
       .should('have.css', 'background-color', 'rgb(52, 42, 81)')
@@ -356,16 +359,17 @@ describe('Relations applications ↔ capacités', () => {
 
   it('active le thème Dark Linear et conserve la préférence après rechargement', () => {
     fresh();
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Dark Linear').click();
     cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="theme-toggle"]').should('have.attr', 'aria-pressed', 'true').and('contain.text', 'Thème clair');
     cy.window().then(win => {
       expect(win.localStorage.getItem('enterprise-capacity-mapper:theme')).to.equal('dark');
     });
     cy.reload();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Thème clair').click();
     cy.get('.app').should('not.have.class', 'theme-dark');
     cy.window().then(win => {

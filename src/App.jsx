@@ -66,7 +66,7 @@ function App() {
   const undoStack = useRef([]);
   const redoStack = useRef([]);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
-  const [mode, setMode] = useState('editor'); // 'editor', 'relations', 'impact' ou 'dashboard'
+  const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
   const dashboardHistoryEntry = useRef(false);
   const [pickedApps, setPickedApps] = useState([]);
@@ -138,7 +138,6 @@ function App() {
   };
 
   const closeToolsMenu = () => {
-    if (toolsMenuRef.current) toolsMenuRef.current.open = false;
     setToolsMenuOpen(false);
   };
 
@@ -177,15 +176,6 @@ function App() {
   const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
-  const openLocalMaps = () => {
-    try {
-      setLocalMaps(loadLocalMaps());
-      setRecentMaps(loadRecentMaps());
-      setModal('local-maps');
-    } catch (error) {
-      notify(`Impossible de lire la bibliothèque locale : ${error.message}`);
-    }
-  };
   const saveCurrentLocalMap = () => {
     try {
       const entries = loadLocalMaps();
@@ -219,19 +209,35 @@ function App() {
   };
   const confirmLoadLocalMap = () => {
     if (!pendingLocalMap) return;
+    const saved = pendingLocalMap;
     try {
-      replaceModel(pendingLocalMap.model);
-      recordRecentMap({ id: pendingLocalMap.id, name: pendingLocalMap.name, model: pendingLocalMap.model });
-      setActiveRecentMapId(pendingLocalMap.id);
-      setLocalMapId(pendingLocalMap.id);
-      localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, pendingLocalMap.id);
+      if (!saved.model || !Array.isArray(saved.model.domains) || !Array.isArray(saved.model.capabilities)) {
+        throw new Error('le modèle enregistré est incomplet ou invalide');
+      }
+
+      // Le stockage de l’identifiant actif ne doit pas bloquer l’ouverture de la cartographie.
+      replaceModel(saved.model);
       setSelected([]);
       setMapQuery('');
-      setMode('editor');
       setPresentation(false);
       setModal(null);
       setPendingLocalMap(null);
-      notify(`Cartographie « ${pendingLocalMap.name} » chargée`);
+      setMode('editor');
+
+      try {
+        setActiveRecentMapId(saved.id);
+        setLocalMapId(saved.id);
+        localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
+      } catch (storageError) {
+        notify(`Cartographie « ${saved.name} » ouverte, mais son identifiant actif n’a pas pu être mémorisé.`);
+      }
+
+      try {
+        recordRecentMap({ id: saved.id, name: saved.name, model: saved.model });
+      } catch (historyError) {
+        // L’ouverture reste prioritaire si l’historique local est indisponible.
+      }
+      notify(`Cartographie « ${saved.name} » chargée`);
     } catch (error) {
       notify(`Impossible de charger la cartographie : ${error.message}`);
     }
@@ -777,45 +783,34 @@ function App() {
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
-          <div className="toolbar-switch">
-            <button type="button" className={mode === 'editor' ? 'active' : ''} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
-            <button type="button" className={mode === 'relations' ? 'active' : ''} data-testid="tab-relations" onClick={() => setMode('relations')}>⛓ Relations</button>
-            <button type="button" data-testid="tab-impact" className={mode === 'impact' ? 'active' : ''} onClick={() => setMode('impact')}>⚡ Impact</button>
-            <button type="button" className={mode === 'dashboard' ? 'active' : ''} data-testid="tab-dashboard" onClick={() => setMode('dashboard')}>▥ Dashboard</button>
-          </div>
-          <div className="toolbar-actions">
-            <div className="toolbar-history" role="group" aria-label="Historique des modifications">
-              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
-              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
-            </div>
-            <label className="presentation-switch" data-testid="presentation-toggle">
-              <span>Présentation</span>
-              <input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
-              <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
-            </label>
-            <details
-              className="toolbar-tools"
+          <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
+            <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
+            <button type="button" className={['dashboard', 'relations'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
+            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setPendingLocalMap(null); setMode('library'); setModal(null); }}>▤ Bibliothèque</button>
+            <div
+              className={'toolbar-tools' + (toolsMenuOpen ? ' is-open' : '')}
               data-testid="tools-menu"
               ref={toolsMenuRef}
-              onToggle={event => setToolsMenuOpen(event.currentTarget.open)}
             >
-              <summary
+              <button
+                type="button"
+                className="toolbar-tools-toggle"
                 data-testid="tools-menu-toggle"
                 ref={toolsMenuToggleRef}
                 aria-label="Ouvrir le menu Outils"
                 aria-haspopup="true"
                 aria-expanded={toolsMenuOpen}
+                onClick={() => setToolsMenuOpen(open => !open)}
               >
                 <span>Outils</span><span aria-hidden="true">⌄</span>
-              </summary>
-              <div className="toolbar-tools-panel" aria-label="Outils et actions">
+              </button>
+              {toolsMenuOpen && <div className="toolbar-tools-panel" aria-label="Outils et actions">
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-maps">
                   <h3 id="tools-group-maps" className="toolbar-menu-heading">Cartographie</h3>
                   <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
                     <span className="new-map-button-mark" aria-hidden="true">+</span>
                     <span>Nouvelle cartographie</span>
                   </button>
-                  <button type="button" className="secondary" data-testid="open-local-maps" onClick={() => { closeToolsMenu(); openLocalMaps(); }}>▤ Mes cartographies</button>
                   <button type="button" className="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
@@ -834,12 +829,84 @@ function App() {
                   <h3 id="tools-group-version" className="toolbar-menu-heading">Version</h3>
                   <PwaUpdateNotice />
                 </section>
-              </div>
-            </details>
+              </div>}
+            </div>
+          </nav>
+          <div className="toolbar-actions">
+            <div className="toolbar-history" role="group" aria-label="Historique des modifications">
+              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
+              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
+            </div>
+            <label className="presentation-switch" data-testid="presentation-toggle">
+              <span>Présentation</span>
+              <input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
+              <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
+            </label>
+
           </div>
         </div>
       </header>
 
+      {mode === 'library' ? (
+        <section className="standalone-page library-page" data-testid="library-page">
+          <div className="standalone-page-heading library-page-heading" data-testid="library-page-heading">
+            <div>
+              <div className="eyebrow">ESPACE DE TRAVAIL · STOCKAGE LOCAL</div>
+              <h2>Bibliothèque de cartographies</h2>
+              <p>Retrouvez vos modèles récents, gérez les sauvegardes de cet appareil et rouvrez une cartographie sans quitter cet espace.</p>
+            </div>
+            <div className="library-page-actions">
+              <button type="button" className="secondary" data-testid="back-to-cartography" onClick={() => setMode('editor')}>Retour à la cartographie</button>
+              <button type="button" className="primary" data-testid="save-current-from-library" onClick={saveCurrentLocalMap}>＋ Sauvegarder la cartographie actuelle</button>
+            </div>
+          </div>
+
+          <div className="library-stats" aria-label="Résumé de la bibliothèque">
+            <article className="library-stat-card"><span>Cartographie active</span><strong>{model.metadata?.name || 'Sans nom'}</strong><small>{model.domains.length} domaines N0 · {model.capabilities.length} capacités N1</small></article>
+            <article className="library-stat-card"><span>Récemment ouvertes</span><strong data-testid="recent-maps-count">{recentMaps.length}</strong><small>Jusqu’à 10 cartographies conservées dans l’historique</small></article>
+            <article className="library-stat-card"><span>Sauvegardes locales</span><strong data-testid="saved-maps-count">{localMaps.length}</strong><small>Disponibles sur cet appareil</small></article>
+          </div>
+
+          <section className="library-section" aria-labelledby="recent-maps-heading">
+            <div className="library-section-heading"><div><h3 id="recent-maps-heading">Récemment ouvertes</h3><p>Reprenez rapidement un modèle utilisé dernièrement.</p></div></div>
+            {recentMaps.length ? (
+              <div className="library-card-grid" data-testid="recent-maps-list">
+                {recentMaps.map(saved => (
+                  <article className="library-map-card" key={saved.id}>
+                    <div className="library-map-card-top"><span className="library-map-type">RÉCENT</span><span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleDateString() : 'Historique'}</span></div>
+                    <h4>{saved.name}</h4>
+                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
+                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
+                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button></div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="library-empty-state" data-testid="recent-maps-empty"><strong>Aucune cartographie récente</strong><p>Les cartographies que vous ouvrez apparaîtront ici pour vous permettre de les retrouver facilement.</p></div>
+            )}
+          </section>
+
+          <section className="library-section" aria-labelledby="saved-maps-heading">
+            <div className="library-section-heading"><div><h3 id="saved-maps-heading">Cartographies enregistrées</h3><p>Les versions nommées que vous avez choisi de conserver localement.</p></div><span className="library-section-count">{localMaps.length} sauvegarde(s)</span></div>
+            {localMaps.length ? (
+              <div className="library-card-grid" data-testid="saved-maps-list">
+                {localMaps.map(saved => (
+                  <article className="library-map-card" key={saved.id}>
+                    <div className="library-map-card-top"><span className="library-map-type saved">SAUVEGARDE</span><span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleDateString() : 'Enregistrée localement'}</span></div>
+                    <h4>{saved.name}</h4>
+                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
+                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
+                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button></div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="library-empty-state" data-testid="saved-maps-empty"><strong>Aucune sauvegarde nommée</strong><p>Enregistrez la cartographie active pour lui donner un nom et la retrouver ici, même après avoir travaillé sur un autre modèle.</p><button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button></div>
+            )}
+          </section>
+
+        </section>
+      ) : (
       <div className="workspace">
         <aside id="app-inventory">
           <div className="panel-title">
@@ -867,6 +934,12 @@ function App() {
         </aside>
 
         <main>
+          {['dashboard', 'relations'].includes(mode) && (
+            <div className="analysis-view-switch" role="group" aria-label="Mode d'analyse" data-testid="analysis-view-switch">
+              <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-pressed={mode === 'dashboard'} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
+              <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-pressed={mode === 'relations'} onClick={() => setMode('relations')}>Gérer les relations</button>
+            </div>
+          )}
           {mode === 'dashboard' ? (
             <Dashboard
               model={model}
@@ -875,6 +948,7 @@ function App() {
               onLinkApp={openLinkForApp}
               onUpdatePriority={updateCapabilityPriority}
               selected={selected}
+              onToggleTarget={toggleCap}
             />
           ) : mode === 'relations' ? (
             <>
@@ -900,72 +974,6 @@ function App() {
               onToggleSelection={toggleCap}
               />
             </>
-          ) : mode === 'impact' ? (
-            <section className="impact">
-              <div className="hero">
-                <div>
-                  <div className="eyebrow">SIMULATION D'IMPACT</div>
-                  <h2>Projet / fonctionnalité</h2>
-                  <p>Sélectionnez les capacités métier sollicitées : on cherche « ce que l’entreprise doit savoir faire », pas une liste d’applications ou de processus.</p>
-                </div>
-                <div className="metric">
-                  <strong>{selected.length}</strong>
-                  <span>{relationLabel}s</span>
-                </div>
-                <div className="metric">
-                  <strong>{touched.length}</strong>
-                  <span>applications</span>
-                </div>
-                <div className="metric danger">
-                  <strong>{gaps.length}</strong>
-                  <span>gaps</span>
-                </div>
-              </div>
-
-              <div className="impact-grid">
-                <div className="impact-card">
-                  <div className="impact-card-heading">
-                    <h3>Éléments sollicités</h3>
-                    {selected.length > 0 && <button type="button" className="impact-clear-selection" data-testid="clear-impact-selection" onClick={() => setSelected([])}>Effacer la sélection</button>}
-                  </div>
-                  <p className="context-help">N0 : grand domaine métier. N1 : capacité détaillée et relativement stable. Vous pouvez aussi sélectionner directement un élément depuis la cartographie ou Relations.</p>
-                  {mappedItems.map(c => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={'cap-select ' + (selected.includes(c.id) ? 'selected' : '')}
-                      aria-pressed={selected.includes(c.id)}
-                      onClick={() => toggleCap(c.id)}
-                    >
-                      {selected.includes(c.id) ? '✓' : '○'} {c.code} — {c.name}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="impact-card">
-                  <h3>Applications impactées</h3>
-                  {touched.length ? (
-                    touched.map(a => (
-                      <div className="result-row" key={a.id}>
-                        <b>{a.name}</b>
-                        <span>{a.status}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="empty">Aucune application impactée.</p>
-                  )}
-
-                  {gaps.length > 0 && (
-                    <div className="gap-box">
-                      <b>⚠ {gaps.length} gap(s) de couverture</b>
-                      {gaps.map(c => (
-                        <div key={c.id}>{c.code} — {c.name}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
           ) : (
             <>
               <div className="map-controls-row">
@@ -993,6 +1001,7 @@ function App() {
           )}
         </main>
       </div>
+      )}
 
       {contextMenu && (
         <div
@@ -1076,10 +1085,10 @@ function App() {
       )}
 
       {modal === 'confirm-local-map' && pendingLocalMap && (
-        <Modal title="Ouvrir une cartographie" onClose={() => { setModal('local-maps'); setPendingLocalMap(null); }}>
+        <Modal title="Ouvrir une cartographie" onClose={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>
           <p>Ouvrir « {pendingLocalMap.name} » remplacera la cartographie actuellement affichée. Enregistrez vos dernières modifications avant de continuer si nécessaire.</p>
           <div className="modal-actions">
-            <button type="button" onClick={() => { setModal('local-maps'); setPendingLocalMap(null); }}>Annuler</button>
+            <button type="button" onClick={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>Annuler</button>
             <button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button>
           </div>
         </Modal>

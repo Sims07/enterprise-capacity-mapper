@@ -2,7 +2,7 @@ describe('Application smoke test', () => {
   const assertApplicationLoaded = () => {
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
-    cy.get('[data-testid="pwa-version"]').should('not.be.visible');
+    cy.get('[data-testid="pwa-version"]').should('not.exist');
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="pwa-version"]').should('be.visible');
     cy.get('[data-testid="pwa-version"] a').should('have.attr', 'href', 'https://github.com/Sims07/enterprise-capacity-mapper/releases').and('contain.text', 'v');
@@ -28,7 +28,7 @@ describe('Application smoke test', () => {
 
   const openToolsMenu = () => {
     cy.get('[data-testid="tools-menu"]').then($menu => {
-      if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click();
+      if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click();
     });
   };
 
@@ -185,11 +185,9 @@ describe('Application smoke test', () => {
     });
 
     cy.reload();
-    openToolsMenu();
-    cy.get('[data-testid="open-local-maps"]').click();
-    cy.get('[data-testid="recent-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
-    cy.get('[data-testid="saved-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').should('be.visible');
-    cy.get('.modal-head button').click();
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="saved-maps-list"]').contains('.library-map-card', 'Cartographie locale QA').should('be.visible');
+    cy.get('[data-testid="back-to-cartography"]').click();
     cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
       cy.get('button[aria-label="Renommer Gestion des Prospects & Leads"]').click();
     });
@@ -197,9 +195,8 @@ describe('Application smoke test', () => {
     cy.get('.modal .field input').clear().type('Modification non sauvegardée');
     cy.contains('.modal button', 'Enregistrer').click();
 
-    openToolsMenu();
-    cy.get('[data-testid="open-local-maps"]').click();
-    cy.get('[data-testid="saved-maps-list"]').contains('.local-map-row', 'Cartographie locale QA').contains('button', 'Ouvrir').click();
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="saved-maps-list"]').contains('.library-map-card', 'Cartographie locale QA').contains('button', 'Ouvrir cette cartographie').click();
     cy.get('[data-testid="confirm-load-local-map"]').click();
     cy.contains('.cap', 'Gestion des Prospects & Leads').should('exist');
     cy.contains('.cap', 'Modification non sauvegardée').should('not.exist');
@@ -493,8 +490,9 @@ describe('Application smoke test', () => {
 
   it('met en évidence dans la cartographie les capacités sélectionnées dans Impact', () => {
     cy.visit('/');
-    cy.get('header').contains('button', 'Impact').click();
-    cy.contains('.cap-select', 'CRM-01 — Gestion des Prospects & Leads')
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'CRM-01 — Gestion des Prospects & Leads')
       .should('have.attr', 'aria-pressed', 'false')
       .click()
       .should('have.attr', 'aria-pressed', 'true');
@@ -527,20 +525,24 @@ describe('Application smoke test', () => {
     cy.reload();
 
     cy.get('.toolbar-switch').within(() => {
-      cy.contains('button', 'Cartographie').should('be.visible');
-      cy.get('[data-testid="tab-relations"]').should('be.visible');
-      cy.contains('button', 'Impact').should('be.visible');
+      cy.get('[data-testid="nav-cartography"]').should('be.visible');
+      cy.get('[data-testid="nav-analysis"]').should('be.visible');
+      cy.get('[data-testid="primary-library"]').should('be.visible');
     });
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-relations"]').should('be.visible');
+    cy.get('[data-testid="tab-dashboard"]').should('be.visible');
+    cy.get('[data-testid="dashboard-view-impact"]').should('be.visible');
     cy.get('.toolbar-history').within(() => {
       cy.get('[data-testid="undo-button"]').should('be.visible').and('be.disabled');
       cy.get('[data-testid="redo-button"]').should('be.visible').and('be.disabled');
     });
-    cy.get('[data-testid="theme-toggle"]').should('not.be.visible');
-    cy.get('[data-testid="new-map-button"]').should('not.be.visible');
+    cy.get('[data-testid="theme-toggle"]').should('not.exist');
+    cy.get('[data-testid="new-map-button"]').should('not.exist');
     cy.get('[data-testid="presentation-toggle"]').should('be.visible');
-    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
     cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
     cy.get('[data-testid="theme-toggle"]').should('be.visible');
     cy.get('[data-testid="tools-menu-toggle"]').should('have.attr', 'aria-expanded', 'true');
     cy.get('.toolbar-tools-panel').within(() => {
@@ -548,7 +550,6 @@ describe('Application smoke test', () => {
       cy.contains('.toolbar-menu-heading', 'Données').should('be.visible');
       cy.contains('.toolbar-menu-heading', 'Affichage').should('be.visible');
       cy.get('[data-testid="new-map-button"]').should('be.visible');
-      cy.get('[data-testid="open-local-maps"]').should('be.visible');
       cy.get('[data-testid="save-local-map"]').should('be.visible').and('contain.text', 'Enregistrer');
       cy.get('[data-testid="export-model"]').should('be.visible');
       cy.get('[data-testid="import-model"]').should('exist').and('have.attr', 'accept', '.json,application/json');
@@ -560,20 +561,16 @@ describe('Application smoke test', () => {
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('.app').should('not.have.class', 'presentation-mode');
     openToolsMenu();
-    cy.get('[data-testid="open-local-maps"]').click();
-    cy.get('.modal').should('be.visible').and('contain.text', 'Cartographies');
-    cy.get('.modal-head button').click();
-    openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
     cy.get('[data-testid="local-map-name"]').should('be.visible');
     cy.contains('.modal button', 'Annuler').click();
 
     openToolsMenu();
     cy.get('[data-testid="theme-toggle"]').click();
-    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
     openToolsMenu();
     cy.get('body').type('{esc}');
-    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
   });
 
   it('garde le menu Outils utilisable sur mobile sans débordement horizontal', () => {
@@ -583,7 +580,7 @@ describe('Application smoke test', () => {
     cy.reload();
 
     cy.get('.toolbar-switch').should('be.visible');
-    cy.get('[data-testid="new-map-button"]').should('not.be.visible');
+    cy.get('[data-testid="new-map-button"]').should('not.exist');
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="new-map-button"]').should('be.visible');
     cy.get('.toolbar-tools-panel').should('be.visible');
@@ -591,7 +588,7 @@ describe('Application smoke test', () => {
       expect(html[0].scrollWidth, 'largeur de page sur mobile').to.be.at.most(402);
     });
     cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
   });
 
 
@@ -602,7 +599,7 @@ describe('Application smoke test', () => {
     cy.clearLocalStorage();
     cy.reload();
 
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
     });
@@ -627,7 +624,7 @@ describe('Application smoke test', () => {
     cy.clearLocalStorage();
     cy.reload();
 
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
       if (!$toggle.closest('.app').hasClass('theme-dark')) cy.wrap($toggle).click();
@@ -730,18 +727,20 @@ describe('Application smoke test', () => {
       });
     };
 
-    cy.contains('.toolbar-switch > button', 'Cartographie').should('have.class', 'active');
+    cy.get('[data-testid="nav-cartography"]').should('have.class', 'active');
     assertNavigationHighlight();
+    cy.get('[data-testid="nav-analysis"]').click().should('have.class', 'active');
     cy.get('[data-testid="tab-relations"]').click().should('have.class', 'active');
     assertNavigationHighlight();
-    cy.get('header').contains('button', 'Impact').click().should('have.class', 'active');
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').click();
     assertNavigationHighlight();
 
     openToolsMenu();
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     assertNavigationHighlight();
-    cy.get('header').contains('button', 'Cartographie').click().should('have.class', 'active');
+    cy.get('[data-testid="nav-cartography"]').click().should('have.class', 'active');
     assertNavigationHighlight();
   });
 
@@ -846,6 +845,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.visit('/');
     cy.clearLocalStorage();
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
   });
@@ -903,6 +903,7 @@ describe('Dashboard — filtres de la heatmap', () => {
       win.localStorage.setItem(key, JSON.stringify(model));
     });
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-map-layout"]').then($map => {
@@ -951,6 +952,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
       .find('select').should('have.value', 'P2');
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.contains('.dashboard-gap-domain-list li', 'Achats Fournisseurs')
@@ -999,6 +1001,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="capability-priority"]').select('P1');
     cy.contains('.modal button', 'Enregistrer').click();
     cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').select('P1');
@@ -1008,13 +1011,10 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-priority-filter"]').should('have.value', 'all');
   });
 
-  it('reflète la sélection Impact dans le dashboard et met en évidence les capacités concernées', () => {
-    cy.get('[data-testid="tab-impact"]').click();
-    cy.contains('.impact-card .cap-select', 'Gestion des Stocks & Entrepôt (WMS)').click();
-    cy.contains('.impact-card .cap-select', 'Achats Fournisseurs').click();
-
-    cy.get('[data-testid="tab-dashboard"]').click();
+  it('calcule les impacts directement dans le dashboard et met en évidence les capacités concernées', () => {
     cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'Gestion des Stocks & Entrepôt (WMS)').click();
+    cy.contains('[data-testid="impact-view"] .dashboard-impact-select-list button', 'Achats Fournisseurs').click();
     cy.get('[data-testid="dashboard-impact-summary"]').should('be.visible')
       .and('contain.text', '2 éléments sélectionnés')
       .and('contain.text', 'Manhattan WMS')

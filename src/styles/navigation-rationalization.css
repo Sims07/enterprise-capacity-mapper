@@ -1,0 +1,553 @@
+.primary-navigation {
+  flex: 0 1 auto;
+  min-width: 0;
+  gap: 0.2rem;
+  white-space: nowrap;
+}
+
+.primary-navigation > button {
+  flex: 0 0 auto;
+  min-height: 2.35rem;
+}
+
+.primary-navigation [data-testid="primary-library"] {
+  margin-left: 0.1rem;
+}
+
+.primary-navigation .toolbar-tools {
+  flex: 0 0 auto;
+  margin-left: 0.1rem;
+}
+
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  cursor: pointer;
+  border: 1px solid var(--border-strong, #cbd5e1);
+  background: #fff;
+  color: #334155;
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.primary-navigation .toolbar-tools[open] > summary,
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle:hover {
+  border-color: #a5b4fc;
+  background: #fafaff;
+}
+
+.analysis-view-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 42px;
+  padding: 5px 28px;
+  background: #fff;
+  border-bottom: 1px solid var(--border, #e3e8f0);
+}
+
+.analysis-view-switch-label {
+  margin-right: 0.35rem;
+  color: var(--muted, #64748b);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.analysis-view-switch > button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #64748b;
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.analysis-view-switch > button:hover {
+  color: #312e81;
+  background: #f5f5ff;
+}
+
+.analysis-view-switch > button.active {
+  color: #3730a3;
+  background: #eef2ff;
+  border-color: #e0e7ff;
+}
+
+@media (max-width: 900px) {
+  .primary-navigation {
+    display: flex;
+    max-width: 100%;
+    overflow: visible;
+    flex-wrap: wrap;
+    -webkit-overflow-scrolling: auto;
+  }
+
+  .analysis-view-switch {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 5px 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .analysis-view-switch > * {
+    flex: 0 0 auto;
+  }
+}
+
+.app.theme-dark .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+  background: #171a20;
+  color: #e5e7eb;
+  border-color: #3f4652;
+}
+
+.app.theme-dark .analysis-view-switch {
+  background: #171a20;
+  border-color: #303640;
+}
+
+.app.theme-dark .analysis-view-switch-label {
+  color: #9ca3af;
+}
+
+.app.theme-dark .analysis-view-switch > button {
+  color: #a1a1aa;
+}
+
+.app.theme-dark .analysis-view-switch > button:hover {
+  color: #c7d2fe;
+  background: #242735;
+}
+
+.app.theme-dark .analysis-view-switch > button.active {
+  color: #c7d2fe;
+  background: #27243f;
+  border-color: #454064;
+}
+
+
+/* Bibliothèque et Outils sont des espaces de travail, pas des fenêtres modales. */
+.standalone-page {
+  margin: 24px auto;
+  padding: 24px;
+  width: min(1100px, calc(100% - 32px));
+  background: var(--panel, #fff);
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
+}
+
+.standalone-page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.standalone-page-heading h2 {
+  margin: 4px 0 8px;
+}
+
+.standalone-page-heading p {
+  margin: 0;
+  color: var(--muted, #64748b);
+}
+
+.tools-page-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tools-page-grid > section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 10px;
+}
+
+.tools-page-grid h3 {
+  margin: 0 0 4px;
+}
+
+.library-page .local-map-section-title {
+  margin-top: 24px;
+}
+
+.library-load-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 10px;
+}
+
+.library-load-confirm p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.app.theme-dark .standalone-page,
+.app.theme-dark .tools-page-grid > section,
+.app.theme-dark .library-load-confirm {
+  background: #171a20;
+  border-color: #303640;
+}
+
+.app.theme-dark .standalone-page-heading p {
+  color: #9ca3af;
+}
+
+@media (max-width: 640px) {
+  .standalone-page {
+    width: calc(100% - 20px);
+    margin: 12px auto;
+    padding: 16px;
+  }
+
+  .standalone-page-heading {
+    flex-direction: column;
+  }
+
+  .tools-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
+/* Le panneau Outils doit échapper au conteneur de navigation défilant sur petits écrans. */
+@media (max-width: 900px) {
+  .primary-navigation .toolbar-tools-panel {
+    position: fixed;
+    top: 150px;
+    right: 12px;
+    z-index: 1000;
+    width: min(280px, calc(100vw - 24px));
+    max-height: calc(100dvh - 170px);
+  }
+}
+
+/* Bibliothèque : page de gestion à part entière, avec résumé, cartes et états vides. */
+.library-page { max-width: 1240px; }
+.library-page-heading { align-items: center; }
+.library-page-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.library-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0 0 30px; }
+.library-stat-card { min-width: 0; padding: 18px; border: 1px solid var(--border, #e3e8f0); border-radius: 12px; background: var(--panel, #fff); }
+.library-stat-card > span { display: block; color: var(--muted, #64748b); font-size: 11px; font-weight: 750; }
+.library-stat-card > strong { display: block; margin: 8px 0 5px; font-size: 23px; line-height: 1.25; overflow-wrap: anywhere; }
+.library-stat-card:first-child > strong { font-size: 17px; }
+.library-stat-card > small { color: var(--muted, #64748b); font-size: 11px; }
+.library-section { margin-top: 28px; }
+.library-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.library-section-heading h3 { margin: 0 0 5px; font-size: 17px; }
+.library-section-heading p { margin: 0; color: var(--muted, #64748b); font-size: 12px; }
+.library-section-count { color: var(--muted, #64748b); font-size: 11px; }
+.library-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.library-map-card { display: flex; flex-direction: column; min-width: 0; padding: 18px; border: 1px solid var(--border, #e3e8f0); border-radius: 12px; background: var(--panel, #fff); }
+.library-map-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.library-map-type { padding: 4px 7px; border-radius: 5px; background: #eef2ff; color: #4338ca; font-size: 9px; font-weight: 850; letter-spacing: .06em; }
+.library-map-type.saved { background: #dcfce7; color: #166534; }
+.library-map-date { color: var(--muted, #64748b); font-size: 10px; }
+.library-map-card h4 { margin: 13px 0 6px; font-size: 15px; overflow-wrap: anywhere; }
+.library-map-description { min-height: 32px; margin: 0; color: var(--muted, #64748b); font-size: 12px; line-height: 1.45; }
+.library-map-metrics { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 16px 0; padding-top: 12px; border-top: 1px solid var(--border, #e3e8f0); color: var(--muted, #64748b); font-size: 10px; }
+.library-map-metrics strong { color: var(--text, #1e293b); font-size: 12px; }
+.library-map-card-actions { display: flex; justify-content: flex-end; margin-top: auto; }
+.library-empty-state { padding: 26px; border: 1px dashed var(--border-strong, #cbd5e1); border-radius: 12px; text-align: center; }
+.library-empty-state strong { display: block; font-size: 14px; }
+.library-empty-state p { max-width: 560px; margin: 8px auto 14px; color: var(--muted, #64748b); font-size: 12px; line-height: 1.55; }
+.app.theme-dark .library-stat-card, .app.theme-dark .library-map-card { background: #171a20; border-color: #303640; }
+.app.theme-dark .library-map-type { background: #27243f; color: #c7d2fe; }
+.app.theme-dark .library-map-type.saved { background: #183529; color: #86efac; }
+.app.theme-dark .library-map-metrics { border-color: #303640; }
+.app.theme-dark .library-map-metrics strong { color: #e5e7eb; }
+@media (max-width: 760px) {
+  .library-stats { grid-template-columns: minmax(0, 1fr); }
+  .library-card-grid { grid-template-columns: minmax(0, 1fr); }
+  .library-page-actions { width: 100%; justify-content: flex-start; }
+  .library-page-actions > button { flex: 1 1 auto; }
+  .library-section-heading { align-items: flex-start; flex-direction: column; }
+}
+
+/* Outils panel stacking */
+.primary-navigation .toolbar-tools.is-open { z-index: 1001; }
+
+.primary-navigation .toolbar-tools-panel { position: absolute; top: calc(100% + 8px); right: 0; z-index: 1002; width: min(280px, calc(100vw - 24px)); max-height: min(72vh, 560px); overflow-y: auto; }
+
+
+.library-page button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #d5dbe6;
+  border-radius: 8px;
+  background: #fff;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 5%);
+}
+.library-page button:hover { background: #f8faff; border-color: #a5b4fc; }
+.library-page button:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.library-page button.primary { background: #4f46e5 !important; border-color: #4f46e5 !important; color: #fff !important; }
+.library-page button.primary:hover { background: #4338ca !important; border-color: #4338ca !important; }
+.library-page .library-page-actions { align-items: center; }
+.library-page .library-page-actions button { min-height: 40px; padding: 9px 14px; }
+.library-page .library-map-card-actions button { width: 100%; }
+.app.theme-dark .library-page button:not(.primary) { background: #202632; border-color: #3b4658; color: #e5eaf2; }
+.app.theme-dark .library-page button:not(.primary):hover { background: #293348; border-color: #64748b; }
+
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 2.35rem;
+  padding: 8px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.primary-navigation .toolbar-tools.is-open > .toolbar-tools-toggle,
+.primary-navigation .toolbar-tools > .toolbar-tools-toggle:hover {
+  border-color: #a5b4fc;
+  background: #fafaff;
+  color: #3730a3;
+}
+.primary-navigation .toolbar-tools-toggle > span[aria-hidden="true"] {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  font-size: 0;
+}
+.primary-navigation .toolbar-tools.is-open .toolbar-tools-toggle > span[aria-hidden="true"] {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+@media (max-width: 900px) {
+  .primary-navigation { overflow: visible !important; }
+}
+
+.toolbar-switch .toolbar-tools > .toolbar-tools-toggle { border: 1px solid #cbd5e1 !important; background: #fff !important; color: #334155 !important; }
+
+.toolbar-switch .toolbar-tools.is-open > .toolbar-tools-toggle, .toolbar-switch .toolbar-tools > .toolbar-tools-toggle:hover { border-color: #a5b4fc !important; background: #fafaff !important; color: #3730a3 !important; }
+
+
+/* Correctifs de robustesse : navigation primaire et menu Outils au-dessus du contenu. */
+.toolbar-switch.primary-navigation {
+  display: flex !important;
+  position: relative;
+  align-items: center;
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+  min-width: 0;
+}
+.toolbar-switch.primary-navigation > button {
+  flex: 0 0 auto;
+}
+.toolbar-switch.primary-navigation > .toolbar-tools {
+  position: relative;
+  flex: 0 0 auto;
+  z-index: 1001;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1002;
+  min-width: 240px;
+  max-width: min(280px, calc(100vw - 24px));
+  max-height: min(72vh, 560px);
+  overflow-y: auto;
+  background: var(--panel, #fff);
+  border: 1px solid var(--border-strong, #cbd5e1);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 18%);
+}
+@media (max-width: 900px) {
+  .toolbar-switch.primary-navigation {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+  }
+  .toolbar-switch.primary-navigation .toolbar-tools-panel {
+    position: fixed;
+    top: 142px;
+    right: 12px;
+    z-index: 10020;
+    width: min(280px, calc(100vw - 24px));
+    max-height: calc(100dvh - 160px);
+  }
+}
+.app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools-panel {
+  background: #171a20;
+  border-color: #3b4658;
+  color: #e5e7eb;
+}
+
+
+/* Navigation secondaire persistante hors Bibliothèque : les vues d’analyse restent découvrables. */
+.analysis-view-switch {
+  position: relative;
+  z-index: 2;
+  display: flex !important;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-height: 42px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+}
+.analysis-view-switch > button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-height: 30px;
+  border-width: 1px;
+  margin: 0;
+  transform: none !important;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease !important;
+}
+.analysis-view-switch > button:hover {
+  transform: none !important;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel,
+.toolbar-switch.primary-navigation .toolbar-tools-panel * {
+  box-sizing: border-box;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel button,
+.toolbar-switch.primary-navigation .toolbar-tools-panel .toolbar-import {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  height: auto;
+  margin: 0;
+  padding: 9px 10px;
+  border-width: 1px !important;
+  line-height: 1.35;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease !important;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel button:hover,
+.toolbar-switch.primary-navigation .toolbar-tools-panel .toolbar-import:hover {
+  min-height: 38px;
+  margin: 0;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+}
+.toolbar-switch.primary-navigation .toolbar-tools-panel button:focus-visible {
+  outline-offset: -2px;
+}
+@media (max-width: 900px) {
+  .analysis-view-switch {
+    padding-inline: 14px;
+  }
+}
+
+
+/* La bibliothèque est une page sœur de .workspace : elle doit gérer son propre défilement. */
+.app > .standalone-page {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-block: 12px;
+}
+.app > .library-page {
+  width: min(1240px, calc(100% - 32px));
+  max-width: 1240px;
+}
+@media (max-width: 640px) {
+  .app > .library-page {
+    width: calc(100% - 20px);
+    margin-block: 12px;
+  }
+}
+
+
+/* Le choix de vue reste dans l’espace Analyse, sans créer une barre de navigation dédiée. */
+.analysis-view-switch {
+  display: inline-flex !important;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 0;
+  margin: 0 0 16px;
+  padding: 3px;
+  gap: 3px;
+  overflow: visible;
+  border: 1px solid var(--border, #e3e8f0);
+  border-radius: 10px;
+  background: var(--panel, #fff);
+}
+.analysis-view-switch > button {
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 700;
+}
+.analysis-view-switch > button.active {
+  border-color: #e0e7ff;
+  background: #eef2ff;
+  color: #3730a3;
+}
+.analysis-view-switch > button:hover {
+  background: var(--bg, #f8fafc);
+}
+.app.theme-dark .analysis-view-switch {
+  background: #171a20;
+  border-color: #303640;
+}
+.app.theme-dark .analysis-view-switch > button {
+  color: #a1a1aa;
+}
+.app.theme-dark .analysis-view-switch > button.active {
+  color: #c7d2fe;
+  background: #27243f;
+  border-color: #454064;
+}
+@media (max-width: 760px) {
+  .analysis-view-switch { margin-bottom: 12px; }
+  .analysis-view-switch > button { padding-inline: 9px; }
+}

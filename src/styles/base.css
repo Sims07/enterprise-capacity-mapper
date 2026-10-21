@@ -2079,14 +2079,13 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
 .toolbar-actions .new-map-button { padding: 6px 9px !important; font-size: 10px !important; }
 .toolbar-actions .new-map-button-mark { width: 17px; height: 17px; }
 .toolbar-tools { position: relative; flex: 0 0 auto; }
-.toolbar-tools > summary {
+.toolbar-tools > .toolbar-tools-toggle {
   list-style: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 34px; padding: 7px 11px; border: 1px solid var(--border-strong); border-radius: 8px;
   background: var(--panel, #fff); color: var(--text, #334155); font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;
 }
-.toolbar-tools > summary::-webkit-details-marker { display: none; }
 .toolbar-tools[open] > summary { background: var(--accent-soft); border-color: #c7d2fe; color: #3730a3; }
-.toolbar-tools > summary:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.toolbar-tools > .toolbar-tools-toggle:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
 .toolbar-tools-panel {
   position: absolute; z-index: 40; top: calc(100% + 8px); right: 0; width: 224px;
   display: flex; flex-direction: column; gap: 5px; padding: 8px;

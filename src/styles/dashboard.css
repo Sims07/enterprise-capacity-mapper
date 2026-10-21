@@ -358,3 +358,13 @@
 .dashboard-panel-heading > div, .dashboard-domain-row > *, .dashboard-gap-domain-heading > * { min-width:0; }
 .dashboard-overview-shortcuts > button > * { min-width:0; overflow-wrap:anywhere; }
 @media (max-width:760px) { .dashboard-content { grid-template-columns:minmax(0,1fr); } .dashboard-overview-intro { grid-template-columns:minmax(0,1fr); } .dashboard-panel-heading { flex-wrap:wrap; } }
+
+
+/* La simulation d’impact est intégrée à l’intention « Comprendre les impacts » du Dashboard. */
+.dashboard-impact-selector { margin-top: 16px; }
+.dashboard-impact-select-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-top: 12px; }
+.dashboard-impact-select-list > button { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 10px 12px; text-align: left; border: 1px solid var(--border, #e3e8f0); border-radius: 8px; background: var(--panel, #fff); color: var(--text, #334155); cursor: pointer; }
+.dashboard-impact-select-list > button.is-selected { border-color: #818cf8; background: #eef2ff; color: #3730a3; }
+.dashboard-impact-select-list > button > span { margin-left: auto; flex: 0 0 auto; color: var(--muted, #64748b); font-size: 11px; }
+.app.theme-dark .dashboard-impact-select-list > button { background: #171a20; border-color: #303640; color: #e5e7eb; }
+.app.theme-dark .dashboard-impact-select-list > button.is-selected { background: #27243f; border-color: #6256a6; color: #c7d2fe; }

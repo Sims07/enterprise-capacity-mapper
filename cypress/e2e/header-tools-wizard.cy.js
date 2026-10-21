@@ -8,14 +8,16 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
 
   it('ferme Outils lorsqu’on clique ailleurs et avec Echap', () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
-    cy.get('.map').click(20, 20);
-    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
+    cy.get('[data-testid="open-local-maps"]').should('not.exist');
+    cy.get('[data-testid="primary-library"]').should('be.visible');
+    cy.get('[data-testid="nav-cartography"]').click();
+    cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
 
     cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="tools-menu"]').should('have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
     cy.get('body').type('{esc}');
-    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
+    cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
     cy.get('[data-testid="tools-menu-toggle"]').should('have.focus');
   });
 
@@ -27,11 +29,11 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   });
 
   it('garde le wizard Nouvelle cartographie lisible en thème sombre', () => {
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="new-map-button"]').should('be.visible').click();
     cy.get('.modal.wizard').should('be.visible');
 
@@ -63,15 +65,15 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
   it('expose Présentation dans l’en-tête et Nouvelle cartographie dans Outils', () => {
     cy.get('[data-testid="presentation-toggle"]').should('be.visible');
     cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('not.be.checked');
-    cy.get('[data-testid="tools-menu"]').should('not.have.attr', 'open');
-    cy.get('[data-testid="new-map-button"]').should('not.be.visible');
+    cy.get('[data-testid="tools-menu"]').should('not.have.class', 'is-open');
+    cy.get('[data-testid="new-map-button"]').should('not.exist');
 
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('[data-testid="presentation-switch-input"]').should('be.checked');
     cy.get('[data-testid="presentation-toggle"]').click();
     cy.get('[data-testid="presentation-switch-input"]').should('not.be.checked');
 
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="new-map-button"]').should('be.visible');
   });
 
@@ -82,11 +84,11 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
       .should('have.css', 'color', 'rgb(31, 41, 55)');
     cy.get('.modal.wizard').should('be.visible');
     cy.contains('.modal.wizard button', 'Annuler').click();
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
+    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').then($menu => {
-      if (!$menu.attr('open')) cy.get('[data-testid="tools-menu-toggle"]').click();
+      if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click();
     });
     cy.get('[data-testid="new-map-button"]').click();
     cy.get('.modal.wizard .template-card > b').first()
