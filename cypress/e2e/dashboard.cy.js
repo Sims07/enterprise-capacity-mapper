@@ -32,7 +32,7 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
-    cy.get('[data-testid="analysis-subnav"] [data-testid="tab-dashboard"]').should('exist');
+    cy.get('[data-testid="analysis-view-switch"] [data-testid="tab-dashboard"]').should('exist');
     cy.get('[data-testid="capability-dashboard"]').should('have.attr', 'aria-label', 'Dashboard de couverture');
     cy.get('[data-testid="dashboard-coverage-rate"]').should('contain.text', '%');
     cy.get('[data-testid="dashboard-gap-count"]').invoke('text').then(value => {
@@ -164,15 +164,15 @@ describe('Dashboard de couverture', () => {
     const tabs = ['[data-testid="tab-relations"]', '[data-testid="tab-dashboard"]'];
     tabs.forEach(selector => {
       cy.get(selector).click().should('have.class', 'active');
-      cy.get('.analysis-subnav > button.active').should('have.length', 1).and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
+      cy.get('.analysis-view-switch > button.active').should('have.length', 1).and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
     });
   });
 
   it('affiche le Dashboard comme onglet actif sans curseur hérité de Cartographie', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click().should('have.class', 'active');
-    cy.get('.analysis-subnav').should('be.visible');
-    cy.get('.analysis-subnav').then($switch => expect(getComputedStyle($switch[0], '::before').content).to.equal('none'));
+    cy.get('.analysis-view-switch').should('be.visible');
+    cy.get('.analysis-view-switch').then($switch => expect(getComputedStyle($switch[0], '::before').content).to.equal('none'));
     cy.get('[data-testid="tab-dashboard"]').then($button => expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)'));
   });
 
@@ -189,8 +189,8 @@ describe('Dashboard de couverture', () => {
     cy.viewport(390, 844);
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click();
-    cy.get('.analysis-subnav > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
-    cy.get('.analysis-subnav > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
+    cy.get('.analysis-view-switch > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
+    cy.get('.analysis-view-switch > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
   });
 
   it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
