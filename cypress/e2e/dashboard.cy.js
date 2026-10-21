@@ -7,6 +7,7 @@ describe('Dashboard de couverture', () => {
 
   it('garde les cartes du dashboard dans leurs limites sans chevauchement en vue dépliée', () => {
     cy.viewport(1280, 900);
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').should('be.visible');
     cy.get('.dashboard-intent-nav > button').should('have.length', 4).then($cards => {
@@ -27,6 +28,7 @@ describe('Dashboard de couverture', () => {
   });
 
   it('présente des indicateurs calculés depuis la cartographie active', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
     cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
@@ -44,6 +46,7 @@ describe('Dashboard de couverture', () => {
   });
 
   it('focalise les composants selon l’intention choisie', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').should('have.class', 'is-active');
     cy.get('.dashboard-kpis').should('be.visible');
@@ -63,6 +66,7 @@ describe('Dashboard de couverture', () => {
   });
 
   it('priorise les domaines avec gaps et classe la couverture du plus faible au plus fort', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
 
     cy.get('.dashboard-domain-row .dashboard-domain-progress[role="progressbar"]').then($bars => {
@@ -88,6 +92,7 @@ describe('Dashboard de couverture', () => {
   });
 
   it('affiche la heatmap dans la même matrice de positionnement que la cartographie', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
@@ -116,6 +121,7 @@ describe('Dashboard de couverture', () => {
       cy.contains('label.field', 'Étendue sur les colonnes').find('select').select('2');
       cy.contains('button', 'Enregistrer').click();
     });
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-domain[data-domain-id="l0-1"]')
@@ -132,6 +138,7 @@ describe('Dashboard de couverture', () => {
       cy.contains('label.field', /Éditeur \/ fournisseur/).find('input').type('Éditeur test');
       cy.contains('button', 'Créer').click();
     });
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('[data-testid="dashboard-unlinked-apps"]').within(() => {
@@ -184,6 +191,7 @@ describe('Dashboard de couverture', () => {
   });
 
   it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-capability[aria-label*="Explorer dans Relations"]').first().click();
@@ -203,6 +211,7 @@ describe('Dashboard de couverture', () => {
   it('reste lisible en thème sombre', () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('.dashboard-panel').should('be.visible');
     cy.get('.dashboard-kpi').should('have.length', 5);
@@ -210,6 +219,7 @@ describe('Dashboard de couverture', () => {
   });
 
   it('garde des contours nets et un espacement régulier entre les domaines N0 de la heatmap', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-domain').first().should('be.visible').then($domain => {
