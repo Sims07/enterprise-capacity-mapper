@@ -1,0 +1,19 @@
+{
+  "include": [
+    "src/**/*.{js,jsx,ts,tsx}"
+  ],
+  "exclude": [
+    "cypress/**",
+    "coverage/**",
+    ".nyc_output/**",
+    "**/*.config.js",
+    "**/*.config.cjs",
+    "**/*.config.mjs",
+    "**/*.config.ts",
+    "**/*.config.mts",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ],
+  "excludeAfterRemap": true,
+  "all": false
+}
