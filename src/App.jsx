@@ -11,6 +11,13 @@ const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
 const ACTIVE_RECENT_MAP_KEY = 'enterprise-capacity-mapper:active-recent-map';
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+const resetScrollPositions = () => {
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  document.querySelectorAll('main, aside, [data-scroll-container]').forEach(node => {
+    node.scrollTop = 0;
+    node.scrollLeft = 0;
+  });
+};
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const DOMAIN_COLOR_PALETTE = [
   { name: 'Indigo', value: '#5b46be' },
