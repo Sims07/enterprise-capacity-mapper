@@ -21,14 +21,14 @@ describe('Lot 2 — cohérence des indicateurs d’analyse', () => {
     cy.get('[data-testid="link-list"]').contains('label', 'Odoo Invoice').find('input').check();
     cy.get('[data-testid="link-save"]').click();
 
-    cy.get('.tree-node-cap').contains('Gestion des Prospects & Leads')
+    cy.contains('.tree-node-cap', 'Gestion des Prospects & Leads')
       .should('contain.text', 'Salesforce CRM')
       .and('contain.text', 'Odoo Invoice')
       .and('contain.text', 'Redondance');
     cy.get('.tree-summary').should('contain.text', '2 gaps').and('contain.text', '2 redondances');
 
     cy.get('button[aria-label="Retirer Odoo Invoice de Gestion des Prospects & Leads"]').click();
-    cy.get('.tree-node-cap').contains('Gestion des Prospects & Leads')
+    cy.contains('.tree-node-cap', 'Gestion des Prospects & Leads')
       .should('contain.text', 'Salesforce CRM')
       .and('not.contain.text', 'Odoo Invoice')
       .and('not.contain.text', 'Redondance');
