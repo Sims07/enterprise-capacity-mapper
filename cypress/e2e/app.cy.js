@@ -1111,10 +1111,10 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.clearLocalStorage();
     cy.reload();
 
-    cy.window().then(win => {
-      const before = win.localStorage.getItem('enterprise-capacity-mapper:model:v3');
-      expect(before).to.be.a('string');
-      cy.wrap(before).as('modelBeforeImport');
+    cy.window().should(win => {
+      expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.be.a('string');
+    }).then(win => {
+      cy.wrap(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).as('modelBeforeImport');
     });
 
     openToolsMenu();
