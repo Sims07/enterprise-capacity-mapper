@@ -900,9 +900,8 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '2 / 10 éléments');
     cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 2);
     cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').first().click();
-    cy.get('[data-testid="return-to-dashboard"]').should('be.visible');
     cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
-    cy.get('[data-testid="return-to-dashboard"]').click();
+    cy.go('back');
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
   });
 
