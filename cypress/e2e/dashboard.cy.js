@@ -243,4 +243,33 @@ describe('Dashboard de couverture', () => {
     });
     cy.get('.dashboard-map-cell').first().should('have.css', 'padding', '10px').and('have.css', 'gap', '10px');
   });
+
+  it('enregistre les quatre sous-vues Analyse dans l’historique navigateur', () => {
+    cy.visit('/');
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="dashboard-view-overview"]').should('have.class', 'is-active');
+
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').should('have.class', 'is-active');
+    cy.window().its('scrollY').should('equal', 0);
+
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.get('[data-testid="dashboard-view-impact"]').should('have.class', 'is-active');
+    cy.go('back');
+    cy.get('[data-testid="dashboard-view-coverage"]').should('have.class', 'is-active');
+    cy.window().its('scrollY').should('equal', 0);
+
+    cy.go('back');
+    cy.get('[data-testid="dashboard-view-overview"]').should('have.class', 'is-active');
+    cy.go('forward');
+    cy.get('[data-testid="dashboard-view-coverage"]').should('have.class', 'is-active');
+    cy.go('forward');
+    cy.get('[data-testid="dashboard-view-impact"]').should('have.class', 'is-active');
+
+    cy.get('[data-testid="dashboard-view-attention"]').click();
+    cy.get('[data-testid="dashboard-view-attention"]').should('have.class', 'is-active');
+    cy.go('back');
+    cy.get('[data-testid="dashboard-view-impact"]').should('have.class', 'is-active');
+  });
+
 });
