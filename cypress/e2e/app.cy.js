@@ -868,6 +868,12 @@ describe('Application smoke test', () => {
 });
 
 describe('Dashboard — filtres de la heatmap', () => {
+  const openToolsMenu = () => {
+    cy.get('[data-testid="tools-menu"]').then($menu => {
+      if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click();
+    });
+  };
+
   beforeEach(() => {
     cy.on('uncaught:exception', err => { throw err; });
     cy.visit('/');
@@ -1097,7 +1103,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="library-page"]').should('be.visible');
     cy.get('[data-testid="saved-maps-empty"]').should('be.visible');
     cy.get('[data-testid="recent-maps-list"]').should('be.visible');
-    cy.get('[data-testid="library-page"]').should('contain.text', 'Certaines données locales sont invalides');
+    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
   });
 
   it('refuse les imports JSON invalides sans modifier la cartographie active', () => {
