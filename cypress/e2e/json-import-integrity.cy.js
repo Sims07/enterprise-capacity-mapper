@@ -47,7 +47,7 @@ describe('Lot 4 — intégrité de l’import JSON', () => {
     cy.reload();
     cy.contains('.cap', 'Gestion des Prospects & Leads — import vérifié').should('be.visible');
     cy.get('.domain-card').contains('.domain-banner', 'Relation & Engagement Client')
-      .closest('.domain-card')
+      .closest('.map-cell')
       .should('have.attr', 'style')
       .and('contain', 'grid-column: span 2');
     cy.get('[data-testid="nav-analysis"]').click();
