@@ -42,18 +42,28 @@ jobs:
           git add package.json package-lock.json public/sw.js
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
-      - run: npm install
+      - name: Install project dependencies
+        run: npm install
+      - name: Install coverage tooling
+        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
-      - run: npm run build
-      - name: Prepare GitHub Pages preview paths
+      # Build a dedicated instrumented bundle first, then test the exact static files served to Cypress.
+      - name: Build instrumented application for coverage
+        run: npm run build -- --outDir dist-coverage
+        env:
+          COVERAGE: 'true'
+          VITE_COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
+      - name: Start instrumented static preview
         run: |
-          mkdir -p /tmp/github-pages-preview/enterprise-capacity-mapper
-          cp -a dist/. /tmp/github-pages-preview/
-          cp -a dist/. /tmp/github-pages-preview/enterprise-capacity-mapper/
-      - name: Start preview server
-        run: npm run preview -- --outDir /tmp/github-pages-preview --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
-      - name: Wait for preview server
+          npx vite preview --host 127.0.0.1 --port 4173 --strictPort --outDir dist-coverage > /tmp/vite-preview.log 2>&1 &
+          echo $! > /tmp/vite-preview.pid
+        env:
+          COVERAGE: 'true'
+          VITE_COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
+      - name: Wait for instrumented static preview
         run: |
           for attempt in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:4173/enterprise-capacity-mapper/ > /dev/null; then
@@ -63,10 +73,125 @@ jobs:
           done
           cat /tmp/vite-preview.log
           exit 1
-      - run: npm run test:e2e
+      - name: Run Cypress once and collect coverage
+        run: npx cypress run --config defaultCommandTimeout=10000
+        env:
+          COVERAGE: 'true'
+          VITE_COVERAGE: 'true'
+          CYPRESS_COVERAGE: 'true'
+      - name: Diagnose Vite instrumentation output
+        if: always()
+        run: |
+          echo '--- Vite preview log ---'
+          cat /tmp/vite-preview.log || true
+          echo '--- Instrumentation marker summary ---'
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const dir = 'dist-coverage/assets';
+          const files = fs.readdirSync(dir).filter(file => /\.js$/.test(file));
+          const results = files.map(file => {
+            const source = fs.readFileSync(path.join(dir, file), 'utf8');
+            return { file, hasCoverageMap: source.includes('__coverage__'), hasCounters: /s\[\d+\]\+\+/.test(source) };
+          });
+          console.log(JSON.stringify(results, null, 2));
+          if (!results.some(result => result.hasCoverageMap && result.hasCounters)) {
+            console.error('No instrumented JavaScript bundle was found.');
+            process.exitCode = 1;
+          }
+          NODE
+      - name: Verify Cypress produced coverage data
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const dir = '.nyc_output';
+          const files = fs.existsSync(dir)
+            ? fs.readdirSync(dir).filter(file => file.endsWith('.json')).map(file => path.join(dir, file))
+            : [];
+          const populated = files.some(file => {
+            try {
+              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+              return data && typeof data === 'object' && Object.keys(data).length > 0;
+            } catch {
+              return false;
+            }
+          });
+          if (!populated) {
+            console.error('Cypress ran, but no non-empty Istanbul coverage map was collected.');
+            console.error('Inspect the instrumented browser bundle and Cypress code-coverage logs.');
+            process.exit(1);
+          }
+          console.log('Istanbul coverage data found:');
+          for (const file of files) {
+            console.log(`- ${file}`);
+          }
+          NODE
+      - name: Generate HTML and text coverage reports
+        if: success()
+        run: npx --yes nyc report --reporter=text-summary --reporter=html --reporter=lcov --reporter=json-summary
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-line-coverage
+          path: |
+            coverage/
+            .nyc_output/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Stop instrumented Vite server
+        if: always()
+        run: |
+          if [ -f /tmp/vite-preview.pid ]; then
+            kill "$(cat /tmp/vite-preview.pid)" 2>/dev/null || true
+          fi
+      # Rebuild without instrumentation so the published PWA remains a normal production build.
+      - name: Build production application
+        if: success()
+        run: npm run build
+        env:
+          COVERAGE: 'false'
+          VITE_COVERAGE: 'false'
       - uses: actions/upload-pages-artifact@v4
+        if: success()
         with:
           path: ./dist
+      - name: Publish Cypress line coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const summaryPath = 'coverage/coverage-summary.json';
+          if (!fs.existsSync(summaryPath)) {
+            throw new Error(`Missing ${summaryPath}; refusing to publish a misleading coverage badge.`);
+          }
+          const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+          const lines = summary.total?.lines;
+          if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
+            throw new Error('Coverage summary has no valid line coverage percentage.');
+          }
+          const percentage = Math.round(lines.pct * 10) / 10;
+          const color = percentage >= 80 ? 'brightgreen' : percentage >= 60 ? 'yellow' : 'red';
+          fs.writeFileSync('/tmp/coverage.json', JSON.stringify({
+            schemaVersion: 1,
+            label: 'line coverage',
+            message: `${percentage}%`,
+            color,
+          }, null, 2) + '\n');
+          console.log(`Publishing line coverage badge: ${percentage}%`);
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan coverage-badge
+          git rm -rf .
+          cp /tmp/coverage.json coverage.json
+          git add coverage.json
+          git commit -m "chore: update Cypress line coverage badge"
+          git push --force origin coverage-badge
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:

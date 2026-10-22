@@ -1,6 +1,7 @@
 # Enterprise Capacity Mapper
 
 [![Deploy PWA to GitHub Pages](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
+[![Cypress line coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Sims07/enterprise-capacity-mapper/coverage-badge/coverage.json)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
 [![Latest release](https://img.shields.io/github/v/release/Sims07/enterprise-capacity-mapper?display_name=tag&sort=semver)](https://github.com/Sims07/enterprise-capacity-mapper/releases)
 [![GitHub issues](https://img.shields.io/github/issues/Sims07/enterprise-capacity-mapper)](https://github.com/Sims07/enterprise-capacity-mapper/issues)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
@@ -144,7 +145,7 @@ Le modèle actif est stocké sous la clé `enterprise-capacity-mapper:model:v3`.
 
 L'étendue d'un domaine est enregistrée dans `layout.columnSpan` (nombre de colonnes, avec une valeur par défaut de `1`). Les informations de position sont conservées dans `layout.columnId` et `layout.layerId`.
 
-Le JSON exporté peut être versionné dans un dépôt GitHub ou partagé entre environnements. L'application ne met volontairement **aucun token GitHub permanent dans le navigateur** : une écriture authentifiée dans un dépôt devra passer par un mécanisme d'authentification explicite ou un backend de confiance.
+Le JSON exporté peut être versionné dans un dépôt GitHub ou partagé. L'application ne met volontairement **aucun token GitHub permanent dans le navigateur** : une écriture authentifiée dans un dépôt devra passer par un mécanisme d'authentification explicite ou un backend de confiance.
 
 ## GitHub Pages
 
