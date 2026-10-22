@@ -4,6 +4,13 @@ const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18',
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
 const linksFor = (app, targetId) => (app.capabilityIds || []).includes(targetId);
 const coverageState = count => count === 0 ? 'gap' : count === 1 ? 'covered' : 'redundant';
+const resetDashboardScroll = () => {
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  document.querySelectorAll('main, [data-scroll-container]').forEach(node => {
+    node.scrollTop = 0;
+    node.scrollLeft = 0;
+  });
+};
 
 export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [] }) {
   const domains = model.domains || [];
