@@ -61,6 +61,7 @@ jobs:
           echo $! > /tmp/vite-preview.pid
         env:
           COVERAGE: 'true'
+          VITE_COVERAGE: 'true'
           CYPRESS_COVERAGE: 'true'
       - name: Wait for instrumented static preview
         run: |
@@ -88,10 +89,10 @@ jobs:
           import fs from 'node:fs';
           import path from 'node:path';
           const dir = 'dist-coverage/assets';
-          const files = fs.readdirSync(dir).filter(file => /\\.js$/.test(file));
+          const files = fs.readdirSync(dir).filter(file => /\.js$/.test(file));
           const results = files.map(file => {
             const source = fs.readFileSync(path.join(dir, file), 'utf8');
-            return { file, hasCoverageMap: source.includes('__coverage__'), hasCounters: /s\\[\\d+\\]\\+\\+/.test(source) };
+            return { file, hasCoverageMap: source.includes('__coverage__'), hasCounters: /s\[\d+\]\+\+/.test(source) };
           });
           console.log(JSON.stringify(results, null, 2));
           if (!results.some(result => result.hasCoverageMap && result.hasCounters)) {
