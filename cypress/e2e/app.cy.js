@@ -868,6 +868,12 @@ describe('Application smoke test', () => {
 });
 
 describe('Dashboard — filtres de la heatmap', () => {
+  const openToolsMenu = () => {
+    cy.get('[data-testid="tools-menu"]').then($menu => {
+      if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click();
+    });
+  };
+
   beforeEach(() => {
     cy.on('uncaught:exception', err => { throw err; });
     cy.visit('/');
@@ -1091,6 +1097,88 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
     cy.go('forward');
     cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
+  });
+
+  it('ouvre la bibliothèque même si l’historique récent est corrompu', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    openToolsMenu();
+    cy.get('[data-testid="save-local-map"]').click();
+    cy.get('[data-testid="local-map-name"]').clear().type('Sauvegarde valide');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.window().then(win => {
+      win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', '{json invalide');
+    });
+    cy.get('[data-testid="primary-library"]').click();
+
+    cy.get('[data-testid="library-page"]').should('be.visible');
+    cy.get('[data-testid="saved-maps-list"]').should('contain.text', 'Sauvegarde valide');
+    cy.get('[data-testid="recent-maps-empty"]').should('be.visible');
+    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
+  });
+
+  it('affiche les récents même si la bibliothèque de sauvegardes est corrompue', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.window().then(win => {
+      win.localStorage.setItem('enterprise-capacity-mapper:local-maps:v1', '{json invalide');
+    });
+    cy.get('[data-testid="primary-library"]').click();
+
+    cy.get('[data-testid="library-page"]').should('be.visible');
+    cy.get('[data-testid="saved-maps-empty"]').should('be.visible');
+    cy.get('[data-testid="recent-maps-list"]').should('be.visible');
+    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
+  });
+
+  it('refuse les imports JSON invalides sans modifier la cartographie active', () => {
+    cy.visit('/');
+    cy.clearLocalStorage();
+    cy.reload();
+
+    cy.window().should(win => {
+      expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.be.a('string');
+    }).then(win => {
+      cy.wrap(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).as('modelBeforeImport');
+    });
+
+    openToolsMenu();
+    cy.get('[data-testid="import-model"]').selectFile({
+      contents: Cypress.Buffer.from('{ json invalide'),
+      fileName: 'cartographie-invalide.json',
+      mimeType: 'application/json',
+    }, { force: true });
+    cy.get('[data-testid="nav-cartography"]').should('be.visible');
+
+    cy.get('@modelBeforeImport').then(before => {
+      cy.window().then(win => {
+        expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.equal(before);
+      });
+    });
+
+    openToolsMenu();
+    cy.get('[data-testid="import-model"]').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify({
+        schemaVersion: 999,
+        domains: [],
+        capabilities: [],
+        applications: [],
+      })),
+      fileName: 'version-non-supportee.json',
+      mimeType: 'application/json',
+    }, { force: true });
+
+    cy.get('@modelBeforeImport').then(before => {
+      cy.window().then(win => {
+        expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.equal(before);
+      });
+    });
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('be.visible');
   });
 
 });

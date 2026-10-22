@@ -213,6 +213,25 @@ function App() {
   const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
   const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
+  const openLibrary = () => {
+    const errors = [];
+    try {
+      setLocalMaps(loadLocalMaps());
+    } catch {
+      setLocalMaps([]);
+      errors.push('bibliothèque locale');
+    }
+    try {
+      setRecentMaps(loadRecentMaps());
+    } catch {
+      setRecentMaps([]);
+      errors.push('historique des récents');
+    }
+    setPendingLocalMap(null);
+    navigateToMode('library');
+    setModal(null);
+    if (errors.length) notify(`Certaines données locales sont invalides : ${errors.join(' et ')}. Les listes concernées sont affichées vides.`);
+  };
   const saveCurrentLocalMap = () => {
     try {
       const entries = loadLocalMaps();
@@ -823,7 +842,7 @@ function App() {
           <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
             <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { navigateToMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
             <button type="button" className={['dashboard', 'relations'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => navigateToMode('dashboard')}>▥ Analyse</button>
-            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setPendingLocalMap(null); navigateToMode('library'); setModal(null); }}>▤ Bibliothèque</button>
+            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={openLibrary}>▤ Bibliothèque</button>
             <div
               className={'toolbar-tools' + (toolsMenuOpen ? ' is-open' : '')}
               data-testid="tools-menu"
