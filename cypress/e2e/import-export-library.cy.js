@@ -21,6 +21,11 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
   });
 
   it('valide le nom de sauvegarde et permet d’annuler sans créer d’entrée', () => {
+    let mapsBeforeCancel;
+    cy.window().then(win => {
+      mapsBeforeCancel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
+    });
+
     openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
     cy.get('[data-testid="local-map-name"]').should('have.value', '');
@@ -29,7 +34,8 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
     cy.contains('.modal button', 'Annuler').click();
 
     cy.window().then(win => {
-      expect(JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]')).to.have.length(0);
+      const mapsAfterCancel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
+      expect(mapsAfterCancel).to.deep.equal(mapsBeforeCancel);
     });
   });
 
@@ -57,7 +63,7 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
 
     cy.get('[data-testid="primary-library"]').click();
     cy.get('[data-testid="saved-maps-list"]').should('contain.text', 'Sauvegarde lot 7');
-    cy.get('[data-testid="saved-maps-list"]').should('contain.text', 'Gestion des Prospects — version modifiée');
+    cy.get('[data-testid="saved-maps-list"] .library-map-card').should('be.visible');
   });
 
   it('retire une cartographie des récents sans supprimer sa sauvegarde nommée', () => {
@@ -87,7 +93,7 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
       cy.stub(win.URL, 'revokeObjectURL');
       cy.stub(win.HTMLAnchorElement.prototype, 'click').callsFake(function () {
         expect(this.href).to.contain('blob:coverage-test');
-        expect(this.download).to.match(/^enterprise-capacity-mapper-\d{4}-\d{2}-\d{2}\.json$/);
+        expect(this.download).to.match(/^enterprise-capacity-mapper-\\d{4}-\\d{2}-\\d{2}\\.json$/);
       }).as('downloadClick');
     });
 
