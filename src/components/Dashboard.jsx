@@ -37,7 +37,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
       window.location.href
     );
     setActiveView(nextView);
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    resetDashboardScroll();
   };
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
       } else {
         setActiveView('overview');
       }
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      resetDashboardScroll();
     };
     window.addEventListener('popstate', handleDashboardPopState);
     return () => window.removeEventListener('popstate', handleDashboardPopState);
