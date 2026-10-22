@@ -1081,7 +1081,7 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="library-page"]').should('be.visible');
     cy.get('[data-testid="saved-maps-list"]').should('contain.text', 'Sauvegarde valide');
     cy.get('[data-testid="recent-maps-empty"]').should('be.visible');
-    cy.get('[data-testid="library-page"]').should('contain.text', 'Certaines données locales sont invalides');
+    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
   });
 
   it('affiche les récents même si la bibliothèque de sauvegardes est corrompue', () => {
