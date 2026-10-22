@@ -6,7 +6,9 @@ describe('Lot 4 — intégrité de l’import JSON', () => {
   });
 
   it('importe une cartographie valide en préservant les relations et l’étendue de matrice après rechargement', () => {
-    cy.window().then(win => {
+    cy.window().should(win => {
+      expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.be.a('string');
+    }).then(win => {
       const model = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
       expect(model.schemaVersion).to.equal(3);
 
