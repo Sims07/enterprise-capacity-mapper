@@ -181,7 +181,7 @@ jobs:
             label: 'line coverage',
             message: `${percentage}%`,
             color,
-          }, null, 2) + '\\n');
+          }, null, 2) + '\n');
           console.log(`Publishing line coverage badge: ${percentage}%`);
           NODE
           git config user.name "github-actions[bot]"
