@@ -252,7 +252,7 @@ function App() {
       setPresentation(false);
       setModal(null);
       setPendingLocalMap(null);
-      setMode('editor');
+      navigateToMode('editor');
 
       try {
         setActiveRecentMapId(saved.id);
@@ -465,7 +465,7 @@ function App() {
     localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
     setSelected([]);
     setLayoutMode('matrix');
-    setMode('editor');
+    navigateToMode('editor');
     setSourceUrl('');
     localStorage.removeItem(SOURCE_URL_KEY);
     setModal(null);
@@ -886,7 +886,7 @@ function App() {
               <p>Retrouvez vos modèles récents, gérez les sauvegardes de cet appareil et rouvrez une cartographie sans quitter cet espace.</p>
             </div>
             <div className="library-page-actions">
-              <button type="button" className="secondary" data-testid="back-to-cartography" onClick={() => setMode('editor')}>Retour à la cartographie</button>
+              <button type="button" className="secondary" data-testid="back-to-cartography" onClick={() => navigateToMode('editor')}>Retour à la cartographie</button>
               <button type="button" className="primary" data-testid="save-current-from-library" onClick={saveCurrentLocalMap}>＋ Sauvegarder la cartographie actuelle</button>
             </div>
           </div>
@@ -983,8 +983,8 @@ function App() {
         <main>
           {['dashboard', 'relations'].includes(mode) && (
             <div className="analysis-view-switch" role="group" aria-label="Mode d'analyse" data-testid="analysis-view-switch">
-              <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-pressed={mode === 'dashboard'} onClick={() => setMode('dashboard')}>Vue d'ensemble</button>
-              <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-pressed={mode === 'relations'} onClick={() => setMode('relations')}>Gérer les relations</button>
+              <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-pressed={mode === 'dashboard'} onClick={() => navigateToMode('dashboard')}>Vue d'ensemble</button>
+              <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-pressed={mode === 'relations'} onClick={() => navigateToMode('relations')}>Gérer les relations</button>
             </div>
           )}
           {mode === 'dashboard' ? (
