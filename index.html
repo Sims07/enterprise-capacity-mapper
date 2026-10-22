@@ -8,10 +8,12 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./src/styles/dashboard-decision-signals.css" />
+  <link rel="stylesheet" href="./src/styles/analysis-navigation.css" />
   <title>Enterprise Capacity Mapper</title>
 </head>
 <body>
   <div id="root"></div>
+  <script src="./public/analysis-navigation.js"></script>
   <script type="module">
     const startApplication = async () => {
       if (import.meta.env.DEV && 'serviceWorker' in navigator) {
