@@ -110,21 +110,49 @@ function App() {
   }, [darkMode]);
 
   useEffect(() => {
-    const handlePopState = () => {
-      if (!dashboardHistoryEntry.current) return;
+    if (!window.history.state?.capacityMapperMode) {
+      window.history.replaceState(
+        { ...(window.history.state || {}), capacityMapperMode: mode },
+        '',
+        window.location.href
+      );
+    }
+    const handlePopState = event => {
+      const nextMode = event.state?.capacityMapperMode;
       dashboardHistoryEntry.current = false;
       setDashboardReturnAvailable(false);
-      setMode('dashboard');
+      setMode(['editor', 'dashboard', 'relations', 'impact', 'library'].includes(nextMode) ? nextMode : 'editor');
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [mode]);
+
+  const navigateToMode = nextMode => {
+    if (nextMode === mode) return;
+    window.history.pushState(
+      { ...(window.history.state || {}), capacityMapperMode: nextMode, dashboardReturn: false },
+      '',
+      window.location.href
+    );
+    dashboardHistoryEntry.current = false;
+    setDashboardReturnAvailable(false);
+    setMode(nextMode);
+  };
+
   const exploreDashboardTarget = id => {
     setSelected([id]);
     setDashboardReturnAvailable(true);
     dashboardHistoryEntry.current = true;
-    window.history.pushState({ ...(window.history.state || {}), dashboardReturn: true }, '', window.location.href);
+    window.history.pushState(
+      { ...(window.history.state || {}), capacityMapperMode: 'relations', dashboardReturn: true },
+      '',
+      window.location.href
+    );
     setMode('relations');
   };
 
@@ -786,9 +814,9 @@ function App() {
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
           <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
-            <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { setMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
-            <button type="button" className={['dashboard', 'relations'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => setMode('dashboard')}>▥ Analyse</button>
-            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setPendingLocalMap(null); setMode('library'); setModal(null); }}>▤ Bibliothèque</button>
+            <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { navigateToMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
+            <button type="button" className={['dashboard', 'relations'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => navigateToMode('dashboard')}>▥ Analyse</button>
+            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={() => { setLocalMaps(loadLocalMaps()); setRecentMaps(loadRecentMaps()); setPendingLocalMap(null); navigateToMode('library'); setModal(null); }}>▤ Bibliothèque</button>
             <div
               className={'toolbar-tools' + (toolsMenuOpen ? ' is-open' : '')}
               data-testid="tools-menu"
