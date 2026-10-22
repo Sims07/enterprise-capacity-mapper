@@ -20,15 +20,10 @@ describe('Navigation analyse → relations', () => {
     });
   });
 
-  it('place le bouton Retour au dashboard en haut à droite de Relations', () => {
+  it('ne présente plus de bouton Retour au dashboard', () => {
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('.dashboard-map-capability').first().click();
-    cy.get('[data-testid="return-to-dashboard"]').should('be.visible').then($button => {
-      const row = $button.parent()[0].getBoundingClientRect();
-      const button = $button[0].getBoundingClientRect();
-      expect(getComputedStyle($button.parent()[0]).justifyContent).to.equal('flex-end');
-      expect(button.right).to.be.closeTo(row.right, 1);
-      expect(button.height).to.be.greaterThan(30);
-    });
+    cy.get('[data-testid="tab-relations"]').should('have.class', 'active');
+    cy.get('[data-testid="return-to-dashboard"]').should('not.be.visible');
   });
 });
