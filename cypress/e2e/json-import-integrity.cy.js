@@ -21,13 +21,6 @@ describe('Lot 4 — intégrité de l’import JSON', () => {
       cy.wrap(JSON.stringify(model)).as('validModelJson');
     });
 
-    cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="import-model"]').selectFile({
-      contents: Cypress.Buffer.from(''),
-      fileName: 'placeholder.json',
-      mimeType: 'application/json',
-    }, { force: true });
-
     // Charger le contenu depuis le modèle préparé dans le test, sans dépendre
     // d’un fichier local ou d’un service externe.
     cy.get('@validModelJson').then(json => {
@@ -41,7 +34,7 @@ describe('Lot 4 — intégrité de l’import JSON', () => {
 
     cy.contains('.cap', 'Gestion des Prospects & Leads — import vérifié').should('be.visible');
     cy.get('.domain-card').contains('.domain-banner', 'Relation & Engagement Client')
-      .closest('.domain-card')
+      .closest('.map-cell')
       .should('have.attr', 'style')
       .and('contain', 'grid-column: span 2');
 
