@@ -1066,6 +1066,7 @@ describe('Dashboard — filtres de la heatmap', () => {
 
   it('enregistre les changements de page dans l’historique et restaure la page avec Retour/Avancer', () => {
     cy.visit('/');
+    cy.window().then(win => win.history.replaceState({ capacityMapperMode: 'editor' }, '', win.location.href));
     cy.get('[data-testid="nav-cartography"]').should('have.class', 'active');
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="nav-analysis"]').should('have.class', 'active');
