@@ -1063,4 +1063,32 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('redundant');
     cy.get('[data-testid="dashboard-filter-results"]').should('be.visible');
   });
+
+  it('enregistre les changements de page dans l’historique et restaure la page avec Retour/Avancer', () => {
+    cy.visit('/');
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="nav-analysis"]').should('have.attr', 'aria-current', 'page');
+    cy.go('back');
+    cy.get('[data-testid="nav-cartography"]').should('have.attr', 'aria-current', 'page');
+    cy.go('forward');
+    cy.get('[data-testid="nav-analysis"]').should('have.attr', 'aria-current', 'page');
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="primary-library"]').should('have.attr', 'aria-current', 'page');
+    cy.go('back');
+    cy.get('[data-testid="nav-analysis"]').should('have.attr', 'aria-current', 'page');
+  });
+
+  it('réinitialise le défilement vertical à chaque changement de page', () => {
+    cy.visit('/');
+    cy.scrollTo('bottom');
+    cy.window().its('scrollY').should('be.greaterThan', 0);
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.window().its('scrollY').should('equal', 0);
+    cy.scrollTo('bottom');
+    cy.get('[data-testid="primary-library"]').click();
+    cy.window().its('scrollY').should('equal', 0);
+    cy.go('back');
+    cy.window().its('scrollY').should('equal', 0);
+  });
+
 });
