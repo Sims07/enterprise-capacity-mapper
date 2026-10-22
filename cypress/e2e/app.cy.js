@@ -1063,4 +1063,34 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('redundant');
     cy.get('[data-testid="dashboard-filter-results"]').should('be.visible');
   });
+
+  it('enregistre les changements de page dans l’historique et restaure la page avec Retour/Avancer', () => {
+    cy.visit('/');
+    cy.window().then(win => win.history.replaceState({ capacityMapperMode: 'editor' }, '', win.location.href));
+    cy.get('[data-testid="nav-cartography"]').should('have.class', 'active');
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="nav-analysis"]').should('have.class', 'active');
+    cy.go('back');
+    cy.get('[data-testid="nav-cartography"]').should('have.class', 'active');
+    cy.go('forward');
+    cy.get('[data-testid="nav-analysis"]').should('have.class', 'active');
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="primary-library"]').should('have.class', 'active');
+    cy.go('back');
+    cy.get('[data-testid="nav-analysis"]').should('have.class', 'active');
+  });
+
+  it('réinitialise le défilement du panneau principal lors des changements et du retour navigateur', () => {
+    cy.visit('/');
+    cy.get('main').scrollTo('bottom');
+    cy.get('main').invoke('prop', 'scrollTop').should('be.greaterThan', 0);
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
+    cy.get('main').scrollTo('bottom');
+    cy.go('back');
+    cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
+    cy.go('forward');
+    cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
+  });
+
 });

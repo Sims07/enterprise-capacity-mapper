@@ -1,9 +1,16 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
 const linksFor = (app, targetId) => (app.capabilityIds || []).includes(targetId);
 const coverageState = count => count === 0 ? 'gap' : count === 1 ? 'covered' : 'redundant';
+const resetDashboardScroll = () => {
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  document.querySelectorAll('main, [data-scroll-container]').forEach(node => {
+    node.scrollTop = 0;
+    node.scrollLeft = 0;
+  });
+};
 
 export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [] }) {
   const domains = model.domains || [];
@@ -17,7 +24,35 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const [domainFilter, setDomainFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [activeView, setActiveView] = useState('overview');
+  const [activeView, setActiveView] = useState(() => {
+    const view = window.history.state?.capacityMapperDashboardView;
+    return ['overview', 'coverage', 'impact', 'attention'].includes(view) ? view : 'overview';
+  });
+
+  const navigateDashboardView = nextView => {
+    if (nextView === activeView) return;
+    window.history.pushState(
+      { ...(window.history.state || {}), capacityMapperMode: 'dashboard', capacityMapperDashboardView: nextView },
+      '',
+      window.location.href
+    );
+    setActiveView(nextView);
+    resetDashboardScroll();
+  };
+
+  useEffect(() => {
+    const handleDashboardPopState = event => {
+      const view = event.state?.capacityMapperDashboardView;
+      if (['overview', 'coverage', 'impact', 'attention'].includes(view)) {
+        setActiveView(view);
+      } else {
+        setActiveView('overview');
+      }
+      resetDashboardScroll();
+    };
+    window.addEventListener('popstate', handleDashboardPopState);
+    return () => window.removeEventListener('popstate', handleDashboardPopState);
+  }, []);
 
   const stats = useMemo(() => {
     const enriched = targets.map(target => {
@@ -80,7 +115,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const hasActiveFilters = statusFilter !== 'all' || domainFilter !== 'all' || searchQuery.trim().length > 0 || priorityFilter !== 'all';
   const resetFilters = () => { setStatusFilter('all'); setDomainFilter('all'); setSearchQuery(''); setPriorityFilter('all'); };
   const focusCoverageState = state => {
-    setActiveView('coverage');
+    navigateDashboardView('coverage');
     setStatusFilter(state);
     setDomainFilter('all');
     setSearchQuery('');
@@ -88,7 +123,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
     document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const focusDomain = domainId => {
-    setActiveView('coverage');
+    navigateDashboardView('coverage');
     setDomainFilter(domainId);
     setStatusFilter('all');
     setSearchQuery('');
@@ -96,7 +131,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
     document.querySelector('[data-testid="dashboard-coverage-heatmap"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const focusDomainGaps = (domainId, priority = 'all') => {
-    setActiveView('coverage');
+    navigateDashboardView('coverage');
     setDomainFilter(domainId);
     setStatusFilter('gap');
     setSearchQuery('');
@@ -203,12 +238,12 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   return (
     <section className="dashboard" data-testid="capability-dashboard" aria-label="Dashboard de couverture">
       <nav className="dashboard-intent-nav" aria-label="Intentions du dashboard" data-testid="dashboard-intent-nav">
-        <button type="button" data-testid="dashboard-view-overview" className={activeView === 'overview' ? 'is-active' : ''} aria-pressed={activeView === 'overview'} onClick={() => setActiveView('overview')}><span className="dashboard-intent-eyebrow">01 · Piloter</span><strong>Vue d’ensemble</strong><small>Repérer rapidement les signaux clés</small></button>
-        <button type="button" data-testid="dashboard-view-coverage" className={activeView === 'coverage' ? 'is-active' : ''} aria-pressed={activeView === 'coverage'} onClick={() => setActiveView('coverage')}><span className="dashboard-intent-eyebrow">02 · Explorer</span><strong>Analyser la couverture</strong><small>Cartographier et filtrer les capacités</small></button>
-        <button type="button" data-testid="dashboard-view-impact" className={activeView === 'impact' ? 'is-active' : ''} aria-pressed={activeView === 'impact'} onClick={() => setActiveView('impact')}><span className="dashboard-intent-eyebrow">03 · Comprendre</span><strong>Comprendre les impacts</strong><small>Relier sélection, applications et gaps</small></button>
-        <button type="button" data-testid="dashboard-view-attention" className={activeView === 'attention' ? 'is-active' : ''} aria-pressed={activeView === 'attention'} onClick={() => setActiveView('attention')}><span className="dashboard-intent-eyebrow">04 · Agir</span><strong>Examiner les points d’attention</strong><small>Prioriser les gaps et les situations à revoir</small></button>
+        <button type="button" data-testid="dashboard-view-overview" className={activeView === 'overview' ? 'is-active' : ''} aria-pressed={activeView === 'overview'} onClick={() => navigateDashboardView('overview')}><span className="dashboard-intent-eyebrow">01 · Piloter</span><strong>Vue d’ensemble</strong><small>Repérer rapidement les signaux clés</small></button>
+        <button type="button" data-testid="dashboard-view-coverage" className={activeView === 'coverage' ? 'is-active' : ''} aria-pressed={activeView === 'coverage'} onClick={() => navigateDashboardView('coverage')}><span className="dashboard-intent-eyebrow">02 · Explorer</span><strong>Analyser la couverture</strong><small>Cartographier et filtrer les capacités</small></button>
+        <button type="button" data-testid="dashboard-view-impact" className={activeView === 'impact' ? 'is-active' : ''} aria-pressed={activeView === 'impact'} onClick={() => navigateDashboardView('impact')}><span className="dashboard-intent-eyebrow">03 · Comprendre</span><strong>Comprendre les impacts</strong><small>Relier sélection, applications et gaps</small></button>
+        <button type="button" data-testid="dashboard-view-attention" className={activeView === 'attention' ? 'is-active' : ''} aria-pressed={activeView === 'attention'} onClick={() => navigateDashboardView('attention')}><span className="dashboard-intent-eyebrow">04 · Agir</span><strong>Examiner les points d’attention</strong><small>Prioriser les gaps et les situations à revoir</small></button>
       </nav>
-      {activeView === 'overview' && <section className="dashboard-overview-intro" data-testid="dashboard-overview-intro"><div><span className="dashboard-overview-kicker">PILOTAGE DE LA CARTOGRAPHIE</span><h2>Où souhaitez-vous concentrer votre analyse ?</h2><p>Commencez par les indicateurs globaux, puis choisissez une intention pour approfondir sans parcourir toutes les sections.</p></div><div className="dashboard-overview-shortcuts"><button type="button" onClick={() => setActiveView('coverage')}><strong>Analyser la couverture</strong><span>Comparer les capacités dans la heatmap <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => setActiveView('impact')}><strong>Comprendre les impacts</strong><span>{impactTargets.length ? `${impactTargets.length} élément(s) sélectionné(s) depuis Impact` : 'Sélectionner les capacités et mesurer leurs effets'} <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => setActiveView('attention')}><strong>Examiner les points d’attention</strong><span>{stats.gaps.length} gaps · {stats.redundancies.length} couvertures multiples <b aria-hidden="true">↗</b></span></button></div></section>}
+      {activeView === 'overview' && <section className="dashboard-overview-intro" data-testid="dashboard-overview-intro"><div><span className="dashboard-overview-kicker">PILOTAGE DE LA CARTOGRAPHIE</span><h2>Où souhaitez-vous concentrer votre analyse ?</h2><p>Commencez par les indicateurs globaux, puis choisissez une intention pour approfondir sans parcourir toutes les sections.</p></div><div className="dashboard-overview-shortcuts"><button type="button" onClick={() => navigateDashboardView('coverage')}><strong>Analyser la couverture</strong><span>Comparer les capacités dans la heatmap <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => navigateDashboardView('impact')}><strong>Comprendre les impacts</strong><span>{impactTargets.length ? `${impactTargets.length} élément(s) sélectionné(s) depuis Impact` : 'Sélectionner les capacités et mesurer leurs effets'} <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => navigateDashboardView('attention')}><strong>Examiner les points d’attention</strong><span>{stats.gaps.length} gaps · {stats.redundancies.length} couvertures multiples <b aria-hidden="true">↗</b></span></button></div></section>}
       {activeView === 'impact' && (
         <section className="dashboard-panel dashboard-impact-selector" data-testid="impact-view">
           <div className="dashboard-panel-heading">
