@@ -6,7 +6,6 @@ export default defineConfig(async () => {
   const plugins = [react()];
 
   // Instrumentation explicite après la transformation React, uniquement dans le build de test.
-  // Le plugin Vite générique a laissé le bundle compilé sans compteurs dans la CI.
   if (coverageMode) {
     const { createInstrumenter } = await import('istanbul-lib-instrument');
     const instrumenter = createInstrumenter({
@@ -22,7 +21,7 @@ export default defineConfig(async () => {
       apply: 'build',
       transform(code, id) {
         const filename = id.split('?')[0];
-        if (!filename.includes('/src/') || !/\\.(?:js|jsx|ts|tsx)$/.test(filename)) {
+        if (!filename.includes('/src/') || !/\.(?:js|jsx|ts|tsx)$/.test(filename)) {
           return null;
         }
 
@@ -41,7 +40,6 @@ export default defineConfig(async () => {
 
   return {
     plugins,
-    // Le serveur de test reproduit le sous-chemin GitHub Pages ; la production conserve sa base relative.
     base: coverageMode ? '/enterprise-capacity-mapper/' : './',
     build: { target: 'es2020', sourcemap: coverageMode },
     server: {
