@@ -1078,17 +1078,17 @@ describe('Dashboard — filtres de la heatmap', () => {
     cy.get('[data-testid="nav-analysis"]').should('have.attr', 'aria-current', 'page');
   });
 
-  it('réinitialise le défilement vertical à chaque changement de page', () => {
+  it('réinitialise le défilement du panneau principal à chaque changement de page', () => {
     cy.visit('/');
-    cy.scrollTo('bottom');
-    cy.window().its('scrollY').should('be.greaterThan', 0);
+    cy.get('main').scrollTo('bottom');
+    cy.get('main').invoke('prop', 'scrollTop').should('be.greaterThan', 0);
     cy.get('[data-testid="nav-analysis"]').click();
-    cy.window().its('scrollY').should('equal', 0);
-    cy.scrollTo('bottom');
+    cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
+    cy.get('main').scrollTo('bottom');
     cy.get('[data-testid="primary-library"]').click();
-    cy.window().its('scrollY').should('equal', 0);
+    cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
     cy.go('back');
-    cy.window().its('scrollY').should('equal', 0);
+    cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
   });
 
 });
