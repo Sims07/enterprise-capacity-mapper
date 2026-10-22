@@ -1,0 +1,43 @@
+name: fix-cypress-tests
+on:
+  push:
+    branches:
+      - fix/analysis-navigation-scroll-return
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update obsolete dashboard return assertions
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'cypress/e2e/dashboard.cy.js': [
+                  ("    cy.get('[data-testid=\"return-to-dashboard\"]').should('be.visible');\n", ""),
+                  ("    cy.get('[data-testid=\"return-to-dashboard\"]').click();\n", "    cy.go('back');\n"),
+              ],
+              'cypress/e2e/app.cy.js': [
+                  ("    cy.get('[data-testid=\"return-to-dashboard\"]').should('be.visible');\n", ""),
+                  ("    cy.get('[data-testid=\"return-to-dashboard\"]').click();\n", "    cy.go('back');\n"),
+              ],
+          }
+          for name, reps in replacements.items():
+              p = Path(name)
+              text = p.read_text()
+              old = text
+              for a, b in reps:
+                  text = text.replace(a, b)
+              if text == old:
+                  raise SystemExit(f'No change made to {name}')
+              p.write_text(text)
+          PY
+          rm .github/workflows/fix-cypress-tests.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add cypress/e2e/app.cy.js cypress/e2e/dashboard.cy.js .github/workflows/fix-cypress-tests.yml
+          git commit -m 'test: update navigation tests for browser history'
+          git push
