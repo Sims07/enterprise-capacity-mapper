@@ -246,6 +246,7 @@ describe('Dashboard de couverture', () => {
 
   it('enregistre les quatre sous-vues Analyse dans l’historique navigateur', () => {
     cy.visit('/');
+    cy.window().then(win => win.history.replaceState({ capacityMapperMode: 'editor' }, '', win.location.href));
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').should('have.class', 'is-active');
 
