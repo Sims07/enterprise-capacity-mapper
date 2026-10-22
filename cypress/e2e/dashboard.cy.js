@@ -249,7 +249,8 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').should('have.class', 'is-active');
 
-    cy.get('[data-testid="dashboard-view-coverage"]').should('be.visible');
+    cy.get('main').scrollTo('bottom');
+    cy.get('main').invoke('prop', 'scrollTop').should('be.greaterThan', 0);
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').should('have.class', 'is-active');
     cy.get('main').invoke('prop', 'scrollTop').should('equal', 0);
