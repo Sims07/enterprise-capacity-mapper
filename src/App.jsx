@@ -129,14 +129,14 @@ function App() {
       dashboardHistoryEntry.current = false;
       setDashboardReturnAvailable(false);
       setMode(['editor', 'dashboard', 'relations', 'impact', 'library'].includes(nextMode) ? nextMode : 'editor');
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      resetScrollPositions();
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    resetScrollPositions();
   }, [mode]);
 
   const navigateToMode = nextMode => {
