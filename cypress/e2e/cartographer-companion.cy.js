@@ -131,7 +131,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-ollama-cors-help"]').should('be.visible')
       .and('contain.text', 'https://sims07.github.io')
       .and('contain.text', 'OLLAMA_ORIGINS')
-      .and('contain.text', 'Sur un autre appareil, `localhost` désigne cet autre appareil');
+      .and('contain.text', 'Sur un autre appareil, localhost désigne cet autre appareil');
     cy.get('[data-testid="companion-ollama-cors-help"]').find('summary').click();
     cy.get('[data-testid="companion-ollama-cors-help"]').should('have.attr', 'open');
     cy.get('[data-testid="companion-provider"]').select('openai');
