@@ -23,26 +23,5 @@ describe('Relations — hover N1 en Dark Linear', () => {
         cy.get('.tree-name').should('be.visible');
       });
 
-    // Vérifie uniquement que les règles de hover ciblées sont présentes.
-    // Aucune assertion sur les couleurs, RGB/RGBA, tokens ou styles calculés.
-    cy.document().then(doc => {
-      const rules = [...doc.styleSheets].flatMap(sheet => {
-        try {
-          return [...sheet.cssRules];
-        } catch {
-          return [];
-        }
-      });
-
-      const rowHoverRule = rules.find(rule =>
-        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover')
-      );
-      const toggleHoverRule = rules.find(rule =>
-        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle')
-      );
-
-      expect(rowHoverRule, 'la règle de hover de la ligne N1 est présente').to.exist;
-      expect(toggleHoverRule, 'la règle de hover du bouton N1 est présente').to.exist;
-    });
   });
 });

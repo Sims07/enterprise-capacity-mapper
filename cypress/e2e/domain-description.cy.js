@@ -65,6 +65,32 @@ describe('Description des domaines N0 sur la cartographie', () => {
       .should('have.text', 'Capacité à piloter le cycle de vie client.');
   });
 
+  it('utilise les tokens sémantiques pour les champs de description', () => {
+    cy.document().then(doc => {
+      const rules = [...doc.styleSheets].flatMap(sheet => {
+        try {
+          return [...sheet.cssRules];
+        } catch {
+          return [];
+        }
+      });
+      const fieldRule = rules.find(rule =>
+        rule.selectorText?.includes('.field textarea[data-testid="domain-description"]')
+      );
+      const focusRule = rules.find(rule =>
+        rule.selectorText?.includes('.field textarea:focus-visible')
+      );
+
+      expect(fieldRule, 'règle du champ description').to.exist;
+      expect(focusRule, 'règle de focus du champ description').to.exist;
+      expect(fieldRule.style.getPropertyValue('background')).to.equal('var(--color-surface)');
+      expect(fieldRule.style.getPropertyValue('color')).to.equal('var(--color-text)');
+      expect(fieldRule.style.getPropertyValue('border')).to.include('--color-border-strong');
+      expect(focusRule.style.getPropertyValue('border-color')).to.equal('var(--color-focus)');
+      expect(focusRule.style.getPropertyValue('outline')).to.include('var(--color-focus)');
+    });
+  });
+
   it('étire les champs de description sur toute la largeur du formulaire N0', () => {
     openFirstDomainEditor();
     cy.get('[data-testid="domain-description"]').then($textarea => {

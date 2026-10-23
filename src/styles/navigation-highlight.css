@@ -47,9 +47,9 @@
   white-space: nowrap;
   text-overflow: clip;
   border: 1px solid transparent !important;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   background: transparent !important;
-  color: #cbd5e1;
+  color: var(--color-text-muted);
   box-shadow: none !important;
   outline-offset: 2px;
   transform: none !important;
@@ -60,22 +60,22 @@
 .app .toolbar-switch > button.active,
 .app .toolbar-switch > button.active:hover,
 .app .toolbar-switch > button.active:focus {
-  background: #4f46e5 !important;
-  border-color: #6366f1 !important;
-  color: #ffffff !important;
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent-hover) !important;
+  color: var(--color-accent-on) !important;
   box-shadow: none !important;
 }
 
 .app:not(.theme-dark) .toolbar-switch > button:not(.active) {
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .app:not(.theme-dark) .toolbar-switch > button.active,
 .app:not(.theme-dark) .toolbar-switch > button.active:hover,
 .app:not(.theme-dark) .toolbar-switch > button.active:focus {
-  background: #eef2ff !important;
-  border-color: #a5b4fc !important;
-  color: #3730a3 !important;
+  background: var(--color-accent-soft) !important;
+  border-color: var(--color-accent-border) !important;
+  color: var(--color-accent-text) !important;
 }
 
 /* Les anciennes règles de base ajoutent une ombre au bouton actif ; la sélection reste sans halo. */
@@ -89,7 +89,7 @@
 }
 
 .toolbar-switch > button:focus-visible {
-  outline: 2px solid #a5b4fc;
+  outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: -3px;
 }
 

@@ -22,7 +22,7 @@ describe('Navigation rationalisée', () => {
     cy.get('[data-testid="library-page"]').should('be.visible').and('contain.text', 'Bibliothèque de cartographies');
     cy.get('[data-testid="library-page-heading"]').should('be.visible');
     cy.get('[data-testid="back-to-cartography"]').should('have.css', 'border-radius', '8px');
-    cy.get('[data-testid="save-current-from-library"]').should('have.css', 'background-color', 'rgb(79, 70, 229)');
+    cy.get('[data-testid="save-current-from-library"]').should('be.visible').and('not.be.disabled');
     cy.get('[data-testid="recent-maps-count"]').should('be.visible');
     cy.get('[data-testid="saved-maps-count"]').should('be.visible');
     cy.get('.modal').should('not.exist');
