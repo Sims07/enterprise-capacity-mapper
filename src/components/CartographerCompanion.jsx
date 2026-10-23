@@ -483,7 +483,19 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                 <input data-testid="companion-provider-enabled" type="checkbox" checked={providerSettings.enabled} onChange={event => setProviderSettings(current => ({ ...current, enabled: event.target.checked }))} />
                 <span>Utiliser ce fournisseur dans le mode Conversation</span>
               </label>
-              <p className="companion-provider-warning">Attention : une clé saisie dans une application GitHub Pages n’est pas un secret inviolable. Ne l’utilise pas sur un appareil partagé. Lorsque le fournisseur est activé, la question, l’historique récent et les données métier utiles de la cartographie lui sont envoyés. Pour Ollama, le service local doit autoriser les requêtes CORS du navigateur.</p>
+              <p className="companion-provider-warning">Attention : une clé saisie dans une application GitHub Pages n’est pas un secret inviolable. Ne l’utilise pas sur un appareil partagé. Lorsque le fournisseur est activé, la question, l’historique récent et les données métier utiles de la cartographie lui sont envoyés.</p>
+              {providerSettings.provider === 'ollama' && (
+                <details className="companion-ollama-cors-help" data-testid="companion-ollama-cors-help">
+                  <summary>Autoriser Ollama depuis la version publiée</summary>
+                  <p>La PWA ne peut pas contourner CORS. Ollama doit autoriser l’origine exacte de GitHub Pages :</p>
+                  <code>https://sims07.github.io</code>
+                  <p>Cette origine ne comprend pas le chemin <code>/enterprise-capacity-mapper/</code>. N’utilise pas <code>*</code> : limite l’autorisation à cette origine.</p>
+                  <p><strong>Windows :</strong> ferme complètement Ollama, ajoute la variable d’environnement utilisateur <code>OLLAMA_ORIGINS</code> avec la valeur <code>https://sims07.github.io</code>, puis relance Ollama.</p>
+                  <p><strong>macOS / Linux :</strong> arrête d’abord Ollama, puis lance-le avec cette variable d’environnement :</p>
+                  <pre>OLLAMA_ORIGINS="https://sims07.github.io" ollama serve</pre>
+                  <p>Garde l’URL du service sur <code>http://localhost:11434</code> uniquement si le navigateur et Ollama tournent sur le même appareil. Sur un téléphone, <code>localhost</code> désigne le téléphone, pas ton ordinateur.</p>
+                </details>
+              )}
               <button type="button" className="companion-provider-clear-key" data-testid="companion-provider-clear-key" onClick={() => setApiKey('')} disabled={!apiKey}>Effacer la clé de cette session</button>
             </section>
           )}
