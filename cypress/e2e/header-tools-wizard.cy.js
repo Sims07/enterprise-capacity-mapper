@@ -41,7 +41,7 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
     cy.get('.modal.wizard .field input').first()
       .should('have.css', 'background-color', 'rgb(16, 19, 24)')
       .and('have.css', 'color', 'rgb(243, 244, 246)');
-    cy.get('[data-testid="template-matrix"]').should($card => {
+    cy.get('[data-testid="template-capability-map"]').should($card => {
       const selected = $card.attr('aria-pressed') === 'true';
       expect(getComputedStyle($card[0]).backgroundColor).to.equal(
         selected ? 'rgb(38, 35, 59)' : 'rgb(29, 33, 43)'
