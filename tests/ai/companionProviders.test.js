@@ -24,9 +24,42 @@ test('Ollama utilise /api/chat et extrait la réponse textuelle', async () => {
   });
   assert.equal(answer, 'La capacité Comptabilité générale.');
   assert.equal(request.url, 'http://localhost:11434/api/chat');
-  assert.equal(JSON.parse(request.options.body).stream, false);
+  assert.equal(JSON.parse(request.options.body).stream, true);
   assert.match(JSON.parse(request.options.body).messages[0].content, /TOGAF/);
   assert.doesNotMatch(JSON.parse(request.options.body).messages[0].content, /NE PAS TRANSMETTRE/);
+});
+
+test('Ollama diffuse les fragments reçus et les expose au fil de la lecture', async () => {
+  const chunks = [
+    '{"message":{"content":"Bonjour"},"done":false}\\n{"message":{"content":" !"},"done":false}\\n',
+    '{"message":{"content":" Comment puis-je aider ?"},"done":true}\\n',
+  ];
+  const encoded = chunks.map(chunk => new TextEncoder().encode(chunk));
+  let index = 0;
+  const received = [];
+  const answer = await sendCompanionMessage({
+    provider: 'ollama', model: 'llama3.1', endpoint: 'http://localhost:11434',
+    question: 'Bonjour', cartography,
+    onChunk: chunk => received.push(chunk),
+    fetchImpl: async (url, options) => {
+      assert.equal(url, 'http://localhost:11434/api/chat');
+      assert.equal(JSON.parse(options.body).stream, true);
+      return {
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            read: async () => index < encoded.length
+              ? { value: encoded[index++], done: false }
+              : { value: undefined, done: true },
+            releaseLock() {},
+          }),
+        },
+      };
+    },
+  });
+  assert.equal(answer, 'Bonjour ! Comment puis-je aider ?');
+  assert.deepEqual(received, ['Bonjour', ' !', ' Comment puis-je aider ?']);
 });
 
 test('OpenAI envoie la clé dans le header et lit choices[0].message.content', async () => {
