@@ -78,7 +78,7 @@ describe('Description des domaines N0 sur la cartographie', () => {
         rule.selectorText?.includes('.field textarea[data-testid="domain-description"]')
       );
       const focusRule = rules.find(rule =>
-        rule.selectorText?.includes('.field textarea:focus')
+        rule.selectorText?.includes('.field textarea:focus-visible')
       );
 
       expect(fieldRule, 'règle du champ description').to.exist;
@@ -87,6 +87,7 @@ describe('Description des domaines N0 sur la cartographie', () => {
       expect(fieldRule.style.getPropertyValue('color')).to.equal('var(--color-text)');
       expect(fieldRule.style.getPropertyValue('border')).to.include('--color-border-strong');
       expect(focusRule.style.getPropertyValue('border-color')).to.equal('var(--color-focus)');
+      expect(focusRule.style.getPropertyValue('outline')).to.include('var(--color-focus)');
     });
   });
 
