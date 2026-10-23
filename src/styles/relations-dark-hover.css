@@ -1,0 +1,29 @@
+/* Relations — Dark Linear
+   Le hover réel est porté par le bouton .tree-toggle à l'intérieur de la ligne N1.
+   Cette feuille est chargée en dernier pour neutraliser le hover clair hérité. */
+.app.theme-dark .coverage-tree {
+  --relation-n1-hover-bg: #202733;
+  --relation-n1-hover-text: #f1f5f9;
+}
+
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-ok:hover,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-gap:hover,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-redundant:hover {
+  background: var(--relation-n1-hover-bg) !important;
+  border-color: #4b5563 !important;
+  color: var(--relation-n1-hover-text) !important;
+}
+
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle:hover {
+  background: var(--relation-n1-hover-bg) !important;
+  color: var(--relation-n1-hover-text) !important;
+}
+
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-name,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-code,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-count,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-status {
+  color: var(--relation-n1-hover-text) !important;
+}
