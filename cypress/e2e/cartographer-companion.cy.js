@@ -153,6 +153,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-thinking"]').should('be.visible').and('contain.text', 'Le modèle prépare sa réponse');
     cy.wait('@ollamaChat').its('request.body.messages').should('have.length.at.least', 2);
     cy.get('[data-testid="companion-answer"]').should('contain.text', 'Réponse Ollama simulée');
+    cy.get('[data-testid="companion-exchange"]').last().find('.companion-no-findings').should('not.exist');
     cy.get('[data-testid="companion-panel"]').should('contain.text', 'Fournisseur actif : Ollama (local)');
   });
 
