@@ -68,6 +68,41 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-launcher"]').should('have.focus');
   });
 
+  it('répond à une question ciblée sur les capacités rattachées à une application', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').type('À quelles capacités SAP S/4HANA Finance est-elle rattachée ?');
+    cy.get('[data-testid="companion-submit"]').click();
+    cy.get('[data-testid="companion-answer"]').should('contain.text', 'rattachement(s) déclaré(s)');
+    cy.get('[data-testid="companion-exchange"]').last().within(() => {
+      cy.contains('Capacité associée : Comptabilité Générale').should('exist');
+      cy.contains('Capacité associée : Facturation & Recouvrement').should('exist');
+      cy.contains('Capacité associée : Gestion de Trésorerie').should('exist');
+      cy.contains('Finance, Gestion & Comptabilité').should('exist');
+    });
+  });
+
+  it('répond à une question sur les applications qui soutiennent une capacité', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').type('Quelles applications sont reliées à Facturation & Recouvrement ?');
+    cy.get('[data-testid="companion-submit"]').click();
+    cy.get('[data-testid="companion-answer"]').should('contain.text', 'relation(s) applicative(s)');
+    cy.get('[data-testid="companion-exchange"]').last().within(() => {
+      cy.contains('Application associée : SAP S/4HANA Finance').should('exist');
+      cy.contains('Application associée : Odoo Invoice').should('exist');
+    });
+  });
+
+  it('indique clairement quand le nom demandé ne correspond à aucun élément', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').type('Où se trouve l’application Inventée XYZ dans la cartographie ?');
+    cy.get('[data-testid="companion-submit"]').click();
+    cy.get('[data-testid="companion-answer"]').should('contain.text', 'je ne trouve pas de nom');
+    cy.contains('Élément à identifier').should('exist');
+  });
+
   it('reste lisible en thème sombre sans assertion fragile sur les valeurs RGB', () => {
     cy.get('[data-testid="companion-launcher"]').click();
     cy.get('[data-testid="tools-menu-toggle"]').click();
