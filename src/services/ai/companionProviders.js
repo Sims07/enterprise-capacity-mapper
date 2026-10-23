@@ -81,6 +81,10 @@ async function readResponse(response) {
 }
 
 async function readOllamaStream(response, onChunk) {
+  if (!response.ok) {
+    // Avoid echoing provider response bodies: they may contain request details.
+    throw new Error(`Le fournisseur a répondu avec le statut HTTP ${response.status}.`);
+  }
   // Simple mocked responses and older runtimes may not expose a readable body.
   if (!response.body?.getReader) {
     const data = await response.json();
