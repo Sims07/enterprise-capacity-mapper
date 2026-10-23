@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:e2e": "cypress run"
+    "test:e2e": "cypress run",
+    "test:unit": "node --test"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

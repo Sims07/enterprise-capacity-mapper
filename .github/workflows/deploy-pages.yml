@@ -44,6 +44,8 @@ jobs:
           git push
       - name: Install project dependencies
         run: npm install
+      - name: Run deterministic unit tests
+        run: npm run test:unit
       - name: Install coverage tooling
         run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
       - name: Set build version
@@ -80,7 +82,7 @@ jobs:
           VITE_COVERAGE: 'true'
           CYPRESS_COVERAGE: 'true'
       - name: Diagnose Vite instrumentation output
-        if: always()
+        if: failure()
         run: |
           echo '--- Vite preview log ---'
           cat /tmp/vite-preview.log || true
@@ -89,19 +91,18 @@ jobs:
           import fs from 'node:fs';
           import path from 'node:path';
           const dir = 'dist-coverage/assets';
-          const files = fs.readdirSync(dir).filter(file => /\.js$/.test(file));
+          const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(file => /\.js$/.test(file)) : [];
           const results = files.map(file => {
             const source = fs.readFileSync(path.join(dir, file), 'utf8');
             return { file, hasCoverageMap: source.includes('__coverage__'), hasCounters: /s\[\d+\]\+\+/.test(source) };
           });
           console.log(JSON.stringify(results, null, 2));
           if (!results.some(result => result.hasCoverageMap && result.hasCounters)) {
-            console.error('No instrumented JavaScript bundle was found.');
-            process.exitCode = 1;
+            console.error('No instrumented JavaScript bundle was available to inspect (an earlier step may have failed).');
           }
           NODE
       - name: Verify Cypress produced coverage data
-        if: always()
+        if: success()
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
