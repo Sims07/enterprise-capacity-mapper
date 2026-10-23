@@ -19,7 +19,7 @@ describe('Nouvelle cartographie — thème', () => {
 
     cy.get('.modal.wizard').should('have.css', 'background-color', 'rgb(23, 26, 33)');
     cy.get('.wizard-steps').should('have.css', 'background-color', 'rgb(17, 19, 24)');
-    ['template-capability-map', 'template-value-chain', 'template-blank'].forEach(id => {
+    ['template-capability-map', 'template-value-chain', 'template-blank', 'template-current'].forEach(id => {
       cy.get(`[data-testid="${id}"]`).should($card => {
         const selected = $card.attr('aria-pressed') === 'true';
         expect(getComputedStyle($card[0]).backgroundColor).to.equal(
