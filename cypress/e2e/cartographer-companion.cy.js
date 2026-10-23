@@ -125,6 +125,19 @@ describe('Compagnon cartographe — interface locale', () => {
     });
   });
 
+  it('explique la configuration CORS requise pour Ollama sur GitHub Pages', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-settings-toggle"]').click();
+    cy.get('[data-testid="companion-ollama-cors-help"]').should('be.visible')
+      .and('contain.text', 'https://sims07.github.io')
+      .and('contain.text', 'OLLAMA_ORIGINS')
+      .and('contain.text', 'localhost désigne le téléphone');
+    cy.get('[data-testid="companion-ollama-cors-help"]').find('summary').click();
+    cy.get('[data-testid="companion-ollama-cors-help"]').should('have.attr', 'open');
+    cy.get('[data-testid="companion-provider"]').select('openai');
+    cy.get('[data-testid="companion-ollama-cors-help"]').should('not.exist');
+  });
+
   it('configure Ollama et utilise une réponse simulée dans le mode Conversation', () => {
     cy.intercept('OPTIONS', 'http://localhost:11434/api/chat', {
       statusCode: 204,
