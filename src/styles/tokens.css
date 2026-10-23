@@ -1,0 +1,66 @@
+/* Design tokens — semantic values shared by the light and dark themes.
+   Keep component-specific/domain colors local until their migration is intentional. */
+:root {
+  color-scheme: light;
+
+  /* Neutral and brand palette */
+  --palette-neutral-0: #ffffff;
+  --palette-neutral-50: #f8fafc;
+  --palette-neutral-100: #f1f5f9;
+  --palette-neutral-200: #e2e8f0;
+  --palette-neutral-300: #cbd5e1;
+  --palette-neutral-500: #64748b;
+  --palette-neutral-700: #334155;
+  --palette-neutral-900: #0f172a;
+  --palette-indigo-600: #4f46e5;
+  --palette-indigo-500: #6366f1;
+  --palette-indigo-300: #a5b4fc;
+
+  /* Semantic surfaces, content, borders and interaction */
+  --color-bg: #f3f5f7;
+  --color-surface: var(--palette-neutral-0);
+  --color-surface-muted: var(--palette-neutral-50);
+  --color-surface-hover: #f8fafc;
+  --color-text: var(--palette-neutral-900);
+  --color-text-muted: var(--palette-neutral-500);
+  --color-border: var(--palette-neutral-200);
+  --color-border-strong: var(--palette-neutral-300);
+  --color-accent: var(--palette-indigo-600);
+  --color-accent-hover: #4338ca;
+  --color-focus: var(--palette-indigo-600);
+  --color-danger: #b91c1c;
+  --color-success: #166534;
+  --color-warning: #92400e;
+
+  /* Shared geometry and motion */
+  --radius-control: 7px;
+  --radius-card: 12px;
+  --radius-panel: 14px;
+  --shadow-panel: 0 2px 12px rgb(15 23 42 / 8%);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+.theme-dark {
+  color-scheme: dark;
+
+  --color-bg: #0b1220;
+  --color-surface: #111c2e;
+  --color-surface-muted: #172438;
+  --color-surface-hover: #202228;
+  --color-text: #f1f5f9;
+  --color-text-muted: #b4c2d4;
+  --color-border: #34465e;
+  --color-border-strong: #40536d;
+  --color-accent: #818cf8;
+  --color-accent-hover: #a5b4fc;
+  --color-focus: #a5b4fc;
+}
+
+/* Respect the user's motion preference for transitions using shared tokens. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: 0ms;
+    --motion-duration-normal: 0ms;
+  }
+}
