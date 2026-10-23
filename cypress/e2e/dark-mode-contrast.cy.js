@@ -26,15 +26,32 @@ describe('Contrastes du thème sombre', () => {
     cy.contains('.canvas-actions button', 'Structure').should('be.visible');
 
     openToolsMenu();
-    // Ne pas figer les tests sur les valeurs RGB exactes : elles peuvent évoluer
-    // avec le thème sans constituer une régression fonctionnelle. On vérifie plutôt
-    // que les surfaces et contrôles restent effectivement rendus et lisibles.
     cy.get('.app.theme-dark .toolbar-tools-panel').should('be.visible');
     cy.get('[data-testid="undo-button"], [data-testid="redo-button"]').each(($button) => {
       cy.wrap($button).should('be.visible').and('have.css', 'opacity', '1');
       cy.wrap($button).find('.history-button-label').should('be.visible');
     });
     cy.get('.search').should('be.visible');
+  });
+
+  it('applique une surface sombre et un texte clair au menu Outils', () => {
+    toggleTheme();
+    openToolsMenu();
+
+    cy.get('.app.theme-dark .toolbar-tools-panel').then($panel => {
+      const style = getComputedStyle($panel[0]);
+      expect(style.backgroundColor, 'surface du menu Outils').to.not.equal('rgb(255, 255, 255)');
+      expect(style.color, 'texte du menu Outils').to.not.equal('rgb(128, 128, 128)');
+    });
+
+    cy.get('.app.theme-dark .toolbar-tools-panel button').each($button => {
+      const style = getComputedStyle($button[0]);
+      expect(style.color, 'texte des actions Outils').to.not.equal('rgb(128, 128, 128)');
+      expect(style.backgroundColor, 'surface des actions Outils').to.not.equal('rgb(255, 255, 255)');
+    });
+
+    cy.get('[data-testid="new-map-button"]').should('have.css', 'color', 'rgb(255, 255, 255)');
+    cy.get('[data-testid="save-local-map"]').should('have.css', 'color', 'rgb(255, 255, 255)');
   });
 
   it('revient au thème clair sans conserver la classe sombre', () => {
