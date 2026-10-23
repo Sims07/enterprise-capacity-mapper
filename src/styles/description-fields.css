@@ -1,4 +1,4 @@
-/* Champs de description N0/N1 : même largeur que le conteneur du formulaire. */
+/* Champs de description N0/N1 : largeur et couleurs pilotées par les tokens partagés. */
 .field textarea,
 .field textarea[data-testid="domain-description"],
 .field textarea[data-testid="capability-description"] {
@@ -8,10 +8,10 @@
   min-width: 0;
   box-sizing: border-box;
   padding: 9px;
-  border: 1px solid #cbd5e1;
-  border-radius: 7px;
-  background: #fff;
-  color: #0f172a;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
   font-size: 12px;
   line-height: 1.5;
@@ -20,16 +20,10 @@
 
 .field textarea:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, .16);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-focus) 16%, transparent);
 }
 
-.app.theme-dark .field textarea {
-  background: #101318;
-  color: #f3f4f6;
-  border-color: #353b48;
-}
-
-.app.theme-dark .field textarea::placeholder {
-  color: #858c9b;
+.field textarea::placeholder {
+  color: var(--color-text-muted);
 }
