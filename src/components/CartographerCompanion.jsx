@@ -503,54 +503,117 @@ export default function CartographerCompanion({ model, darkMode = false }) {
             </section>
           )}
 
-          <div className="companion-conversation" ref={conversationRef}>
-            {history.length === 0 && (
+          <div className="companion-mode-toolbar">
+            <div className="companion-mode-switch" role="group" aria-label="Mode du compagnon">
+              <button
+                type="button"
+                data-testid="companion-mode-guided"
+                aria-pressed={mode === 'guided'}
+                className={mode === 'guided' ? 'is-active' : ''}
+                onClick={() => { setMode('guided'); setConfirmClear(false); setConfirmDeleteId(null); }}
+              >
+                Questions guidées
+              </button>
+              <button
+                type="button"
+                data-testid="companion-mode-conversation"
+                aria-pressed={mode === 'conversation'}
+                className={mode === 'conversation' ? 'is-active' : ''}
+                onClick={() => { setMode('conversation'); setConfirmClear(false); setConfirmDeleteId(null); }}
+              >
+                Conversation
+              </button>
+            </div>
+            {history.length > 0 && (
+              <div className="companion-clear-actions">
+                {confirmClear ? (
+                  <div className="companion-inline-confirm" role="group" aria-label="Confirmer la réinitialisation">
+                    <span>Effacer tout l’historique ?</span>
+                    <button type="button" data-testid="companion-confirm-clear" onClick={clearHistory}>Tout effacer</button>
+                    <button type="button" onClick={() => setConfirmClear(false)}>Annuler</button>
+                  </div>
+                ) : (
+                  <button type="button" className="companion-clear-history" data-testid="companion-clear-history" onClick={() => { setConfirmDeleteId(null); setConfirmClear(true); }}>Nouvelle conversation / Tout effacer</button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {mode === 'guided' && (
+            <section className="companion-guided-section" aria-labelledby="companion-guided-title">
+              <div className="companion-guided-heading">
+                <h3 id="companion-guided-title">Que souhaitez-vous examiner ?</h3>
+                <p>Choisissez un contrôle. Les questions restent ici ; les résultats défilent dessous.</p>
+              </div>
+              <div className="companion-prompts">
+                {PROMPTS.map(prompt => (
+                  <button
+                    type="button"
+                    key={prompt.id}
+                    data-testid={`companion-prompt-${prompt.id}`}
+                    className={'companion-prompt' + (activePrompt === prompt.id ? ' is-selected' : '')}
+                    onClick={() => runReview(prompt.id)}
+                  >
+                    <span className="companion-prompt-icon" aria-hidden="true">{prompt.icon}</span>
+                    <span className="companion-prompt-copy">
+                      <span className="companion-prompt-label">{prompt.label}</span>
+                      <span className="companion-prompt-description">{prompt.description}</span>
+                    </span>
+                    <span className="companion-prompt-arrow" aria-hidden="true">↗</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className="companion-conversation" data-testid="companion-conversation" aria-live="polite" ref={conversationRef}>
+            {mode === 'conversation' && history.length === 0 && (
               <div className="companion-start">
                 <div className="companion-welcome">
                   <span className="companion-avatar" aria-hidden="true">✦</span>
                   <div>
-                    <p className="companion-message-title">Compagnon cartographe</p>
-                    <p>Posez une question sur la cartographie ou utilisez l’une des revues guidées proposées ci-dessous.</p>
+                    <p className="companion-message-title">Bonjour, regardons votre cartographie.</p>
+                    <p>{providerSettings.enabled ? 'Posez une question en langage naturel. Les réponses du modèle apparaissent progressivement pendant leur génération.' : 'Posez une question en langage naturel pour examiner votre cartographie avec les contrôles locaux.'}</p>
                   </div>
-                </div>
-                <p className="companion-section-label">Questions guidées</p>
-                <div className="companion-prompts">
-                  {PROMPTS.map(prompt => (
-                    <button type="button" key={prompt.id} className={`companion-prompt${activePrompt === prompt.id ? ' is-selected' : ''}`} onClick={() => runReview(prompt.id)}>
-                      <span className="companion-prompt-icon" aria-hidden="true">{prompt.icon}</span>
-                      <span>{prompt.label}<br /><small>{prompt.description}</small></span>
-                      <span className="companion-prompt-arrow" aria-hidden="true">›</span>
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
             {history.length > 0 && renderHistory()}
           </div>
 
-          <form className="companion-composer" onSubmit={submitQuestion}>
-            <label className="companion-sr-only" htmlFor="companion-question">Question au compagnon cartographe</label>
-            <input id="companion-question" data-testid="companion-question" value={query} onChange={event => setQuery(event.target.value)} placeholder={providerSettings.enabled ? 'Poser une question au fournisseur…' : 'Ex. Où se trouve cette application ?'} disabled={isSending} />
-            <button type="submit" aria-label="Envoyer la question" disabled={!query.trim() || isSending}>↑</button>
-          </form>
-          <div className="companion-history-actions">
-            {history.length > 0 && (confirmClear ? (
-              <div className="companion-clear-confirm" role="group" aria-label="Confirmer la réinitialisation de la conversation">
-                <span>Réinitialiser la conversation ?</span>
-                <button type="button" data-testid="companion-confirm-clear" onClick={clearHistory}>Réinitialiser</button>
-                <button type="button" onClick={() => setConfirmClear(false)}>Annuler</button>
-              </div>
-            ) : (
-              <button type="button" className="companion-clear-history" data-testid="companion-clear-history" onClick={() => { setConfirmDeleteId(null); setConfirmClear(true); }}>Réinitialiser la conversation</button>
-            )}
-          </div>
-          <p className="companion-footer-note">Les réponses servent d’aide à l’analyse et ne remplacent pas la validation d’un architecte.</p>
+          {mode === 'conversation' ? (
+            <form className="companion-composer" onSubmit={submitQuestion}>
+              <label className="companion-sr-only" htmlFor="companion-question">Question sur la cartographie</label>
+              <input
+                id="companion-question"
+                data-testid="companion-question"
+                value={query}
+                onChange={event => setQuery(event.target.value)}
+                placeholder={isSending ? 'Réponse en cours…' : 'Posez une question sur votre cartographie…'}
+                autoComplete="off"
+                disabled={isSending}
+              />
+              <button type="submit" aria-label="Envoyer la question" disabled={!query.trim()} data-testid="companion-submit">↑</button>
+            </form>
+          ) : (
+            <p className="companion-guided-footer">Les résultats restent disponibles dans cet onglet. Passez en mode Conversation pour poser une question libre.</p>
+          )}
+          <p className="companion-footer-note">Historique conservé pendant cette session · {providerSettings.enabled ? `fournisseur ${PROVIDER_DEFAULTS[providerSettings.provider].label} activé` : 'mode local, aucun envoi réseau'}</p>
         </section>
       )}
-      <button type="button" ref={triggerRef} className={`companion-launcher${open ? ' is-open' : ''}`} data-testid="companion-launcher" aria-expanded={open} aria-controls="companion-panel" onClick={() => setOpen(value => !value)}>
-        <span className="companion-launcher-icon" aria-hidden="true">✦</span>
-        <span>Compagnon</span>
-        <span className="companion-launcher-status" aria-hidden="true" />
+      <button
+        type="button"
+        className={'companion-launcher' + (open ? ' is-open' : '')}
+        data-testid="companion-launcher"
+        aria-label={open ? 'Fermer le compagnon cartographe' : 'Ouvrir le compagnon cartographe'}
+        aria-expanded={open}
+        aria-controls="companion-panel"
+        ref={triggerRef}
+        onClick={() => setOpen(value => !value)}
+      >
+        <span className="companion-launcher-icon" aria-hidden="true">{open ? '×' : '✦'}</span>
+        <span>{open ? 'Fermer' : 'Compagnon'}</span>
+        {!open && <span className="companion-launcher-status" aria-hidden="true" />}
       </button>
     </div>
   );
