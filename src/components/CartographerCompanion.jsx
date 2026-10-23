@@ -383,7 +383,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
               <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
             )}
 
-            {exchange.observations.length > 0 ? (
+            {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
               <details className="companion-details">
                 <summary>Voir les constats ({exchange.observations.length})</summary>
                 <div className="companion-observations">
@@ -484,7 +484,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                 <span>Utiliser ce fournisseur dans le mode Conversation</span>
               </label>
               <p className="companion-provider-warning">Attention : une clé saisie dans une application GitHub Pages n’est pas un secret inviolable. Ne l’utilise pas sur un appareil partagé. Lorsque le fournisseur est activé, la question, l’historique récent et les données métier utiles de la cartographie lui sont envoyés. Pour Ollama, le service local doit autoriser les requêtes CORS du navigateur.</p>
-              <button type="button" className="companion-provider-clear-key" onClick={() => setApiKey('')} disabled={!apiKey}>Effacer la clé de cette session</button>
+              <button type="button" className="companion-provider-clear-key" data-testid="companion-provider-clear-key" onClick={() => setApiKey('')} disabled={!apiKey}>Effacer la clé de cette session</button>
             </section>
           )}
 
