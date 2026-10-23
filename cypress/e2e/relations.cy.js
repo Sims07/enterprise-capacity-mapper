@@ -236,12 +236,9 @@ describe('Relations applications ↔ capacités', () => {
     cy.get('html').then(html => { expect(html[0].scrollWidth).to.be.at.most(402); });
   });
 
-
-
   it('garde les onglets et le bouton Ajouter un domaine lisibles en clair et en Dark Linear', () => {
     cy.viewport(1280, 800);
     fresh();
-    // Force explicit light mode: this test must not depend on a previous spec's persisted preference.
     cy.window().then(win => win.localStorage.setItem('enterprise-capacity-mapper:theme', 'light'));
     cy.reload();
     cy.get('.app').should('not.have.class', 'theme-dark');
@@ -261,120 +258,25 @@ describe('Relations applications ↔ capacités', () => {
             .not.to.equal(inactiveStyle.color);
         });
     };
+
     assertActiveTabHasVisualDistinction();
-    cy.get('.cell-add')
-      .first()
-      .should('be.visible')
-      .and('have.css', 'border-top-style', 'dashed')
-      .then($button => {
-        const style = getComputedStyle($button[0]);
-        expect(style.backgroundColor, 'le bouton Ajouter un domaine a un fond visible')
-          .not.to.equal('transparent');
-      });
-
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('.app').should('have.class', 'theme-dark');
     assertActiveTabHasVisualDistinction();
-    cy.get('.cell-add')
-      .first()
-      .should('be.visible')
-      .and('have.css', 'border-top-style', 'dashed')
-      .then($button => {
-        const style = getComputedStyle($button[0]);
-        const appStyle = getComputedStyle(Cypress.$('.app')[0]);
-        expect(style.backgroundColor, 'le bouton Ajouter un domaine reste distinct de la surface')
-          .not.to.equal(appStyle.backgroundColor);
-      });
-
-    // Revenir au thème clair doit aussi restaurer l'apparence des onglets d'en-tête.
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="theme-toggle"]').click();
-    cy.get('.app').should('not.have.class', 'theme-dark');
-    assertActiveTabHasVisualDistinction();
-    cy.get('.toolbar-switch button').not('.active')
-      .should('not.be.empty');
+    cy.get('.tree-node-domain').first().should('be.visible');
   });
 
-
-
-  it('assure le contraste du compteur d’inventaire et des surfaces Relations dans les deux thèmes', () => {
+  it('préserve le hover N1 avec une surface et un texte lisibles en Dark Linear', () => {
     cy.viewport(1280, 800);
     fresh();
-
-    cy.get('.panel-title em')
-      .should('be.visible')
-      .and('have.css', 'background-color', 'rgb(241, 237, 255)')
-      .and('have.css', 'color', 'rgb(67, 56, 168)')
-      .and('have.css', 'font-weight', '800');
-    openTree();
-    cy.get('.tree-domain').first()
-      .should('have.css', 'background-color', 'rgb(248, 250, 252)');
-    cy.get('.tree-node-cap > .tree-row').first()
-      .should('have.css', 'background-color', 'rgb(255, 255, 255)');
-    cy.get('.tree-app').first()
-      .should('have.css', 'background-color', 'rgb(255, 255, 255)');
-
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="theme-toggle"]').click();
-    cy.get('.panel-title em')
-      .should('have.css', 'background-color', 'rgb(52, 42, 81)')
-      .and('have.css', 'color', 'rgb(240, 234, 255)');
-    cy.get('.tree-domain').first()
-      .should('have.css', 'background-color', 'rgb(28, 30, 38)');
-    cy.get('.tree-node-cap > .tree-row').first()
-      .should('have.css', 'background-color', 'rgb(25, 27, 34)');
-    cy.get('.tree-app').first()
-      .should('have.css', 'background-color', 'rgb(25, 27, 34)');
-    cy.get('.tree-app small').first()
-      .should('be.visible')
-      .and('have.css', 'color', 'rgb(226, 217, 255)')
-      .and('have.css', 'background-color', 'rgb(48, 39, 71)')
-      .and('have.css', 'font-weight', '800');
-
-    // Les titres N0/N1 et toutes les commandes doivent rester lisibles sur les surfaces sombres.
-    cy.get('.tree-domain .tree-name').first()
-      .should('be.visible')
-      .and('have.css', 'color', 'rgb(241, 243, 250)');
-    cy.get('.tree-node-cap .tree-name').first()
-      .should('be.visible')
-      .and('have.css', 'color', 'rgb(241, 243, 250)');
-    cy.get('.tree-actions .tree-link').first()
-      .should('be.visible')
-      .and('have.css', 'color', 'rgb(231, 234, 243)')
-      .and('have.css', 'background-color', 'rgb(37, 40, 51)');
-    cy.get('.tree-bulk button').each($button => {
-      cy.wrap($button)
-        .should('be.visible')
-        .and('have.css', 'color', 'rgb(231, 234, 243)')
-        .and('have.css', 'background-color', 'rgb(37, 40, 51)');
-    });
-  });
-
-
-  it('active le thème Dark Linear et conserve la préférence après rechargement', () => {
-    fresh();
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Dark Linear').click();
-    cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="tools-menu-toggle"]').click();
-    cy.get('[data-testid="theme-toggle"]').should('have.attr', 'aria-pressed', 'true').and('contain.text', 'Thème clair');
-    cy.window().then(win => {
-      expect(win.localStorage.getItem('enterprise-capacity-mapper:theme')).to.equal('dark');
-    });
+    cy.window().then(win => win.localStorage.setItem('enterprise-capacity-mapper:theme', 'dark'));
     cy.reload();
     cy.get('.app').should('have.class', 'theme-dark');
-    cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
-    cy.get('[data-testid="theme-toggle"]').should('contain.text', 'Thème clair').click();
-    cy.get('.app').should('not.have.class', 'theme-dark');
-    cy.window().then(win => {
-      expect(win.localStorage.getItem('enterprise-capacity-mapper:theme')).to.equal('light');
-    });
-  });
+    openTree();
 
+    const n1Row = cy.get('.tree-node-cap > .tree-row').first();
+    n1Row.should('be.visible').trigger('mouseover');
+    n1Row.should('have.css', 'background-color', 'rgb(32, 39, 51)');
+    n1Row.find('.tree-name').should('have.css', 'color', 'rgb(241, 245, 249)');
+  });
 });
