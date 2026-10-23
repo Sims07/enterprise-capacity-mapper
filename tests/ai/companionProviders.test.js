@@ -76,7 +76,7 @@ test('Ollama analyse les lignes JSON du flux même sans lecteur streaming', asyn
     fetchImpl: async () => ({
       ok: true,
       status: 200,
-      text: async () => chunks.map(chunk => JSON.stringify(chunk)).join('\\n'),
+      text: async () => chunks.map(chunk => JSON.stringify(chunk)).join('\n'),
     }),
   });
   assert.equal(answer, 'Bonjour ! Je suis là.');
