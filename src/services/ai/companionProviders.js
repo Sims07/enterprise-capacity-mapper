@@ -80,6 +80,54 @@ async function readResponse(response) {
   return response.json();
 }
 
+async function readOllamaStream(response, onChunk) {
+  // Simple mocked responses and older runtimes may not expose a readable body.
+  if (!response.body?.getReader) {
+    const data = await response.json();
+    const answer = data?.message?.content;
+    if (typeof answer === 'string' && answer) onChunk?.(answer);
+    return answer;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let answer = '';
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        let payload;
+        try { payload = JSON.parse(line); } catch { continue; }
+        if (payload.error) throw new Error('Ollama a signalé une erreur pendant la génération.');
+        const chunk = payload?.message?.content;
+        if (typeof chunk === 'string' && chunk) {
+          answer += chunk;
+          onChunk?.(chunk);
+        }
+      }
+    }
+    buffer += decoder.decode();
+    if (buffer.trim()) {
+      const payload = JSON.parse(buffer);
+      if (payload.error) throw new Error('Ollama a signalé une erreur pendant la génération.');
+      const chunk = payload?.message?.content;
+      if (typeof chunk === 'string' && chunk) {
+        answer += chunk;
+        onChunk?.(chunk);
+      }
+    }
+  } finally {
+    reader.releaseLock?.();
+  }
+  return answer;
+}
+
 export async function sendCompanionMessage({
   provider,
   model,
@@ -89,6 +137,7 @@ export async function sendCompanionMessage({
   cartography,
   history = [],
   fetchImpl = fetch,
+  onChunk,
 }) {
   if (!Object.hasOwn(PROVIDER_DEFAULTS, provider)) throw new Error('Choisis un fournisseur reconnu.');
   if (!String(model || '').trim()) throw new Error('Renseigne le nom du modèle.');
@@ -107,7 +156,7 @@ export async function sendCompanionMessage({
   ];
   const url = endpointFor(provider, endpoint, model);
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const timeoutId = controller ? setTimeout(() => controller.abort(), 60000) : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), 180000) : null;
   const options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller?.signal };
 
   try {
@@ -117,7 +166,7 @@ export async function sendCompanionMessage({
         ...options,
         body: JSON.stringify({
           model: model.trim(),
-          stream: false,
+          stream: true,
           messages,
         }),
       });
@@ -139,16 +188,18 @@ export async function sendCompanionMessage({
       });
     }
 
-    const data = await readResponse(response);
+    const data = provider === 'ollama'
+      ? await readOllamaStream(response, onChunk)
+      : await readResponse(response);
     const answer = provider === 'ollama'
-      ? data?.message?.content
+      ? data
       : provider === 'openai'
         ? data?.choices?.[0]?.message?.content
         : data?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('\n');
     if (typeof answer !== 'string' || !answer.trim()) throw new Error('Le fournisseur n’a renvoyé aucune réponse textuelle.');
     return answer.trim();
   } catch (error) {
-    if (error?.name === 'AbortError') throw new Error('La requête a dépassé 60 secondes. Vérifie le fournisseur et réessaie.');
+    if (error?.name === 'AbortError') throw new Error('La génération a dépassé 3 minutes. Vérifie le fournisseur et réessaie.');
     if (error instanceof TypeError) {
       throw new Error(provider === 'ollama'
         ? 'Ollama est inaccessible. Vérifie qu’il est démarré, que l’URL est correcte et que CORS autorise cette application.'
