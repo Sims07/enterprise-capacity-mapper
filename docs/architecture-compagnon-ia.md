@@ -11,7 +11,7 @@ Ce document fixe les frontières fonctionnelles avant l’ajout d’une interfac
 - Le modèle de cartographie existant reste la source de vérité.
 - L’analyse est en lecture seule : elle ne corrige, ne renomme et ne supprime aucun élément.
 - Le modèle et les résultats d’analyse ne sont pas fusionnés dans le JSON métier ni dans les exports.
-- Les fournisseurs cloud et les modèles locaux seront ajoutés dans des lots ultérieurs, derrière un contrat commun.
+- Les fournisseurs conversationnels sont branchés derrière un contrat commun dans `src/services/ai/companionProviders.js` : Ollama, OpenAI et Google Gemini.
 
 ## Vocabulaire métier
 
@@ -92,7 +92,7 @@ Les réponses génératives ne sont pas des faits de référence. L’applicatio
 
 ## Confidentialité et évolutivité
 
-Pour les futurs lots :
+Pour le fonctionnement multi-fournisseurs :
 
 - Le mode local doit être distinct du mode cloud et ne doit déclencher aucun appel cloud.
 - L’utilisateur choisit explicitement le fournisseur cloud et voit les éléments transmis avant le premier envoi.
@@ -100,7 +100,7 @@ Pour les futurs lots :
 - Sur GitHub Pages, une clé saisie dans le navigateur n’est pas un secret inviolable. La garder en mémoire réduit sa persistance mais ne protège pas contre l’inspection du navigateur.
 - Les préférences non sensibles peuvent être locales ; la clé API ne doit pas être persistée par défaut.
 - Les erreurs et diagnostics ne doivent pas journaliser la clé, le prompt complet ni la cartographie entière.
-- Un usage entreprise avec secrets partagés, contrôle d’accès ou quotas administrés nécessitera un service intermédiaire sécurisé ; cette infrastructure n’est pas requise pour le lot 1.
+- Un usage entreprise avec secrets partagés, contrôle d’accès ou quotas administrés nécessitera un service intermédiaire sécurisé ; cette infrastructure n’est pas fournie par l’application statique.
 
 ## Stratégie de test
 
@@ -132,3 +132,25 @@ Le composant `src/components/CartographerCompanion.jsx` ajoute un panneau flotta
 
 Les tests Cypress de ce lot valident l’ouverture du panneau, la disponibilité des questions guidées lorsque les résultats défilent, la suppression d’un échange, la réinitialisation complète après confirmation, le passage entre les deux modes sans perte d’historique, la recherche des capacités d’une application, la recherche inverse des applications liées à une capacité, le traitement explicite d’un nom introuvable, la soumission d’une question, la fermeture au clavier, le thème sombre et l’affichage mobile sans assertion fragile sur les valeurs RGB/RGBA.
 
+
+
+## Lot 3 — Fournisseurs conversationnels
+
+Le compagnon peut utiliser trois fournisseurs derrière `sendCompanionMessage` :
+
+- **Ollama** : appel local `/api/chat`, par défaut sur `http://localhost:11434`, avec streaming activé (`stream: true`). Le navigateur lit les événements JSON successifs et affiche les fragments de texte au fil de leur réception. L’interface indique « Le modèle prépare sa réponse… » avant le premier fragment, puis « Réponse en cours de génération… » tant que le flux continue. Le délai maximal de génération est de trois minutes. Ollama doit être démarré et autoriser les requêtes CORS de l’origine GitHub Pages ou de développement.
+- **OpenAI** : appel à l’API Chat Completions, avec un modèle configurable et une clé Bearer.
+- **Google Gemini** : appel à `generateContent`, avec modèle et URL de service configurables.
+
+### Activation et données transmises
+
+- L’application reste statique, compatible GitHub Pages ; aucun secret ou fournisseur n’est configuré dans le bundle.
+- Le mode local est activé par défaut. L’utilisateur doit ouvrir les paramètres IA et activer explicitement le fournisseur pour les questions du mode Conversation. Les contrôles guidés restent déterministes et locaux.
+- Le fournisseur, le modèle, l’URL et l’activation sont conservés dans le stockage local du navigateur. La clé API cloud reste en mémoire React, est effacée lors d’un changement de fournisseur et n’est jamais écrite dans le stockage local.
+- Lorsqu’un fournisseur est activé, la question, les derniers échanges et un sous-ensemble utile des données métier (domaines, capacités, applications et relations) sont transmis au fournisseur sélectionné. L’interface affiche cet avertissement avant l’envoi.
+- Une clé saisie dans le navigateur n’est pas protégée contre l’inspection locale. Cette solution convient à un usage personnel explicite, mais pas à un secret partagé dans une organisation. Un service intermédiaire sécurisé est nécessaire pour administrer les secrets, les quotas et les accès.
+- Les réponses génératives sont affichées comme réponses du fournisseur et ne modifient jamais la cartographie. Les erreurs réseau sont présentées sans journaliser la clé ni recopier le corps d’erreur du fournisseur.
+
+### Vérifications
+
+Les tests unitaires couvrent le format d’appel et l’extraction de réponse des trois fournisseurs, la lecture progressive des fragments Ollama, le refus d’un appel cloud sans clé, la réduction des données transmises et la neutralisation des détails du corps d’erreur HTTP. Les tests Cypress simulent Ollama sans appel réseau réel, vérifient l’indicateur d’attente et contrôlent que la clé cloud n’est pas persistée. Aucun test ne nécessite de clé réelle ni de compte fournisseur.

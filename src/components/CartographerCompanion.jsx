@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { analyzeCartography } from '../services/ai/cartographyAnalysis.js';
+import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences, sendCompanionMessage } from '../services/ai/companionProviders.js';
 
 const PROMPTS = [
   { id: 'overview', label: 'Évaluer la cartographie', description: 'Obtenir une vue d’ensemble des points à examiner.', icon: '✦' },
@@ -57,9 +58,17 @@ export default function CartographerCompanion({ model, darkMode = false }) {
   const [mode, setMode] = useState('guided');
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [providerSettings, setProviderSettings] = useState(() => loadCompanionProviderPreferences());
+  const [apiKey, setApiKey] = useState('');
+  const [showProviderSettings, setShowProviderSettings] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const conversationRef = useRef(null);
+
+  useEffect(() => {
+    saveCompanionProviderPreferences(providerSettings);
+  }, [providerSettings]);
 
   useEffect(() => {
     setHistory([]);
@@ -108,6 +117,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
       answer: resultMessage(prompt, fullResult, observations),
       observations,
       counts,
+      source: 'local',
     }]);
   };
 
@@ -237,7 +247,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
     return true;
   };
 
-  const addDirectAnswer = (question, answer, observations) => {
+  const addDirectAnswer = (question, answer, observations, source = 'local') => {
     const counts = {
       total: observations.length,
       errors: observations.filter(item => item.severity === 'error').length,
@@ -252,13 +262,60 @@ export default function CartographerCompanion({ model, darkMode = false }) {
       answer,
       observations,
       counts,
+      source,
     }]);
   };
 
-  const submitQuestion = event => {
+  const submitQuestion = async event => {
     event.preventDefault();
     const question = query.trim();
-    if (!question) return;
+    if (!question || isSending) return;
+
+    if (providerSettings.enabled) {
+      const exchangeId = `${Date.now()}-${history.length}`;
+      setIsSending(true);
+      setHistory(previous => [...previous, {
+        id: exchangeId,
+        question,
+        prompt: 'conversation',
+        answer: '',
+        observations: [],
+        counts: { total: 0, errors: 0, reviews: 0, suggestions: 0 },
+        source: providerSettings.provider,
+        status: 'streaming',
+      }]);
+      setQuery('');
+      try {
+        const answer = await sendCompanionMessage({
+          provider: providerSettings.provider,
+          model: providerSettings.model,
+          endpoint: providerSettings.endpoint,
+          apiKey,
+          question,
+          cartography: model,
+          history,
+          onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+            ? { ...exchange, answer: exchange.answer + chunk }
+            : exchange)),
+        });
+        setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+          ? { ...exchange, answer: answer || exchange.answer, status: null }
+          : exchange));
+      } catch (error) {
+        setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+          ? {
+              ...exchange,
+              answer: `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`,
+              source: 'error',
+              status: null,
+            }
+          : exchange));
+      } finally {
+        setIsSending(false);
+      }
+      return;
+    }
+
     if (!runRelationshipLookup(question)) {
       const normalized = question.toLocaleLowerCase('fr');
       const prompt = /couverture|gap|application|relation|redondance/.test(normalized)
@@ -311,12 +368,22 @@ export default function CartographerCompanion({ model, darkMode = false }) {
               <span className="companion-avatar" aria-hidden="true">✦</span>
               <div>
                 <p className="companion-message-role">Compagnon cartographe</p>
-                <p className="companion-answer-meta">{exchange.counts.total} point(s) détecté(s) · analyse locale</p>
+                <p className="companion-answer-meta">{exchange.status === 'streaming' ? `Génération en cours · ${PROVIDER_DEFAULTS[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${PROVIDER_DEFAULTS[exchange.source]?.label || exchange.source}`}</p>
               </div>
             </div>
-            <p className="companion-answer-text" data-testid="companion-answer">{exchange.answer}</p>
+            {exchange.status === 'streaming' && !exchange.answer ? (
+              <p className="companion-thinking" role="status" data-testid="companion-thinking">
+                <span className="companion-thinking-indicator" aria-hidden="true" />
+                Le modèle prépare sa réponse…
+              </p>
+            ) : (
+              <p className="companion-answer-text" data-testid="companion-answer">{exchange.answer}</p>
+            )}
+            {exchange.status === 'streaming' && exchange.answer && (
+              <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
+            )}
 
-            {exchange.observations.length > 0 ? (
+            {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
               <details className="companion-details">
                 <summary>Voir les constats ({exchange.observations.length})</summary>
                 <div className="companion-observations">
@@ -341,10 +408,10 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                   ))}
                 </div>
               </details>
-            ) : (
+            ) : exchange.source === 'local' ? (
               <p className="companion-no-findings">Aucun constat n’a été relevé par cette revue.</p>
-            )}
-            <p className="companion-disclaimer">Résultat indicatif des règles locales ; à valider avec le contexte métier.</p>
+            ) : null}
+            {exchange.status !== 'streaming' && <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.' : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>}
           </div>
           {index < history.length - 1 && <div className="companion-exchange-divider" aria-hidden="true" />}
         </article>
@@ -371,13 +438,55 @@ export default function CartographerCompanion({ model, darkMode = false }) {
               <h2 id="companion-title">Compagnon cartographe</h2>
               <p>Votre revue de cartographie d’entreprise</p>
             </div>
+            <button type="button" className="companion-settings-toggle" aria-label="Configurer le fournisseur IA" data-testid="companion-settings-toggle" aria-expanded={showProviderSettings} onClick={() => setShowProviderSettings(value => !value)}>IA</button>
             <button type="button" className="companion-close" aria-label="Fermer le compagnon" data-testid="companion-close" onClick={() => { setOpen(false); triggerRef.current?.focus(); }}>×</button>
           </div>
 
           <div className="companion-mode-note" role="note">
             <span className="companion-status-dot" aria-hidden="true" />
-            <span><strong>Analyse locale</strong> · aucune donnée transmise</span>
+            <span>{providerSettings.enabled
+              ? <><strong>Fournisseur actif : {PROVIDER_DEFAULTS[providerSettings.provider].label}</strong> · la question et le contexte métier seront transmis à ce fournisseur.</>
+              : <><strong>Analyse locale</strong> · aucune donnée transmise</>}</span>
           </div>
+
+          {showProviderSettings && (
+            <section className="companion-provider-settings" data-testid="companion-provider-settings" aria-label="Configuration du fournisseur IA">
+              <div className="companion-provider-settings-heading">
+                <strong>Fournisseur conversationnel</strong>
+                <span>Les préférences sont enregistrées dans ce navigateur ; la clé API reste uniquement en mémoire.</span>
+              </div>
+              <label className="companion-provider-field">
+                <span>Fournisseur</span>
+                <select data-testid="companion-provider" value={providerSettings.provider} onChange={event => {
+                  const provider = event.target.value;
+                  setProviderSettings(current => ({ ...current, provider, model: PROVIDER_DEFAULTS[provider].model, endpoint: PROVIDER_DEFAULTS[provider].endpoint }));
+                  setApiKey('');
+                }}>
+                  {Object.entries(PROVIDER_DEFAULTS).map(([value, option]) => <option value={value} key={value}>{option.label}</option>)}
+                </select>
+              </label>
+              <label className="companion-provider-field">
+                <span>Modèle</span>
+                <input data-testid="companion-provider-model" value={providerSettings.model} onChange={event => setProviderSettings(current => ({ ...current, model: event.target.value }))} autoComplete="off" />
+              </label>
+              <label className="companion-provider-field">
+                <span>URL du service</span>
+                <input data-testid="companion-provider-endpoint" value={providerSettings.endpoint} onChange={event => setProviderSettings(current => ({ ...current, endpoint: event.target.value }))} autoComplete="url" spellCheck="false" />
+              </label>
+              {providerSettings.provider !== 'ollama' && (
+                <label className="companion-provider-field">
+                  <span>Clé API (non enregistrée)</span>
+                  <input data-testid="companion-provider-key" type="password" value={apiKey} onChange={event => setApiKey(event.target.value)} autoComplete="new-password" placeholder="Saisir la clé pour cette session" />
+                </label>
+              )}
+              <label className="companion-provider-enable">
+                <input data-testid="companion-provider-enabled" type="checkbox" checked={providerSettings.enabled} onChange={event => setProviderSettings(current => ({ ...current, enabled: event.target.checked }))} />
+                <span>Utiliser ce fournisseur dans le mode Conversation</span>
+              </label>
+              <p className="companion-provider-warning">Attention : une clé saisie dans une application GitHub Pages n’est pas un secret inviolable. Ne l’utilise pas sur un appareil partagé. Lorsque le fournisseur est activé, la question, l’historique récent et les données métier utiles de la cartographie lui sont envoyés. Pour Ollama, le service local doit autoriser les requêtes CORS du navigateur.</p>
+              <button type="button" className="companion-provider-clear-key" data-testid="companion-provider-clear-key" onClick={() => setApiKey('')} disabled={!apiKey}>Effacer la clé de cette session</button>
+            </section>
+          )}
 
           <div className="companion-mode-toolbar">
             <div className="companion-mode-switch" role="group" aria-label="Mode du compagnon">
@@ -449,7 +558,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                   <span className="companion-avatar" aria-hidden="true">✦</span>
                   <div>
                     <p className="companion-message-title">Bonjour, regardons votre cartographie.</p>
-                    <p>Posez une question en langage naturel. Pour le moment, elle oriente vers des contrôles locaux prédéfinis ; aucun modèle conversationnel n’est connecté.</p>
+                    <p>{providerSettings.enabled ? 'Posez une question en langage naturel. Les réponses du modèle apparaissent progressivement pendant leur génération.' : 'Posez une question en langage naturel pour examiner votre cartographie avec les contrôles locaux.'}</p>
                   </div>
                 </div>
               </div>
@@ -465,15 +574,16 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                 data-testid="companion-question"
                 value={query}
                 onChange={event => setQuery(event.target.value)}
-                placeholder="Posez une question sur votre cartographie…"
+                placeholder={isSending ? 'Réponse en cours…' : 'Posez une question sur votre cartographie…'}
                 autoComplete="off"
+                disabled={isSending}
               />
               <button type="submit" aria-label="Envoyer la question" disabled={!query.trim()} data-testid="companion-submit">↑</button>
             </form>
           ) : (
             <p className="companion-guided-footer">Les résultats restent disponibles dans cet onglet. Passez en mode Conversation pour poser une question libre.</p>
           )}
-          <p className="companion-footer-note">Historique conservé pendant cette session · pas encore de modèle conversationnel connecté</p>
+          <p className="companion-footer-note">Historique conservé pendant cette session · {providerSettings.enabled ? `fournisseur ${PROVIDER_DEFAULTS[providerSettings.provider].label} activé` : 'mode local, aucun envoi réseau'}</p>
         </section>
       )}
       <button
