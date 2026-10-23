@@ -116,3 +116,17 @@ Les tests doivent privilégier les règles métier et les preuves de comportemen
 - absence de règle qui qualifie les statuts applicatifs différents d’incohérence à eux seuls.
 
 Les tests d’API réels seront distincts des tests Cypress E2E, afin de conserver une suite reproductible sans clé secrète ni dépendance réseau.
+
+## Lot 2 — Interface du compagnon
+
+Le composant `src/components/CartographerCompanion.jsx` ajoute un panneau flottant accessible depuis l’application. Il reçoit le modèle courant en lecture seule et appelle uniquement `analyzeCartography`, dans le navigateur.
+
+- Les actions rapides filtrent les constats par couverture, nommage ou structure.
+- La zone de question libre est, pour ce lot, une aide de navigation vers ces mêmes contrôles locaux à partir de mots-clés ; elle n’est pas une conversation générative.
+- Le panneau indique explicitement que le modèle n’est pas transmis et qu’aucun fournisseur conversationnel n’est encore connecté.
+- Les résultats présentent la sévérité, l’explication, la piste de revue et les éléments concernés.
+- L’interface est compatible avec les thèmes clair/sombre, le clavier (Échap pour fermer), la préférence de réduction des animations et les petits écrans.
+- Les résultats restent en mémoire React et ne sont ni sauvegardés dans le modèle métier, ni ajoutés aux exports.
+
+Les tests Cypress de ce lot valident l’ouverture du panneau, les actions de revue, la soumission d’une question, la fermeture au clavier, le thème sombre et l’affichage mobile sans assertion fragile sur les valeurs RGB/RGBA.
+
