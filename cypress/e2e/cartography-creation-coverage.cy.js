@@ -32,23 +32,41 @@ describe('Lot 6 — création et arbre de cartographie', () => {
     cy.get('[data-testid="wizard-step-2"]').should('be.visible');
   });
 
+  it('présente des points de départ orientés capability mapping et conserve la chaîne de valeur', () => {
+    openWizard();
+    cy.get('[data-testid="template-capability-map"]').should('contain.text', 'Cartographie de capacités');
+    cy.get('[data-testid="template-capability-map"]').should('contain.text', 'structure neutre');
+    cy.get('[data-testid="template-value-chain"]').should('contain.text', 'Capacités par chaîne de valeur');
+    cy.get('[data-testid="template-blank"]').should('contain.text', 'Cartographie vierge');
+    cy.get('[data-testid="template-matrix"]').should('not.exist');
+  });
+
+  it('couvre les deux niveaux de détail et leur vocabulaire métier', () => {
+    openWizard();
+    cy.get('[data-testid="depth-1"]').should('contain.text', 'Vue synthétique');
+    cy.get('[data-testid="depth-2"]').should('contain.text', 'Vue détaillée');
+    cy.get('[data-testid="depth-2"]').click().should('have.attr', 'aria-pressed', 'true');
+    cy.contains('.structure-hint', 'axes de la grille servent uniquement à organiser leur lecture').should('be.visible');
+    cy.get('[data-testid="depth-1"]').click().should('have.attr', 'aria-pressed', 'true');
+  });
+
   it('couvre l’édition complète des axes : ajout, renommage, déplacement et suppression', () => {
     openWizard();
     cy.contains('.wizard-footer button', 'Suivant').click();
 
     cy.get('[data-testid="structure-add-columns"]').click();
-    cy.get('[data-testid="structure-columns-input"]').should('have.length', 5);
+    cy.get('[data-testid="structure-columns-input"]').should('have.length', 4);
     cy.get('[data-testid="structure-columns-input"]').last().clear().type('Canal');
     cy.get('[aria-label="Monter Canal"]').click();
-    cy.get('[data-testid="structure-columns-input"]').eq(3).should('have.value', 'Canal');
+    cy.get('[data-testid="structure-columns-input"]').eq(2).should('have.value', 'Canal');
     cy.get('[aria-label="Supprimer Canal"]').click();
-    cy.get('[data-testid="structure-columns-input"]').should('have.length', 4);
+    cy.get('[data-testid="structure-columns-input"]').should('have.length', 3);
 
     cy.get('[data-testid="structure-add-layers"]').click();
     cy.get('[data-testid="structure-layers-input"]').last().clear().type('Tactique');
     cy.get('[aria-label="Monter Tactique"]').click();
     cy.get('[aria-label="Supprimer Tactique"]').click();
-    cy.get('[data-testid="structure-layers-input"]').should('have.length', 3);
+    cy.get('[data-testid="structure-layers-input"]').should('have.length', 1);
 
     cy.get('[data-testid="structure-columns-input"]').first().clear().type('Client modifié');
     cy.get('[data-testid="wizard-preview"]').should('contain.text', 'Client modifié');
@@ -64,7 +82,7 @@ describe('Lot 6 — création et arbre de cartographie', () => {
     cy.get('[data-testid="wizard-step-1"]').should('be.visible');
   });
 
-  it('construit le récapitulatif et expose la sauvegarde avant remplacement', () => {
+  it('construit le récapitulatif avec le niveau et le point de départ sélectionnés', () => {
     openWizard();
     cy.get('[data-testid="wizard-name"]').clear().type('Cartographie sauvegardée');
     cy.get('[data-testid="wizard-description"]').type('Description de test');
@@ -75,6 +93,8 @@ describe('Lot 6 — création et arbre de cartographie', () => {
 
     cy.get('[data-testid="wizard-step-3"]').should('contain.text', 'Cartographie sauvegardée')
       .and('contain.text', 'Description de test')
+      .and('contain.text', 'Vue synthétique · N0')
+      .and('contain.text', 'Capacités par chaîne de valeur')
       .and('contain.text', 'Concevoir')
       .and('contain.text', 'Management');
     cy.get('[data-testid="wizard-warning"]').should('be.visible');
