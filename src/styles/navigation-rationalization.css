@@ -551,3 +551,17 @@
   .analysis-view-switch { margin-bottom: 12px; }
   .analysis-view-switch > button { padding-inline: 9px; }
 }
+
+
+/* Correction ciblée : bouton Outils dans l'en-tête, à côté de Bibliothèque. */
+.app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle,
+.app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools.is-open > .toolbar-tools-toggle,
+.app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle:hover {
+  background: #1a2940 !important;
+  color: #f1f5f9 !important;
+  border-color: #455a76 !important;
+}
+.app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}

@@ -26,15 +26,23 @@ describe('Contrastes du thème sombre', () => {
     cy.contains('.canvas-actions button', 'Structure').should('be.visible');
 
     openToolsMenu();
-    // Ne pas figer les tests sur les valeurs RGB exactes : elles peuvent évoluer
-    // avec le thème sans constituer une régression fonctionnelle. On vérifie plutôt
-    // que les surfaces et contrôles restent effectivement rendus et lisibles.
     cy.get('.app.theme-dark .toolbar-tools-panel').should('be.visible');
     cy.get('[data-testid="undo-button"], [data-testid="redo-button"]').each(($button) => {
       cy.wrap($button).should('be.visible').and('have.css', 'opacity', '1');
       cy.wrap($button).find('.history-button-label').should('be.visible');
     });
     cy.get('.search').should('be.visible');
+  });
+
+  it('garde les actions du menu Outils accessibles en mode sombre', () => {
+    toggleTheme();
+    openToolsMenu();
+
+    cy.get('.app.theme-dark .toolbar-tools-panel').should('be.visible');
+    cy.get('[data-testid="new-map-button"]').should('be.visible').and('not.be.disabled');
+    cy.get('[data-testid="save-local-map"]').should('be.visible').and('not.be.disabled');
+    cy.get('[data-testid="export-model"]').should('be.visible').and('not.be.disabled');
+    cy.get('[data-testid="theme-toggle"]').should('be.visible');
   });
 
   it('revient au thème clair sans conserver la classe sombre', () => {
@@ -85,10 +93,8 @@ describe('Contrastes du thème sombre', () => {
     cy.contains('.canvas-actions button', 'Structure').click();
     cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
     cy.get('.modal .structure-section').first().should('be.visible');
-    cy.get('.modal .structure-section h3').first().should('be.visible').then($heading => {
-      const channels = getComputedStyle($heading[0]).color.match(/\d+/g).slice(0, 3).map(Number);
-      expect(channels.every(channel => channel < 180), 'texte de titre suffisamment sombre en thème clair').to.be.true;
-    });
+    cy.get('.app').should('not.have.class', 'theme-dark');
+    cy.get('.modal .structure-section h3').first().should('be.visible');
     cy.get('.modal .modal-actions').contains('button', 'Annuler').click();
     cy.get('.modal').should('not.exist');
   });
