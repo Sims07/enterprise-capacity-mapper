@@ -62,6 +62,27 @@ test('Ollama diffuse les fragments reçus et les expose au fil de la lecture', a
   assert.deepEqual(received, ['Bonjour', ' !', ' Comment puis-je aider ?']);
 });
 
+test('Ollama analyse les lignes JSON du flux même sans lecteur streaming', async () => {
+  const chunks = [
+    { message: { content: 'Bonjour' }, done: false },
+    { message: { content: ' !' }, done: false },
+    { message: { content: ' Je suis là.' }, done: true },
+  ];
+  const received = [];
+  const answer = await sendCompanionMessage({
+    provider: 'ollama', model: 'qwen2.5:0.5b', endpoint: 'http://localhost:11434',
+    question: 'Bonjour', cartography,
+    onChunk: chunk => received.push(chunk),
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      text: async () => chunks.map(chunk => JSON.stringify(chunk)).join('\\n'),
+    }),
+  });
+  assert.equal(answer, 'Bonjour ! Je suis là.');
+  assert.deepEqual(received, ['Bonjour', ' !', ' Je suis là.']);
+});
+
 test('OpenAI envoie la clé dans le header et lit choices[0].message.content', async () => {
   let request;
   const answer = await sendCompanionMessage({
