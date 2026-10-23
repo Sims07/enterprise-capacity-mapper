@@ -56,7 +56,9 @@ test('Gemini utilise le modèle configuré et extrait les parties de texte', asy
     },
   });
   assert.equal(answer, 'Premier point.\nDeuxième point.');
-  assert.match(request.url, /models\/gemini-test:generateContent\?key=test-secret$/);
+  assert.match(request.url, /models\/gemini-test:generateContent$/);
+  assert.equal(request.options.headers['x-goog-api-key'], 'test-secret');
+  assert.doesNotMatch(request.url, /test-secret/);
 });
 
 test('refuse les appels cloud sans clé API', async () => {
