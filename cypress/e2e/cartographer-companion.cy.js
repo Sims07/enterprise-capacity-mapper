@@ -126,8 +126,17 @@ describe('Compagnon cartographe — interface locale', () => {
   });
 
   it('configure Ollama et utilise une réponse simulée dans le mode Conversation', () => {
+    cy.intercept('OPTIONS', 'http://localhost:11434/api/chat', {
+      statusCode: 204,
+      headers: {
+        'access-control-allow-origin': 'http://127.0.0.1:4173',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'content-type',
+      },
+    });
     cy.intercept('POST', 'http://localhost:11434/api/chat', {
       statusCode: 200,
+      headers: { 'access-control-allow-origin': 'http://127.0.0.1:4173' },
       body: { message: { content: 'Réponse Ollama simulée : la couverture doit être validée par un architecte.' } },
     }).as('ollamaChat');
 
