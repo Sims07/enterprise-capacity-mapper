@@ -6,6 +6,7 @@ import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
+import CartographerCompanion from './components/CartographerCompanion.jsx';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
@@ -1368,6 +1369,7 @@ function App() {
           </div>
         </Modal>
       )}
+      <CartographerCompanion model={model} darkMode={darkMode} />
     </div>
   );
 }
