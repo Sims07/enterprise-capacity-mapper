@@ -16,40 +16,41 @@ describe('Fondations du design system CSS', () => {
     cy.get('[data-testid="theme-toggle"]').click();
   };
 
-  it('expose des tokens sémantiques en thème clair et sombre', () => {
+  it('change les tokens sémantiques selon le thème actif', () => {
     cy.get('.app').should('not.have.class', 'theme-dark');
     readToken('--color-bg').then(lightBackground => {
-      expect(lightBackground, 'background token in light theme').not.to.equal('');
+      expect(lightBackground, 'light background token').not.to.equal('');
       readToken('--color-text').then(lightText => {
-        expect(lightText, 'text token in light theme').not.to.equal('');
+        expect(lightText, 'light text token').not.to.equal('');
         expect(lightBackground).not.to.equal(lightText);
+
+        toggleTheme();
+        cy.get('.app').should('have.class', 'theme-dark');
+        readToken('--color-bg').then(darkBackground => {
+          expect(darkBackground, 'dark background token').not.to.equal('');
+          expect(darkBackground).not.to.equal(lightBackground);
+          readToken('--color-text').then(darkText => {
+            expect(darkText, 'dark text token').not.to.equal('');
+            expect(darkText).not.to.equal(lightText);
+          });
+        });
       });
     });
 
-    toggleTheme();
-    cy.get('.app').should('have.class', 'theme-dark');
-    readToken('--color-bg').should('not.be.empty').then(darkBackground => {
-      readToken('--color-text').then(darkText => {
-        expect(darkBackground).not.to.equal(darkText);
-        expect(darkBackground).not.to.equal('');
-      });
-      readToken('--color-bg').then(lightOrDarkBackground => {
-        expect(lightOrDarkBackground).not.to.equal('');
-      });
-    });
-    cy.get('.app').should($app => {
+    cy.get('.app').should('have.class', 'theme-dark').then($app => {
       expect(getComputedStyle($app[0]).colorScheme).to.equal('dark');
     });
   });
 
-  it('utilise les tokens sémantiques pour les surfaces globales', () => {
+  it('expose les tokens de surface sur la racine et les panneaux', () => {
     cy.get('.app').should($app => {
       const styles = getComputedStyle($app[0]);
       expect(styles.getPropertyValue('--color-bg').trim()).not.to.equal('');
+      expect(styles.getPropertyValue('--color-surface').trim()).not.to.equal('');
       expect(styles.backgroundColor).not.to.equal('');
     });
     cy.get('.app aside').should('be.visible').and($aside => {
-      expect(getComputedStyle($aside[0]).getPropertyValue('background-color')).not.to.equal('');
+      expect(getComputedStyle($aside[0]).backgroundColor).not.to.equal('');
     });
   });
 });
