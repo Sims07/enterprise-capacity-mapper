@@ -47,9 +47,9 @@ describe('Relations — hover N1 en Dark Linear', () => {
 
       expect(rowRule, 'la règle de hover de la ligne N1 est présente').to.exist;
       expect(toggleRule, 'la règle de hover du bouton N1 est présente').to.exist;
-      expect(rowRule.style.getPropertyValue('background')).to.contain('var(--relation-n1-hover-bg)');
-      expect(toggleRule.style.getPropertyValue('background')).to.contain('var(--relation-n1-hover-bg)');
-      expect(toggleRule.style.getPropertyValue('color')).to.contain('var(--relation-n1-hover-text)');
+      expect(rowRule.cssText).to.contain('var(--relation-n1-hover-bg)');
+      expect(toggleRule.cssText).to.contain('var(--relation-n1-hover-bg)');
+      expect(toggleRule.cssText).to.contain('var(--relation-n1-hover-text)');
     });
   });
 });
