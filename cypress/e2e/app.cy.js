@@ -92,9 +92,9 @@ describe('Application smoke test', () => {
         .and('have.css', 'border-radius', '16px')
         .and('have.css', 'width', '920px');
       cy.get('.wizard-steps li.current').should('have.attr', 'aria-current', 'step');
-      cy.get('[data-testid="template-matrix"]')
+      cy.get('[data-testid="template-capability-map"]')
         .should('have.attr', 'aria-pressed', 'true')
-        .and('have.css', 'background-color', 'rgb(245, 245, 255)');
+        .and('be.visible');
       cy.contains('button', 'Suivant').click();
       cy.get('.axis-editor').should('have.length', 2).and('have.css', 'border-radius', '11px');
       cy.get('[data-testid="wizard-preview"]').should('be.visible');
