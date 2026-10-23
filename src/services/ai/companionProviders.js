@@ -85,8 +85,37 @@ async function readOllamaStream(response, onChunk) {
     // Avoid echoing provider response bodies: they may contain request details.
     throw new Error(`Le fournisseur a répondu avec le statut HTTP ${response.status}.`);
   }
-  // Simple mocked responses and older runtimes may not expose a readable body.
+  // Some runtimes expose the response text but not a readable stream.
+  // Ollama's stream=true response is NDJSON: one JSON object per line, not one JSON document.
   if (!response.body?.getReader) {
+    if (typeof response.text === 'function') {
+      const text = await response.text();
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      // Keep compatibility with non-streaming mocks/responses that contain one JSON object.
+      if (lines.length <= 1) {
+        const data = lines.length ? JSON.parse(lines[0]) : null;
+        const answer = data?.message?.content;
+        if (typeof answer === 'string' && answer) onChunk?.(answer);
+        return answer;
+      }
+      let answer = '';
+      for (const line of lines) {
+        let payload;
+        try {
+          payload = JSON.parse(line);
+        } catch {
+          throw new Error('Ollama a renvoyé un flux JSON invalide.');
+        }
+        if (payload.error) throw new Error('Ollama a signalé une erreur pendant la génération.');
+        const chunk = payload?.message?.content;
+        if (typeof chunk === 'string' && chunk) {
+          answer += chunk;
+          onChunk?.(chunk);
+        }
+      }
+      return answer;
+    }
+    // Compatibility with older tests/runtimes that only expose json().
     const data = await response.json();
     const answer = data?.message?.content;
     if (typeof answer === 'string' && answer) onChunk?.(answer);
