@@ -454,3 +454,36 @@
   opacity: .45;
   cursor: not-allowed;
 }
+
+/* Retour visible pendant la génération locale : ne dépend pas des couleurs calculées par le navigateur. */
+.companion-thinking,
+.companion-streaming-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+  color: var(--companion-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.companion-thinking-indicator {
+  display: inline-block;
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--companion-border);
+  border-top-color: var(--companion-accent);
+  border-radius: 50%;
+  animation: companion-thinking-spin 0.8s linear infinite;
+}
+.companion-streaming-note {
+  margin-top: 4px;
+  font-size: 9px;
+}
+@keyframes companion-thinking-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .companion-thinking-indicator { animation: none; }
+}
+
