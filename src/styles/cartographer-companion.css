@@ -303,3 +303,41 @@
   .companion-prompt { align-items: flex-start; }
   .companion-prompt-icon { margin-top: 1px; }
 }
+
+
+/* Guided controls stay in a fixed section; only the results/chat history scroll. */
+.companion-mode-toolbar { flex: 0 0 auto; padding-bottom: 9px; }
+.companion-mode-toolbar .companion-mode-switch { margin-bottom: 0; }
+.companion-guided-section { flex: 0 0 auto; padding: 10px 16px 12px; border-bottom: 1px solid var(--companion-border); background: var(--companion-bg); }
+.companion-guided-heading h3 { font-size: 12px; }
+.companion-guided-heading p { font-size: 9px; }
+.companion-guided-section .companion-prompts { grid-template-columns: 1fr 1fr; gap: 6px; }
+.companion-guided-section .companion-prompt { align-items: flex-start; gap: 7px; min-height: 54px; padding: 8px; }
+.companion-guided-section .companion-prompt-icon { flex: 0 0 22px; width: 22px; height: 22px; font-size: 12px; }
+.companion-guided-section .companion-prompt-arrow { display: none; }
+.companion-conversation { flex: 1 1 auto; min-height: 0; padding: 13px 16px 16px; }
+.companion-clear-actions { display: flex; justify-content: flex-end; padding: 7px 13px 0; }
+.companion-clear-history, .companion-delete-exchange {
+  border: 0;
+  background: transparent;
+  color: var(--companion-muted);
+  font: inherit;
+  font-size: 10px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.companion-clear-history { color: var(--companion-accent); }
+.companion-exchange-actions { display: flex; justify-content: flex-end; min-height: 20px; }
+.companion-delete-exchange { opacity: .82; }
+.companion-inline-confirm { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 7px; color: var(--companion-muted); font-size: 10px; }
+.companion-inline-confirm button { padding: 4px 7px; border: 1px solid var(--companion-border); border-radius: 6px; background: var(--companion-panel); color: var(--companion-text); font: inherit; font-size: 10px; cursor: pointer; }
+.companion-inline-confirm button:first-of-type { border-color: var(--companion-accent); color: var(--companion-accent); font-weight: 750; }
+.companion-clear-history:focus-visible, .companion-delete-exchange:focus-visible, .companion-inline-confirm button:focus-visible { outline: 3px solid var(--companion-accent); outline-offset: 2px; }
+@media (max-width: 600px) {
+  .companion-guided-section { padding: 8px 12px 10px; }
+  .companion-guided-section .companion-prompt { padding: 7px; }
+  .companion-guided-section .companion-prompt-description { font-size: 8px; }
+  .companion-conversation { padding: 11px 12px 14px; }
+  .companion-inline-confirm { justify-content: flex-start; }
+}
