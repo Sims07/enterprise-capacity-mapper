@@ -53,6 +53,8 @@ export default function CartographerCompanion({ model, darkMode = false }) {
   const [history, setHistory] = useState([]);
   const [activePrompt, setActivePrompt] = useState(null);
   const [mode, setMode] = useState('guided');
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const conversationRef = useRef(null);
@@ -60,6 +62,8 @@ export default function CartographerCompanion({ model, darkMode = false }) {
   useEffect(() => {
     setHistory([]);
     setActivePrompt(null);
+    setConfirmClear(false);
+    setConfirmDeleteId(null);
   }, [model]);
 
   useEffect(() => {
@@ -120,10 +124,34 @@ export default function CartographerCompanion({ model, darkMode = false }) {
     setQuery('');
   };
 
+  const deleteExchange = id => {
+    setHistory(previous => previous.filter(exchange => exchange.id !== id));
+    setConfirmDeleteId(null);
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    setActivePrompt(null);
+    setConfirmClear(false);
+    setConfirmDeleteId(null);
+    setQuery('');
+  };
+
   const renderHistory = () => (
     <div className="companion-chat-history" data-testid="companion-chat-history">
       {history.map((exchange, index) => (
         <article className="companion-exchange" data-testid="companion-exchange" key={exchange.id}>
+          <div className="companion-exchange-actions">
+            {confirmDeleteId === exchange.id ? (
+              <div className="companion-inline-confirm" role="group" aria-label="Confirmer la suppression de cet échange">
+                <span>Supprimer cet échange ?</span>
+                <button type="button" data-testid="companion-confirm-delete-exchange" onClick={() => deleteExchange(exchange.id)}>Supprimer</button>
+                <button type="button" onClick={() => setConfirmDeleteId(null)}>Annuler</button>
+              </div>
+            ) : (
+              <button type="button" className="companion-delete-exchange" data-testid="companion-delete-exchange" aria-label={`Supprimer l’échange : ${exchange.question}`} onClick={() => { setConfirmClear(false); setConfirmDeleteId(exchange.id); }}>Supprimer l’échange</button>
+            )}
+          </div>
           <div className="companion-user-message">
             <span className="companion-message-role">Vous</span>
             <p data-testid="companion-user-question">{exchange.question}</p>
@@ -202,55 +230,70 @@ export default function CartographerCompanion({ model, darkMode = false }) {
             <span><strong>Analyse locale</strong> · aucune donnée transmise</span>
           </div>
 
-          <div className="companion-mode-switch" role="group" aria-label="Mode du compagnon">
-            <button
-              type="button"
-              data-testid="companion-mode-guided"
-              aria-pressed={mode === 'guided'}
-              className={mode === 'guided' ? 'is-active' : ''}
-              onClick={() => setMode('guided')}
-            >
-              Questions guidées
-            </button>
-            <button
-              type="button"
-              data-testid="companion-mode-conversation"
-              aria-pressed={mode === 'conversation'}
-              className={mode === 'conversation' ? 'is-active' : ''}
-              onClick={() => setMode('conversation')}
-            >
-              Conversation
-            </button>
+          <div className="companion-mode-toolbar">
+            <div className="companion-mode-switch" role="group" aria-label="Mode du compagnon">
+              <button
+                type="button"
+                data-testid="companion-mode-guided"
+                aria-pressed={mode === 'guided'}
+                className={mode === 'guided' ? 'is-active' : ''}
+                onClick={() => { setMode('guided'); setConfirmClear(false); setConfirmDeleteId(null); }}
+              >
+                Questions guidées
+              </button>
+              <button
+                type="button"
+                data-testid="companion-mode-conversation"
+                aria-pressed={mode === 'conversation'}
+                className={mode === 'conversation' ? 'is-active' : ''}
+                onClick={() => { setMode('conversation'); setConfirmClear(false); setConfirmDeleteId(null); }}
+              >
+                Conversation
+              </button>
+            </div>
+            {history.length > 0 && (
+              <div className="companion-clear-actions">
+                {confirmClear ? (
+                  <div className="companion-inline-confirm" role="group" aria-label="Confirmer la réinitialisation">
+                    <span>Effacer tout l’historique ?</span>
+                    <button type="button" data-testid="companion-confirm-clear" onClick={clearHistory}>Tout effacer</button>
+                    <button type="button" onClick={() => setConfirmClear(false)}>Annuler</button>
+                  </div>
+                ) : (
+                  <button type="button" className="companion-clear-history" data-testid="companion-clear-history" onClick={() => { setConfirmDeleteId(null); setConfirmClear(true); }}>Nouvelle conversation / Tout effacer</button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="companion-conversation" data-testid="companion-conversation" aria-live="polite" ref={conversationRef}>
-            {mode === 'guided' && (
-              <section className="companion-guided-section" aria-labelledby="companion-guided-title">
-                <div className="companion-guided-heading">
-                  <h3 id="companion-guided-title">Que souhaitez-vous examiner ?</h3>
-                  <p>Choisissez un contrôle. Vous pouvez en lancer plusieurs sans perdre les résultats précédents.</p>
-                </div>
-                <div className="companion-prompts">
-                  {PROMPTS.map(prompt => (
-                    <button
-                      type="button"
-                      key={prompt.id}
-                      data-testid={`companion-prompt-${prompt.id}`}
-                      className={'companion-prompt' + (activePrompt === prompt.id ? ' is-selected' : '')}
-                      onClick={() => runReview(prompt.id)}
-                    >
-                      <span className="companion-prompt-icon" aria-hidden="true">{prompt.icon}</span>
-                      <span className="companion-prompt-copy">
-                        <span className="companion-prompt-label">{prompt.label}</span>
-                        <span className="companion-prompt-description">{prompt.description}</span>
-                      </span>
-                      <span className="companion-prompt-arrow" aria-hidden="true">↗</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            )}
+          {mode === 'guided' && (
+            <section className="companion-guided-section" aria-labelledby="companion-guided-title">
+              <div className="companion-guided-heading">
+                <h3 id="companion-guided-title">Que souhaitez-vous examiner ?</h3>
+                <p>Choisissez un contrôle. Les questions restent ici ; les résultats défilent dessous.</p>
+              </div>
+              <div className="companion-prompts">
+                {PROMPTS.map(prompt => (
+                  <button
+                    type="button"
+                    key={prompt.id}
+                    data-testid={`companion-prompt-${prompt.id}`}
+                    className={'companion-prompt' + (activePrompt === prompt.id ? ' is-selected' : '')}
+                    onClick={() => runReview(prompt.id)}
+                  >
+                    <span className="companion-prompt-icon" aria-hidden="true">{prompt.icon}</span>
+                    <span className="companion-prompt-copy">
+                      <span className="companion-prompt-label">{prompt.label}</span>
+                      <span className="companion-prompt-description">{prompt.description}</span>
+                    </span>
+                    <span className="companion-prompt-arrow" aria-hidden="true">↗</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
 
+          <div className="companion-conversation" data-testid="companion-conversation" aria-live="polite" ref={conversationRef}>
             {mode === 'conversation' && history.length === 0 && (
               <div className="companion-start">
                 <div className="companion-welcome">
@@ -262,7 +305,6 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                 </div>
               </div>
             )}
-
             {history.length > 0 && renderHistory()}
           </div>
 
