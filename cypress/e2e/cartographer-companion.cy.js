@@ -21,24 +21,32 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-prompt-structure"]').should('be.visible');
   });
 
-  it('exécute une revue locale et affiche des constats explicables', () => {
+  it('exécute une revue locale et affiche une réponse dans la conversation', () => {
     cy.get('[data-testid="companion-launcher"]').click();
     cy.get('[data-testid="companion-prompt-coverage"]').click();
 
-    cy.get('[data-testid="companion-result"]').should('be.visible');
-    cy.get('[data-testid="companion-result-title"]').should('contain.text', 'Résultat de la revue');
-    cy.get('[data-testid="companion-result"]').should('contain.text', 'règles locales');
+    cy.get('[data-testid="companion-chat-history"]').should('be.visible');
+    cy.get('[data-testid="companion-exchange"]').should('have.length', 1);
+    cy.get('[data-testid="companion-user-question"]').should('contain.text', 'Vérifier la couverture');
+    cy.get('[data-testid="companion-answer"]').should('be.visible').and('contain.text', 'revue locale');
+    cy.get('[data-testid="companion-prompt-coverage"]').should('not.exist');
     cy.get('[data-testid="companion-question"]').should('be.visible');
   });
 
-  it('permet de lancer une revue depuis une question et de fermer au clavier', () => {
+  it('conserve plusieurs questions et réponses dans l’ordre puis ferme au clavier', () => {
     cy.get('[data-testid="companion-launcher"]').click();
     cy.get('[data-testid="companion-question"]').type('Où sont les gaps de couverture ?');
     cy.get('[data-testid="companion-submit"]').click();
-    cy.get('[data-testid="companion-exchange"]').should('be.visible');
-    cy.get('[data-testid="companion-user-question"]').should('contain.text', 'Où sont les gaps de couverture ?');
-    cy.get('[data-testid="companion-result"]').should('be.visible').and('contain.text', 'règles locales');
-    cy.get('[data-testid="companion-prompt-coverage"]').should('have.class', 'is-selected');
+
+    cy.get('[data-testid="companion-question"]').type('Peux-tu revoir le nommage des capacités ?');
+    cy.get('[data-testid="companion-submit"]').click();
+
+    cy.get('[data-testid="companion-exchange"]').should('have.length', 2);
+    cy.get('[data-testid="companion-user-question"]').eq(0).should('contain.text', 'Où sont les gaps de couverture ?');
+    cy.get('[data-testid="companion-answer"]').eq(0).should('be.visible').and('contain.text', 'couverture');
+    cy.get('[data-testid="companion-user-question"]').eq(1).should('contain.text', 'Peux-tu revoir le nommage des capacités ?');
+    cy.get('[data-testid="companion-answer"]').eq(1).should('be.visible').and('contain.text', 'nommage');
+    cy.get('[data-testid="companion-chat-history"]').should('be.visible');
 
     cy.get('body').type('{esc}');
     cy.get('[data-testid="companion-panel"]').should('not.exist');
