@@ -291,6 +291,7 @@ describe('Dashboard de couverture', () => {
       expect(styles.backgroundColor, 'surface du KPI calculée').not.to.equal('');
       expect(styles.borderColor, 'bordure du KPI calculée').not.to.equal('');
     });
+    cy.get('[data-testid="dashboard-view-attention"]').click();
     cy.get('.dashboard-status').first().should('be.visible').then($status => {
       const styles = getComputedStyle($status[0]);
       expect(styles.color, 'texte de statut calculé').not.to.equal('');
