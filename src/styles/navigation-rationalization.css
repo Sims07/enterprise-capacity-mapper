@@ -25,9 +25,9 @@
   gap: 0.5rem;
   list-style: none;
   cursor: pointer;
-  border: 1px solid var(--border-strong, #cbd5e1);
-  background: #fff;
-  color: #334155;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
   padding: 8px 11px;
   border-radius: 8px;
   font-size: 11px;
@@ -41,8 +41,8 @@
 
 .primary-navigation .toolbar-tools[open] > summary,
 .primary-navigation .toolbar-tools > .toolbar-tools-toggle:hover {
-  border-color: #a5b4fc;
-  background: #fafaff;
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
 }
 
 .analysis-view-switch {
@@ -51,13 +51,13 @@
   gap: 0.35rem;
   min-height: 42px;
   padding: 5px 28px;
-  background: #fff;
-  border-bottom: 1px solid var(--border, #e3e8f0);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .analysis-view-switch-label {
   margin-right: 0.35rem;
-  color: var(--muted, #64748b);
+  color: var(--color-text-muted);
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
@@ -67,7 +67,7 @@
 .analysis-view-switch > button {
   border: 1px solid transparent;
   background: transparent;
-  color: #64748b;
+  color: var(--color-text-muted);
   border-radius: 7px;
   padding: 6px 10px;
   font-size: 11px;
@@ -77,14 +77,14 @@
 }
 
 .analysis-view-switch > button:hover {
-  color: #312e81;
-  background: #f5f5ff;
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
 }
 
 .analysis-view-switch > button.active {
-  color: #3730a3;
-  background: #eef2ff;
-  border-color: #e0e7ff;
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
 }
 
 @media (max-width: 900px) {
@@ -110,33 +110,33 @@
 }
 
 .app.theme-dark .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
-  background: #171a20;
-  color: #e5e7eb;
-  border-color: #3f4652;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
 }
 
 .app.theme-dark .analysis-view-switch {
-  background: #171a20;
-  border-color: #303640;
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
 }
 
 .app.theme-dark .analysis-view-switch-label {
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 .app.theme-dark .analysis-view-switch > button {
-  color: #a1a1aa;
+  color: var(--color-text-muted);
 }
 
 .app.theme-dark .analysis-view-switch > button:hover {
-  color: #c7d2fe;
-  background: #242735;
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
 }
 
 .app.theme-dark .analysis-view-switch > button.active {
-  color: #c7d2fe;
-  background: #27243f;
-  border-color: #454064;
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
 }
 
 
@@ -145,8 +145,8 @@
   margin: 24px auto;
   padding: 24px;
   width: min(1100px, calc(100% - 32px));
-  background: var(--panel, #fff);
-  border: 1px solid var(--border, #e3e8f0);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
 }
@@ -165,7 +165,7 @@
 
 .standalone-page-heading p {
   margin: 0;
-  color: var(--muted, #64748b);
+  color: var(--color-text-muted);
 }
 
 .tools-page-grid {
@@ -211,12 +211,12 @@
 .app.theme-dark .standalone-page,
 .app.theme-dark .tools-page-grid > section,
 .app.theme-dark .library-load-confirm {
-  background: #171a20;
-  border-color: #303640;
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
 }
 
 .app.theme-dark .standalone-page-heading p {
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 640px) {
@@ -254,29 +254,29 @@
 .library-page-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .library-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0 0 30px; }
 .library-stat-card { min-width: 0; padding: 18px; border: 1px solid var(--border, #e3e8f0); border-radius: 12px; background: var(--panel, #fff); }
-.library-stat-card > span { display: block; color: var(--muted, #64748b); font-size: 11px; font-weight: 750; }
+.library-stat-card > span { display: block; color: var(--color-text-muted); font-size: 11px; font-weight: 750; }
 .library-stat-card > strong { display: block; margin: 8px 0 5px; font-size: 23px; line-height: 1.25; overflow-wrap: anywhere; }
 .library-stat-card:first-child > strong { font-size: 17px; }
-.library-stat-card > small { color: var(--muted, #64748b); font-size: 11px; }
+.library-stat-card > small { color: var(--color-text-muted); font-size: 11px; }
 .library-section { margin-top: 28px; }
 .library-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .library-section-heading h3 { margin: 0 0 5px; font-size: 17px; }
-.library-section-heading p { margin: 0; color: var(--muted, #64748b); font-size: 12px; }
-.library-section-count { color: var(--muted, #64748b); font-size: 11px; }
+.library-section-heading p { margin: 0; color: var(--color-text-muted); font-size: 12px; }
+.library-section-count { color: var(--color-text-muted); font-size: 11px; }
 .library-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .library-map-card { display: flex; flex-direction: column; min-width: 0; padding: 18px; border: 1px solid var(--border, #e3e8f0); border-radius: 12px; background: var(--panel, #fff); }
 .library-map-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .library-map-type { padding: 4px 7px; border-radius: 5px; background: #eef2ff; color: #4338ca; font-size: 9px; font-weight: 850; letter-spacing: .06em; }
 .library-map-type.saved { background: #dcfce7; color: #166534; }
-.library-map-date { color: var(--muted, #64748b); font-size: 10px; }
+.library-map-date { color: var(--color-text-muted); font-size: 10px; }
 .library-map-card h4 { margin: 13px 0 6px; font-size: 15px; overflow-wrap: anywhere; }
-.library-map-description { min-height: 32px; margin: 0; color: var(--muted, #64748b); font-size: 12px; line-height: 1.45; }
-.library-map-metrics { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 16px 0; padding-top: 12px; border-top: 1px solid var(--border, #e3e8f0); color: var(--muted, #64748b); font-size: 10px; }
+.library-map-description { min-height: 32px; margin: 0; color: var(--color-text-muted); font-size: 12px; line-height: 1.45; }
+.library-map-metrics { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 16px 0; padding-top: 12px; border-top: 1px solid var(--border, #e3e8f0); color: var(--color-text-muted); font-size: 10px; }
 .library-map-metrics strong { color: var(--text, #1e293b); font-size: 12px; }
 .library-map-card-actions { display: flex; justify-content: flex-end; margin-top: auto; }
 .library-empty-state { padding: 26px; border: 1px dashed var(--border-strong, #cbd5e1); border-radius: 12px; text-align: center; }
 .library-empty-state strong { display: block; font-size: 14px; }
-.library-empty-state p { max-width: 560px; margin: 8px auto 14px; color: var(--muted, #64748b); font-size: 12px; line-height: 1.55; }
+.library-empty-state p { max-width: 560px; margin: 8px auto 14px; color: var(--color-text-muted); font-size: 12px; line-height: 1.55; }
 .app.theme-dark .library-stat-card, .app.theme-dark .library-map-card { background: #171a20; border-color: #303640; }
 .app.theme-dark .library-map-type { background: #27243f; color: #c7d2fe; }
 .app.theme-dark .library-map-type.saved { background: #183529; color: #86efac; }
@@ -341,8 +341,8 @@
 }
 .primary-navigation .toolbar-tools.is-open > .toolbar-tools-toggle,
 .primary-navigation .toolbar-tools > .toolbar-tools-toggle:hover {
-  border-color: #a5b4fc;
-  background: #fafaff;
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
   color: #3730a3;
 }
 .primary-navigation .toolbar-tools-toggle > span[aria-hidden="true"] {
@@ -514,38 +514,38 @@
   padding: 3px;
   gap: 3px;
   overflow: visible;
-  border: 1px solid var(--border, #e3e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: var(--panel, #fff);
+  background: var(--color-surface);
 }
 .analysis-view-switch > button {
   min-height: 32px;
   padding: 7px 12px;
   border: 1px solid transparent;
   border-radius: 7px;
-  color: var(--muted, #64748b);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 700;
 }
 .analysis-view-switch > button.active {
-  border-color: #e0e7ff;
-  background: #eef2ff;
-  color: #3730a3;
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
 }
 .analysis-view-switch > button:hover {
-  background: var(--bg, #f8fafc);
+  background: var(--color-surface-hover);
 }
 .app.theme-dark .analysis-view-switch {
-  background: #171a20;
-  border-color: #303640;
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
 }
 .app.theme-dark .analysis-view-switch > button {
-  color: #a1a1aa;
+  color: var(--color-text-muted);
 }
 .app.theme-dark .analysis-view-switch > button.active {
-  color: #c7d2fe;
-  background: #27243f;
-  border-color: #454064;
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
 }
 @media (max-width: 760px) {
   .analysis-view-switch { margin-bottom: 12px; }
@@ -557,9 +557,9 @@
 .app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle,
 .app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools.is-open > .toolbar-tools-toggle,
 .app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle:hover {
-  background: #1a2940 !important;
-  color: #f1f5f9 !important;
-  border-color: #455a76 !important;
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border-strong) !important;
 }
 .app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle:focus-visible {
   outline: 2px solid #a5b4fc;
