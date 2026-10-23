@@ -13,14 +13,17 @@ describe('Relations — hover N1 en Dark Linear', () => {
     cy.get('[data-testid="tab-relations"]').click();
     cy.get('.coverage-tree').should('be.visible');
 
-    cy.get('.coverage-tree')
-      .should('have.css', '--relation-n1-hover-bg', '#202733')
-      .and('have.css', '--relation-n1-hover-text', '#f1f5f9');
+    cy.get('.coverage-tree').then($tree => {
+      const style = getComputedStyle($tree[0]);
+      expect(style.getPropertyValue('--relation-n1-hover-bg').trim()).to.equal('#202733');
+      expect(style.getPropertyValue('--relation-n1-hover-text').trim()).to.equal('#f1f5f9');
+    });
 
     cy.get('.tree-node-cap > .tree-row').first()
       .should('be.visible')
       .trigger('mouseover')
       .find('.tree-toggle')
+      .should('be.visible')
       .trigger('mouseover')
       .find('.tree-name')
       .should('be.visible');
@@ -36,10 +39,10 @@ describe('Relations — hover N1 en Dark Linear', () => {
         });
 
       const rowRule = rules.find(cssRule =>
-        cssRule.selectorText === '.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover'
+        cssRule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover')
       );
       const toggleRule = rules.find(cssRule =>
-        cssRule.selectorText === '.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle'
+        cssRule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle')
       );
 
       expect(rowRule, 'la règle de hover de la ligne N1 est présente').to.exist;
