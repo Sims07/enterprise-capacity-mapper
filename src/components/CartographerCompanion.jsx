@@ -272,7 +272,19 @@ export default function CartographerCompanion({ model, darkMode = false }) {
     if (!question || isSending) return;
 
     if (providerSettings.enabled) {
+      const exchangeId = `${Date.now()}-${history.length}`;
       setIsSending(true);
+      setHistory(previous => [...previous, {
+        id: exchangeId,
+        question,
+        prompt: 'conversation',
+        answer: '',
+        observations: [],
+        counts: { total: 0, errors: 0, reviews: 0, suggestions: 0 },
+        source: providerSettings.provider,
+        status: 'streaming',
+      }]);
+      setQuery('');
       try {
         const answer = await sendCompanionMessage({
           provider: providerSettings.provider,
@@ -282,13 +294,24 @@ export default function CartographerCompanion({ model, darkMode = false }) {
           question,
           cartography: model,
           history,
+          onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+            ? { ...exchange, answer: exchange.answer + chunk }
+            : exchange)),
         });
-        addDirectAnswer(question, answer, [], providerSettings.provider);
+        setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+          ? { ...exchange, answer: answer || exchange.answer, status: null }
+          : exchange));
       } catch (error) {
-        addDirectAnswer(question, `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`, [], 'error');
+        setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+          ? {
+              ...exchange,
+              answer: `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`,
+              source: 'error',
+              status: null,
+            }
+          : exchange));
       } finally {
         setIsSending(false);
-        setQuery('');
       }
       return;
     }
@@ -345,10 +368,20 @@ export default function CartographerCompanion({ model, darkMode = false }) {
               <span className="companion-avatar" aria-hidden="true">✦</span>
               <div>
                 <p className="companion-message-role">Compagnon cartographe</p>
-                <p className="companion-answer-meta">{exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${PROVIDER_DEFAULTS[exchange.source]?.label || exchange.source}`}</p>
+                <p className="companion-answer-meta">{exchange.status === 'streaming' ? `Génération en cours · ${PROVIDER_DEFAULTS[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${PROVIDER_DEFAULTS[exchange.source]?.label || exchange.source}`}</p>
               </div>
             </div>
-            <p className="companion-answer-text" data-testid="companion-answer">{exchange.answer}</p>
+            {exchange.status === 'streaming' && !exchange.answer ? (
+              <p className="companion-thinking" role="status" data-testid="companion-thinking">
+                <span className="companion-thinking-indicator" aria-hidden="true" />
+                Le modèle prépare sa réponse…
+              </p>
+            ) : (
+              <p className="companion-answer-text" data-testid="companion-answer">{exchange.answer}</p>
+            )}
+            {exchange.status === 'streaming' && exchange.answer && (
+              <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
+            )}
 
             {exchange.observations.length > 0 ? (
               <details className="companion-details">
@@ -378,7 +411,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
             ) : (
               <p className="companion-no-findings">Aucun constat n’a été relevé par cette revue.</p>
             )}
-            <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.' : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>
+            {exchange.status !== 'streaming' && <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.' : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>}
           </div>
           {index < history.length - 1 && <div className="companion-exchange-divider" aria-hidden="true" />}
         </article>
@@ -525,7 +558,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                   <span className="companion-avatar" aria-hidden="true">✦</span>
                   <div>
                     <p className="companion-message-title">Bonjour, regardons votre cartographie.</p>
-                    <p>Posez une question en langage naturel. Pour le moment, elle oriente vers des contrôles locaux prédéfinis ; aucun modèle conversationnel n’est connecté.</p>
+                    <p>{providerSettings.enabled ? 'Posez une question en langage naturel. Les réponses du modèle apparaissent progressivement pendant leur génération.' : 'Posez une question en langage naturel pour examiner votre cartographie avec les contrôles locaux.'}</p>
                   </div>
                 </div>
               </div>
