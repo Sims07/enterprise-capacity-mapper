@@ -361,9 +361,18 @@
   .primary-navigation { overflow: visible !important; }
 }
 
-.toolbar-switch .toolbar-tools > .toolbar-tools-toggle { border: 1px solid #cbd5e1 !important; background: #fff !important; color: #334155 !important; }
+.toolbar-switch .toolbar-tools > .toolbar-tools-toggle {
+  border: 1px solid var(--color-border-strong) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
 
-.toolbar-switch .toolbar-tools.is-open > .toolbar-tools-toggle, .toolbar-switch .toolbar-tools > .toolbar-tools-toggle:hover { border-color: #a5b4fc !important; background: #fafaff !important; color: #3730a3 !important; }
+.toolbar-switch .toolbar-tools.is-open > .toolbar-tools-toggle,
+.toolbar-switch .toolbar-tools > .toolbar-tools-toggle:hover {
+  border-color: var(--color-accent-border) !important;
+  background: var(--color-accent-soft) !important;
+  color: var(--color-accent-text) !important;
+}
 
 
 /* Correctifs de robustesse : navigation primaire et menu Outils au-dessus du contenu. */
@@ -562,6 +571,6 @@
   border-color: var(--color-border-strong) !important;
 }
 .app.theme-dark .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle:focus-visible {
-  outline: 2px solid #a5b4fc;
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
 }
