@@ -10,6 +10,7 @@ import './styles/dark-contrast.css';
 import './styles/togaf-dark-contrast.css';
 import './styles/description-fields.css';
 import './styles/dashboard.css';
+import './styles/relations-dark-hover.css';
 
 if ('serviceWorker' in navigator) {
   const registerServiceWorker = () => navigator.serviceWorker.register('./sw.js').catch(console.error);
