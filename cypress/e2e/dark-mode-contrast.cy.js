@@ -34,6 +34,15 @@ describe('Contrastes du thème sombre', () => {
     cy.get('.search').should('be.visible');
   });
 
+  it('affiche le bouton Outils de l’en-tête avec un contraste adapté en mode sombre', () => {
+    toggleTheme();
+    cy.get('[data-testid="tools-menu-toggle"]').should('be.visible').then($button => {
+      const style = getComputedStyle($button[0]);
+      expect(style.backgroundColor, 'fond du bouton Outils dans l’en-tête').to.equal('rgb(26, 41, 64)');
+      expect(style.color, 'texte du bouton Outils dans l’en-tête').to.equal('rgb(241, 245, 249)');
+    });
+  });
+
   it('applique une surface sombre et un texte clair au menu Outils', () => {
     toggleTheme();
     openToolsMenu();
