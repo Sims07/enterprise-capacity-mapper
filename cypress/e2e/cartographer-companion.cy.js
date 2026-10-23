@@ -35,7 +35,9 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-launcher"]').click();
     cy.get('[data-testid="companion-question"]').type('Où sont les gaps de couverture ?');
     cy.get('[data-testid="companion-submit"]').click();
-    cy.get('[data-testid="companion-result"]').should('be.visible');
+    cy.get('[data-testid="companion-exchange"]').should('be.visible');
+    cy.get('[data-testid="companion-user-question"]').should('contain.text', 'Où sont les gaps de couverture ?');
+    cy.get('[data-testid="companion-result"]').should('be.visible').and('contain.text', 'règles locales');
     cy.get('[data-testid="companion-prompt-coverage"]').should('have.class', 'is-selected');
 
     cy.get('body').type('{esc}');
@@ -65,3 +67,4 @@ describe('Compagnon cartographe — interface locale', () => {
       expect(rect.bottom, 'bas du panneau').to.be.at.most(740);
     });
   });
+});
