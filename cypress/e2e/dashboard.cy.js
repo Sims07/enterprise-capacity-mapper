@@ -276,4 +276,32 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="dashboard-view-impact"]').should('have.class', 'is-active');
   });
 
+
+  it('utilise les tokens sémantiques pour le dashboard et ses états métier en thème sombre', () => {
+    cy.window().then(win => {
+      win.localStorage.setItem('enterprise-capacity-mapper:theme', 'dark');
+    });
+    cy.reload();
+    cy.get('.app').should('have.class', 'theme-dark');
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('.dashboard').should('be.visible');
+    cy.get('.dashboard-kpi').first().should('be.visible').then($card => {
+      const styles = getComputedStyle($card[0]);
+      expect(styles.backgroundColor, 'surface du KPI calculée').not.to.equal('');
+      expect(styles.borderColor, 'bordure du KPI calculée').not.to.equal('');
+    });
+    cy.get('.dashboard-status').first().should('be.visible').then($status => {
+      const styles = getComputedStyle($status[0]);
+      expect(styles.color, 'texte de statut calculé').not.to.equal('');
+      expect(styles.backgroundColor, 'fond de statut calculé').not.to.equal('');
+    });
+    cy.document().then(doc => {
+      const root = getComputedStyle(doc.querySelector('.app'));
+      ['--status-gap-text', '--status-gap-bg', '--status-redundant-text', '--status-covered-text'].forEach(token => {
+        expect(root.getPropertyValue(token).trim(), token).not.to.equal('');
+      });
+    });
+  });
+
 });
