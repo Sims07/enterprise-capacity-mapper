@@ -44,6 +44,8 @@ jobs:
           git push
       - name: Install project dependencies
         run: npm install
+      - name: Run deterministic unit tests
+        run: npm run test:unit
       - name: Install coverage tooling
         run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
       - name: Set build version
