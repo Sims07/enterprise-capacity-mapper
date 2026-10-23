@@ -109,18 +109,165 @@ export default function CartographerCompanion({ model, darkMode = false }) {
     }]);
   };
 
+  const normalizeText = value => String(value ?? '')
+    .normalize('NFKD')
+    .replace(/[\\u0300-\\u036f]/g, '')
+    .toLocaleLowerCase('fr')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+  const runRelationshipLookup = question => {
+    const normalizedQuestion = normalizeText(question);
+    const asksAboutRelations = /ou se trouve|ou est|a quoi.*(relie|rattach)|a quelle capacite|quelles? capacites?.*(lie|rattach|associe)|application.*(relie|rattach|associe|couvert)|dans la cartographie|rattachee? a quoi|relations? de/.test(normalizedQuestion);
+    if (!asksAboutRelations) return false;
+
+    const applications = Array.isArray(model?.applications) ? model.applications : [];
+    const capabilities = Array.isArray(model?.capabilities) ? model.capabilities : [];
+    const domains = Array.isArray(model?.domains) ? model.domains : [];
+    const depth = model?.layout?.depth === 1 ? 1 : 2;
+    const targets = depth === 1 ? domains : capabilities;
+    const targetById = new Map(targets.map(item => [item.id, item]));
+    const matchedApplications = applications.filter(app => {
+      const name = normalizeText(app?.name);
+      return name.length > 0 && normalizedQuestion.includes(name);
+    });
+
+    if (matchedApplications.length > 0) {
+      const observations = [];
+      matchedApplications.forEach(app => {
+        const ids = Array.isArray(app.capabilityIds) ? app.capabilityIds : [];
+        const linkedTargets = [...new Set(ids)].map(id => targetById.get(id)).filter(Boolean);
+        const missingTargets = [...new Set(ids)].filter(id => !targetById.has(id));
+        linkedTargets.forEach(target => {
+          const domain = depth === 2 ? domains.find(item => item.id === target.domainId) : null;
+          observations.push({
+            id: `lookup:${app.id}:${target.id}`,
+            ruleId: 'lookup.application-relations',
+            category: 'structure',
+            severity: 'review',
+            title: depth === 1 ? `Domaine associé : ${target.name}` : `Capacité associée : ${target.name}`,
+            detail: depth === 2
+              ? `L’application « ${app.name} » est reliée à cette capacité N1.${domain ? ` Elle appartient au domaine N0 « ${domain.name} ».` : ' Son domaine N0 de rattachement n’a pas été retrouvé dans le modèle.'}`
+              : `L’application « ${app.name} » est reliée à ce domaine N0 dans une cartographie configurée sur un niveau.`,
+            recommendation: 'Vérifier que cette relation correspond bien au périmètre fonctionnel réel de l’application.',
+            evidence: [{ type: 'application', id: app.id, name: app.name }, itemEvidence(depth === 1 ? 'domain' : 'capability', target), ...(domain ? [itemEvidence('domain', domain)] : [])],
+          });
+        });
+        missingTargets.forEach(id => observations.push({
+          id: `lookup:${app.id}:missing:${id}`,
+          ruleId: 'lookup.application-missing-target',
+          category: 'structure',
+          severity: 'warning',
+          title: 'Relation vers une cible introuvable',
+          detail: `L’application « ${app.name} » référence un élément qui n’existe pas dans cette cartographie.`,
+          recommendation: 'Vérifier ou corriger la relation dans la cartographie.',
+          evidence: [{ type: 'application', id: app.id, name: app.name }, { type: depth === 1 ? 'domain' : 'capability', id, name: '(cible absente)' }],
+        }));
+        if (ids.length === 0 || (linkedTargets.length === 0 && missingTargets.length === 0)) {
+          observations.push({
+            id: `lookup:${app.id}:unlinked`,
+            ruleId: 'lookup.application-unlinked',
+            category: 'coverage',
+            severity: 'review',
+            title: 'Aucun rattachement déclaré',
+            detail: `Aucune relation vers une ${depth === 1 ? 'cible N0' : 'capacité N1'} n’est déclarée pour l’application « ${app.name} ».`,
+            recommendation: 'Confirmer si l’application est hors périmètre, si ses relations sont à compléter ou si les données sont incomplètes.',
+            evidence: [itemEvidence('application', app)],
+          });
+        }
+      });
+      const linkedCount = observations.filter(item => item.ruleId === 'lookup.application-relations').length;
+      const answer = linkedCount
+        ? `J’ai trouvé ${matchedApplications.length} application(s) correspondant à la question et ${linkedCount} rattachement(s) déclaré(s). Les éléments associés sont détaillés ci-dessous.`
+        : `J’ai trouvé ${matchedApplications.length} application(s) correspondant à la question, mais aucune relation valide vers une cible de la cartographie n’a été trouvée.`;
+      addDirectAnswer(question, answer, observations);
+      return true;
+    }
+
+    const matchedCapabilities = capabilities.filter(item => {
+      const name = normalizeText(item?.name);
+      return name.length > 0 && normalizedQuestion.includes(name);
+    });
+    if (matchedCapabilities.length > 0 && /application|qui.*(utilise|couvre)|relie|rattach|associe/.test(normalizedQuestion)) {
+      const observations = [];
+      matchedCapabilities.forEach(capability => {
+        const linkedApps = applications.filter(app => Array.isArray(app.capabilityIds) && app.capabilityIds.includes(capability.id));
+        linkedApps.forEach(app => observations.push({
+          id: `lookup:${capability.id}:${app.id}`,
+          ruleId: 'lookup.capability-applications',
+          category: 'structure',
+          severity: 'review',
+          title: `Application associée : ${app.name || '(sans nom)'}`,
+          detail: `L’application « ${app.name || '(sans nom)'} » déclare une relation vers la capacité « ${capability.name} ».`,
+          recommendation: 'Vérifier que la relation représente bien le soutien applicatif de cette capacité.',
+          evidence: [itemEvidence('capability', capability), itemEvidence('application', app), ...(domains.filter(domain => domain.id === capability.domainId).map(domain => itemEvidence('domain', domain)))],
+        }));
+        if (linkedApps.length === 0) observations.push({
+          id: `lookup:${capability.id}:uncovered`,
+          ruleId: 'lookup.capability-uncovered',
+          category: 'coverage',
+          severity: 'review',
+          title: 'Aucune application associée',
+          detail: `Aucune application ne déclare de relation vers la capacité « ${capability.name} ».`,
+          recommendation: 'Confirmer si la capacité est hors périmètre applicatif ou si une relation manque.',
+          evidence: [itemEvidence('capability', capability)],
+        });
+      });
+      const count = observations.filter(item => item.ruleId === 'lookup.capability-applications').length;
+      addDirectAnswer(question, count
+        ? `J’ai trouvé ${count} relation(s) applicative(s) pour la capacité citée. Consulte les éléments ci-dessous.`
+        : 'Aucune relation applicative n’a été trouvée pour la capacité citée.', observations);
+      return true;
+    }
+
+    addDirectAnswer(question,
+      'Je reconnais une question sur les rattachements, mais je ne trouve pas de nom d’application ou de capacité correspondant exactement dans la cartographie active. Essaie de reprendre son intitulé tel qu’il apparaît dans la carte.',
+      [{
+        id: `lookup:not-found:${Date.now()}`,
+        ruleId: 'lookup.entity-not-found',
+        category: 'structure',
+        severity: 'warning',
+        title: 'Élément à identifier',
+        detail: 'Aucun nom d’application ou de capacité de la cartographie ne correspond au texte de la question.',
+        recommendation: 'Réutiliser le nom affiché dans la cartographie ; les correspondances approximatives ne sont pas devinées.',
+        evidence: [],
+      }]);
+    return true;
+  };
+
+  const addDirectAnswer = (question, answer, observations) => {
+    const counts = {
+      total: observations.length,
+      errors: observations.filter(item => item.severity === 'error').length,
+      reviews: observations.filter(item => ['warning', 'review'].includes(item.severity)).length,
+      suggestions: observations.filter(item => item.severity === 'suggestion').length,
+    };
+    setActivePrompt('lookup');
+    setHistory(previous => [...previous, {
+      id: `${Date.now()}-${previous.length}`,
+      question,
+      prompt: 'lookup',
+      answer,
+      observations,
+      counts,
+    }]);
+  };
+
   const submitQuestion = event => {
     event.preventDefault();
-    if (!query.trim()) return;
-    const normalized = query.toLocaleLowerCase('fr');
-    const prompt = /couverture|gap|application|relation|redondance/.test(normalized)
-      ? 'coverage'
-      : /nom|intitul|doublon|capacit/.test(normalized)
-        ? 'naming'
-        : /structure|rattachement|n0|n1/.test(normalized)
-          ? 'structure'
-          : 'overview';
-    runReview(prompt, query.trim());
+    const question = query.trim();
+    if (!question) return;
+    if (!runRelationshipLookup(question)) {
+      const normalized = question.toLocaleLowerCase('fr');
+      const prompt = /couverture|gap|application|relation|redondance/.test(normalized)
+        ? 'coverage'
+        : /nom|intitul|doublon|capacit/.test(normalized)
+          ? 'naming'
+          : /structure|rattachement|n0|n1/.test(normalized)
+            ? 'structure'
+            : 'overview';
+      runReview(prompt, question);
+    }
     setQuery('');
   };
 
