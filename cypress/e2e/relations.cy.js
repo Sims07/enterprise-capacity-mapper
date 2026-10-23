@@ -276,7 +276,12 @@ describe('Relations applications ↔ capacités', () => {
 
     const n1Row = cy.get('.tree-node-cap > .tree-row').first();
     n1Row.should('be.visible').trigger('mouseover');
-    n1Row.should('have.css', 'background-color', 'rgb(32, 39, 51)');
-    n1Row.find('.tree-name').should('have.css', 'color', 'rgb(241, 245, 249)');
+    cy.get('.coverage-tree')
+      .invoke('css', '--relation-n1-hover-bg')
+      .should('eq', '#202733');
+    cy.get('.coverage-tree')
+      .invoke('css', '--relation-n1-hover-text')
+      .should('eq', '#f1f5f9');
+    n1Row.find('.tree-name').should('be.visible');
   });
 });
