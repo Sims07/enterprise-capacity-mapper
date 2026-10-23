@@ -258,3 +258,48 @@
   .companion-user-message { max-width: 95%; }
   .companion-assistant-message { padding: 10px; }
 }
+
+
+/* Persistent mode selector: guided checks remain available after every review. */
+.companion-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  flex: 0 0 auto;
+  margin: 10px 13px 0;
+  padding: 4px;
+  border: 1px solid var(--companion-border);
+  border-radius: 11px;
+  background: var(--companion-panel);
+}
+.companion-mode-switch button {
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--companion-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.companion-mode-switch button.is-active {
+  border-color: var(--companion-border);
+  background: var(--companion-bg);
+  color: var(--companion-text);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+}
+.companion-guided-section { display: grid; gap: 12px; }
+.companion-guided-heading h3 { margin: 0; color: var(--companion-text); font-size: 13px; line-height: 1.4; }
+.companion-guided-heading p { margin: 5px 0 0; color: var(--companion-muted); font-size: 10px; line-height: 1.5; }
+.companion-prompt-copy { display: grid; gap: 3px; min-width: 0; }
+.companion-prompt-label { color: var(--companion-text); font-size: 11px; font-weight: 750; line-height: 1.35; }
+.companion-prompt-description { color: var(--companion-muted); font-size: 9px; font-weight: 450; line-height: 1.4; }
+.companion-guided-footer { flex: 0 0 auto; margin: 0; padding: 9px 13px 10px; border-top: 1px solid var(--companion-border); color: var(--companion-muted); font-size: 9px; line-height: 1.45; text-align: center; }
+.companion-mode-switch button:focus-visible { outline: 3px solid var(--companion-accent); outline-offset: 2px; }
+@media (max-width: 600px) {
+  .companion-mode-switch { margin-right: 12px; margin-left: 12px; }
+  .companion-prompt { align-items: flex-start; }
+  .companion-prompt-icon { margin-top: 1px; }
+}
