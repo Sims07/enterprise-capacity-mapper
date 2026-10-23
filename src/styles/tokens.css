@@ -44,6 +44,22 @@
   --shadow-panel: 0 2px 12px rgb(15 23 42 / 8%);
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
+
+  /* États métier partagés : couverture, redondance et priorités. */
+  --status-gap-text: #92400e;
+  --status-gap-bg: #fef3c7;
+  --status-redundant-text: #5b46be;
+  --status-redundant-bg: #ede9fe;
+  --status-covered-text: #166534;
+  --status-covered-bg: #dcfce7;
+  --status-critical-text: #991b1b;
+  --status-critical-bg: #fee2e2;
+  --status-high-text: #92400e;
+  --status-high-bg: #fef3c7;
+  --status-normal-text: #166534;
+  --status-normal-bg: #dcfce7;
+  --status-neutral-text: #475569;
+  --status-neutral-bg: #e2e8f0;
 }
 
 .theme-dark {
@@ -65,6 +81,21 @@
   --color-accent-border: #454064;
   --color-accent-on: #ffffff;
   --color-focus: #a5b4fc;
+
+  --status-gap-text: #fcd34d;
+  --status-gap-bg: #422f12;
+  --status-redundant-text: #ddd6fe;
+  --status-redundant-bg: #342c56;
+  --status-covered-text: #bbf7d0;
+  --status-covered-bg: #153322;
+  --status-critical-text: #fecaca;
+  --status-critical-bg: #542727;
+  --status-high-text: #fde68a;
+  --status-high-bg: #493713;
+  --status-normal-text: #bbf7d0;
+  --status-normal-bg: #153322;
+  --status-neutral-text: #cbd5e1;
+  --status-neutral-bg: #343842;
 }
 
 /* Respect the user's motion preference for transitions using shared tokens. */
