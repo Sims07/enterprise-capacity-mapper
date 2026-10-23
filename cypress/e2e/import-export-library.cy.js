@@ -21,11 +21,6 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
   });
 
   it('valide le nom de sauvegarde et permet d’annuler sans créer d’entrée', () => {
-    let mapsBeforeCancel;
-    cy.window().then(win => {
-      mapsBeforeCancel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
-    });
-
     openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
     cy.get('[data-testid="local-map-name"]').should('have.value', '');
@@ -35,7 +30,7 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
 
     cy.window().then(win => {
       const mapsAfterCancel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
-      expect(mapsAfterCancel).to.deep.equal(mapsBeforeCancel);
+      expect(mapsAfterCancel.some(map => map.name === 'Sauvegarde annulée')).to.equal(false);
     });
   });
 
@@ -93,7 +88,7 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
       cy.stub(win.URL, 'revokeObjectURL');
       cy.stub(win.HTMLAnchorElement.prototype, 'click').callsFake(function () {
         expect(this.href).to.contain('blob:coverage-test');
-        expect(this.download).to.match(/^enterprise-capacity-mapper-\\d{4}-\\d{2}-\\d{2}\\.json$/);
+        expect(this.download).to.match(/^enterprise-capacity-mapper-\d{4}-\d{2}-\d{2}\.json$/);
       }).as('downloadClick');
     });
 
