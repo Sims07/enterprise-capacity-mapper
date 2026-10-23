@@ -224,7 +224,37 @@
   .companion-launcher:hover { transform: none; }
 }
 
-.companion-exchange { margin-top: 18px; padding: 12px; border: 1px solid var(--companion-border); border-radius: 11px; background: var(--companion-panel); }
-.companion-exchange-label { margin: 0 0 6px; color: var(--companion-muted); font-size: 9px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
-.companion-user-question { margin: 0 0 12px; padding: 9px 11px; border-radius: 9px 9px 3px 9px; background: var(--companion-accent-soft); color: var(--companion-text); font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
-.companion-answer-label { margin-bottom: 0; color: var(--companion-accent); }
+
+/* Conversation: quick actions at start, then a readable chronological chat. */
+.companion-start { display: grid; gap: 0; }
+.companion-chat-history { display: grid; gap: 15px; }
+.companion-exchange { display: grid; gap: 10px; }
+.companion-user-message {
+  width: fit-content;
+  max-width: 91%;
+  justify-self: end;
+  padding: 10px 12px;
+  border: 1px solid var(--companion-border);
+  border-radius: 13px 13px 3px 13px;
+  background: var(--companion-accent-soft);
+  color: var(--companion-text);
+}
+.companion-message-role { display: block; margin: 0 0 5px; color: var(--companion-muted); font-size: 9px; font-weight: 800; letter-spacing: .03em; }
+.companion-user-message p { margin: 0; color: var(--companion-text); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.companion-assistant-message { min-width: 0; padding: 12px; border: 1px solid var(--companion-border); border-radius: 3px 13px 13px 13px; background: var(--companion-panel); }
+.companion-assistant-heading { display: flex; align-items: center; gap: 8px; }
+.companion-assistant-heading .companion-avatar { flex: 0 0 25px; width: 25px; height: 25px; }
+.companion-assistant-heading .companion-message-role { margin: 0; color: var(--companion-text); font-size: 10px; }
+.companion-answer-meta { margin: 3px 0 0; color: var(--companion-muted); font-size: 9px; }
+.companion-answer-text { margin: 11px 0 0; color: var(--companion-text); font-size: 11px; line-height: 1.6; }
+.companion-details { margin-top: 11px; border-top: 1px solid var(--companion-border); padding-top: 9px; }
+.companion-details summary { color: var(--companion-accent); font-size: 10px; font-weight: 800; cursor: pointer; }
+.companion-details[open] summary { margin-bottom: 10px; }
+.companion-details .companion-observations { gap: 8px; }
+.companion-no-findings { margin: 10px 0 0; color: var(--companion-muted); font-size: 10px; line-height: 1.5; }
+.companion-assistant-message .companion-disclaimer { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--companion-border); }
+.companion-exchange-divider { height: 1px; background: var(--companion-border); opacity: .65; }
+@media (max-width: 600px) {
+  .companion-user-message { max-width: 95%; }
+  .companion-assistant-message { padding: 10px; }
+}
