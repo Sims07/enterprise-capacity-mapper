@@ -19,8 +19,7 @@ describe('Nouvelle cartographie — thème', () => {
 
     cy.get('.modal.wizard').should('have.css', 'background-color', 'rgb(23, 26, 33)');
     cy.get('.wizard-steps').should('have.css', 'background-color', 'rgb(17, 19, 24)');
-    // Les cartes ont deux surfaces valides : neutre si non sélectionnée, indigo si active.
-    ['template-matrix', 'template-blank'].forEach(id => {
+    ['template-capability-map', 'template-value-chain', 'template-blank'].forEach(id => {
       cy.get(`[data-testid="${id}"]`).should($card => {
         const selected = $card.attr('aria-pressed') === 'true';
         expect(getComputedStyle($card[0]).backgroundColor).to.equal(
