@@ -9,7 +9,8 @@
   --companion-accent-soft: var(--color-accent-soft, #eef2ff);
   --companion-shadow: 0 24px 72px rgb(15 23 42 / 22%);
   position: relative;
-  z-index: 60;
+  /* Keep the companion above the workspace, but below modal dialogs (z-index: 20). */
+  z-index: 10;
   color: var(--companion-text);
   font-family: inherit;
 }
