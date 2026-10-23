@@ -132,8 +132,9 @@ export async function sendCompanionMessage({
         ...recentHistory.map(item => ({ role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content }] })),
         { role: 'user', parts: [{ text: `${system}\n\nQuestion de l’utilisateur : ${String(question).trim().slice(0, 4000)}` }] },
       ];
-      response = await fetchImpl(`${url}?key=${encodeURIComponent(apiKey.trim())}`, {
+      response = await fetchImpl(url, {
         ...options,
+        headers: { ...options.headers, 'x-goog-api-key': apiKey.trim() },
         body: JSON.stringify({ contents, generationConfig: { temperature: 0.2 } }),
       });
     }
