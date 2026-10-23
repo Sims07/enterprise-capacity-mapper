@@ -31,8 +31,8 @@ test('Ollama utilise /api/chat et extrait la réponse textuelle', async () => {
 
 test('Ollama diffuse les fragments reçus et les expose au fil de la lecture', async () => {
   const chunks = [
-    '{"message":{"content":"Bonjour"},"done":false}\\n{"message":{"content":" !"},"done":false}\\n',
-    '{"message":{"content":" Comment puis-je aider ?"},"done":true}\\n',
+    '{"message":{"content":"Bonjour"},"done":false}\n{"message":{"content":" !"},"done":false}\n',
+    '{"message":{"content":" Comment puis-je aider ?"},"done":true}\n',
   ];
   const encoded = chunks.map(chunk => new TextEncoder().encode(chunk));
   let index = 0;
