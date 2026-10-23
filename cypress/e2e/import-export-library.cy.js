@@ -15,9 +15,8 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
 
   beforeEach(() => {
     cy.on('uncaught:exception', err => { throw err; });
-    cy.visit('/');
     cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/');
   });
 
   it('valide le nom de sauvegarde et permet d’annuler sans créer d’entrée', () => {
@@ -30,7 +29,7 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
 
     cy.window().then(win => {
       const mapsAfterCancel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
-      expect(mapsAfterCancel.some(map => map.name === 'Sauvegarde annulée')).to.equal(false);
+      expect(mapsAfterCancel.find(map => map.name === 'Sauvegarde annulée')).to.equal(undefined);
     });
   });
 
@@ -88,7 +87,13 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
       cy.stub(win.URL, 'revokeObjectURL');
       cy.stub(win.HTMLAnchorElement.prototype, 'click').callsFake(function () {
         expect(this.href).to.contain('blob:coverage-test');
-        expect(this.download).to.match(/^enterprise-capacity-mapper-\d{4}-\d{2}-\d{2}\.json$/);
+        const parts = this.download.split('-');
+        expect(parts[0]).to.equal('enterprise');
+        expect(parts[1]).to.equal('capacity');
+        expect(parts[2]).to.equal('mapper');
+        expect(parts[3]).to.match(/^\d{4}$/);
+        expect(parts[4]).to.match(/^\d{2}$/);
+        expect(parts[5]).to.match(/^\d{2}\.json$/);
       }).as('downloadClick');
     });
 
