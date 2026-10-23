@@ -50,14 +50,14 @@ function resultMessage(prompt, result, observations) {
 export default function CartographerCompanion({ model, darkMode = false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [result, setResult] = useState(null);
-  const [askedQuestion, setAskedQuestion] = useState('');
+  const [history, setHistory] = useState([]);
   const [activePrompt, setActivePrompt] = useState(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
+  const conversationRef = useRef(null);
 
   useEffect(() => {
-    setResult(null);
+    setHistory([]);
     setActivePrompt(null);
   }, [model]);
 
@@ -74,25 +74,34 @@ export default function CartographerCompanion({ model, darkMode = false }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open]);
 
+  useEffect(() => {
+    if (conversationRef.current) {
+      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+    }
+  }, [history, open]);
+
   const runReview = (prompt, question = PROMPTS.find(item => item.id === prompt)?.label || 'Revue de la cartographie') => {
     const fullResult = analyzeCartography(model);
     const category = categoryForPrompt(prompt);
     const observations = category
       ? fullResult.observations.filter(item => item.category === category)
       : fullResult.observations;
+    const counts = {
+      total: observations.length,
+      errors: observations.filter(item => item.severity === 'error').length,
+      reviews: observations.filter(item => ['warning', 'review'].includes(item.severity)).length,
+      suggestions: observations.filter(item => item.severity === 'suggestion').length,
+    };
+
     setActivePrompt(prompt);
-    setAskedQuestion(question);
-    setResult({
+    setHistory(previous => [...previous, {
+      id: `${Date.now()}-${previous.length}`,
+      question,
       prompt,
-      summary: resultMessage(prompt, fullResult, observations),
+      answer: resultMessage(prompt, fullResult, observations),
       observations,
-      counts: {
-        total: observations.length,
-        errors: observations.filter(item => item.severity === 'error').length,
-        reviews: observations.filter(item => ['warning', 'review'].includes(item.severity)).length,
-        suggestions: observations.filter(item => item.severity === 'suggestion').length,
-      },
-    });
+      counts,
+    }]);
     setQuery('');
   };
 
@@ -137,81 +146,87 @@ export default function CartographerCompanion({ model, darkMode = false }) {
             <span><strong>Analyse locale</strong> · aucune donnée transmise</span>
           </div>
 
-          <div className="companion-conversation" data-testid="companion-conversation" aria-live="polite">
-            <div className="companion-welcome">
-              <span className="companion-avatar" aria-hidden="true">✦</span>
-              <div>
-                <p className="companion-message-title">Bonjour, regardons votre cartographie.</p>
-                <p>Je peux lancer les premiers contrôles de structure, de nommage et de couverture directement dans votre navigateur.</p>
-              </div>
-            </div>
-
-            <p className="companion-section-label">QUE SOUHAITEZ-VOUS EXAMINER ?</p>
-            <div className="companion-prompts">
-              {PROMPTS.map(prompt => (
-                <button
-                  type="button"
-                  key={prompt.id}
-                  data-testid={`companion-prompt-${prompt.id}`}
-                  className={'companion-prompt' + (activePrompt === prompt.id ? ' is-selected' : '')}
-                  onClick={() => runReview(prompt.id)}
-                >
-                  <span className="companion-prompt-icon" aria-hidden="true">{prompt.icon}</span>
-                  <span>{prompt.label}</span>
-                  <span className="companion-prompt-arrow" aria-hidden="true">↗</span>
-                </button>
-              ))}
-            </div>
-
-            {result && askedQuestion && (
-              <section className="companion-exchange" data-testid="companion-exchange" aria-label="Question et réponse">
-                <p className="companion-exchange-label">Votre question</p>
-                <p className="companion-user-question" data-testid="companion-user-question">{askedQuestion}</p>
-                <p className="companion-exchange-label companion-answer-label">Réponse du compagnon</p>
-              </section>
-            )}
-
-            {result && (
-              <section className="companion-result" data-testid="companion-result" aria-labelledby="companion-result-title">
-                <div className="companion-result-heading">
-                  <span className="companion-result-icon" aria-hidden="true">✓</span>
+          <div className="companion-conversation" data-testid="companion-conversation" aria-live="polite" ref={conversationRef}>
+            {history.length === 0 ? (
+              <div className="companion-start">
+                <div className="companion-welcome">
+                  <span className="companion-avatar" aria-hidden="true">✦</span>
                   <div>
-                    <h3 id="companion-result-title" data-testid="companion-result-title">Résultat de la revue</h3>
-                    <p>{result.counts.total} point(s) détecté(s) par les règles locales</p>
+                    <p className="companion-message-title">Bonjour, regardons votre cartographie.</p>
+                    <p>Je peux lancer les premiers contrôles de structure, de nommage et de couverture directement dans votre navigateur.</p>
                   </div>
                 </div>
-                <p className="companion-result-summary">{result.summary}</p>
-                {result.observations.length > 0 ? (
-                  <div className="companion-observations">
-                    {result.observations.map((observation, index) => (
-                      <article className="companion-observation" key={observation.id + ':' + index}>
-                        <div className="companion-observation-topline">
-                          <span className={'companion-severity severity-' + observation.severity}>{SEVERITY_LABELS[observation.severity] || observation.severity}</span>
-                          <span className="companion-category">{CATEGORY_LABELS[observation.category] || observation.category}</span>
+
+                <p className="companion-section-label">POUR COMMENCER</p>
+                <div className="companion-prompts">
+                  {PROMPTS.map(prompt => (
+                    <button
+                      type="button"
+                      key={prompt.id}
+                      data-testid={`companion-prompt-${prompt.id}`}
+                      className={'companion-prompt' + (activePrompt === prompt.id ? ' is-selected' : '')}
+                      onClick={() => runReview(prompt.id)}
+                    >
+                      <span className="companion-prompt-icon" aria-hidden="true">{prompt.icon}</span>
+                      <span>{prompt.label}</span>
+                      <span className="companion-prompt-arrow" aria-hidden="true">↗</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="companion-chat-history" data-testid="companion-chat-history">
+                {history.map((exchange, index) => (
+                  <article className="companion-exchange" data-testid="companion-exchange" key={exchange.id}>
+                    <div className="companion-user-message">
+                      <span className="companion-message-role">Vous</span>
+                      <p data-testid="companion-user-question">{exchange.question}</p>
+                    </div>
+
+                    <div className="companion-assistant-message">
+                      <div className="companion-assistant-heading">
+                        <span className="companion-avatar" aria-hidden="true">✦</span>
+                        <div>
+                          <p className="companion-message-role">Compagnon cartographe</p>
+                          <p className="companion-answer-meta">{exchange.counts.total} point(s) détecté(s) · analyse locale</p>
                         </div>
-                        <h4>{observation.title}</h4>
-                        <p>{observation.detail}</p>
-                        <p className="companion-recommendation"><strong>Piste :</strong> {observation.recommendation}</p>
-                        {observation.evidence?.length > 0 && (
-                          <div className="companion-evidence">
-                            <span>Éléments concernés</span>
-                            {observation.evidence.map((item, itemIndex) => (
-                              <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
+                      </div>
+                      <p className="companion-answer-text" data-testid="companion-answer">{exchange.answer}</p>
+
+                      {exchange.observations.length > 0 ? (
+                        <details className="companion-details">
+                          <summary>Voir les constats ({exchange.observations.length})</summary>
+                          <div className="companion-observations">
+                            {exchange.observations.map((observation, observationIndex) => (
+                              <article className="companion-observation" key={observation.id + ':' + observationIndex}>
+                                <div className="companion-observation-topline">
+                                  <span className={'companion-severity severity-' + observation.severity}>{SEVERITY_LABELS[observation.severity] || observation.severity}</span>
+                                  <span className="companion-category">{CATEGORY_LABELS[observation.category] || observation.category}</span>
+                                </div>
+                                <h4>{observation.title}</h4>
+                                <p>{observation.detail}</p>
+                                <p className="companion-recommendation"><strong>Piste :</strong> {observation.recommendation}</p>
+                                {observation.evidence?.length > 0 && (
+                                  <div className="companion-evidence">
+                                    <span>Éléments concernés</span>
+                                    {observation.evidence.map((item, itemIndex) => (
+                                      <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
+                                    ))}
+                                  </div>
+                                )}
+                              </article>
                             ))}
                           </div>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="companion-empty-result">
-                    <span aria-hidden="true">✓</span>
-                    <p>Aucun point de vigilance détecté par ces contrôles.</p>
-                    <small>Ce résultat ne garantit pas à lui seul la qualité métier de la cartographie.</small>
-                  </div>
-                )}
-                <p className="companion-disclaimer">Ces contrôles sont déterministes et indicatifs. Toute décision d’architecture reste à valider par un humain.</p>
-              </section>
+                        </details>
+                      ) : (
+                        <p className="companion-no-findings">Aucun constat n’a été relevé par cette revue.</p>
+                      )}
+                      <p className="companion-disclaimer">Résultat indicatif des règles locales ; à valider avec le contexte métier.</p>
+                    </div>
+                    {index < history.length - 1 && <div className="companion-exchange-divider" aria-hidden="true" />}
+                  </article>
+                ))}
+              </div>
             )}
           </div>
 
@@ -222,12 +237,12 @@ export default function CartographerCompanion({ model, darkMode = false }) {
               data-testid="companion-question"
               value={query}
               onChange={event => setQuery(event.target.value)}
-              placeholder="Ex. : où sont les gaps de couverture ?"
+              placeholder="Posez une question sur votre cartographie…"
               autoComplete="off"
             />
-            <button type="submit" aria-label="Lancer une revue locale" disabled={!query.trim()} data-testid="companion-submit">↑</button>
+            <button type="submit" aria-label="Envoyer la question" disabled={!query.trim()} data-testid="companion-submit">↑</button>
           </form>
-          <p className="companion-footer-note">Version initiale · pas encore de modèle conversationnel connecté</p>
+          <p className="companion-footer-note">Historique conservé pendant cette session · pas encore de modèle conversationnel connecté</p>
         </section>
       )}
       <button
