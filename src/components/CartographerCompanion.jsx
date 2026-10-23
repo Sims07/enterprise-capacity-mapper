@@ -112,6 +112,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
     <div className={`companion-root${darkMode ? ' companion-dark' : ''}`}>
       {open && (
         <section
+          id="companion-panel"
           className="companion-panel"
           data-testid="companion-panel"
           role="dialog"
@@ -120,14 +121,14 @@ export default function CartographerCompanion({ model, darkMode = false }) {
           tabIndex={-1}
           ref={panelRef}
         >
-          <header className="companion-header">
+          <div className="companion-header">
             <div className="companion-brand-mark" aria-hidden="true">✦</div>
             <div className="companion-heading">
               <h2 id="companion-title">Compagnon cartographe</h2>
               <p>Votre revue de cartographie d’entreprise</p>
             </div>
             <button type="button" className="companion-close" aria-label="Fermer le compagnon" data-testid="companion-close" onClick={() => { setOpen(false); triggerRef.current?.focus(); }}>×</button>
-          </header>
+          </div>
 
           <div className="companion-mode-note" role="note">
             <span className="companion-status-dot" aria-hidden="true" />
@@ -165,7 +166,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                 <div className="companion-result-heading">
                   <span className="companion-result-icon" aria-hidden="true">✓</span>
                   <div>
-                    <h3 id="companion-result-title">Résultat de la revue</h3>
+                    <h3 id="companion-result-title" data-testid="companion-result-title">Résultat de la revue</h3>
                     <p>{result.counts.total} point(s) détecté(s) par les règles locales</p>
                   </div>
                 </div>
