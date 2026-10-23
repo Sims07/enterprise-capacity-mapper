@@ -21,6 +21,8 @@ const SEVERITY_LABELS = {
   suggestion: 'Suggestion',
 };
 
+const itemEvidence = (type, item) => ({ type, id: item?.id ?? null, name: String(item?.name ?? '').trim() || '(sans nom)' });
+
 const categoryForPrompt = prompt => ({
   overview: null,
   coverage: 'coverage',
