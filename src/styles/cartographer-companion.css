@@ -487,3 +487,22 @@
   .companion-thinking-indicator { animation: none; }
 }
 
+.companion-ollama-cors-help {
+  font-size: 9px;
+  line-height: 1.45;
+}
+.companion-ollama-cors-help p {
+  margin: 5px 0;
+  color: var(--companion-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+.companion-ollama-cors-help h4 {
+  margin: 7px 0 3px;
+  color: var(--companion-text);
+  font-size: 9px;
+}
+.companion-ollama-cors-help code,
+.companion-ollama-cors-help pre {
+  font-size: 9px;
+}
