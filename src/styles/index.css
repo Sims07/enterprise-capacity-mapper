@@ -1,0 +1,14 @@
+/* Point d'entrée unique des styles globaux.
+ * Garder l'ordre explicite : la cascade historique en dépend.
+ */
+@import './tokens.css';
+@import './base.css';
+@import './compact-ui.css';
+@import './dark-impact.css';
+@import './navigation-highlight.css';
+@import './navigation-rationalization.css';
+@import './dark-contrast.css';
+@import './togaf-dark-contrast.css';
+@import './description-fields.css';
+@import './dashboard.css';
+@import './relations-dark-hover.css';
