@@ -58,7 +58,7 @@ describe('Lot 6 — création et arbre de cartographie', () => {
     cy.get('[data-testid="structure-columns-input"]').should('have.length', 5);
     cy.get('[data-testid="structure-columns-input"]').last().clear().type('Canal');
     cy.get('[aria-label="Monter Canal"]').click();
-    cy.get('[data-testid="structure-columns-input"]').eq(2).should('have.value', 'Canal');
+    cy.get('[data-testid="structure-columns-input"]').eq(3).should('have.value', 'Canal');
     cy.get('[aria-label="Supprimer Canal"]').click();
     cy.get('[data-testid="structure-columns-input"]').should('have.length', 4);
 
