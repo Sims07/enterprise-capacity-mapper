@@ -1,9 +1,9 @@
-/* Relations — Dark Linear
-   Le hover réel est porté par le bouton .tree-toggle à l'intérieur de la ligne N1.
-   Cette feuille est chargée en dernier pour neutraliser le hover clair hérité. */
+/* Relations : le hover N1 consomme les tokens sémantiques du thème.
+   Cette feuille reste en dernier dans les imports pour neutraliser les anciens styles hérités. */
 .app.theme-dark .coverage-tree {
-  --relation-n1-hover-bg: #202733;
-  --relation-n1-hover-text: #f1f5f9;
+  --relation-n1-hover-bg: var(--color-surface-hover);
+  --relation-n1-hover-text: var(--color-text);
+  --relation-n1-hover-border: var(--color-border-strong);
 }
 
 .app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover,
@@ -11,7 +11,7 @@
 .app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-gap:hover,
 .app.theme-dark .coverage-tree .tree-node-cap > .tree-row.cov-redundant:hover {
   background: var(--relation-n1-hover-bg) !important;
-  border-color: #4b5563 !important;
+  border-color: var(--relation-n1-hover-border) !important;
   color: var(--relation-n1-hover-text) !important;
 }
 
