@@ -1,0 +1,51 @@
+/* Outils : le panneau doit rester cohérent avec les surfaces du thème sombre. */
+.app.theme-dark .toolbar-tools-panel {
+  background: #111c2e;
+  color: #f1f5f9;
+  border-color: #40536d;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .42);
+}
+
+.app.theme-dark .toolbar-tools-panel .toolbar-menu-heading {
+  color: #b4c2d4;
+}
+
+.app.theme-dark .toolbar-tools-panel button,
+.app.theme-dark .toolbar-tools-panel .button,
+.app.theme-dark .toolbar-tools-panel .toolbar-import {
+  background: #1a2940;
+  color: #e8eef7 !important;
+  border-color: #455a76 !important;
+}
+
+.app.theme-dark .toolbar-tools-panel button:hover,
+.app.theme-dark .toolbar-tools-panel .button:hover,
+.app.theme-dark .toolbar-tools-panel .toolbar-import:hover {
+  background: #263956;
+  color: #fff !important;
+  border-color: #8296b4 !important;
+}
+
+.app.theme-dark .toolbar-tools-panel button.primary,
+.app.theme-dark .toolbar-tools-panel button.new-map-button {
+  background: #4f46e5 !important;
+  color: #fff !important;
+  border-color: #818cf8 !important;
+}
+
+.app.theme-dark .toolbar-tools-panel button.primary:hover,
+.app.theme-dark .toolbar-tools-panel button.new-map-button:hover {
+  background: #6366f1 !important;
+  border-color: #a5b4fc !important;
+}
+
+.app.theme-dark .toolbar-tools-panel .toolbar-menu-divider {
+  border-color: #2b3b52;
+}
+
+.app.theme-dark .toolbar-tools-panel button:focus-visible,
+.app.theme-dark .toolbar-tools-panel .button:focus-visible,
+.app.theme-dark .toolbar-tools-panel .toolbar-import:focus-within {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
