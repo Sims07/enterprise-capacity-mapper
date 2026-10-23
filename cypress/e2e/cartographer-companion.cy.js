@@ -124,4 +124,40 @@ describe('Compagnon cartographe — interface locale', () => {
       expect(rect.bottom, 'bas du panneau').to.be.at.most(740);
     });
   });
+
+  it('configure Ollama et utilise une réponse simulée dans le mode Conversation', () => {
+    cy.intercept('POST', 'http://localhost:11434/api/chat', {
+      statusCode: 200,
+      body: { message: { content: 'Réponse Ollama simulée : la couverture doit être validée par un architecte.' } },
+    }).as('ollamaChat');
+
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-settings-toggle"]').click();
+    cy.get('[data-testid="companion-provider-settings"]').should('be.visible');
+    cy.get('[data-testid="companion-provider"]').should('have.value', 'ollama');
+    cy.get('[data-testid="companion-provider-enabled"]').check();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').type('Évalue la couverture de cette cartographie');
+    cy.get('[data-testid="companion-submit"]').click();
+
+    cy.wait('@ollamaChat').its('request.body.messages').should('have.length.at.least', 2);
+    cy.get('[data-testid="companion-answer"]').should('contain.text', 'Réponse Ollama simulée');
+    cy.get('[data-testid="companion-panel"]').should('contain.text', 'Fournisseur actif : Ollama (local)');
+  });
+
+  it('ne persiste jamais une clé API cloud dans les préférences locales', () => {
+    const apiKey = 'cle-api-fictive-ne-pas-enregistrer';
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-settings-toggle"]').click();
+    cy.get('[data-testid="companion-provider"]').select('openai');
+    cy.get('[data-testid="companion-provider-key"]').type(apiKey);
+    cy.get('[data-testid="companion-provider-enabled"]').check();
+    cy.window().should(window => {
+      const saved = window.localStorage.getItem('enterprise-capacity-mapper:companion-provider-preferences') || '';
+      expect(saved).not.to.contain(apiKey);
+      expect(saved).to.contain('"provider":"openai"');
+    });
+    cy.get('[data-testid="companion-provider-clear-key"]').click();
+    cy.get('[data-testid="companion-provider-key"]').should('have.value', '');
+  });
 });
