@@ -12,7 +12,8 @@ export const TEMPLATES = [
     columns: [
       { id: 'business', name: 'Métier' },
       { id: 'core', name: 'Cœur de métier' },
-      { id: 'support', name: 'Support' }
+      { id: 'support', name: 'Support' },
+      { id: 'transverse', name: 'Transverse' }
     ],
     layers: [{ id: 'default', name: 'Principal' }]
   },
