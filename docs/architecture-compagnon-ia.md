@@ -138,7 +138,7 @@ Les tests Cypress de ce lot valident l’ouverture du panneau, la disponibilité
 
 Le compagnon peut utiliser trois fournisseurs derrière `sendCompanionMessage` :
 
-- **Ollama** : appel local `/api/chat`, par défaut sur `http://localhost:11434`. Ollama doit être démarré et autoriser les requêtes CORS de l’origine GitHub Pages ou de développement.
+- **Ollama** : appel local `/api/chat`, par défaut sur `http://localhost:11434`, avec streaming activé (`stream: true`). Le navigateur lit les événements JSON successifs et affiche les fragments de texte au fil de leur réception. L’interface indique « Le modèle prépare sa réponse… » avant le premier fragment, puis « Réponse en cours de génération… » tant que le flux continue. Le délai maximal de génération est de trois minutes. Ollama doit être démarré et autoriser les requêtes CORS de l’origine GitHub Pages ou de développement.
 - **OpenAI** : appel à l’API Chat Completions, avec un modèle configurable et une clé Bearer.
 - **Google Gemini** : appel à `generateContent`, avec modèle et URL de service configurables.
 
@@ -153,4 +153,4 @@ Le compagnon peut utiliser trois fournisseurs derrière `sendCompanionMessage` :
 
 ### Vérifications
 
-Les tests unitaires couvrent le format d’appel et l’extraction de réponse des trois fournisseurs, le refus d’un appel cloud sans clé, la réduction des données transmises et la neutralisation des détails du corps d’erreur HTTP. Les tests Cypress simulent Ollama sans appel réseau réel et vérifient que la clé cloud n’est pas persistée. Aucun test ne nécessite de clé réelle ni de compte fournisseur.
+Les tests unitaires couvrent le format d’appel et l’extraction de réponse des trois fournisseurs, la lecture progressive des fragments Ollama, le refus d’un appel cloud sans clé, la réduction des données transmises et la neutralisation des détails du corps d’erreur HTTP. Les tests Cypress simulent Ollama sans appel réseau réel, vérifient l’indicateur d’attente et contrôlent que la clé cloud n’est pas persistée. Aucun test ne nécessite de clé réelle ni de compte fournisseur.
