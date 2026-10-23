@@ -138,6 +138,7 @@ describe('Compagnon cartographe — interface locale', () => {
       statusCode: 200,
       headers: { 'access-control-allow-origin': 'http://127.0.0.1:4173' },
       body: { message: { content: 'Réponse Ollama simulée : la couverture doit être validée par un architecte.' } },
+      delay: 500,
     }).as('ollamaChat');
 
     cy.get('[data-testid="companion-launcher"]').click();
@@ -149,6 +150,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-question"]').type('Évalue la couverture de cette cartographie');
     cy.get('[data-testid="companion-submit"]').click();
 
+    cy.get('[data-testid="companion-thinking"]').should('be.visible').and('contain.text', 'Le modèle prépare sa réponse');
     cy.wait('@ollamaChat').its('request.body.messages').should('have.length.at.least', 2);
     cy.get('[data-testid="companion-answer"]').should('contain.text', 'Réponse Ollama simulée');
     cy.get('[data-testid="companion-panel"]').should('contain.text', 'Fournisseur actif : Ollama (local)');
