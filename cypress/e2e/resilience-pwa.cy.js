@@ -37,8 +37,10 @@ describe('Lot 5 — résilience du stockage et mise à jour PWA', () => {
     cy.contains('.domain-banner', 'Domaine historique').should('be.visible');
     cy.contains('.cap', 'Capacité historique').should('be.visible');
     cy.contains('.app-item', 'Application historique').should('be.visible');
-    cy.window().then(win => {
-      const migrated = JSON.parse(win.localStorage.getItem(MODEL_KEY));
+    cy.window().should(win => {
+      const raw = win.localStorage.getItem(MODEL_KEY);
+      expect(raw, 'le modèle migré doit être persisté').to.be.a('string');
+      const migrated = JSON.parse(raw);
       expect(migrated.schemaVersion).to.equal(3);
       expect(migrated.capabilities[0].domainId).to.equal('legacy-domain');
       expect(migrated.applications[0].capabilityIds).to.deep.equal(['legacy-cap']);

@@ -1157,7 +1157,12 @@ describe('Dashboard — filtres de la heatmap', () => {
 
     cy.get('@modelBeforeImport').then(before => {
       cy.window().then(win => {
-        expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.equal(before);
+        const currentModel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+        const originalModel = JSON.parse(before);
+        // updatedAt is refreshed by the persistence effect independently of model content.
+        delete currentModel.metadata?.updatedAt;
+        delete originalModel.metadata?.updatedAt;
+        expect(currentModel).to.deep.equal(originalModel);
       });
     });
 
@@ -1175,7 +1180,12 @@ describe('Dashboard — filtres de la heatmap', () => {
 
     cy.get('@modelBeforeImport').then(before => {
       cy.window().then(win => {
-        expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.equal(before);
+        const currentModel = JSON.parse(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'));
+        const originalModel = JSON.parse(before);
+        // updatedAt is refreshed by the persistence effect independently of model content.
+        delete currentModel.metadata?.updatedAt;
+        delete originalModel.metadata?.updatedAt;
+        expect(currentModel).to.deep.equal(originalModel);
       });
     });
     cy.contains('.cap', 'Gestion des Prospects & Leads').should('be.visible');
