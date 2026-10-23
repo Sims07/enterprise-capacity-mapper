@@ -23,8 +23,8 @@ describe('Relations — hover N1 en Dark Linear', () => {
         cy.get('.tree-name').should('be.visible');
       });
 
-    // Vérifie uniquement que les règles de hover ciblées sont présentes.
-    // Aucune assertion sur les couleurs, RGB/RGBA, tokens ou styles calculés.
+    // Vérifie que les règles de hover consomment les tokens sémantiques.
+    // Les tests ne dépendent pas de valeurs RGB/RGBA concrètes.
     cy.document().then(doc => {
       const rules = [...doc.styleSheets].flatMap(sheet => {
         try {
@@ -43,6 +43,11 @@ describe('Relations — hover N1 en Dark Linear', () => {
 
       expect(rowHoverRule, 'la règle de hover de la ligne N1 est présente').to.exist;
       expect(toggleHoverRule, 'la règle de hover du bouton N1 est présente').to.exist;
+      expect(rowHoverRule.style.getPropertyValue('background')).to.include('--relation-n1-hover-bg');
+      expect(rowHoverRule.style.getPropertyValue('color')).to.include('--relation-n1-hover-text');
+      expect(rowHoverRule.style.getPropertyValue('border-color')).to.include('--relation-n1-hover-border');
+      expect(toggleHoverRule.style.getPropertyValue('background')).to.include('--relation-n1-hover-bg');
+      expect(toggleHoverRule.style.getPropertyValue('color')).to.include('--relation-n1-hover-text');
     });
   });
 });
