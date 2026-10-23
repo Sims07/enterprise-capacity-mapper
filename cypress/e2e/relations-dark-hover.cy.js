@@ -1,5 +1,5 @@
 describe('Relations — hover N1 en Dark Linear', () => {
-  it('utilise un hover dédié au thème sombre sans fond blanc ni texte gris', () => {
+  it('couvre la ligne N1 et son bouton de libellé sans réintroduire le hover clair', () => {
     cy.viewport(1280, 800);
     cy.visit('/');
     cy.clearLocalStorage();
@@ -20,23 +20,33 @@ describe('Relations — hover N1 en Dark Linear', () => {
     cy.get('.tree-node-cap > .tree-row').first()
       .should('be.visible')
       .trigger('mouseover')
+      .find('.tree-toggle')
+      .trigger('mouseover')
       .find('.tree-name')
       .should('be.visible');
 
     cy.document().then(doc => {
-      const rule = [...doc.styleSheets]
+      const rules = [...doc.styleSheets]
         .flatMap(sheet => {
           try {
             return [...sheet.cssRules];
           } catch {
             return [];
           }
-        })
-        .find(cssRule => cssRule.selectorText === '.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover');
+        });
 
-      expect(rule, 'la règle de hover N1 Dark Linear est présente').to.exist;
-      expect(rule.style.getPropertyValue('background')).to.contain('var(--relation-n1-hover-bg)');
-      expect(rule.style.getPropertyValue('color')).to.contain('var(--relation-n1-hover-text)');
+      const rowRule = rules.find(cssRule =>
+        cssRule.selectorText === '.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover'
+      );
+      const toggleRule = rules.find(cssRule =>
+        cssRule.selectorText === '.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle'
+      );
+
+      expect(rowRule, 'la règle de hover de la ligne N1 est présente').to.exist;
+      expect(toggleRule, 'la règle de hover du bouton N1 est présente').to.exist;
+      expect(rowRule.style.getPropertyValue('background')).to.contain('var(--relation-n1-hover-bg)');
+      expect(toggleRule.style.getPropertyValue('background')).to.contain('var(--relation-n1-hover-bg)');
+      expect(toggleRule.style.getPropertyValue('color')).to.contain('var(--relation-n1-hover-text)');
     });
   });
 });
