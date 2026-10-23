@@ -378,7 +378,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
             ) : (
               <p className="companion-no-findings">Aucun constat n’a été relevé par cette revue.</p>
             )}
-            <p className="companion-disclaimer">Résultat indicatif des règles locales ; à valider avec le contexte métier.</p>
+            <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.' : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>
           </div>
           {index < history.length - 1 && <div className="companion-exchange-divider" aria-hidden="true" />}
         </article>
