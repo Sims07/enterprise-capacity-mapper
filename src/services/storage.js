@@ -7,7 +7,12 @@ export function loadModel(fallback){
     const raw=localStorage.getItem(KEY);
     if(raw){const model=JSON.parse(raw); if(model?.schemaVersion===3)return model; if(model?.schemaVersion===2)return migrateV2(model);}
     const legacy=legacyModel();
-    return legacy?migrateV2(legacy):migrateV2(fallback);
+    if(legacy){
+      const migrated=migrateV2(legacy);
+      localStorage.setItem(KEY,JSON.stringify(migrated));
+      return migrated;
+    }
+    return migrateV2(fallback);
   }catch{return fallback;}
 }
 function legacyModel(){
