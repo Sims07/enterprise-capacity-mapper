@@ -7,6 +7,7 @@ import './styles/dark-impact.css';
 import './styles/navigation-highlight.css';
 import './styles/navigation-rationalization.css';
 import './styles/dark-contrast.css';
+import './styles/togaf-dark-contrast.css';
 import './styles/description-fields.css';
 import './styles/dashboard.css';
 
