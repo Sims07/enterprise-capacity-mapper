@@ -51,6 +51,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [result, setResult] = useState(null);
+  const [askedQuestion, setAskedQuestion] = useState('');
   const [activePrompt, setActivePrompt] = useState(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
@@ -73,13 +74,14 @@ export default function CartographerCompanion({ model, darkMode = false }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open]);
 
-  const runReview = prompt => {
+  const runReview = (prompt, question = PROMPTS.find(item => item.id === prompt)?.label || 'Revue de la cartographie') => {
     const fullResult = analyzeCartography(model);
     const category = categoryForPrompt(prompt);
     const observations = category
       ? fullResult.observations.filter(item => item.category === category)
       : fullResult.observations;
     setActivePrompt(prompt);
+    setAskedQuestion(question);
     setResult({
       prompt,
       summary: resultMessage(prompt, fullResult, observations),
@@ -105,7 +107,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
         : /structure|rattachement|n0|n1/.test(normalized)
           ? 'structure'
           : 'overview';
-    runReview(prompt);
+    runReview(prompt, query.trim());
   };
 
   return (
@@ -160,6 +162,14 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                 </button>
               ))}
             </div>
+
+            {result && askedQuestion && (
+              <section className="companion-exchange" data-testid="companion-exchange" aria-label="Question et réponse">
+                <p className="companion-exchange-label">Votre question</p>
+                <p className="companion-user-question" data-testid="companion-user-question">{askedQuestion}</p>
+                <p className="companion-exchange-label companion-answer-label">Réponse du compagnon</p>
+              </section>
+            )}
 
             {result && (
               <section className="companion-result" data-testid="companion-result" aria-labelledby="companion-result-title">
