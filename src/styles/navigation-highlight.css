@@ -47,9 +47,9 @@
   white-space: nowrap;
   text-overflow: clip;
   border: 1px solid transparent !important;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   background: transparent !important;
-  color: #cbd5e1;
+  color: var(--color-text-muted);
   box-shadow: none !important;
   outline-offset: 2px;
   transform: none !important;
