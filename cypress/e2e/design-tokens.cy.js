@@ -25,20 +25,17 @@ describe('Fondations du design system CSS', () => {
         expect(lightBackground).not.to.equal(lightText);
 
         toggleTheme();
-        cy.get('.app').should('have.class', 'theme-dark');
-        readToken('--color-bg').then(darkBackground => {
+        cy.get('.app').should('have.class', 'theme-dark').then($app => {
+          const styles = getComputedStyle($app[0]);
+          expect(styles.colorScheme).to.equal('dark');
+          const darkBackground = styles.getPropertyValue('--color-bg').trim();
+          const darkText = styles.getPropertyValue('--color-text').trim();
           expect(darkBackground, 'dark background token').not.to.equal('');
+          expect(darkText, 'dark text token').not.to.equal('');
           expect(darkBackground).not.to.equal(lightBackground);
-          readToken('--color-text').then(darkText => {
-            expect(darkText, 'dark text token').not.to.equal('');
-            expect(darkText).not.to.equal(lightText);
-          });
+          expect(darkText).not.to.equal(lightText);
         });
       });
-    });
-
-    cy.get('.app').should('have.class', 'theme-dark').then($app => {
-      expect(getComputedStyle($app[0]).colorScheme).to.equal('dark');
     });
   });
 
