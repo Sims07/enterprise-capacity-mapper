@@ -124,9 +124,11 @@ Le composant `src/components/CartographerCompanion.jsx` ajoute un panneau flotta
 - Les actions rapides filtrent les constats par couverture, nommage ou structure.
 - La zone de question libre est, pour ce lot, une aide de navigation vers ces mêmes contrôles locaux à partir de mots-clés ; elle n’est pas une conversation générative.
 - Le panneau indique explicitement que le modèle n’est pas transmis et qu’aucun fournisseur conversationnel n’est encore connecté.
-- Les résultats présentent la sévérité, l’explication, la piste de revue et les éléments concernés.
+- La conversation affiche chaque question suivie de sa réponse et conserve les échanges précédents tant que le composant reste monté. Changer de modèle réinitialise l’historique pour éviter de mélanger les résultats de deux cartographies.
+- Les actions rapides ne sont proposées qu’au démarrage ; après le premier échange, l’interface privilégie un fil de discussion chronologique. Les constats détaillés sont repliés par défaut pour éviter de surcharger les réponses.
+- Les réponses présentent une synthèse et un accès aux constats détaillés (sévérité, explication, piste de revue et éléments concernés).
 - L’interface est compatible avec les thèmes clair/sombre, le clavier (Échap pour fermer), la préférence de réduction des animations et les petits écrans.
-- Les résultats restent en mémoire React et ne sont ni sauvegardés dans le modèle métier, ni ajoutés aux exports.
+- L’historique reste en mémoire React et n’est ni sauvegardé dans le modèle métier, ni ajouté aux exports.
 
 Les tests Cypress de ce lot valident l’ouverture du panneau, les actions de revue, la soumission d’une question, la fermeture au clavier, le thème sombre et l’affichage mobile sans assertion fragile sur les valeurs RGB/RGBA.
 
