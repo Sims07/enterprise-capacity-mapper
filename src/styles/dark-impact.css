@@ -227,3 +227,22 @@
   font-size: 10px;
   font-weight: 600;
 }
+
+/* Relations — Dark Linear : le hover N1 reste sur une surface graphite lisible.
+   Le token est volontairement sémantique pour éviter les tests fragiles sur les
+   valeurs RGB calculées par le navigateur. */
+.app.theme-dark .coverage-tree {
+  --relation-n1-hover-bg: #202733;
+  --relation-n1-hover-text: #f1f5f9;
+}
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover {
+  background: var(--relation-n1-hover-bg) !important;
+  border-color: #4b5563 !important;
+  color: var(--relation-n1-hover-text) !important;
+}
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-name,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-code,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-count,
+.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-status {
+  color: var(--relation-n1-hover-text) !important;
+}
