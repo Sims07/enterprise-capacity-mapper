@@ -113,7 +113,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
 
   const normalizeText = value => String(value ?? '')
     .normalize('NFKD')
-    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLocaleLowerCase('fr')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
