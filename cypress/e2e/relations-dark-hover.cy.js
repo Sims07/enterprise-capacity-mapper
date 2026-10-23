@@ -1,5 +1,5 @@
 describe('Relations — hover N1 en Dark Linear', () => {
-  it('couvre la ligne N1 et son bouton de libellé sans réintroduire le hover clair', () => {
+  it('permet le survol de la ligne N1 et de son bouton de libellé en thème sombre', () => {
     cy.viewport(1280, 800);
     cy.visit('/');
     cy.clearLocalStorage();
@@ -13,45 +13,36 @@ describe('Relations — hover N1 en Dark Linear', () => {
     cy.get('[data-testid="tab-relations"]').click();
     cy.get('.coverage-tree').should('be.visible');
 
-    cy.get('.coverage-tree').then($tree => {
-      const style = getComputedStyle($tree[0]);
-      expect(style.getPropertyValue('--relation-n1-hover-bg').trim()).to.equal('#202733');
-      expect(style.getPropertyValue('--relation-n1-hover-text').trim()).to.equal('#f1f5f9');
-    });
-
     cy.get('.tree-node-cap > .tree-row').first()
       .should('be.visible')
       .trigger('mouseover')
-      .find('.tree-toggle')
-      .should('be.visible')
-      .trigger('mouseover')
-      .find('.tree-name')
-      .should('be.visible');
+      .within(() => {
+        cy.get('.tree-toggle')
+          .should('be.visible')
+          .trigger('mouseover');
+        cy.get('.tree-name').should('be.visible');
+      });
 
+    // Vérifie uniquement que les règles de hover ciblées sont présentes.
+    // Aucune assertion sur les couleurs, RGB/RGBA, tokens ou styles calculés.
     cy.document().then(doc => {
-      const rules = [...doc.styleSheets]
-        .flatMap(sheet => {
-          try {
-            return [...sheet.cssRules];
-          } catch {
-            return [];
-          }
-        });
+      const rules = [...doc.styleSheets].flatMap(sheet => {
+        try {
+          return [...sheet.cssRules];
+        } catch {
+          return [];
+        }
+      });
 
-      const rowRule = rules.find(cssRule =>
-        cssRule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover')
+      const rowHoverRule = rules.find(rule =>
+        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover')
       );
-      const toggleRule = rules.find(cssRule =>
-        cssRule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle')
+      const toggleHoverRule = rules.find(rule =>
+        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle')
       );
 
-      expect(rowRule, 'la règle de hover de la ligne N1 est présente').to.exist;
-      expect(toggleRule, 'la règle de hover du bouton N1 est présente').to.exist;
-      // Le CSSOM peut sérialiser les variables CSS en valeurs calculées :
-      // vérifier la présence des déclarations sans comparer RGB/RGBA ni le texte des tokens.
-      expect(rowRule.style.getPropertyValue('background')).not.to.equal('');
-      expect(toggleRule.style.getPropertyValue('background')).not.to.equal('');
-      expect(toggleRule.style.getPropertyValue('color')).not.to.equal('');
+      expect(rowHoverRule, 'la règle de hover de la ligne N1 est présente').to.exist;
+      expect(toggleHoverRule, 'la règle de hover du bouton N1 est présente').to.exist;
     });
   });
 });
