@@ -35,18 +35,18 @@ describe('Relations — hover N1 en Dark Linear', () => {
       });
 
       const rowHoverRule = rules.find(rule =>
-        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover')
+        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover') &&
+        rule.style.getPropertyValue('background').includes('--relation-n1-hover-bg')
       );
       const toggleHoverRule = rules.find(rule =>
-        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle')
+        rule.selectorText?.includes('.app.theme-dark .coverage-tree .tree-node-cap > .tree-row:hover .tree-toggle') &&
+        rule.style.getPropertyValue('background').includes('--relation-n1-hover-bg')
       );
 
-      expect(rowHoverRule, 'la règle de hover de la ligne N1 est présente').to.exist;
-      expect(toggleHoverRule, 'la règle de hover du bouton N1 est présente').to.exist;
-      expect(rowHoverRule.style.getPropertyValue('background')).to.include('--relation-n1-hover-bg');
+      expect(rowHoverRule, 'la règle de hover de la ligne N1 utilise le token de fond').to.exist;
+      expect(toggleHoverRule, 'la règle de hover du bouton N1 utilise le token de fond').to.exist;
       expect(rowHoverRule.style.getPropertyValue('color')).to.include('--relation-n1-hover-text');
       expect(rowHoverRule.style.getPropertyValue('border-color')).to.include('--relation-n1-hover-border');
-      expect(toggleHoverRule.style.getPropertyValue('background')).to.include('--relation-n1-hover-bg');
       expect(toggleHoverRule.style.getPropertyValue('color')).to.include('--relation-n1-hover-text');
     });
   });
