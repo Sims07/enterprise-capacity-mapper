@@ -22,7 +22,7 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
   it('valide le nom de sauvegarde et permet d’annuler sans créer d’entrée', () => {
     openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
-    cy.get('[data-testid="local-map-name"]').should('have.value', '');
+    cy.get('[data-testid="local-map-name"]').should('have.value', 'Cartographie SI de démonstration').clear();
     cy.contains('.modal button', 'Enregistrer').should('be.disabled');
     cy.get('[data-testid="local-map-name"]').type('Sauvegarde annulée');
     cy.contains('.modal button', 'Annuler').click();
