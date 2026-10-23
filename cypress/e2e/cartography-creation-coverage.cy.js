@@ -55,12 +55,12 @@ describe('Lot 6 — création et arbre de cartographie', () => {
     cy.contains('.wizard-footer button', 'Suivant').click();
 
     cy.get('[data-testid="structure-add-columns"]').click();
-    cy.get('[data-testid="structure-columns-input"]').should('have.length', 4);
+    cy.get('[data-testid="structure-columns-input"]').should('have.length', 5);
     cy.get('[data-testid="structure-columns-input"]').last().clear().type('Canal');
     cy.get('[aria-label="Monter Canal"]').click();
     cy.get('[data-testid="structure-columns-input"]').eq(2).should('have.value', 'Canal');
     cy.get('[aria-label="Supprimer Canal"]').click();
-    cy.get('[data-testid="structure-columns-input"]').should('have.length', 3);
+    cy.get('[data-testid="structure-columns-input"]').should('have.length', 4);
 
     cy.get('[data-testid="structure-add-layers"]').click();
     cy.get('[data-testid="structure-layers-input"]').last().clear().type('Tactique');
