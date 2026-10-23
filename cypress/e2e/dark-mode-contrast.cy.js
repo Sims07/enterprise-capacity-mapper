@@ -89,6 +89,21 @@ describe('Contrastes du thème sombre', () => {
     cy.get('.modal').should('not.exist');
   });
 
+  it('affiche l’aide TOGAF avec un contraste cohérent en thème sombre', () => {
+    toggleTheme();
+    cy.get('.help-icon').click();
+    cy.get('.app.theme-dark .togaf-guide').should('be.visible');
+    cy.get('.app.theme-dark .togaf-guide .guide-intro').should('be.visible');
+    cy.get('.app.theme-dark .togaf-guide section').should('have.length', 4).each($section => {
+      cy.wrap($section).should('be.visible');
+    });
+    cy.get('.app.theme-dark .togaf-guide section p').first().should('be.visible');
+    cy.get('.app.theme-dark .togaf-guide .do-dont').should('be.visible');
+    cy.get('.app.theme-dark .togaf-guide .modal-actions .primary').should('be.visible').and('not.be.disabled');
+    cy.get('.togaf-guide button[aria-label="Fermer"]').click();
+    cy.get('.togaf-guide').should('not.exist');
+  });
+
   it('conserve les surfaces claires de l’éditeur Structure en thème clair', () => {
     cy.contains('.canvas-actions button', 'Structure').click();
     cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
