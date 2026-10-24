@@ -483,17 +483,20 @@ export default function CartographerCompanion({ model, darkMode = false }) {
                 <input data-testid="companion-provider-enabled" type="checkbox" checked={providerSettings.enabled} onChange={event => setProviderSettings(current => ({ ...current, enabled: event.target.checked }))} />
                 <span>Utiliser ce fournisseur dans le mode Conversation</span>
               </label>
-              <p className="companion-provider-warning">Attention : une clé saisie dans une application GitHub Pages n’est pas un secret inviolable. Ne l’utilise pas sur un appareil partagé. Lorsque le fournisseur est activé, la question, l’historique récent et les données métier utiles de la cartographie lui sont envoyés.</p>
+              <p className="companion-provider-warning">Information de sécurité : une clé API saisie dans une application GitHub Pages ne peut pas être considérée comme un secret inviolable. Il est déconseillé d’utiliser cette fonction sur un appareil partagé. Lorsque le fournisseur est activé, la question, l’historique récent et les données métier utiles de la cartographie peuvent être transmis à ce fournisseur.</p>
               {providerSettings.provider === 'ollama' && (
                 <details className="companion-ollama-cors-help" data-testid="companion-ollama-cors-help">
-                  <summary>Autoriser Ollama depuis la version publiée</summary>
-                  <p>La PWA ne peut pas contourner CORS. Ollama doit autoriser l’origine exacte de GitHub Pages :</p>
+                  <summary>Configuration de l’accès à Ollama depuis la version publiée</summary>
+                  <p>Lorsqu’Enterprise Capacity Mapper est utilisé depuis GitHub Pages, le navigateur peut bloquer les requêtes vers Ollama au titre de la politique CORS. La PWA ne permet pas de contourner cette restriction.</p>
+                  <p>Pour autoriser les requêtes provenant de l’application publiée, Ollama doit accepter l’origine suivante :</p>
                   <code>https://sims07.github.io</code>
-                  <p>Cette origine ne comprend pas le chemin <code>/enterprise-capacity-mapper/</code>. N’utilise pas <code>*</code> : limite l’autorisation à cette origine.</p>
-                  <p><strong>Windows :</strong> ferme complètement Ollama, ajoute la variable d’environnement utilisateur <code>OLLAMA_ORIGINS</code> avec la valeur <code>https://sims07.github.io</code>, puis relance Ollama.</p>
-                  <p><strong>macOS / Linux :</strong> arrête d’abord Ollama, puis lance-le avec cette variable d’environnement :</p>
+                  <p>Le chemin <code>/enterprise-capacity-mapper/</code> ne doit pas être ajouté à cette valeur. Il est recommandé de limiter l’autorisation à cette origine plutôt que d’utiliser <code>*</code>.</p>
+                  <h4>Windows</h4>
+                  <p>Définir la variable d’environnement utilisateur <code>OLLAMA_ORIGINS</code> avec la valeur <code>https://sims07.github.io</code>, puis redémarrer complètement Ollama afin que la configuration soit prise en compte.</p>
+                  <h4>macOS / Linux</h4>
+                  <p>Arrêter Ollama, puis démarrer le service avec la variable d’environnement suivante :</p>
                   <pre>OLLAMA_ORIGINS="https://sims07.github.io" ollama serve</pre>
-                  <p>Garde l’URL du service sur <code>http://localhost:11434</code> uniquement si le navigateur et Ollama tournent sur le même appareil. Sur un téléphone, <code>localhost</code> désigne le téléphone, pas ton ordinateur.</p>
+                  <p>L’URL du service peut rester <code>http://localhost:11434</code> lorsque le navigateur et Ollama fonctionnent sur le même ordinateur. Sur un autre appareil, <code>localhost</code> désigne cet autre appareil et non l’ordinateur exécutant Ollama.</p>
                 </details>
               )}
               <button type="button" className="companion-provider-clear-key" data-testid="companion-provider-clear-key" onClick={() => setApiKey('')} disabled={!apiKey}>Effacer la clé de cette session</button>
