@@ -1,14 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
-import { createLocalStorageModelRepository } from './adapters/browser/localStorageRepository.js';
+import { createFrontendApplication } from './adapters/react/architecture.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
 import CartographerCompanion from './components/CartographerCompanion.jsx';
-import { createMapService } from './application/mapService.js';
-import { createNavigationPort } from './ports/navigation.js';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
@@ -71,20 +69,15 @@ function Field({ label, required = false, error, ...p }) {
 }
 
 function App() {
-  const repositoryRef = useRef(null);
-  if (!repositoryRef.current) repositoryRef.current = createLocalStorageModelRepository();
-  const repository = repositoryRef.current;
-  const mapServiceRef = useRef(null);
-  if (!mapServiceRef.current) {
-    mapServiceRef.current = createMapService({ repository, initialModel: repository.load(DEMO_MODEL) });
+  const applicationRef = useRef(null);
+  if (!applicationRef.current) {
+    applicationRef.current = createFrontendApplication({ initialModel: DEMO_MODEL });
   }
-  const mapService = mapServiceRef.current;
+  const { repository, map: mapService, navigation, aiCompanion } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
-  const navigationRef = useRef(createNavigationPort({ onModeChange: setMode }));
-  const navigation = navigationRef.current;
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
   const dashboardHistoryEntry = useRef(false);
   const [pickedApps, setPickedApps] = useState([]);
@@ -1359,7 +1352,7 @@ function App() {
           </div>
         </Modal>
       )}
-      <CartographerCompanion model={model} darkMode={darkMode} />
+      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} />
     </div>
   );
 }
