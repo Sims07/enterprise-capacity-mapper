@@ -15,6 +15,14 @@ import {
   prepareLinkedApplications,
   unassignApplicationFromCapability,
 } from './application/relationshipUseCases.js';
+import {
+  createApplication,
+  createCapability,
+  createDomain,
+  removeDomainAndDependents,
+  updateCapability,
+  updateDomain,
+} from './application/catalogUseCases.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -475,33 +483,31 @@ function App() {
 
     setFormErrors({});
     if (modal === 'domain') {
-      update({ domains: [...model.domains, { id: uid('l0'), code: form.code || 'CAP', name: form.name.trim(), description: form.description, color: resolveDomainColor(form.color), layout: { columnId: form.columnId || columns[0].id, layerId: form.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } }] });
+      update({ domains: createDomain({ domains: model.domains, form, id: uid('l0'), defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
       setMapQuery('');
       notify('Domaine N0 créé');
     }
     if (modal === 'edit-domain') {
-      update({ domains: model.domains.map(d => d.id === editingDomainId ? { ...d, name: form.name.trim(), code: form.code.trim() || d.code, description: form.description, color: resolveDomainColor(form.color), layout: { ...(d.layout || {}), columnId: form.columnId || d.layout?.columnId || columns[0].id, layerId: form.layerId || d.layout?.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } } : d) });
+      update({ domains: updateDomain({ domains: model.domains, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
-      update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' } : c) });
+      update({ capabilities: updateCapability({ capabilities: model.capabilities, capabilityId: editingCapabilityId, form }) });
       notify('Capacité N1 modifiée');
     }
     if (modal === 'capability') {
-      update({ capabilities: [...model.capabilities, { id: uid('l1'), domainId: form.domainId, code: form.code || 'CAP-01', name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' }] });
+      update({ capabilities: createCapability({ capabilities: model.capabilities, form, id: uid('l1') }) });
       notify('Capacité N1 créée');
     }
     if (modal === 'app') {
-      update({ applications: [...apps, { id: uid('app'), name: form.name.trim(), code: form.code || 'APP', type: form.type, status: form.status, vendor: form.vendor, capabilityIds: form.capabilityIds, description: form.description }] });
+      update({ applications: createApplication({ applications: apps, form, id: uid('app') }) });
       notify('Application créée');
     }
     setModal(null);
   };
 
   const removeDomain = id => {
-    const caps = model.capabilities.filter(c => c.domainId === id).map(c => c.id);
-    const ids = new Set(depth === 1 ? [id] : caps);
-    update({ domains: model.domains.filter(d => d.id !== id), capabilities: model.capabilities.filter(c => c.domainId !== id), applications: apps.map(a => ({ ...a, capabilityIds: relationIds(a).filter(x => !ids.has(x)) })) });
+    update(removeDomainAndDependents({ model, domainId: id, depth }));
     notify('Domaine et dépendances supprimés');
   };
 
