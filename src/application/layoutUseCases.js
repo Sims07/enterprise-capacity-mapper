@@ -95,3 +95,48 @@ export const isDomainPlacementAvailable = ({ domains, columns, layers, domainId,
     return start < otherStart + otherSpan && otherStart < start + span;
   });
 };
+
+/**
+ * Prepares the model patch for moving a domain to a matrix cell.
+ * Returns null when the move would overlap another domain.
+ */
+export const prepareDomainPlacement = ({
+  domains,
+  layout,
+  layoutMode,
+  columns,
+  layers,
+  domainId,
+  columnId,
+  layerId,
+}) => {
+  if (!domainId) return null;
+  const moving = domains.find(domain => domain.id === domainId);
+  const targetColumn = columnId || moving?.layout?.columnId || columns[0].id;
+  const targetLayer = layerId || moving?.layout?.layerId || layers[0].id;
+
+  if (moving && !isDomainPlacementAvailable({
+    domains,
+    columns,
+    layers,
+    domainId,
+    columnId: targetColumn,
+    layerId: targetLayer,
+    columnSpan: moving.layout?.columnSpan || 1,
+  })) return null;
+
+  return {
+    layout: { ...layout, mode: layoutMode, columns, layers },
+    domains: domains.map(domain => domain.id === domainId
+      ? {
+          ...domain,
+          layout: {
+            ...(domain.layout || {}),
+            columnId: targetColumn,
+            layerId: targetLayer,
+          },
+        }
+      : domain),
+  };
+};
+
