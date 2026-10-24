@@ -19,7 +19,7 @@ export const createFrontendApplication = ({
 } = {}) => {
   const repository = injectedRepository || createLocalStorageModelRepository();
   const navigation = injectedNavigation || createNavigationPort({ onModeChange });
-  const map = injectedMap || createMapService({ repository, initialModel });
+  const map = injectedMap || createMapService({ repository, initialModel: repository.load(initialModel) });
   const aiCompanion = settings => createAiCompanion(settings ?? ai);
 
   return Object.freeze({ repository, navigation, map, aiCompanion });
