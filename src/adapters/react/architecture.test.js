@@ -18,16 +18,19 @@ test('frontend factory composes application services from injected dependencies'
   };
   const navigation = { goTo: mode => calls.push(['navigate', mode]) };
   const aiFactory = settings => ({ ask: question => ({ settings, question }) });
+  const preferences = { readTheme: () => 'light' };
 
   const application = createFrontendApplication({
     initialModel: model,
     repository,
     navigation,
+    preferences,
     createAiCompanion: aiFactory,
   });
 
   assert.equal(application.repository, repository);
   assert.equal(application.navigation, navigation);
+  assert.equal(application.preferences, preferences);
   assert.equal(application.map.snapshot().current, model);
   assert.deepEqual(calls, [['load', model]]);
 
@@ -44,16 +47,19 @@ test('frontend factory returns a stable explicit set of application dependencies
   const navigation = { goTo: () => {} };
   const map = { snapshot: () => ({ current: model }) };
   const aiFactory = settings => ({ settings });
+  const preferences = { readTheme: () => 'dark' };
 
   const application = createFrontendApplication({
     repository,
     navigation,
     map,
+    preferences,
     createAiCompanion: aiFactory,
   });
 
-  assert.deepEqual(Object.keys(application), ['repository', 'navigation', 'map', 'aiCompanion']);
+  assert.deepEqual(Object.keys(application), ['repository', 'navigation', 'map', 'preferences', 'aiCompanion']);
   assert.equal(application.map, map);
+  assert.equal(application.preferences, preferences);
   assert.deepEqual(application.aiCompanion({ provider: 'injected' }), {
     settings: { provider: 'injected' },
   });
