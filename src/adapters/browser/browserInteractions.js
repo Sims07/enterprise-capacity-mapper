@@ -11,6 +11,11 @@ export const createBrowserInteractions = ({
     y: Math.max(padding, Math.min(y, windowObject.innerHeight - height - padding)),
   }),
 
+  listenForKeyDown: handler => {
+    documentObject.addEventListener('keydown', handler);
+    return () => documentObject.removeEventListener('keydown', handler);
+  },
+
   listenForDismissal: ({
     pointerEvent = 'pointerdown',
     getInsideNode,
