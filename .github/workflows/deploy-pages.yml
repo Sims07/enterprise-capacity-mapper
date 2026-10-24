@@ -34,9 +34,7 @@ jobs:
           const source = fs.readFileSync(path, 'utf8');
           const cacheVersion = `ecm-v${process.env.VERSION}`;
           const updated = source.replace(/^const CACHE='[^']+';/m, `const CACHE='${cacheVersion}';`);
-          if (updated === source && !source.includes(`const CACHE='${cacheVersion}';`)) {
-            throw new Error('Could not update the PWA service worker cache version');
-          }
+          if (updated === source && !source.includes(`const CACHE='${cacheVersion}';`)) throw new Error('Could not update the PWA service worker cache version');
           fs.writeFileSync(path, updated);
           NODE
           git add package.json package-lock.json public/sw.js
@@ -44,6 +42,8 @@ jobs:
           git push
       - name: Install project dependencies
         run: npm install
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
       - name: Run deterministic unit tests
         run: npm run test:unit
       - name: Install coverage tooling
@@ -63,9 +63,7 @@ jobs:
       - name: Wait for instrumented static preview
         run: |
           for attempt in $(seq 1 30); do
-            if curl --fail --silent --show-error http://127.0.0.1:4173/enterprise-capacity-mapper/ > /dev/null; then
-              exit 0
-            fi
+            if curl --fail --silent --show-error http://127.0.0.1:4173/enterprise-capacity-mapper/ > /dev/null; then exit 0; fi
             sleep 1
           done
           echo 'Instrumented Vite preview did not become ready.'
@@ -82,21 +80,6 @@ jobs:
         run: |
           echo '--- Vite preview log ---'
           cat /tmp/vite-preview.log || true
-          echo '--- Instrumentation marker summary ---'
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import path from 'node:path';
-          const dir = 'dist-coverage/assets';
-          const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(file => /\.js$/.test(file)) : [];
-          const results = files.map(file => {
-            const source = fs.readFileSync(path.join(dir, file), 'utf8');
-            return { file, hasCoverageMap: source.includes('__coverage__'), hasCounters: /s\[\d+\]\+\+/.test(source) };
-          });
-          console.log(JSON.stringify(results, null, 2));
-          if (!results.some(result => result.hasCoverageMap && result.hasCounters)) {
-            console.error('No instrumented JavaScript bundle was available to inspect (an earlier step may have failed).');
-          }
-          NODE
       - name: Verify Cypress produced coverage data
         if: success()
         run: |
@@ -104,26 +87,10 @@ jobs:
           import fs from 'node:fs';
           import path from 'node:path';
           const dir = '.nyc_output';
-          const files = fs.existsSync(dir)
-            ? fs.readdirSync(dir).filter(file => file.endsWith('.json')).map(file => path.join(dir, file))
-            : [];
-          const populated = files.some(file => {
-            try {
-              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-              return data && typeof data === 'object' && Object.keys(data).length > 0;
-            } catch {
-              return false;
-            }
-          });
-          if (!populated) {
-            console.error('Cypress ran, but no non-empty Istanbul coverage map was collected.');
-            console.error('Inspect the instrumented browser bundle and Cypress code-coverage logs.');
-            process.exit(1);
-          }
-          console.log('Istanbul coverage data found:');
-          for (const file of files) {
-            console.log(`- ${file}`);
-          }
+          const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(file => file.endsWith('.json')).map(file => path.join(dir, file)) : [];
+          const populated = files.some(file => { try { const data = JSON.parse(fs.readFileSync(file, 'utf8')); return data && typeof data === 'object' && Object.keys(data).length > 0; } catch { return false; } });
+          if (!populated) { console.error('Cypress ran, but no non-empty Istanbul coverage map was collected.'); process.exit(1); }
+          console.log('Istanbul coverage data found:', files);
           NODE
       - name: Generate HTML and text coverage reports
         if: success()
@@ -141,9 +108,7 @@ jobs:
       - name: Stop instrumented Vite server
         if: always()
         run: |
-          if [ -f /tmp/vite-preview.pid ]; then
-            kill "$(cat /tmp/vite-preview.pid)" 2>/dev/null || true
-          fi
+          if [ -f /tmp/vite-preview.pid ]; then kill "$(cat /tmp/vite-preview.pid)" 2>/dev/null || true; fi
       - name: Build production application
         if: success()
         run: npm run build
@@ -162,18 +127,13 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const summaryPath = 'coverage/coverage-summary.json';
-          if (!fs.existsSync(summaryPath)) {
-            throw new Error(`Missing ${summaryPath}; refusing to publish a misleading coverage badge.`);
-          }
+          if (!fs.existsSync(summaryPath)) throw new Error(`Missing ${summaryPath}; refusing to publish a misleading coverage badge.`);
           const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
           const lines = summary.total?.lines;
-          if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
-            throw new Error('Coverage summary has no valid line coverage percentage.');
-          }
+          if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) throw new Error('Coverage summary has no valid line coverage percentage.');
           const percentage = Math.round(lines.pct * 10) / 10;
           const color = percentage >= 80 ? 'brightgreen' : percentage >= 60 ? 'yellow' : 'red';
           fs.writeFileSync('/tmp/coverage.json', JSON.stringify({ schemaVersion: 1, label: 'line coverage', message: `${percentage}%`, color }, null, 2) + '\n');
-          console.log(`Publishing line coverage badge: ${percentage}%`);
           NODE
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -207,8 +167,4 @@ jobs:
         run: |
           VERSION="$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}"
           TAG="v${VERSION}"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; nothing to do."
-          else
-            gh release create "$TAG" --title "$TAG" --generate-notes
-          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then echo "Release $TAG already exists; nothing to do."; else gh release create "$TAG" --title "$TAG" --generate-notes; fi
