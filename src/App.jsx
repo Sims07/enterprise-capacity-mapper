@@ -306,8 +306,7 @@ function App() {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return browserInteractions.listenForKeyDown(handleKeyDown);
   }, [historyState, modal]);
   // L'adaptateur gère les détails DOM du glisser-déposer et son nettoyage.
   useEffect(() => viewport.installDragAutoScroll(), []);
