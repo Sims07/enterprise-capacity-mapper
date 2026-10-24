@@ -40,6 +40,7 @@ Le port IA est volontairement exprimé en termes de besoin applicatif (`ask`) et
 - `src/application/modelHistory.js` : undo/redo sans React ni navigateur.
 - `src/application/modelUseCases.js` : cas d’utilisation de transformation du modèle, dont la création d’une cartographie vide.
 - `src/application/catalogUseCases.js` : création, modification et suppression des domaines N0, capacités N1 et applications, avec nettoyage des relations dépendantes.
+- `src/application/coverageUseCases.js` : calcul des indicateurs de couverture (gap, couvert, redondance) et des éléments touchés par la sélection, sans dépendance React.
 - `src/application/mapService.js` : orchestration des cas d'usage.
 
 Ces modules sont testables avec Node, indépendamment du navigateur. Les opérations métier sont nommées comme des cas d’utilisation ; le service de cartographie les orchestre avec l’historique et le port de persistance.
@@ -87,3 +88,10 @@ La création d'une nouvelle cartographie passe désormais par `createEmptyMap` d
 Les mutations du catalogue sont regroupées dans `src/application/catalogUseCases.js` : création et modification des domaines N0, création et modification des capacités N1, création d'applications et suppression d'un domaine avec nettoyage des dépendances. Les cas d'utilisation sont des fonctions pures qui reçoivent les données et les identifiants ; la validation du formulaire, la génération des identifiants, les notifications et la gestion des modales restent dans `App.jsx`.
 
 Les tests `src/application/catalogUseCases.test.js` couvrent les transformations des entités, la conservation des propriétés de layout lors d'une modification et les règles existantes de suppression des relations selon la profondeur de cartographie. Cette dernière distinction est volontairement conservée pour éviter de modifier le comportement fonctionnel dans un refactoring.
+
+
+### Analyse de couverture et d'impact
+
+Le calcul des états de couverture d'une capacité (gap, couverte, redondante) et les listes de synthèse pour l'analyse d'impact sont extraits dans `coverageUseCases.js`. Ces cas d'utilisation sont en lecture seule : ils dérivent des indicateurs à partir des capacités visibles, des applications et de la sélection. React conserve l'état de sélection et le rendu des indicateurs.
+
+Les tests dédiés vérifient les trois états, les liens manquants, les relations multiples, la compatibilité avec les applications sans `capabilityIds` et l'absence de mutation des données.
