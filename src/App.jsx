@@ -8,13 +8,13 @@ import {
   removeLayoutDraftItem,
   renameLayoutDraftItem,
   renameLayoutZone,
-} from './application/layoutCommands.js';
+} from './application/layoutUseCases.js';
 import {
   assignApplicationToCapability,
   linkPickedApplications,
   prepareLinkedApplications,
   unassignApplicationFromCapability,
-} from './application/relationshipCommands.js';
+} from './application/relationshipUseCases.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
