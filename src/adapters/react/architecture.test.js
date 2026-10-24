@@ -17,7 +17,7 @@ test('frontend factory composes application services from injected dependencies'
     save: value => { calls.push(['save', value]); return value; },
   };
   const navigation = { goTo: mode => calls.push(['navigate', mode]) };
-  const aiFactory = settings => ({ ask: question => ({ settings, question }) };
+  const aiFactory = settings => ({ ask: question => ({ settings, question }) });
 
   const application = createFrontendApplication({
     initialModel: model,
