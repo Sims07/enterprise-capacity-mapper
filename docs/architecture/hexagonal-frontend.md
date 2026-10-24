@@ -38,7 +38,7 @@ Le port IA est volontairement exprimé en termes de besoin applicatif (`ask`) et
 ## Application et domaine
 
 - `src/application/modelHistory.js` : undo/redo sans React ni navigateur.
-- `src/application/modelUseCases.js` : transformations du modèle.
+- `src/application/modelUseCases.js` : cas d’utilisation de transformation du modèle, dont la création d’une cartographie vide.
 - `src/application/mapService.js` : orchestration des cas d'usage.
 
 Ces modules sont testables avec Node, indépendamment du navigateur. Les opérations métier sont nommées comme des cas d’utilisation ; le service de cartographie les orchestre avec l’historique et le port de persistance.
@@ -74,3 +74,8 @@ Les transformations de l'éditeur de structure sont regroupées dans `src/applic
 Les transformations des liens entre applications et capacités sont regroupées dans `src/application/relationshipUseCases.js`. Ce module pur prend en charge l'affectation et le retrait d'une relation, l'association groupée d'applications à une cible, ainsi que la préparation des relations depuis la modale d'édition. Lorsqu'une application est éditée, les identifiants qui ne font pas partie de la cartographie affichée sont conservés.
 
 `App.jsx` conserve la sélection temporaire, les cases cochées, les notifications et la validation de la modale ; il délègue désormais les transformations du tableau d'applications au module applicatif. Les cas d'ajout idempotent, de retrait, de sélection groupée, de remplacement et de conservation des relations externes sont couverts par `src/application/relationshipUseCases.test.js`.
+
+
+### Création de cartographie
+
+La création d'une nouvelle cartographie passe désormais par `createEmptyMap` dans `modelUseCases.js`, orchestré par `mapService.js`. `App.jsx` conserve les effets propres à l'interface (export de sauvegarde demandé, navigation, sélection et notifications), tandis que la construction du nouvel état du modèle est centralisée dans le cas d'utilisation. Un test du service vérifie le contenu initial et la possibilité d'annuler cette création.
