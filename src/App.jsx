@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
 import { createFrontendApplication } from './adapters/react/architecture.js';
+import { createAppPreferences } from './adapters/browser/appPreferences.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -8,13 +9,10 @@ import Dashboard from './components/Dashboard.jsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
 import CartographerCompanion from './components/CartographerCompanion.jsx';
 
-const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
-const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
-const ACTIVE_RECENT_MAP_KEY = 'enterprise-capacity-mapper:active-recent-map';
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const resetScrollPositions = () => {
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  document.querySelectorAll('main, aside, [data-scroll-container]').forEach(node => {
+  globalThis.window?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  globalThis.document?.querySelectorAll('main, aside, [data-scroll-container]').forEach(node => {
     node.scrollTop = 0;
     node.scrollLeft = 0;
   });
@@ -73,7 +71,7 @@ function App() {
   if (!applicationRef.current) {
     applicationRef.current = createFrontendApplication({ initialModel: DEMO_MODEL });
   }
-  const { repository, map: mapService, navigation, aiCompanion } = applicationRef.current;
+  const { repository, map: mapService, navigation, aiCompanion, preferences } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -86,16 +84,16 @@ function App() {
   const [linkQuery, setLinkQuery] = useState('');
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('enterprise-capacity-mapper:theme') === 'dark');
+  const [darkMode, setDarkMode] = useState(() => preferences.readTheme() === 'dark');
   const toolsMenuRef = useRef(null);
   const toolsMenuToggleRef = useRef(null);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
-  const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
-  const [localMapId, setLocalMapId] = useState(() => localStorage.getItem(ACTIVE_LOCAL_MAP_KEY) || '');
+  const [sourceUrl, setSourceUrl] = useState(() => preferences.readSourceUrl());
+  const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
   const [localMaps, setLocalMaps] = useState([]);
   const [recentMaps, setRecentMaps] = useState([]);
-  const [activeRecentMapId, setActiveRecentMapId] = useState(() => localStorage.getItem(ACTIVE_RECENT_MAP_KEY) || uid('recent'));
+  const [activeRecentMapId, setActiveRecentMapId] = useState(() => preferences.readActiveRecentMapId(uid('recent')));
   const [localMapName, setLocalMapName] = useState('');
   const [pendingLocalMap, setPendingLocalMap] = useState(null);
   const [selected, setSelected] = useState([]);
@@ -117,7 +115,7 @@ function App() {
   const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
 
   useEffect(() => {
-    localStorage.setItem('enterprise-capacity-mapper:theme', darkMode ? 'dark' : 'light');
+    preferences.writeTheme(darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
   useEffect(() => {
@@ -201,7 +199,7 @@ function App() {
     mapService.persist();
     if (activeRecentMapId && activeRecentMapId !== '__dismissed__') {
       repository.updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
-      localStorage.setItem(ACTIVE_RECENT_MAP_KEY, activeRecentMapId);
+      preferences.writeActiveRecentMapId(activeRecentMapId);
     }
   }, [model, activeRecentMapId]);
 
@@ -255,7 +253,7 @@ function App() {
       const saved = repository.saveLocalMap({ name: localMapName, model: savedModel });
       commitModel(savedModel);
       setLocalMapId(saved.id);
-      localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
+      preferences.writeActiveLocalMapId(saved.id);
       setLocalMaps(maps => [...maps, saved]);
       setModal(null);
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
@@ -283,7 +281,7 @@ function App() {
       try {
         setActiveRecentMapId(saved.id);
         setLocalMapId(saved.id);
-        localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
+        preferences.writeActiveLocalMapId(saved.id);
       } catch (storageError) {
         notify(`Cartographie « ${saved.name} » ouverte, mais son identifiant actif n’a pas pu être mémorisé.`);
       }
@@ -472,12 +470,12 @@ function App() {
     replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
     setActiveRecentMapId(uid('recent'));
     setLocalMapId('');
-    localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
+    preferences.clearActiveLocalMapId();
     setSelected([]);
     setLayoutMode('matrix');
     navigateToMode('editor');
     setSourceUrl('');
-    localStorage.removeItem(SOURCE_URL_KEY);
+    preferences.clearSourceUrl();
     setModal(null);
     notify(backup ? 'Cartographie créée · sauvegarde JSON téléchargée' : 'Cartographie créée');
   };
@@ -652,7 +650,7 @@ function App() {
       replaceModel(await repository.importModel(f));
       setActiveRecentMapId(uid('recent'));
       setLocalMapId('');
-      localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
+      preferences.clearActiveLocalMapId();
       notify('Cartographie importée');
     } catch (err) {
       notify(err.message);
@@ -944,7 +942,7 @@ function App() {
                           repository.removeRecentMap(saved.id);
                           setRecentMaps(repository.loadRecentMaps());
                           if (saved.id === activeRecentMapId) {
-                            localStorage.setItem(ACTIVE_RECENT_MAP_KEY, '__dismissed__');
+                            preferences.writeActiveRecentMapId('__dismissed__');
                             setActiveRecentMapId('__dismissed__');
                           }
                           notify(`« ${saved.name} » retirée des récents`);
