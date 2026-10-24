@@ -15,7 +15,15 @@ const createBrowserHistory = () => {
       this.state = state;
     },
   };
-  return { history, calls };
+  const eventCalls = [];
+  const listeners = new Map();
+  const eventTarget = {
+    addEventListener(type, handler) { eventCalls.push(['add', type]); listeners.set(type, handler); },
+    removeEventListener(type, handler) { eventCalls.push(['remove', type]); if (listeners.get(type) === handler) listeners.delete(type); },
+    dispatch(type, event) { listeners.get(type)?.(event); },
+  };
+  history.back = () => calls.push({ method: 'back' });
+  return { history, calls, eventCalls, eventTarget };
 };
 
 test('navigation port changes mode while preserving unrelated history state', () => {
@@ -44,4 +52,31 @@ test('navigation port rejects unsupported modes without mutating history', () =>
 
   assert.throws(() => navigation.goTo('unknown'), /Mode de navigation inconnu/);
   assert.equal(calls.length, 0);
+});
+
+
+test('navigation port owns initialization, dashboard exploration, back and popstate subscription', () => {
+  const { history, calls, eventCalls, eventTarget } = createBrowserHistory();
+  const changedModes = [];
+  const navigation = createNavigationPort({
+    history,
+    location: { href: 'https://example.test/app/' },
+    eventTarget,
+    onModeChange: mode => changedModes.push(mode),
+  });
+  navigation.initialize('editor');
+  navigation.exploreDashboardTarget();
+  assert.equal(history.state.capacityMapperMode, 'relations');
+  assert.equal(history.state.dashboardReturn, true);
+  assert.deepEqual(changedModes, ['editor', 'relations']);
+
+  const events = [];
+  const unsubscribe = navigation.subscribePopState(event => events.push(event.state.capacityMapperMode));
+  eventTarget.dispatch('popstate', { state: { capacityMapperMode: 'dashboard' } });
+  unsubscribe();
+  navigation.back();
+
+  assert.deepEqual(events, ['dashboard']);
+  assert.deepEqual(eventCalls, [['add', 'popstate'], ['remove', 'popstate']]);
+  assert.deepEqual(calls.map(call => call.method), ['replaceState', 'pushState', 'back']);
 });
