@@ -35,20 +35,16 @@ test('app preferences read and write theme and active map ids through injected s
   assert.equal(storage.values.get('enterprise-capacity-mapper:active-recent-map'), 'recent-2');
 });
 
-test('app preferences use safe defaults and can clear the source URL', () => {
+test('app preferences use safe defaults for optional values', () => {
   const storage = createStorage();
   const preferences = createAppPreferences({ storage });
 
   assert.equal(preferences.readTheme(), 'light');
-  assert.equal(preferences.readSourceUrl(), '');
   assert.equal(preferences.readActiveLocalMapId(), '');
   assert.equal(preferences.readActiveRecentMapId('recent-fallback'), 'recent-fallback');
-  preferences.clearSourceUrl();
   assert.deepEqual(storage.calls, [
     ['get', 'enterprise-capacity-mapper:theme'],
-    ['get', 'enterprise-capacity-mapper:source-url'],
     ['get', 'enterprise-capacity-mapper:active-local-map'],
     ['get', 'enterprise-capacity-mapper:active-recent-map'],
-    ['remove', 'enterprise-capacity-mapper:source-url'],
   ]);
 });
