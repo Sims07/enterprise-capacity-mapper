@@ -95,3 +95,10 @@ Les tests `src/application/catalogUseCases.test.js` couvrent les transformations
 Le calcul des états de couverture d'une capacité (gap, couverte, redondante) et les listes de synthèse pour l'analyse d'impact sont extraits dans `coverageUseCases.js`. Ces cas d'utilisation sont en lecture seule : ils dérivent des indicateurs à partir des capacités visibles, des applications et de la sélection. React conserve l'état de sélection et le rendu des indicateurs.
 
 Les tests dédiés vérifient les trois états, les liens manquants, les relations multiples, la compatibilité avec les applications sans `capabilityIds` et l'absence de mutation des données.
+
+
+### Placement des domaines dans la matrice (lot 5)
+
+Le cas d'utilisation `prepareDomainPlacement` centralise la préparation du déplacement d'un domaine : résolution de la cellule cible, contrôle des chevauchements, et construction du patch du modèle en préservant les autres propriétés de layout. L'interface conserve le déclenchement du déplacement, la notification en cas de refus et l'application du patch via le service de cartographie.
+
+Les tests couvrent le déplacement accepté, la conservation des propriétés existantes, le refus d'un chevauchement, un identifiant absent et une demande vide. La règle d'étendue sur les colonnes reste partagée avec `isDomainPlacementAvailable`, afin d'éviter deux implémentations divergentes.
