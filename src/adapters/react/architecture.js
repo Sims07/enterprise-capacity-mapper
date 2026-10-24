@@ -8,11 +8,19 @@ import { createNavigationPort } from '../../ports/navigation.js';
  * React components consume this object; they do not know which persistence,
  * navigation or AI technology is behind the ports.
  */
-export const createFrontendApplication = ({ initialModel, onModeChange, ai = {} } = {}) => {
-  const repository = createLocalStorageModelRepository();
-  const navigation = createNavigationPort({ onModeChange });
-  const map = createMapService({ repository, initialModel });
-  const aiCompanion = createCompanionAiAdapter(ai);
+export const createFrontendApplication = ({
+  initialModel,
+  onModeChange,
+  ai = {},
+  repository: injectedRepository,
+  navigation: injectedNavigation,
+  map: injectedMap,
+  createAiCompanion = createCompanionAiAdapter,
+} = {}) => {
+  const repository = injectedRepository || createLocalStorageModelRepository();
+  const navigation = injectedNavigation || createNavigationPort({ onModeChange });
+  const map = injectedMap || createMapService({ repository, initialModel });
+  const aiCompanion = settings => createAiCompanion(settings ?? ai);
 
   return Object.freeze({ repository, navigation, map, aiCompanion });
 };
