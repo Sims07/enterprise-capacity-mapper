@@ -8,6 +8,7 @@ const createDocument = () => {
   return {
     listeners,
     calls,
+    querySelector(selector) { return selector === '.context-menu' ? { marker: 'context-menu' } : null; },
     addEventListener(type, handler) { listeners.set(type, handler); calls.push(['add', type]); },
     removeEventListener(type, handler) {
       if (listeners.get(type) === handler) listeners.delete(type);
@@ -71,4 +72,14 @@ test('keyboard subscription registers and removes the same handler', () => {
   cleanup();
   assert.equal(documentObject.listeners.has('keydown'), false);
   assert.deepEqual(documentObject.calls, [['add', 'keydown'], ['remove', 'keydown']]);
+});
+
+test('element lookup is delegated to the injected document', () => {
+  const documentObject = createDocument();
+  const interactions = createBrowserInteractions({
+    windowObject: { innerWidth: 800, innerHeight: 600 },
+    documentObject,
+  });
+  assert.deepEqual(interactions.findElement('.context-menu'), { marker: 'context-menu' });
+  assert.equal(interactions.findElement('.missing'), null);
 });
