@@ -23,6 +23,7 @@ import {
   updateCapability,
   updateDomain,
 } from './application/catalogUseCases.js';
+import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -201,9 +202,7 @@ function App() {
   const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
   const visibleDomains = useMemo(() => model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), [model.domains, mapQuery]);
-  const touched = apps.filter(a => relationIds(a).some(id => selected.includes(id)));
-  const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
-  const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
+  const { touched, gaps, redundancy } = deriveCoverageOverview({ mappedItems, applications: apps, selectedIds: selected });
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
   const openLibrary = () => {
     const errors = [];
@@ -562,13 +561,7 @@ function App() {
     e.target.value = '';
   };
 
-  const getCapCoverageState = capId => {
-    const assignedApps = apps.filter(a => (a.capabilityIds || []).includes(capId));
-    const count = assignedApps.length;
-    if (count === 0) return { state: 'gap', label: 'Gap', symbol: '✕', count: 0, apps: assignedApps };
-    if (count === 1) return { state: 'ok', label: 'Couvert', symbol: '✓', count: 1, apps: assignedApps };
-    return { state: 'redundant', label: 'Redondance', symbol: '⇄', count, apps: assignedApps };
-  };
+  const getCapCoverageState = capId => getCapabilityCoverageState(capId, apps);
 
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
