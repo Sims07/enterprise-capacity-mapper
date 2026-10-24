@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
-import { exportModel, importModel, loadLocalMaps, loadModel, loadRecentMaps, recordRecentMap, removeRecentMap, saveLocalMap as persistLocalMap, saveModel, updateRecentMap } from './services/storage.js';
+import { createLocalStorageModelRepository } from './adapters/browser/localStorageRepository.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -70,7 +70,9 @@ function Field({ label, required = false, error, ...p }) {
 }
 
 function App() {
-  const [model, setModel] = useState(() => loadModel(DEMO_MODEL));
+  const repositoryRef = useRef(createLocalStorageModelRepository());
+  const repository = repositoryRef.current;
+  const [model, setModel] = useState(() => repository.load(DEMO_MODEL));
   const modelRef = useRef(model);
   const modelHistory = useRef(createModelHistory(model));
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -199,9 +201,9 @@ function App() {
   }, [toolsMenuOpen]);
 
   useEffect(() => {
-    saveModel(model);
+    repository.save(model);
     if (activeRecentMapId && activeRecentMapId !== '__dismissed__') {
-      updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
+      repository.updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
       localStorage.setItem(ACTIVE_RECENT_MAP_KEY, activeRecentMapId);
     }
   }, [model, activeRecentMapId]);
@@ -217,13 +219,13 @@ function App() {
   const openLibrary = () => {
     const errors = [];
     try {
-      setLocalMaps(loadLocalMaps());
+      setLocalMaps(repository.loadLocalMaps());
     } catch {
       setLocalMaps([]);
       errors.push('bibliothèque locale');
     }
     try {
-      setRecentMaps(loadRecentMaps());
+      setRecentMaps(repository.loadRecentMaps());
     } catch {
       setRecentMaps([]);
       errors.push('historique des récents');
@@ -235,14 +237,14 @@ function App() {
   };
   const saveCurrentLocalMap = () => {
     try {
-      const entries = loadLocalMaps();
+      const entries = repository.loadLocalMaps();
       const current = entries.find(entry => entry.id === localMapId);
       if (!current) {
         setLocalMapName(modelRef.current.metadata?.name || '');
         setModal('save-local-map');
         return;
       }
-      const saved = persistLocalMap({ id: current.id, name: current.name, model: modelRef.current });
+      const saved = repository.saveLocalMap({ id: current.id, name: current.name, model: modelRef.current });
       setLocalMaps(entries.map(entry => entry.id === saved.id ? saved : entry));
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
     } catch (error) {
@@ -253,7 +255,7 @@ function App() {
     try {
       const currentModel = modelRef.current;
       const savedModel = { ...currentModel, metadata: { ...currentModel.metadata, name: localMapName.trim() } };
-      const saved = persistLocalMap({ name: localMapName, model: savedModel });
+      const saved = repository.saveLocalMap({ name: localMapName, model: savedModel });
       commitModel(savedModel);
       setLocalMapId(saved.id);
       localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
@@ -290,7 +292,7 @@ function App() {
       }
 
       try {
-        recordRecentMap({ id: saved.id, name: saved.name, model: saved.model });
+        repository.recordRecentMap({ id: saved.id, name: saved.name, model: saved.model });
       } catch (historyError) {
         // L’ouverture reste prioritaire si l’historique local est indisponible.
       }
@@ -483,7 +485,7 @@ function App() {
   const openWizard = () => setModal('wizard');
   const closeWizard = () => setModal(null);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
-    if (backup) exportModel(model);
+    if (backup) repository.exportModel(model);
     replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
     setActiveRecentMapId(uid('recent'));
     setLocalMapId('');
@@ -664,7 +666,7 @@ function App() {
     const f = e.target.files?.[0];
     if (!f) return;
     try {
-      replaceModel(await importModel(f));
+      replaceModel(await repository.importModel(f));
       setActiveRecentMapId(uid('recent'));
       setLocalMapId('');
       localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
@@ -871,7 +873,7 @@ function App() {
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-data">
                   <h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3>
-                  <button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); exportModel(model); }}>↓ Exporter en JSON</button>
+                  <button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>↓ Exporter en JSON</button>
                   <label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} /></label>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
@@ -956,8 +958,8 @@ function App() {
                       <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
                       <button type="button" className="library-remove-recent" data-testid={`remove-recent-${saved.id}`} aria-label={`Retirer ${saved.name} des récents`} onClick={() => {
                         try {
-                          removeRecentMap(saved.id);
-                          setRecentMaps(loadRecentMaps());
+                          repository.removeRecentMap(saved.id);
+                          setRecentMaps(repository.loadRecentMaps());
                           if (saved.id === activeRecentMapId) {
                             localStorage.setItem(ACTIVE_RECENT_MAP_KEY, '__dismissed__');
                             setActiveRecentMapId('__dismissed__');
