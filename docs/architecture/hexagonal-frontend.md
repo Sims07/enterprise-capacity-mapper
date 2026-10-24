@@ -60,3 +60,10 @@ Les adaptateurs contiennent les détails techniques :
 Toute nouvelle règle métier, manipulation du modèle ou dépendance externe doit être placée dans `application/` ou derrière un port. En particulier, un composant React ne doit pas appeler directement un fournisseur IA.
 
 La migration reste incrémentale : chaque déplacement doit conserver le comportement existant et être protégé par les tests unitaires ou Cypress appropriés. Une réécriture complète n'est pas recherchée.
+
+
+### Extraction des règles de mise en page
+
+Les transformations de l'éditeur de structure sont regroupées dans `src/application/layoutCommands.js`. Ce module pur complète la grille des zones colonne/layer, renomme les colonnes et zones, ajoute ou retire des colonnes/layers, prépare une structure validée pour l'enregistrement et vérifie les chevauchements de domaines. Il ne dépend ni de React ni du navigateur.
+
+`App.jsx` conserve l'orchestration d'interface : état temporaire du formulaire, ouverture/fermeture de la modale, notifications et application du résultat au modèle. Les règles déterministes de transformation sont testées séparément dans `src/application/layoutCommands.test.js`. Cette extraction constitue une première tranche du découpage orchestration/présentation ; les autres parcours métier restent à extraire par tranches testées.
