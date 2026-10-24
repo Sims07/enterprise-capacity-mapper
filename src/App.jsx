@@ -3,7 +3,6 @@ import { DEMO_MODEL } from './data/demoData.js';
 import { createFrontendApplication } from './adapters/react/architecture.js';
 import {
   addLayoutDraftItem,
-  completeLayoutZones,
   isDomainPlacementAvailable,
   prepareLayoutForSave,
   removeLayoutDraftItem,
