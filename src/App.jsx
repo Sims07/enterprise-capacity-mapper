@@ -63,7 +63,7 @@ function App() {
   if (!applicationRef.current) {
     applicationRef.current = createFrontendApplication({ initialModel: DEMO_MODEL });
   }
-  const { repository, map: mapService, navigation, aiCompanion, preferences, viewport } = applicationRef.current;
+  const { repository, map: mapService, navigation, aiCompanion, preferences, viewport, browserInteractions } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -156,22 +156,15 @@ function App() {
   useEffect(() => {
     if (!toolsMenuOpen) return undefined;
 
-    const handlePointerDown = event => {
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target)) closeToolsMenu();
-    };
-    const handleKeyDown = event => {
-      if (event.key === 'Escape') {
+    return browserInteractions.listenForDismissal({
+      pointerEvent: 'pointerdown',
+      getInsideNode: () => toolsMenuRef.current,
+      onOutside: closeToolsMenu,
+      onEscape: () => {
         closeToolsMenu();
         toolsMenuToggleRef.current?.focus();
-      }
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+      },
+    });
   }, [toolsMenuOpen]);
 
   useEffect(() => {
@@ -324,34 +317,25 @@ function App() {
     event.stopPropagation();
     const menuWidth = 180;
     const menuHeight = menu.type === 'domain' ? 168 : 96;
-    setContextMenu({
-      ...menu,
-      x: Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8)),
-      y: Math.max(8, Math.min(event.clientY, window.innerHeight - menuHeight - 8))
+    const position = browserInteractions.clampMenuPosition({
+      x: event.clientX,
+      y: event.clientY,
+      width: menuWidth,
+      height: menuHeight,
     });
+    setContextMenu({ ...menu, ...position });
   };
   const closeContextMenu = () => setContextMenu(null);
 
   useEffect(() => {
     if (!contextMenu) return undefined;
 
-    const handlePointerDown = event => {
-      const menuNode = document.querySelector('.context-menu');
-      if (!menuNode || menuNode.contains(event.target)) return;
-      closeContextMenu();
-    };
-
-    const handleKeyDown = event => {
-      if (event.key === 'Escape') closeContextMenu();
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return browserInteractions.listenForDismissal({
+      pointerEvent: 'mousedown',
+      getInsideNode: () => document.querySelector('.context-menu'),
+      onOutside: closeContextMenu,
+      onEscape: closeContextMenu,
+    });
   }, [contextMenu]);
 
   const layout = model.layout || { mode: 'matrix', columns: DEFAULT_LAYOUTS.columns, layers: DEFAULT_LAYOUTS.layers };
