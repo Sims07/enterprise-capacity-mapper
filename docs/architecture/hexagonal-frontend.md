@@ -38,10 +38,10 @@ Le port IA est volontairement exprimé en termes de besoin applicatif (`ask`) et
 ## Application et domaine
 
 - `src/application/modelHistory.js` : undo/redo sans React ni navigateur.
-- `src/application/modelCommands.js` : transformations du modèle.
+- `src/application/modelUseCases.js` : transformations du modèle.
 - `src/application/mapService.js` : orchestration des cas d'usage.
 
-Ces modules sont testables avec Node, indépendamment du navigateur.
+Ces modules sont testables avec Node, indépendamment du navigateur. Les opérations métier sont nommées comme des cas d’utilisation ; le service de cartographie les orchestre avec l’historique et le port de persistance.
 
 ## Adaptateurs
 
@@ -64,13 +64,13 @@ La migration reste incrémentale : chaque déplacement doit conserver le comport
 
 ### Extraction des règles de mise en page
 
-Les transformations de l'éditeur de structure sont regroupées dans `src/application/layoutCommands.js`. Ce module pur complète la grille des zones colonne/layer, renomme les colonnes et zones, ajoute ou retire des colonnes/layers, prépare une structure validée pour l'enregistrement et vérifie les chevauchements de domaines. Il ne dépend ni de React ni du navigateur.
+Les transformations de l'éditeur de structure sont regroupées dans `src/application/layoutUseCases.js`. Ce module pur complète la grille des zones colonne/layer, renomme les colonnes et zones, ajoute ou retire des colonnes/layers, prépare une structure validée pour l'enregistrement et vérifie les chevauchements de domaines. Il ne dépend ni de React ni du navigateur.
 
-`App.jsx` conserve l'orchestration d'interface : état temporaire du formulaire, ouverture/fermeture de la modale, notifications et application du résultat au modèle. Les règles déterministes de transformation sont testées séparément dans `src/application/layoutCommands.test.js`. Cette extraction constitue une première tranche du découpage orchestration/présentation ; les autres parcours métier restent à extraire par tranches testées.
+`App.jsx` conserve l'orchestration d'interface : état temporaire du formulaire, ouverture/fermeture de la modale, notifications et application du résultat au modèle. Les règles déterministes de transformation sont testées séparément dans `src/application/layoutUseCases.test.js`. Cette extraction constitue une première tranche du découpage orchestration/présentation ; les autres parcours métier restent à extraire par tranches testées.
 
 
 ### Extraction des règles de relations
 
-Les transformations des liens entre applications et capacités sont regroupées dans `src/application/relationshipCommands.js`. Ce module pur prend en charge l'affectation et le retrait d'une relation, l'association groupée d'applications à une cible, ainsi que la préparation des relations depuis la modale d'édition. Lorsqu'une application est éditée, les identifiants qui ne font pas partie de la cartographie affichée sont conservés.
+Les transformations des liens entre applications et capacités sont regroupées dans `src/application/relationshipUseCases.js`. Ce module pur prend en charge l'affectation et le retrait d'une relation, l'association groupée d'applications à une cible, ainsi que la préparation des relations depuis la modale d'édition. Lorsqu'une application est éditée, les identifiants qui ne font pas partie de la cartographie affichée sont conservés.
 
-`App.jsx` conserve la sélection temporaire, les cases cochées, les notifications et la validation de la modale ; il délègue désormais les transformations du tableau d'applications au module applicatif. Les cas d'ajout idempotent, de retrait, de sélection groupée, de remplacement et de conservation des relations externes sont couverts par `src/application/relationshipCommands.test.js`.
+`App.jsx` conserve la sélection temporaire, les cases cochées, les notifications et la validation de la modale ; il délègue désormais les transformations du tableau d'applications au module applicatif. Les cas d'ajout idempotent, de retrait, de sélection groupée, de remplacement et de conservation des relations externes sont couverts par `src/application/relationshipUseCases.test.js`.
