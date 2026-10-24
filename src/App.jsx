@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard.jsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
 import CartographerCompanion from './components/CartographerCompanion.jsx';
 import { createModelHistory } from './application/modelHistory.js';
+import { createNavigationPort } from './ports/navigation.js';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
@@ -75,6 +76,8 @@ function App() {
   const [model, setModel] = useState(() => repository.load(DEMO_MODEL));
   const modelRef = useRef(model);
   const modelHistory = useRef(createModelHistory(model));
+  const navigationRef = useRef(createNavigationPort({ onModeChange: setMode }));
+  const navigation = navigationRef.current;
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
@@ -144,11 +147,7 @@ function App() {
 
   const navigateToMode = nextMode => {
     if (nextMode === mode) return;
-    window.history.pushState(
-      { ...(window.history.state || {}), capacityMapperMode: nextMode, dashboardReturn: false },
-      '',
-      window.location.href
-    );
+    navigation.goTo(nextMode);
     dashboardHistoryEntry.current = false;
     setDashboardReturnAvailable(false);
     setMode(nextMode);
