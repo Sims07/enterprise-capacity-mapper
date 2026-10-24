@@ -20,7 +20,7 @@ test('frontend factory composes application services from injected dependencies'
   const aiFactory = settings => ({ ask: question => ({ settings, question }) });
   const preferences = { readTheme: () => 'light' };
   const viewport = { resetScrollPositions: () => {} };
-  const browserInteractions = { clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {} };
+  const browserInteractions = { clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {}, listenForKeyDown: () => () => {} };
 
   const application = createFrontendApplication({
     initialModel: model,
