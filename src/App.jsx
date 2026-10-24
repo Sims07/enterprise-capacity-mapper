@@ -385,7 +385,7 @@ function App() {
   const closeWizard = () => setModal(null);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
     if (backup) repository.exportModel(model);
-    replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
+    applyModelSnapshot(mapService.createEmptyMap({ name, description, layout: nextLayout }));
     setActiveRecentMapId(uid('recent'));
     setLocalMapId('');
     preferences.clearActiveLocalMapId();
