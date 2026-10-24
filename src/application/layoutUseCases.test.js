@@ -5,6 +5,7 @@ import {
   completeLayoutZones,
   isDomainPlacementAvailable,
   prepareLayoutForSave,
+  prepareDomainPlacement,
   removeLayoutDraftItem,
   renameLayoutDraftItem,
   renameLayoutZone,
@@ -90,3 +91,28 @@ test('checks column bounds and detects overlapping domains only in the same laye
   assert.equal(available({ domainId: 'new', columnId: 'c2', layerId: 'l1', columnSpan: 2 }), false);
   assert.equal(available({ domainId: 'new', columnId: 'missing', layerId: 'l1', columnSpan: 1 }), false);
 });
+
+test('prepares domain placement patches and rejects overlapping moves', () => {
+  const columns = draft().columns;
+  const layers = draft().layers;
+  const layout = { mode: 'matrix', columns, layers, zones: draft().zones };
+  const domains = [
+    { id: 'd1', name: 'Domain 1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1, custom: true } },
+    { id: 'd2', name: 'Domain 2', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 1 } },
+    { id: 'd3', name: 'Domain 3', layout: { columnId: 'c1', layerId: 'l2', columnSpan: 1 } },
+  ];
+  const prepare = (domainId, columnId, layerId) => prepareDomainPlacement({
+    domains, layout, layoutMode: 'matrix', columns, layers, domainId, columnId, layerId,
+  });
+
+  const moved = prepare('d1', 'c2', 'l2');
+  assert.deepEqual(moved.layout, { ...layout, mode: 'matrix', columns, layers });
+  assert.deepEqual(moved.domains[0].layout, {
+    columnId: 'c2', layerId: 'l2', columnSpan: 1, custom: true,
+  });
+  assert.deepEqual(moved.domains.slice(1), domains.slice(1));
+  assert.equal(prepare('d1', 'c2', 'l1'), null);
+  assert.equal(prepare('missing-domain', 'c1', 'l1').domains.length, domains.length);
+  assert.equal(prepare('', 'c1', 'l1'), null);
+});
+
