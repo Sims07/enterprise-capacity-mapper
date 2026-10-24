@@ -5,6 +5,7 @@ import {
   addLayoutDraftItem,
   isDomainPlacementAvailable,
   prepareLayoutForSave,
+  prepareDomainPlacement,
   removeLayoutDraftItem,
   renameLayoutDraftItem,
   renameLayoutZone,
@@ -414,15 +415,21 @@ function App() {
   });
 
   const placeDomain = (domainId, columnId, layerId) => {
-    if (!domainId) return;
-    const moving = model.domains.find(d => d.id === domainId);
-    const targetColumn = columnId || moving?.layout?.columnId || columns[0].id;
-    const targetLayer = layerId || moving?.layout?.layerId || layers[0].id;
-    if (moving && !placementAvailable(domainId, targetColumn, targetLayer, moving.layout?.columnSpan || 1)) {
-      notify('Déplacement impossible : chevauchement de domaine.');
+    const patch = prepareDomainPlacement({
+      domains: model.domains,
+      layout,
+      layoutMode,
+      columns,
+      layers,
+      domainId,
+      columnId,
+      layerId,
+    });
+    if (!patch) {
+      if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
       return;
     }
-    update({ layout: { ...layout, mode: layoutMode, columns, layers }, domains: model.domains.map(d => d.id === domainId ? { ...d, layout: { ...(d.layout || {}), columnId: targetColumn, layerId: targetLayer } } : d) });
+    update(patch);
   };
 
   const openNew = (kind, parent, place) => {
