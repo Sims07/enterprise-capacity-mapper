@@ -93,12 +93,12 @@ test('checks column bounds and detects overlapping domains only in the same laye
 });
 
 test('prepares domain placement patches and rejects overlapping moves', () => {
-  const columns = draft().columns;
+  const columns = [...draft().columns, { id: 'c3', name: 'Operations', order: 2 }];
   const layers = draft().layers;
-  const layout = { mode: 'matrix', columns, layers, zones: draft().zones };
+  const layout = { mode: 'matrix', columns, layers, zones: completeLayoutZones(columns, layers, draft().zones) };
   const domains = [
     { id: 'd1', name: 'Domain 1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1, custom: true } },
-    { id: 'd2', name: 'Domain 2', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 1 } },
+    { id: 'd2', name: 'Domain 2', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 2 } },
     { id: 'd3', name: 'Domain 3', layout: { columnId: 'c1', layerId: 'l2', columnSpan: 1 } },
   ];
   const prepare = (domainId, columnId, layerId) => prepareDomainPlacement({
