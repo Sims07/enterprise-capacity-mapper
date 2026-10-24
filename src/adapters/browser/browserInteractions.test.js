@@ -57,3 +57,18 @@ test('dismissal listeners ignore inside clicks, dismiss outside, handle Escape a
     ['remove', 'mousedown'], ['remove', 'keydown'],
   ]);
 });
+
+test('keyboard subscription registers and removes the same handler', () => {
+  const documentObject = createDocument();
+  const interactions = createBrowserInteractions({
+    windowObject: { innerWidth: 800, innerHeight: 600 },
+    documentObject,
+  });
+  const handler = () => {};
+  const cleanup = interactions.listenForKeyDown(handler);
+
+  assert.equal(documentObject.listeners.get('keydown'), handler);
+  cleanup();
+  assert.equal(documentObject.listeners.has('keydown'), false);
+  assert.deepEqual(documentObject.calls, [['add', 'keydown'], ['remove', 'keydown']]);
+});
