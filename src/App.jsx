@@ -423,7 +423,6 @@ function App() {
     setSelected([]);
     setLayoutMode('matrix');
     navigateToMode('editor');
-    setSourceUrl('');
     setModal(null);
     notify(backup ? 'Cartographie créée · sauvegarde JSON téléchargée' : 'Cartographie créée');
   };
