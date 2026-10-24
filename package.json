@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
-    "test:unit": "node --test"
+    "test:unit": "node --test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -17,6 +18,8 @@
     "react-dom": "latest"
   },
   "devDependencies": {
-    "cypress": "latest"
+    "cypress": "latest",
+    "typescript": "latest",
+    "@types/node": "latest"
   }
 }
