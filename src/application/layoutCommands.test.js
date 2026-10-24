@@ -33,7 +33,7 @@ test('renaming a column synchronizes zones that inherited its previous name', ()
   const renamed = renameLayoutDraftItem(draft(), 'columns', 'c1', 'Value');
   assert.equal(renamed.columns[0].name, 'Value');
   assert.equal(renamed.zones.find(zone => zone.id === 'c1:l1').name, 'Value');
-  assert.equal(renamed.zones.find(zone => zone.id === 'c1:l2').name, 'Value');
+  assert.equal(renamed.zones.find(zone => zone.id === 'c1:l2').name, 'Business support');
   assert.equal(renamed.zones.find(zone => zone.id === 'c2:l1').name, 'Support core');
 });
 
