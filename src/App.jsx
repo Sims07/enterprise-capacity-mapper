@@ -205,7 +205,7 @@ function App() {
   }, [toolsMenuOpen]);
 
   useEffect(() => {
-    repository.save(model);
+    mapService.persist();
     if (activeRecentMapId && activeRecentMapId !== '__dismissed__') {
       repository.updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
       localStorage.setItem(ACTIVE_RECENT_MAP_KEY, activeRecentMapId);
