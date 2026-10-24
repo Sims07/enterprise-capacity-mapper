@@ -55,7 +55,7 @@ Les adaptateurs contiennent les détails techniques :
 
 ## Règle d'évolution
 
-`App.jsx` et `CartographerCompanion.jsx` doivent progressivement devenir des adaptateurs de présentation : ils lisent l'état, déclenchent les cas d'usage et rendent l'interface. `App.jsx` compose désormais ses dépendances une seule fois via la factory ; il ne lit plus directement `localStorage`, ne manipule plus `window.history` et délègue le scroll/drag auto-scroll à l'adaptateur viewport ainsi que le calcul de position et les écouteurs de fermeture des menus à l'adaptateur d'interactions navigateur. Le compagnon reçoit sa factory IA en propriété et ne choisit plus directement la factory d'infrastructure par défaut.
+`App.jsx` et `CartographerCompanion.jsx` doivent progressivement devenir des adaptateurs de présentation : ils lisent l'état, déclenchent les cas d'usage et rendent l'interface. `App.jsx` compose désormais ses dépendances une seule fois via la factory ; il ne lit plus directement `localStorage`, ne manipule plus `window.history` et délègue le scroll/drag auto-scroll à l'adaptateur viewport ainsi que le calcul de position, les écouteurs de fermeture des menus et l'abonnement aux événements clavier à l'adaptateur d'interactions navigateur. Le compagnon reçoit sa factory IA en propriété et ne choisit plus directement la factory d'infrastructure par défaut.
 
 Toute nouvelle règle métier, manipulation du modèle ou dépendance externe doit être placée dans `application/` ou derrière un port. En particulier, un composant React ne doit pas appeler directement un fournisseur IA.
 
