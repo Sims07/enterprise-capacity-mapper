@@ -5,9 +5,9 @@
 export const NAVIGATION_MODES = Object.freeze(['editor', 'dashboard', 'relations', 'impact', 'library']);
 
 export const createNavigationPort = ({
-  history = window.history,
-  location = window.location,
-  eventTarget = window,
+  history = globalThis.window?.history,
+  location = globalThis.window?.location,
+  eventTarget = globalThis.window,
   onModeChange,
 } = {}) => {
   const validateMode = mode => {
