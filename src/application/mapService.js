@@ -1,5 +1,5 @@
 import { createModelHistory } from './modelHistory.js';
-import { createEmptyMap, updateCapabilityPriority, updateModel } from './modelCommands.js';
+import { createEmptyMap, updateCapabilityPriority, updateModel } from './modelUseCases.js';
 
 /**
  * Application service. It coordinates the model repository port and model history.
