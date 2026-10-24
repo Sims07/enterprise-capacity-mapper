@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
 import { createFrontendApplication } from './adapters/react/architecture.js';
-import { createAppPreferences } from './adapters/browser/appPreferences.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -10,13 +9,6 @@ import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
 import CartographerCompanion from './components/CartographerCompanion.jsx';
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-const resetScrollPositions = () => {
-  globalThis.window?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  globalThis.document?.querySelectorAll('main, aside, [data-scroll-container]').forEach(node => {
-    node.scrollTop = 0;
-    node.scrollLeft = 0;
-  });
-};
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const DOMAIN_COLOR_PALETTE = [
   { name: 'Indigo', value: '#5b46be' },
@@ -71,7 +63,7 @@ function App() {
   if (!applicationRef.current) {
     applicationRef.current = createFrontendApplication({ initialModel: DEMO_MODEL });
   }
-  const { repository, map: mapService, navigation, aiCompanion, preferences } = applicationRef.current;
+  const { repository, map: mapService, navigation, aiCompanion, preferences, viewport } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -124,7 +116,7 @@ function App() {
       dashboardHistoryEntry.current = false;
       setDashboardReturnAvailable(false);
       setMode(['editor', 'dashboard', 'relations', 'impact', 'library'].includes(nextMode) ? nextMode : 'editor');
-      resetScrollPositions();
+      viewport.resetScrollPositions();
     });
   }, []);
 
@@ -324,38 +316,8 @@ function App() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [historyState, modal]);
-  // Auto-scroll pendant un glisser-déposer : le HTML5 DnD ne défile pas de façon fiable seul.
-  useEffect(() => {
-    const EDGE = 70;
-    const MAX = 18;
-    const scrollableAncestor = node => {
-      for (let n = node; n && n !== document.body; n = n.parentElement) {
-        const overflowY = getComputedStyle(n).overflowY;
-        if (/(auto|scroll)/.test(overflowY) && n.scrollHeight > n.clientHeight + 1) return n;
-      }
-      return null;
-    };
-    const onDragOver = event => {
-      if (!(event.target instanceof Element)) return;
-      const el = scrollableAncestor(event.target);
-      const rect = el ? el.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
-      const top = Math.max(rect.top, 0);
-      const bottom = Math.min(rect.bottom, window.innerHeight);
-      let dy = 0;
-      if (event.clientY < top + EDGE) dy = -MAX * Math.min(1, (top + EDGE - event.clientY) / EDGE);
-      else if (event.clientY > bottom - EDGE) dy = MAX * Math.min(1, (event.clientY - (bottom - EDGE)) / EDGE);
-      if (dy) (el || window).scrollBy(0, Math.round(dy));
-    };
-    const clearHover = () => document.querySelectorAll('.drop-over').forEach(node => node.classList.remove('drop-over'));
-    document.addEventListener('dragover', onDragOver);
-    document.addEventListener('dragend', clearHover);
-    document.addEventListener('drop', clearHover);
-    return () => {
-      document.removeEventListener('dragover', onDragOver);
-      document.removeEventListener('dragend', clearHover);
-      document.removeEventListener('drop', clearHover);
-    };
-  }, []);
+  // L'adaptateur gère les détails DOM du glisser-déposer et son nettoyage.
+  useEffect(() => viewport.installDragAutoScroll(), []);
 
   const openContextMenu = (event, menu) => {
     event.preventDefault();
