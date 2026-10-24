@@ -79,7 +79,7 @@ test('checks column bounds and detects overlapping domains only in the same laye
   const columns = draft().columns;
   const layers = draft().layers;
   const domains = [
-    { id: 'existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } },
+    { id: 'existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
     { id: 'other-layer', layout: { columnId: 'c2', layerId: 'l2', columnSpan: 1 } },
   ];
   const available = args => isDomainPlacementAvailable({ domains, columns, layers, ...args });
