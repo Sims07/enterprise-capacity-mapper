@@ -119,22 +119,14 @@ function App() {
   }, [darkMode]);
 
   useEffect(() => {
-    if (!window.history.state?.capacityMapperMode) {
-      window.history.replaceState(
-        { ...(window.history.state || {}), capacityMapperMode: mode },
-        '',
-        window.location.href
-      );
-    }
-    const handlePopState = event => {
+    navigation.initialize(mode);
+    return navigation.subscribePopState(event => {
       const nextMode = event.state?.capacityMapperMode;
       dashboardHistoryEntry.current = false;
       setDashboardReturnAvailable(false);
       setMode(['editor', 'dashboard', 'relations', 'impact', 'library'].includes(nextMode) ? nextMode : 'editor');
       resetScrollPositions();
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    });
   }, []);
 
   useEffect(() => {
@@ -153,17 +145,13 @@ function App() {
     setSelected([id]);
     setDashboardReturnAvailable(true);
     dashboardHistoryEntry.current = true;
-    window.history.pushState(
-      { ...(window.history.state || {}), capacityMapperMode: 'relations', dashboardReturn: true },
-      '',
-      window.location.href
-    );
+    navigation.exploreDashboardTarget();
     setMode('relations');
   };
 
   const returnToDashboard = () => {
     if (dashboardHistoryEntry.current) {
-      window.history.back();
+      navigation.back();
       return;
     }
     setDashboardReturnAvailable(false);
