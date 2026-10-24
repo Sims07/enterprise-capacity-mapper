@@ -51,11 +51,11 @@ Les adaptateurs contiennent les détails techniques :
 - Browser History pour la navigation ;
 - fournisseur IA pour le compagnon.
 
-`src/adapters/react/architecture.js` sert de composition root : il assemble les dépendances concrètes avant de les exposer à React.
+`src/adapters/react/architecture.js` sert de composition root : il assemble les dépendances concrètes avant de les exposer à React. La factory accepte aussi des dépendances injectées (repository, navigation, service de cartographie et factory IA), ce qui permet de substituer les adaptateurs dans les tests sans conteneur IoC global.
 
 ## Règle d'évolution
 
-`App.jsx` et `CartographerCompanion.jsx` doivent progressivement devenir des adaptateurs de présentation : ils lisent l'état, déclenchent les cas d'usage et rendent l'interface.
+`App.jsx` et `CartographerCompanion.jsx` doivent progressivement devenir des adaptateurs de présentation : ils lisent l'état, déclenchent les cas d'usage et rendent l'interface. `App.jsx` compose désormais ses dépendances une seule fois via la factory ; le compagnon reçoit sa factory IA en propriété et ne choisit plus directement la factory d'infrastructure par défaut.
 
 Toute nouvelle règle métier, manipulation du modèle ou dépendance externe doit être placée dans `application/` ou derrière un port. En particulier, un composant React ne doit pas appeler directement un fournisseur IA.
 
