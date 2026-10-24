@@ -7,7 +7,7 @@ import CoverageTree from './components/CoverageTree.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
 import CartographerCompanion from './components/CartographerCompanion.jsx';
-import { createModelHistory } from './application/modelHistory.js';
+import { createMapService } from './application/mapService.js';
 import { createNavigationPort } from './ports/navigation.js';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
@@ -71,11 +71,16 @@ function Field({ label, required = false, error, ...p }) {
 }
 
 function App() {
-  const repositoryRef = useRef(createLocalStorageModelRepository());
+  const repositoryRef = useRef(null);
+  if (!repositoryRef.current) repositoryRef.current = createLocalStorageModelRepository();
   const repository = repositoryRef.current;
-  const [model, setModel] = useState(() => repository.load(DEMO_MODEL));
+  const mapServiceRef = useRef(null);
+  if (!mapServiceRef.current) {
+    mapServiceRef.current = createMapService({ repository, initialModel: repository.load(DEMO_MODEL) });
+  }
+  const mapService = mapServiceRef.current;
+  const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
-  const modelHistory = useRef(createModelHistory(model));
   const navigationRef = useRef(createNavigationPort({ onModeChange: setMode }));
   const navigation = navigationRef.current;
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -301,37 +306,23 @@ function App() {
     }
   };
   const syncHistoryState = snapshot => setHistoryState({ canUndo: snapshot.canUndo, canRedo: snapshot.canRedo });
-  const commitModel = nextModel => {
-    const snapshot = modelHistory.current.commit(nextModel);
-    if (snapshot.current === modelRef.current) return;
+  const applyModelSnapshot = snapshot => {
+    if (snapshot.current === modelRef.current) {
+      syncHistoryState(snapshot);
+      return;
+    }
     modelRef.current = snapshot.current;
     setModel(snapshot.current);
     syncHistoryState(snapshot);
   };
+  const commitModel = nextModel => applyModelSnapshot(mapService.replace(nextModel));
   const replaceModel = nextModel => commitModel(nextModel);
-  const update = patch => commitModel({ ...modelRef.current, ...patch });
-  const updateCapabilityPriority = (capabilityId, priority) => {
-    const current = modelRef.current;
-    update({
-      capabilities: (current.capabilities || []).map(capability =>
-        capability.id === capabilityId ? { ...capability, priority: priority || 'unqualified' } : capability
-      )
-    });
-  };
-  const undo = () => {
-    const snapshot = modelHistory.current.undo();
-    if (snapshot.current === modelRef.current) return;
-    modelRef.current = snapshot.current;
-    setModel(snapshot.current);
-    syncHistoryState(snapshot);
-  };
-  const redo = () => {
-    const snapshot = modelHistory.current.redo();
-    if (snapshot.current === modelRef.current) return;
-    modelRef.current = snapshot.current;
-    setModel(snapshot.current);
-    syncHistoryState(snapshot);
-  };
+  const update = patch => applyModelSnapshot(mapService.update(patch));
+  const updateCapabilityPriority = (capabilityId, priority) => applyModelSnapshot(
+    mapService.updateCapabilityPriority(capabilityId, priority)
+  );
+  const undo = () => applyModelSnapshot(mapService.undo());
+  const redo = () => applyModelSnapshot(mapService.redo());
 
   useEffect(() => {
     const handleKeyDown = event => {
