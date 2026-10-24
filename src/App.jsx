@@ -89,7 +89,6 @@ function App() {
   const toolsMenuToggleRef = useRef(null);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
-  const [sourceUrl, setSourceUrl] = useState(() => preferences.readSourceUrl());
   const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
   const [localMaps, setLocalMaps] = useState([]);
   const [recentMaps, setRecentMaps] = useState([]);
@@ -463,7 +462,6 @@ function App() {
     setLayoutMode('matrix');
     navigateToMode('editor');
     setSourceUrl('');
-    preferences.clearSourceUrl();
     setModal(null);
     notify(backup ? 'Cartographie créée · sauvegarde JSON téléchargée' : 'Cartographie créée');
   };
