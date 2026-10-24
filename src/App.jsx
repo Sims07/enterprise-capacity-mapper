@@ -9,6 +9,12 @@ import {
   renameLayoutDraftItem,
   renameLayoutZone,
 } from './application/layoutCommands.js';
+import {
+  assignApplicationToCapability,
+  linkPickedApplications,
+  prepareLinkedApplications,
+  unassignApplicationFromCapability,
+} from './application/relationshipCommands.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -500,19 +506,18 @@ function App() {
   };
 
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-  const assign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: Array.from(new Set([...(a.capabilityIds || []), capId])) } : a) });
-  const unassign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: (a.capabilityIds || []).filter(x => x !== capId) } : a) });
+  const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId) });
+  const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId) });
   const hoverOn = e => { e.preventDefault(); e.currentTarget.classList.add('drop-over'); };
   const hoverOff = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-over'); };
   const onDrop = (e, capId) => { e.preventDefault(); e.currentTarget.classList.remove('drop-over'); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
 
   const togglePicked = id => setPickedApps(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const linkPicked = targetId => {
-    const ids = new Set(pickedValid);
-    if (!ids.size) return;
-    update({ applications: apps.map(a => ids.has(a.id) ? { ...a, capabilityIds: Array.from(new Set([...relationIds(a), targetId])) } : a) });
+    if (!pickedValid.length) return;
+    update({ applications: linkPickedApplications(apps, pickedValid, targetId) });
     setPickedApps([]);
-    notify(`${ids.size} application(s) reliée(s)`);
+    notify(`${pickedValid.length} application(s) reliée(s)`);
   };
   const openLinkForTarget = item => {
     setLink({ kind: 'target', id: item.id, name: item.name });
@@ -530,20 +535,7 @@ function App() {
   const toggleLinkChecked = id => setLinkChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
   const saveLink = () => {
     if (!link) return;
-    const checked = new Set(linkChecked);
-    const mappedIds = new Set(mappedItems.map(m => m.id));
-    const nextApps = apps.map(a => {
-      const current = relationIds(a);
-      if (link.kind === 'target') {
-        const has = current.includes(link.id);
-        if (checked.has(a.id) === has) return a;
-        return { ...a, capabilityIds: checked.has(a.id) ? [...current, link.id] : current.filter(x => x !== link.id) };
-      }
-      if (a.id !== link.id) return a;
-      const kept = current.filter(id => !mappedIds.has(id));
-      const next = [...kept, ...mappedItems.filter(m => checked.has(m.id)).map(m => m.id)];
-      return next.length === current.length && next.every(id => current.includes(id)) ? a : { ...a, capabilityIds: next };
-    });
+    const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked });
     if (nextApps.some((a, i) => a !== apps[i])) update({ applications: nextApps });
     notify('Relations mises à jour');
     closeLink();
