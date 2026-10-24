@@ -121,7 +121,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    resetScrollPositions();
+    viewport.resetScrollPositions();
   }, [mode]);
 
   const navigateToMode = nextMode => {
