@@ -1,4 +1,4 @@
-import { sendCompanionMessage } from '../../services/ai/companionProviders.js';
+import { sendCompanionRequest } from './providerClient.js';
 import { createAiCompanionPort } from '../../ports/aiCompanion.js';
 
 /**
@@ -14,7 +14,7 @@ export const createCompanionAiAdapter = ({
   endpoint,
   apiKey,
 } = {}) => createAiCompanionPort({
-  send: ({ question, cartography, history, onChunk }) => sendCompanionMessage({
+  send: ({ question, cartography, history, onChunk }) => sendCompanionRequest({
     provider,
     model,
     endpoint,
