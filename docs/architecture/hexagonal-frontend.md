@@ -67,3 +67,10 @@ La migration reste incrémentale : chaque déplacement doit conserver le comport
 Les transformations de l'éditeur de structure sont regroupées dans `src/application/layoutCommands.js`. Ce module pur complète la grille des zones colonne/layer, renomme les colonnes et zones, ajoute ou retire des colonnes/layers, prépare une structure validée pour l'enregistrement et vérifie les chevauchements de domaines. Il ne dépend ni de React ni du navigateur.
 
 `App.jsx` conserve l'orchestration d'interface : état temporaire du formulaire, ouverture/fermeture de la modale, notifications et application du résultat au modèle. Les règles déterministes de transformation sont testées séparément dans `src/application/layoutCommands.test.js`. Cette extraction constitue une première tranche du découpage orchestration/présentation ; les autres parcours métier restent à extraire par tranches testées.
+
+
+### Extraction des règles de relations
+
+Les transformations des liens entre applications et capacités sont regroupées dans `src/application/relationshipCommands.js`. Ce module pur prend en charge l'affectation et le retrait d'une relation, l'association groupée d'applications à une cible, ainsi que la préparation des relations depuis la modale d'édition. Lorsqu'une application est éditée, les identifiants qui ne font pas partie de la cartographie affichée sont conservés.
+
+`App.jsx` conserve la sélection temporaire, les cases cochées, les notifications et la validation de la modale ; il délègue désormais les transformations du tableau d'applications au module applicatif. Les cas d'ajout idempotent, de retrait, de sélection groupée, de remplacement et de conservation des relations externes sont couverts par `src/application/relationshipCommands.test.js`.
