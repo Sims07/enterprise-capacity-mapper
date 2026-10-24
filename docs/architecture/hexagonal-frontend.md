@@ -33,7 +33,7 @@ On ne crée pas de couches supplémentaires simplement pour appliquer un pattern
 - `src/ports/navigation.js` : navigation entre les vues applicatives.
 - `src/ports/aiCompanion.js` : interaction avec le compagnon IA.
 
-Le port IA est volontairement exprimé en termes de besoin applicatif (`ask`) et ne connaît ni Ollama, ni HTTP, ni un autre fournisseur. L'adaptateur `src/adapters/ai/companionAdapter.js` branche l'implémentation actuelle des fournisseurs IA sur ce contrat.
+Le port IA est volontairement exprimé en termes de besoin applicatif (`ask`) et ne connaît ni Ollama, ni HTTP, ni un autre fournisseur. L'adaptateur `src/adapters/ai/companionAdapter.js` branche l'implémentation actuelle des fournisseurs IA sur ce contrat. Les préférences de l'interface et les opérations de viewport/drag-and-drop sont isolées dans `src/adapters/browser/appPreferences.js` et `src/adapters/browser/browserViewport.js`.
 
 ## Application et domaine
 
@@ -51,11 +51,11 @@ Les adaptateurs contiennent les détails techniques :
 - Browser History pour la navigation ;
 - fournisseur IA pour le compagnon.
 
-`src/adapters/react/architecture.js` sert de composition root : il assemble les dépendances concrètes avant de les exposer à React. La factory accepte aussi des dépendances injectées (repository, navigation, service de cartographie et factory IA), ce qui permet de substituer les adaptateurs dans les tests sans conteneur IoC global.
+`src/adapters/react/architecture.js` sert de composition root : il assemble les dépendances concrètes avant de les exposer à React. La factory accepte aussi des dépendances injectées (repository, navigation, service de cartographie, préférences, viewport et factory IA), ce qui permet de substituer les adaptateurs dans les tests sans conteneur IoC global.
 
 ## Règle d'évolution
 
-`App.jsx` et `CartographerCompanion.jsx` doivent progressivement devenir des adaptateurs de présentation : ils lisent l'état, déclenchent les cas d'usage et rendent l'interface. `App.jsx` compose désormais ses dépendances une seule fois via la factory ; le compagnon reçoit sa factory IA en propriété et ne choisit plus directement la factory d'infrastructure par défaut.
+`App.jsx` et `CartographerCompanion.jsx` doivent progressivement devenir des adaptateurs de présentation : ils lisent l'état, déclenchent les cas d'usage et rendent l'interface. `App.jsx` compose désormais ses dépendances une seule fois via la factory ; il ne lit plus directement `localStorage`, ne manipule plus `window.history` et délègue le scroll et le drag auto-scroll à l'adaptateur viewport. Le compagnon reçoit sa factory IA en propriété et ne choisit plus directement la factory d'infrastructure par défaut.
 
 Toute nouvelle règle métier, manipulation du modèle ou dépendance externe doit être placée dans `application/` ou derrière un port. En particulier, un composant React ne doit pas appeler directement un fournisseur IA.
 
