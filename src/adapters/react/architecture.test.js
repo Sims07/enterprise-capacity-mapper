@@ -34,7 +34,6 @@ test('frontend factory composes application services from injected dependencies'
   assert.equal(application.navigation, navigation);
   assert.equal(application.preferences, preferences);
   assert.equal(application.viewport, viewport);
-  assert.equal(application.viewport, viewport);
   assert.equal(application.map.snapshot().current, model);
   assert.deepEqual(calls, [['load', model]]);
 
@@ -66,6 +65,7 @@ test('frontend factory returns a stable explicit set of application dependencies
   assert.deepEqual(Object.keys(application), ['repository', 'navigation', 'map', 'preferences', 'viewport', 'aiCompanion']);
   assert.equal(application.map, map);
   assert.equal(application.preferences, preferences);
+  assert.equal(application.viewport, viewport);
   assert.deepEqual(application.aiCompanion({ provider: 'injected' }), {
     settings: { provider: 'injected' },
   });
