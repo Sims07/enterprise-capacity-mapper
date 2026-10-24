@@ -1,19 +1,47 @@
 /**
- * Inbound/outbound navigation port. React is an adapter; application code only
- * needs these operations and does not manipulate window.history directly.
+ * Browser navigation adapter port. The UI works with navigation intent and
+ * popstate subscriptions instead of directly reading or mutating browser history.
  */
 export const NAVIGATION_MODES = Object.freeze(['editor', 'dashboard', 'relations', 'impact', 'library']);
 
-export const createNavigationPort = ({ history = window.history, location = window.location, onModeChange }) => ({
-  currentMode: () => history.state?.capacityMapperMode || 'editor',
-  goTo: mode => {
+export const createNavigationPort = ({
+  history = window.history,
+  location = window.location,
+  eventTarget = window,
+  onModeChange,
+} = {}) => {
+  const validateMode = mode => {
     if (!NAVIGATION_MODES.includes(mode)) throw new Error(`Mode de navigation inconnu : ${mode}`);
-    history.pushState({ ...(history.state || {}), capacityMapperMode: mode, dashboardReturn: false }, '', location.href);
+  };
+  const currentMode = () => history.state?.capacityMapperMode || 'editor';
+  const stateWithMode = (mode, extra = {}) => ({
+    ...(history.state || {}),
+    capacityMapperMode: mode,
+    ...extra,
+  });
+  const pushMode = (mode, extra = {}) => {
+    validateMode(mode);
+    history.pushState(stateWithMode(mode, extra), '', location.href);
     onModeChange?.(mode);
-  },
-  replaceMode: mode => {
-    if (!NAVIGATION_MODES.includes(mode)) throw new Error(`Mode de navigation inconnu : ${mode}`);
-    history.replaceState({ ...(history.state || {}), capacityMapperMode: mode }, '', location.href);
+  };
+  const replaceMode = (mode, extra = {}) => {
+    validateMode(mode);
+    history.replaceState(stateWithMode(mode, extra), '', location.href);
     onModeChange?.(mode);
-  },
-});
+  };
+
+  return Object.freeze({
+    currentMode,
+    initialize: mode => {
+      if (!history.state?.capacityMapperMode) replaceMode(mode);
+    },
+    goTo: mode => pushMode(mode, { dashboardReturn: false }),
+    exploreDashboardTarget: () => pushMode('relations', { dashboardReturn: true }),
+    replaceMode,
+    back: () => history.back(),
+    subscribePopState: handler => {
+      eventTarget.addEventListener('popstate', handler);
+      return () => eventTarget.removeEventListener('popstate', handler);
+    },
+  });
+};
