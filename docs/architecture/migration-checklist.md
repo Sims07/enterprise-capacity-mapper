@@ -55,17 +55,16 @@
 - [ ] Tests spécifiques nouvelle plateforme
 - [ ] Aucun test fragile sur RGB/RGBA ou sérialisation CSS accidentelle
 
-## Electron, si applicable
+## Runtime hôte ou environnement desktop, si applicable
 
-- [ ] Renderer isolé
-- [ ] `contextIsolation` activé
-- [ ] API preload minimale
-- [ ] Aucun accès Node arbitraire depuis l'UI
-- [ ] Arguments IPC validés
-- [ ] Filesystem derrière une API contrôlée
-- [ ] Secrets absents du renderer
+- [ ] Interface isolée des privilèges du runtime hôte
+- [ ] API d'accès aux capacités natives minimale et documentée
+- [ ] Aucun accès système arbitraire depuis l'interface
+- [ ] Entrées des appels inter-processus ou API hôte validées
+- [ ] Accès aux fichiers derrière une API contrôlée
+- [ ] Secrets absents du code exécuté côté interface
 - [ ] Installation / mise à jour testées
-- [ ] Offline vérifié
+- [ ] Fonctionnement hors ligne vérifié
 
 ## Finalisation
 
