@@ -2,6 +2,7 @@ import { createCompanionAiAdapter } from '../ai/companionAdapter.js';
 import { createLocalStorageModelRepository } from '../browser/localStorageRepository.js';
 import { createAppPreferences } from '../browser/appPreferences.js';
 import { createBrowserViewport } from '../browser/browserViewport.js';
+import { createBrowserInteractions } from '../browser/browserInteractions.js';
 import { createMapService } from '../../application/mapService.js';
 import { createNavigationPort } from '../../ports/navigation.js';
 
@@ -19,14 +20,16 @@ export const createFrontendApplication = ({
   map: injectedMap,
   preferences: injectedPreferences,
   viewport: injectedViewport,
+  browserInteractions: injectedBrowserInteractions,
   createAiCompanion = createCompanionAiAdapter,
 } = {}) => {
   const repository = injectedRepository || createLocalStorageModelRepository();
   const navigation = injectedNavigation || createNavigationPort({ onModeChange });
   const preferences = injectedPreferences || createAppPreferences();
   const viewport = injectedViewport || createBrowserViewport();
+  const browserInteractions = injectedBrowserInteractions || createBrowserInteractions();
   const map = injectedMap || createMapService({ repository, initialModel: repository.load(initialModel) });
   const aiCompanion = settings => createAiCompanion(settings ?? ai);
 
-  return Object.freeze({ repository, navigation, map, preferences, viewport, aiCompanion });
+  return Object.freeze({ repository, navigation, map, preferences, viewport, browserInteractions, aiCompanion });
 };
