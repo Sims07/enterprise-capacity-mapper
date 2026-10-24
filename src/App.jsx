@@ -1,6 +1,30 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
-import { exportModel, importModel, loadLocalMaps, loadModel, loadRecentMaps, recordRecentMap, removeRecentMap, saveLocalMap as persistLocalMap, saveModel, updateRecentMap } from './services/storage.js';
+import { createFrontendApplication } from './adapters/react/architecture.js';
+import {
+  addLayoutDraftItem,
+  isDomainPlacementAvailable,
+  prepareLayoutForSave,
+  prepareDomainPlacement,
+  removeLayoutDraftItem,
+  renameLayoutDraftItem,
+  renameLayoutZone,
+} from './application/layoutUseCases.js';
+import {
+  assignApplicationToCapability,
+  linkPickedApplications,
+  prepareLinkedApplications,
+  unassignApplicationFromCapability,
+} from './application/relationshipUseCases.js';
+import {
+  createApplication,
+  createCapability,
+  createDomain,
+  removeDomainAndDependents,
+  updateCapability,
+  updateDomain,
+} from './application/catalogUseCases.js';
+import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -8,17 +32,7 @@ import Dashboard from './components/Dashboard.jsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
 import CartographerCompanion from './components/CartographerCompanion.jsx';
 
-const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
-const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
-const ACTIVE_RECENT_MAP_KEY = 'enterprise-capacity-mapper:active-recent-map';
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-const resetScrollPositions = () => {
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  document.querySelectorAll('main, aside, [data-scroll-container]').forEach(node => {
-    node.scrollTop = 0;
-    node.scrollLeft = 0;
-  });
-};
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const DOMAIN_COLOR_PALETTE = [
   { name: 'Indigo', value: '#5b46be' },
@@ -69,10 +83,13 @@ function Field({ label, required = false, error, ...p }) {
 }
 
 function App() {
-  const [model, setModel] = useState(() => loadModel(DEMO_MODEL));
+  const applicationRef = useRef(null);
+  if (!applicationRef.current) {
+    applicationRef.current = createFrontendApplication({ initialModel: DEMO_MODEL });
+  }
+  const { repository, map: mapService, navigation, aiCompanion, preferences, viewport, browserInteractions } = applicationRef.current;
+  const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
-  const undoStack = useRef([]);
-  const redoStack = useRef([]);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
@@ -83,16 +100,15 @@ function App() {
   const [linkQuery, setLinkQuery] = useState('');
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const [presentation, setPresentation] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('enterprise-capacity-mapper:theme') === 'dark');
+  const [darkMode, setDarkMode] = useState(() => preferences.readTheme() === 'dark');
   const toolsMenuRef = useRef(null);
   const toolsMenuToggleRef = useRef(null);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
-  const [sourceUrl, setSourceUrl] = useState(() => localStorage.getItem(SOURCE_URL_KEY) || '');
-  const [localMapId, setLocalMapId] = useState(() => localStorage.getItem(ACTIVE_LOCAL_MAP_KEY) || '');
+  const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
   const [localMaps, setLocalMaps] = useState([]);
   const [recentMaps, setRecentMaps] = useState([]);
-  const [activeRecentMapId, setActiveRecentMapId] = useState(() => localStorage.getItem(ACTIVE_RECENT_MAP_KEY) || uid('recent'));
+  const [activeRecentMapId, setActiveRecentMapId] = useState(() => preferences.readActiveRecentMapId(uid('recent')));
   const [localMapName, setLocalMapName] = useState('');
   const [pendingLocalMap, setPendingLocalMap] = useState(null);
   const [selected, setSelected] = useState([]);
@@ -114,39 +130,27 @@ function App() {
   const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
 
   useEffect(() => {
-    localStorage.setItem('enterprise-capacity-mapper:theme', darkMode ? 'dark' : 'light');
+    preferences.writeTheme(darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
   useEffect(() => {
-    if (!window.history.state?.capacityMapperMode) {
-      window.history.replaceState(
-        { ...(window.history.state || {}), capacityMapperMode: mode },
-        '',
-        window.location.href
-      );
-    }
-    const handlePopState = event => {
+    navigation.initialize(mode);
+    return navigation.subscribePopState(event => {
       const nextMode = event.state?.capacityMapperMode;
       dashboardHistoryEntry.current = false;
       setDashboardReturnAvailable(false);
       setMode(['editor', 'dashboard', 'relations', 'impact', 'library'].includes(nextMode) ? nextMode : 'editor');
-      resetScrollPositions();
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+      viewport.resetScrollPositions();
+    });
   }, []);
 
   useEffect(() => {
-    resetScrollPositions();
+    viewport.resetScrollPositions();
   }, [mode]);
 
   const navigateToMode = nextMode => {
     if (nextMode === mode) return;
-    window.history.pushState(
-      { ...(window.history.state || {}), capacityMapperMode: nextMode, dashboardReturn: false },
-      '',
-      window.location.href
-    );
+    navigation.goTo(nextMode);
     dashboardHistoryEntry.current = false;
     setDashboardReturnAvailable(false);
     setMode(nextMode);
@@ -156,17 +160,13 @@ function App() {
     setSelected([id]);
     setDashboardReturnAvailable(true);
     dashboardHistoryEntry.current = true;
-    window.history.pushState(
-      { ...(window.history.state || {}), capacityMapperMode: 'relations', dashboardReturn: true },
-      '',
-      window.location.href
-    );
+    navigation.exploreDashboardTarget();
     setMode('relations');
   };
 
   const returnToDashboard = () => {
     if (dashboardHistoryEntry.current) {
-      window.history.back();
+      navigation.back();
       return;
     }
     setDashboardReturnAvailable(false);
@@ -180,29 +180,22 @@ function App() {
   useEffect(() => {
     if (!toolsMenuOpen) return undefined;
 
-    const handlePointerDown = event => {
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target)) closeToolsMenu();
-    };
-    const handleKeyDown = event => {
-      if (event.key === 'Escape') {
+    return browserInteractions.listenForDismissal({
+      pointerEvent: 'pointerdown',
+      getInsideNode: () => toolsMenuRef.current,
+      onOutside: closeToolsMenu,
+      onEscape: () => {
         closeToolsMenu();
         toolsMenuToggleRef.current?.focus();
-      }
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+      },
+    });
   }, [toolsMenuOpen]);
 
   useEffect(() => {
-    saveModel(model);
+    mapService.persist();
     if (activeRecentMapId && activeRecentMapId !== '__dismissed__') {
-      updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
-      localStorage.setItem(ACTIVE_RECENT_MAP_KEY, activeRecentMapId);
+      repository.updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
+      preferences.writeActiveRecentMapId(activeRecentMapId);
     }
   }, [model, activeRecentMapId]);
 
@@ -210,20 +203,18 @@ function App() {
   const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
   const visibleDomains = useMemo(() => model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), [model.domains, mapQuery]);
-  const touched = apps.filter(a => relationIds(a).some(id => selected.includes(id)));
-  const gaps = mappedItems.filter(c => selected.includes(c.id) && !apps.some(a => relationIds(a).includes(c.id)));
-  const redundancy = mappedItems.filter(c => apps.filter(a => relationIds(a).includes(c.id)).length > 1);
+  const { touched, gaps, redundancy } = deriveCoverageOverview({ mappedItems, applications: apps, selectedIds: selected });
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
   const openLibrary = () => {
     const errors = [];
     try {
-      setLocalMaps(loadLocalMaps());
+      setLocalMaps(repository.loadLocalMaps());
     } catch {
       setLocalMaps([]);
       errors.push('bibliothèque locale');
     }
     try {
-      setRecentMaps(loadRecentMaps());
+      setRecentMaps(repository.loadRecentMaps());
     } catch {
       setRecentMaps([]);
       errors.push('historique des récents');
@@ -235,14 +226,14 @@ function App() {
   };
   const saveCurrentLocalMap = () => {
     try {
-      const entries = loadLocalMaps();
+      const entries = repository.loadLocalMaps();
       const current = entries.find(entry => entry.id === localMapId);
       if (!current) {
         setLocalMapName(modelRef.current.metadata?.name || '');
         setModal('save-local-map');
         return;
       }
-      const saved = persistLocalMap({ id: current.id, name: current.name, model: modelRef.current });
+      const saved = repository.saveLocalMap({ id: current.id, name: current.name, model: modelRef.current });
       setLocalMaps(entries.map(entry => entry.id === saved.id ? saved : entry));
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
     } catch (error) {
@@ -253,10 +244,10 @@ function App() {
     try {
       const currentModel = modelRef.current;
       const savedModel = { ...currentModel, metadata: { ...currentModel.metadata, name: localMapName.trim() } };
-      const saved = persistLocalMap({ name: localMapName, model: savedModel });
+      const saved = repository.saveLocalMap({ name: localMapName, model: savedModel });
       commitModel(savedModel);
       setLocalMapId(saved.id);
-      localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
+      preferences.writeActiveLocalMapId(saved.id);
       setLocalMaps(maps => [...maps, saved]);
       setModal(null);
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
@@ -284,13 +275,13 @@ function App() {
       try {
         setActiveRecentMapId(saved.id);
         setLocalMapId(saved.id);
-        localStorage.setItem(ACTIVE_LOCAL_MAP_KEY, saved.id);
+        preferences.writeActiveLocalMapId(saved.id);
       } catch (storageError) {
         notify(`Cartographie « ${saved.name} » ouverte, mais son identifiant actif n’a pas pu être mémorisé.`);
       }
 
       try {
-        recordRecentMap({ id: saved.id, name: saved.name, model: saved.model });
+        repository.recordRecentMap({ id: saved.id, name: saved.name, model: saved.model });
       } catch (historyError) {
         // L’ouverture reste prioritaire si l’historique local est indisponible.
       }
@@ -299,40 +290,24 @@ function App() {
       notify(`Impossible de charger la cartographie : ${error.message}`);
     }
   };
-  const refreshHistoryState = () => setHistoryState({ canUndo: undoStack.current.length > 0, canRedo: redoStack.current.length > 0 });
-  const commitModel = nextModel => {
-    const currentModel = modelRef.current;
-    if (nextModel === currentModel) return;
-    undoStack.current = [...undoStack.current.slice(-49), currentModel];
-    redoStack.current = [];
-    modelRef.current = nextModel;
-    setModel(nextModel);
-    refreshHistoryState();
+  const syncHistoryState = snapshot => setHistoryState({ canUndo: snapshot.canUndo, canRedo: snapshot.canRedo });
+  const applyModelSnapshot = snapshot => {
+    if (snapshot.current === modelRef.current) {
+      syncHistoryState(snapshot);
+      return;
+    }
+    modelRef.current = snapshot.current;
+    setModel(snapshot.current);
+    syncHistoryState(snapshot);
   };
+  const commitModel = nextModel => applyModelSnapshot(mapService.replace(nextModel));
   const replaceModel = nextModel => commitModel(nextModel);
-  const update = patch => commitModel({ ...modelRef.current, ...patch });
-  const updateCapabilityPriority = (capabilityId, priority) => {
-    const current = modelRef.current;
-    update({
-      capabilities: (current.capabilities || []).map(capability =>
-        capability.id === capabilityId ? { ...capability, priority: priority || 'unqualified' } : capability
-      )
-    });
-  };
-  const undo = () => {
-    if (!undoStack.current.length) return;
-    redoStack.current.push(modelRef.current);
-    modelRef.current = undoStack.current.pop();
-    setModel(modelRef.current);
-    refreshHistoryState();
-  };
-  const redo = () => {
-    if (!redoStack.current.length) return;
-    undoStack.current = [...undoStack.current.slice(-49), modelRef.current];
-    modelRef.current = redoStack.current.pop();
-    setModel(modelRef.current);
-    refreshHistoryState();
-  };
+  const update = patch => applyModelSnapshot(mapService.update(patch));
+  const updateCapabilityPriority = (capabilityId, priority) => applyModelSnapshot(
+    mapService.updateCapabilityPriority(capabilityId, priority)
+  );
+  const undo = () => applyModelSnapshot(mapService.undo());
+  const redo = () => applyModelSnapshot(mapService.redo());
 
   useEffect(() => {
     const handleKeyDown = event => {
@@ -353,75 +328,35 @@ function App() {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return browserInteractions.listenForKeyDown(handleKeyDown);
   }, [historyState, modal]);
-  // Auto-scroll pendant un glisser-déposer : le HTML5 DnD ne défile pas de façon fiable seul.
-  useEffect(() => {
-    const EDGE = 70;
-    const MAX = 18;
-    const scrollableAncestor = node => {
-      for (let n = node; n && n !== document.body; n = n.parentElement) {
-        const overflowY = getComputedStyle(n).overflowY;
-        if (/(auto|scroll)/.test(overflowY) && n.scrollHeight > n.clientHeight + 1) return n;
-      }
-      return null;
-    };
-    const onDragOver = event => {
-      if (!(event.target instanceof Element)) return;
-      const el = scrollableAncestor(event.target);
-      const rect = el ? el.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
-      const top = Math.max(rect.top, 0);
-      const bottom = Math.min(rect.bottom, window.innerHeight);
-      let dy = 0;
-      if (event.clientY < top + EDGE) dy = -MAX * Math.min(1, (top + EDGE - event.clientY) / EDGE);
-      else if (event.clientY > bottom - EDGE) dy = MAX * Math.min(1, (event.clientY - (bottom - EDGE)) / EDGE);
-      if (dy) (el || window).scrollBy(0, Math.round(dy));
-    };
-    const clearHover = () => document.querySelectorAll('.drop-over').forEach(node => node.classList.remove('drop-over'));
-    document.addEventListener('dragover', onDragOver);
-    document.addEventListener('dragend', clearHover);
-    document.addEventListener('drop', clearHover);
-    return () => {
-      document.removeEventListener('dragover', onDragOver);
-      document.removeEventListener('dragend', clearHover);
-      document.removeEventListener('drop', clearHover);
-    };
-  }, []);
+  // L'adaptateur gère les détails DOM du glisser-déposer et son nettoyage.
+  useEffect(() => viewport.installDragAutoScroll(), []);
 
   const openContextMenu = (event, menu) => {
     event.preventDefault();
     event.stopPropagation();
     const menuWidth = 180;
     const menuHeight = menu.type === 'domain' ? 168 : 96;
-    setContextMenu({
-      ...menu,
-      x: Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8)),
-      y: Math.max(8, Math.min(event.clientY, window.innerHeight - menuHeight - 8))
+    const position = browserInteractions.clampMenuPosition({
+      x: event.clientX,
+      y: event.clientY,
+      width: menuWidth,
+      height: menuHeight,
     });
+    setContextMenu({ ...menu, ...position });
   };
   const closeContextMenu = () => setContextMenu(null);
 
   useEffect(() => {
     if (!contextMenu) return undefined;
 
-    const handlePointerDown = event => {
-      const menuNode = document.querySelector('.context-menu');
-      if (!menuNode || menuNode.contains(event.target)) return;
-      closeContextMenu();
-    };
-
-    const handleKeyDown = event => {
-      if (event.key === 'Escape') closeContextMenu();
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return browserInteractions.listenForDismissal({
+      pointerEvent: 'mousedown',
+      getInsideNode: () => browserInteractions.findElement('.context-menu'),
+      onOutside: closeContextMenu,
+      onEscape: closeContextMenu,
+    });
   }, [contextMenu]);
 
   const layout = model.layout || { mode: 'matrix', columns: DEFAULT_LAYOUTS.columns, layers: DEFAULT_LAYOUTS.layers };
@@ -435,49 +370,21 @@ function App() {
     setModal('layout');
   };
 
-  const completeZones = (nextColumns, nextLayers, currentZones) => nextColumns.flatMap(column => nextLayers.map(layer => currentZones.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
+  const updateLayoutDraft = (kind, id, name) => setLayoutDraft(d => renameLayoutDraftItem(d, kind, id, name));
 
-  const updateLayoutDraft = (kind, id, name) => setLayoutDraft(d => {
-    const previous = d[kind].find(x => x.id === id);
-    const items = d[kind].map(x => x.id === id ? { ...x, name } : x);
-    const nextColumns = kind === 'columns' ? items : d.columns;
-    const nextLayers = kind === 'layers' ? items : d.layers;
-    const syncedZones = kind === 'columns' && previous ? d.zones.map(z => z.columnId === id && z.name === previous.name ? { ...z, name } : z) : d.zones;
-    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, syncedZones) };
-  });
+  const updateZoneDraft = (columnId, layerId, name) => setLayoutDraft(d => renameLayoutZone(d, columnId, layerId, name));
 
-  const updateZoneDraft = (columnId, layerId, name) => setLayoutDraft(d => ({ ...d, zones: d.zones.map(zone => zone.columnId === columnId && zone.layerId === layerId ? { ...zone, name } : zone) }));
+  const addLayoutItem = kind => setLayoutDraft(d => addLayoutDraftItem(d, kind, uid(kind === 'columns' ? 'column' : 'layer')));
 
-  const addLayoutItem = kind => setLayoutDraft(d => {
-    const items = [...d[kind], { id: uid(kind === 'columns' ? 'column' : 'layer'), name: kind === 'columns' ? 'Nouvelle colonne' : 'Nouveau layer', order: d[kind].length }];
-    const nextColumns = kind === 'columns' ? items : d.columns;
-    const nextLayers = kind === 'layers' ? items : d.layers;
-    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, d.zones) };
-  });
-
-  const removeLayoutItem = (kind, id) => setLayoutDraft(d => {
-    if (d[kind].length <= 1) return d;
-    const items = d[kind].filter(x => x.id !== id).map((x, i) => ({ ...x, order: i }));
-    const nextColumns = kind === 'columns' ? items : d.columns;
-    const nextLayers = kind === 'layers' ? items : d.layers;
-    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, d.zones) };
-  });
+  const removeLayoutItem = (kind, id) => setLayoutDraft(d => removeLayoutDraftItem(d, kind, id));
 
   const saveLayout = () => {
-    if (!layoutDraft.columns.length || !layoutDraft.layers.length || [...layoutDraft.columns, ...layoutDraft.layers, ...layoutDraft.zones].some(x => !x.name.trim())) {
+    const prepared = prepareLayoutForSave(layoutDraft, layout, model.domains);
+    if (!prepared) {
       notify('Chaque colonne, layer et zone doit avoir un nom');
       return;
     }
-    const columnIds = new Set(layoutDraft.columns.map(x => x.id));
-    const layerIds = new Set(layoutDraft.layers.map(x => x.id));
-    const nextColumns = layoutDraft.columns.map((x, i) => ({ ...x, name: x.name.trim(), order: i }));
-    const nextLayers = layoutDraft.layers.map((x, i) => ({ ...x, name: x.name.trim(), order: i }));
-    const validZones = layoutDraft.zones.filter(zone => columnIds.has(zone.columnId) && layerIds.has(zone.layerId)).map(zone => ({ ...zone, name: zone.name.trim() }));
-    const zoneKeys = new Set(validZones.map(zone => `${zone.columnId}:${zone.layerId}`));
-    nextColumns.forEach(column => nextLayers.forEach(layer => {
-      if (!zoneKeys.has(`${column.id}:${layer.id}`)) validZones.push({ id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name });
-    }));
-    update({ layout: { ...layout, columns: nextColumns, layers: nextLayers, zones: validZones }, domains: model.domains.map((d, i) => ({ ...d, layout: { ...(d.layout || {}), columnId: columnIds.has(d.layout?.columnId) ? d.layout.columnId : nextColumns[i % nextColumns.length].id, layerId: layerIds.has(d.layout?.layerId) ? d.layout.layerId : nextLayers[0].id } })) });
+    update(prepared);
     setModal(null);
     notify('Structure enregistrée');
   };
@@ -485,44 +392,44 @@ function App() {
   const openWizard = () => setModal('wizard');
   const closeWizard = () => setModal(null);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
-    if (backup) exportModel(model);
-    replaceModel({ ...modelRef.current, metadata: { ...modelRef.current.metadata, name, description }, layout: nextLayout, domains: [], capabilities: [], applications: [] });
+    if (backup) repository.exportModel(model);
+    applyModelSnapshot(mapService.createEmptyMap({ name, description, layout: nextLayout }));
     setActiveRecentMapId(uid('recent'));
     setLocalMapId('');
-    localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
+    preferences.clearActiveLocalMapId();
     setSelected([]);
     setLayoutMode('matrix');
     navigateToMode('editor');
-    setSourceUrl('');
-    localStorage.removeItem(SOURCE_URL_KEY);
     setModal(null);
     notify(backup ? 'Cartographie créée · sauvegarde JSON téléchargée' : 'Cartographie créée');
   };
 
-  const placementAvailable = (domainId, columnId, layerId, columnSpan) => {
-    const start = columns.findIndex(c => c.id === columnId);
-    const span = Number(columnSpan) || 1;
-    if (start < 0 || span < 1 || start + span > columns.length) return false;
-    return !model.domains.some(d => {
-      if (d.id === domainId || (d.layout?.layerId || layers[0].id) !== layerId) return false;
-      const otherStart = columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id));
-      const otherSpan = Math.max(1, Number(d.layout?.columnSpan) || 1);
-      if (otherStart < 0) return false;
-      if (otherStart === start && otherSpan === span) return false;
-      return start < otherStart + otherSpan && otherStart < start + span;
-    });
-  };
+  const placementAvailable = (domainId, columnId, layerId, columnSpan) => isDomainPlacementAvailable({
+    domains: model.domains,
+    columns,
+    layers,
+    domainId,
+    columnId,
+    layerId,
+    columnSpan,
+  });
 
   const placeDomain = (domainId, columnId, layerId) => {
-    if (!domainId) return;
-    const moving = model.domains.find(d => d.id === domainId);
-    const targetColumn = columnId || moving?.layout?.columnId || columns[0].id;
-    const targetLayer = layerId || moving?.layout?.layerId || layers[0].id;
-    if (moving && !placementAvailable(domainId, targetColumn, targetLayer, moving.layout?.columnSpan || 1)) {
-      notify('Déplacement impossible : chevauchement de domaine.');
+    const patch = prepareDomainPlacement({
+      domains: model.domains,
+      layout,
+      layoutMode,
+      columns,
+      layers,
+      domainId,
+      columnId,
+      layerId,
+    });
+    if (!patch) {
+      if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
       return;
     }
-    update({ layout: { ...layout, mode: layoutMode, columns, layers }, domains: model.domains.map(d => d.id === domainId ? { ...d, layout: { ...(d.layout || {}), columnId: targetColumn, layerId: targetLayer } } : d) });
+    update(patch);
   };
 
   const openNew = (kind, parent, place) => {
@@ -582,50 +489,47 @@ function App() {
 
     setFormErrors({});
     if (modal === 'domain') {
-      update({ domains: [...model.domains, { id: uid('l0'), code: form.code || 'CAP', name: form.name.trim(), description: form.description, color: resolveDomainColor(form.color), layout: { columnId: form.columnId || columns[0].id, layerId: form.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } }] });
+      update({ domains: createDomain({ domains: model.domains, form, id: uid('l0'), defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
       setMapQuery('');
       notify('Domaine N0 créé');
     }
     if (modal === 'edit-domain') {
-      update({ domains: model.domains.map(d => d.id === editingDomainId ? { ...d, name: form.name.trim(), code: form.code.trim() || d.code, description: form.description, color: resolveDomainColor(form.color), layout: { ...(d.layout || {}), columnId: form.columnId || d.layout?.columnId || columns[0].id, layerId: form.layerId || d.layout?.layerId || layers[0].id, columnSpan: Number(form.columnSpan) || 1 } } : d) });
+      update({ domains: updateDomain({ domains: model.domains, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
-      update({ capabilities: model.capabilities.map(c => c.id === editingCapabilityId ? { ...c, name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' } : c) });
+      update({ capabilities: updateCapability({ capabilities: model.capabilities, capabilityId: editingCapabilityId, form }) });
       notify('Capacité N1 modifiée');
     }
     if (modal === 'capability') {
-      update({ capabilities: [...model.capabilities, { id: uid('l1'), domainId: form.domainId, code: form.code || 'CAP-01', name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' }] });
+      update({ capabilities: createCapability({ capabilities: model.capabilities, form, id: uid('l1') }) });
       notify('Capacité N1 créée');
     }
     if (modal === 'app') {
-      update({ applications: [...apps, { id: uid('app'), name: form.name.trim(), code: form.code || 'APP', type: form.type, status: form.status, vendor: form.vendor, capabilityIds: form.capabilityIds, description: form.description }] });
+      update({ applications: createApplication({ applications: apps, form, id: uid('app') }) });
       notify('Application créée');
     }
     setModal(null);
   };
 
   const removeDomain = id => {
-    const caps = model.capabilities.filter(c => c.domainId === id).map(c => c.id);
-    const ids = new Set(depth === 1 ? [id] : caps);
-    update({ domains: model.domains.filter(d => d.id !== id), capabilities: model.capabilities.filter(c => c.domainId !== id), applications: apps.map(a => ({ ...a, capabilityIds: relationIds(a).filter(x => !ids.has(x)) })) });
+    update(removeDomainAndDependents({ model, domainId: id, depth }));
     notify('Domaine et dépendances supprimés');
   };
 
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-  const assign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: Array.from(new Set([...(a.capabilityIds || []), capId])) } : a) });
-  const unassign = (appId, capId) => update({ applications: apps.map(a => a.id === appId ? { ...a, capabilityIds: (a.capabilityIds || []).filter(x => x !== capId) } : a) });
+  const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId) });
+  const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId) });
   const hoverOn = e => { e.preventDefault(); e.currentTarget.classList.add('drop-over'); };
   const hoverOff = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-over'); };
   const onDrop = (e, capId) => { e.preventDefault(); e.currentTarget.classList.remove('drop-over'); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
 
   const togglePicked = id => setPickedApps(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const linkPicked = targetId => {
-    const ids = new Set(pickedValid);
-    if (!ids.size) return;
-    update({ applications: apps.map(a => ids.has(a.id) ? { ...a, capabilityIds: Array.from(new Set([...relationIds(a), targetId])) } : a) });
+    if (!pickedValid.length) return;
+    update({ applications: linkPickedApplications(apps, pickedValid, targetId) });
     setPickedApps([]);
-    notify(`${ids.size} application(s) reliée(s)`);
+    notify(`${pickedValid.length} application(s) reliée(s)`);
   };
   const openLinkForTarget = item => {
     setLink({ kind: 'target', id: item.id, name: item.name });
@@ -643,20 +547,7 @@ function App() {
   const toggleLinkChecked = id => setLinkChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
   const saveLink = () => {
     if (!link) return;
-    const checked = new Set(linkChecked);
-    const mappedIds = new Set(mappedItems.map(m => m.id));
-    const nextApps = apps.map(a => {
-      const current = relationIds(a);
-      if (link.kind === 'target') {
-        const has = current.includes(link.id);
-        if (checked.has(a.id) === has) return a;
-        return { ...a, capabilityIds: checked.has(a.id) ? [...current, link.id] : current.filter(x => x !== link.id) };
-      }
-      if (a.id !== link.id) return a;
-      const kept = current.filter(id => !mappedIds.has(id));
-      const next = [...kept, ...mappedItems.filter(m => checked.has(m.id)).map(m => m.id)];
-      return next.length === current.length && next.every(id => current.includes(id)) ? a : { ...a, capabilityIds: next };
-    });
+    const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked });
     if (nextApps.some((a, i) => a !== apps[i])) update({ applications: nextApps });
     notify('Relations mises à jour');
     closeLink();
@@ -666,10 +557,10 @@ function App() {
     const f = e.target.files?.[0];
     if (!f) return;
     try {
-      replaceModel(await importModel(f));
+      replaceModel(await repository.importModel(f));
       setActiveRecentMapId(uid('recent'));
       setLocalMapId('');
-      localStorage.removeItem(ACTIVE_LOCAL_MAP_KEY);
+      preferences.clearActiveLocalMapId();
       notify('Cartographie importée');
     } catch (err) {
       notify(err.message);
@@ -677,13 +568,7 @@ function App() {
     e.target.value = '';
   };
 
-  const getCapCoverageState = capId => {
-    const assignedApps = apps.filter(a => (a.capabilityIds || []).includes(capId));
-    const count = assignedApps.length;
-    if (count === 0) return { state: 'gap', label: 'Gap', symbol: '✕', count: 0, apps: assignedApps };
-    if (count === 1) return { state: 'ok', label: 'Couvert', symbol: '✓', count: 1, apps: assignedApps };
-    return { state: 'redundant', label: 'Redondance', symbol: '⇄', count, apps: assignedApps };
-  };
+  const getCapCoverageState = capId => getCapabilityCoverageState(capId, apps);
 
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
@@ -873,7 +758,7 @@ function App() {
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-data">
                   <h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3>
-                  <button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); exportModel(model); }}>↓ Exporter en JSON</button>
+                  <button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>↓ Exporter en JSON</button>
                   <label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} /></label>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
@@ -958,10 +843,10 @@ function App() {
                       <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
                       <button type="button" className="library-remove-recent" data-testid={`remove-recent-${saved.id}`} aria-label={`Retirer ${saved.name} des récents`} onClick={() => {
                         try {
-                          removeRecentMap(saved.id);
-                          setRecentMaps(loadRecentMaps());
+                          repository.removeRecentMap(saved.id);
+                          setRecentMaps(repository.loadRecentMaps());
                           if (saved.id === activeRecentMapId) {
-                            localStorage.setItem(ACTIVE_RECENT_MAP_KEY, '__dismissed__');
+                            preferences.writeActiveRecentMapId('__dismissed__');
                             setActiveRecentMapId('__dismissed__');
                           }
                           notify(`« ${saved.name} » retirée des récents`);
@@ -1369,7 +1254,7 @@ function App() {
           </div>
         </Modal>
       )}
-      <CartographerCompanion model={model} darkMode={darkMode} />
+      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} />
     </div>
   );
 }

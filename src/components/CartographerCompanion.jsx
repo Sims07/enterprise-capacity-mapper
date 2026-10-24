@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { analyzeCartography } from '../services/ai/cartographyAnalysis.js';
-import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences, sendCompanionMessage } from '../services/ai/companionProviders.js';
+import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences } from '../services/ai/companionProviders.js';
+import { createCompanionAiAdapter } from '../adapters/ai/companionAdapter.js';
 
 const PROMPTS = [
   { id: 'overview', label: 'Évaluer la cartographie', description: 'Obtenir une vue d’ensemble des points à examiner.', icon: '✦' },
@@ -50,7 +51,7 @@ function resultMessage(prompt, result, observations) {
   return result.summary;
 }
 
-export default function CartographerCompanion({ model, darkMode = false }) {
+export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory = createCompanionAiAdapter }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState([]);
@@ -286,7 +287,8 @@ export default function CartographerCompanion({ model, darkMode = false }) {
       }]);
       setQuery('');
       try {
-        const answer = await sendCompanionMessage({
+        const aiCompanion = aiCompanionFactory(providerSettings);
+        const answer = await aiCompanion.ask({
           provider: providerSettings.provider,
           model: providerSettings.model,
           endpoint: providerSettings.endpoint,
