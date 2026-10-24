@@ -20,6 +20,8 @@ test('frontend factory composes application services from injected dependencies'
   const aiFactory = settings => ({ ask: question => ({ settings, question }) });
   const preferences = { readTheme: () => 'light' };
   const viewport = { resetScrollPositions: () => {} };
+  const browserInteractions = { clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {} };
+  const browserInteractions = { clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {} };
 
   const application = createFrontendApplication({
     initialModel: model,
@@ -27,6 +29,7 @@ test('frontend factory composes application services from injected dependencies'
     navigation,
     preferences,
     viewport,
+    browserInteractions,
     createAiCompanion: aiFactory,
   });
 
@@ -34,6 +37,7 @@ test('frontend factory composes application services from injected dependencies'
   assert.equal(application.navigation, navigation);
   assert.equal(application.preferences, preferences);
   assert.equal(application.viewport, viewport);
+  assert.equal(application.browserInteractions, browserInteractions);
   assert.equal(application.map.snapshot().current, model);
   assert.deepEqual(calls, [['load', model]]);
 
@@ -59,10 +63,11 @@ test('frontend factory returns a stable explicit set of application dependencies
     map,
     preferences,
     viewport,
+    browserInteractions,
     createAiCompanion: aiFactory,
   });
 
-  assert.deepEqual(Object.keys(application), ['repository', 'navigation', 'map', 'preferences', 'viewport', 'aiCompanion']);
+  assert.deepEqual(Object.keys(application), ['repository', 'navigation', 'map', 'preferences', 'viewport', 'browserInteractions', 'aiCompanion']);
   assert.equal(application.map, map);
   assert.equal(application.preferences, preferences);
   assert.equal(application.viewport, viewport);
