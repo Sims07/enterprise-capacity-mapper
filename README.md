@@ -7,11 +7,15 @@
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
 [![React](https://img.shields.io/badge/React-Vite-646CFF?logo=vite&logoColor=white)](https://github.com/Sims07/enterprise-capacity-mapper)
 
-
-
 Application PWA de cartographie des capacités métier et de leur couverture applicative.
 
 ## Cible d'architecture
+
+L'application est volontairement conçue pour pouvoir évoluer de runtime sans perdre son modèle métier. Le modèle de cartographie, ses règles et ses contrats de données constituent la référence ; React, Vite, le navigateur, LocalStorage, PWA et GitHub Pages sont des choix d'implémentation actuels.
+
+La documentation de référence pour les futures migrations se trouve dans [`docs/architecture/`](docs/architecture/). Elle contient notamment l'état actuel, les frontières d'indépendance technologique, le playbook de migration, les ADR et la checklist de migration.
+
+**Point important :** une migration vers Electron ne signifie pas nécessairement remplacer React. Le scénario à plus faible risque est d'abord d'utiliser Electron comme shell installable autour du renderer React existant, puis de changer éventuellement le renderer ou le stockage dans des étapes séparées.
 
 ## Structure du dépôt
 
@@ -21,17 +25,14 @@ Les fichiers sont regroupés par responsabilité, sans multiplier les couches in
 .
 ├── .github/workflows/   # Déploiement et contrôles GitHub Actions
 ├── cypress/e2e/         # Scénarios de tests de bout en bout
-├── docs/                # Documentation d'architecture et conventions
+├── docs/                # Documentation fonctionnelle, architecture et migration
 ├── public/              # Manifest, icônes et service worker PWA
 ├── src/
 │   ├── App.jsx          # Orchestration et comportements métier
 │   ├── components/      # Composants React réutilisables / autonomes
 │   ├── data/            # Modèle de démonstration
-│   ├── services/        # Persistance, import/export et chargement des données
-│   ├── styles/          # Tous les styles CSS, regroupés par rôle
-│   │   ├── base.css     # Styles globaux
-│   │   ├── compact-ui.css
-│   │   └── dark-impact.css
+│   ├── services/        # Persistance, import/export, analyse et fournisseurs
+│   ├── styles/          # Styles CSS et tokens
 │   ├── main.jsx         # Point d'entrée React et enregistrement PWA
 │   └── toolsMenuBehavior.js # Comportement du menu Outils
 ├── index.html
@@ -39,21 +40,42 @@ Les fichiers sont regroupés par responsabilité, sans multiplier les couches in
 └── vite.config.js
 ```
 
-Le code React utilisé par l'application doit avoir une seule source de vérité : les composants vivent dans `src/components/`, et la documentation fonctionnelle reste à la racine ou dans `docs/`, jamais dans `src/`. Tous les fichiers CSS sont regroupés dans `src/styles/`. Les imports de `main.jsx` conservent leur ordre initial (base, interface compacte, impact sombre) afin de préserver la cascade CSS et les rendus existants.
+Le code React utilisé par l'application doit avoir une seule source de vérité : les composants vivent dans `src/components/`, et la documentation fonctionnelle reste à la racine ou dans `docs/`, jamais dans `src/`. Tous les fichiers CSS sont regroupés dans `src/styles/`.
 
+## Documentation d'architecture et de migration
+
+- [`docs/architecture/current-state.md`](docs/architecture/current-state.md) — photographie de l'architecture actuelle et des couplages à surveiller.
+- [`docs/architecture/target-independence.md`](docs/architecture/target-independence.md) — frontières recommandées entre métier, application, ports et adaptateurs.
+- [`docs/architecture/migration-playbook.md`](docs/architecture/migration-playbook.md) — procédure de migration étape par étape et stratégie de non-régression.
+- [`docs/architecture/migration-checklist.md`](docs/architecture/migration-checklist.md) — checklist prête à l'emploi pour une future PR de migration.
+- [`docs/architecture/adr/0001-technology-migration-principles.md`](docs/architecture/adr/0001-technology-migration-principles.md) — décision d'architecture sur les principes de migration.
+- [`AGENTS.md`](AGENTS.md) — règles de contribution et de travail des agents IA.
+
+## Principes de migration
+
+1. Le modèle métier est la source de vérité, pas React ni LocalStorage.
+2. Les règles métier doivent pouvoir être testées sans navigateur lorsque cela apporte une valeur réelle.
+3. Les stockages et intégrations de plateforme sont remplaçables derrière des frontières explicites.
+4. Les tests E2E décrivent des comportements utilisateur et servent d'oracle de migration ; ils ne doivent pas dépendre de détails d'implémentation.
+5. Les changements de schéma sont versionnés et migrés explicitement.
+6. Les migrations sont progressives et réalisées dans une PR dédiée.
+7. Aucun big bang n'est nécessaire si une coexistence temporaire réduit le risque.
+
+## Caractéristiques actuelles
 
 - **Frontend** : React + Vite, statique et compatible GitHub Pages.
 - **PWA** : manifest + service worker + cache offline.
-- **Données locales** : LocalStorage V2 par défaut, avec migration automatique des anciennes clés `ea_canvas_*`.
-- **Échange** : import/export JSON versionné (`schemaVersion: 2`).
+- **Données locales** : LocalStorage V3 par défaut, avec migration automatique des anciennes clés `ea_canvas_*`.
+- **Échange** : import/export JSON versionné (`schemaVersion: 3`).
 - **Modèle** : Domaines N0 → Capacités N1 → Applications, avec une relation application-capacité **N↔N**.
 - **Personnalisation** : édition des domaines N0 et renommage des capacités N1, couleurs N0 choisies dans une palette ou personnalisées, renommage/gestion des colonnes et layers, nom distinct pour chaque zone à leur croisement, et création d'une cartographie vierge.
 - **Étendue multi-colonnes** : un domaine N0 peut couvrir plusieurs colonnes adjacentes sur une même ligne de la matrice.
 - **Analyse d'impact** : capacités sollicitées, applications impactées, gaps et redondances.
 - **Historique** : annulation et rétablissement des modifications du modèle, avec raccourcis clavier.
 - **Bibliothèque locale** : enregistrement de plusieurs cartographies et accès aux cartographies récemment ouvertes dans le navigateur.
+- **Compagnon IA** : analyse déterministe locale et fournisseurs configurables, avec séparation des responsabilités et protections documentées.
 - **Déploiement** : GitHub Actions → GitHub Pages.
-- **Backend** : aucun backend requis.
+- **Backend** : aucun backend requis pour le fonctionnement nominal.
 
 ## Utiliser l'application
 
@@ -91,7 +113,6 @@ Trois façons complémentaires, sans changement du modèle de données :
 - **Glisser-déposer** : l'inventaire reste visible (sticky) pendant que la page défile, la page défile automatiquement près des bords pendant un glissement, et la cible survolée est surlignée.
 - **Sans glisser-déposer** : bouton **Relier à…** sur chaque application de l'inventaire, ou **Relier des applications…** dans le menu ⋮ d'une capacité N1 (d'un domaine N0 en cartographie à 1 niveau).
 - **Onglet Relations** : arbre repliable Domaine N0 → Capacité N1 → Applications. Chaque ligne N1 est une zone de dépôt pleine largeur ; cochez plusieurs applications dans l'inventaire puis cliquez sur **Relier ici**. Filtres *Gaps seulement* / *Redondances seulement*, navigation clavier (↑ ↓ ← → Début Fin). En cartographie à 1 niveau, l'arbre relie directement les domaines N0.
-
 
 - Les capacités N1 restent rattachées à leur domaine N0.
 - Une application peut être associée à plusieurs capacités, et une capacité peut être couverte par plusieurs applications.
@@ -139,6 +160,12 @@ Pour vérifier les parcours automatisés :
 npm run test:e2e
 ```
 
+Les règles déterministes peuvent également être vérifiées avec :
+
+```bash
+npm run test:unit
+```
+
 ## Données
 
 Le modèle actif est stocké sous la clé `enterprise-capacity-mapper:model:v3`. La bibliothèque de cartographies nommées est stockée séparément dans le LocalStorage du navigateur.
@@ -153,13 +180,19 @@ Le workflow `.github/workflows/deploy-pages.yml` construit automatiquement l'app
 
 Dans GitHub : **Settings → Pages → Source: GitHub Actions**.
 
-## Évolution prévue
+## Évolution et migrations
 
-1. Provider de stockage interchangeable (LocalStorage / IndexedDB / JSON distant).
-2. Configuration d'une source JSON publique dans un dépôt.
-3. Authentification GitHub explicite pour le mode collaboratif.
-4. Tests du modèle et de l'analyse d'impact.
-5. Versionnement/migrations de schéma supplémentaires.
+Pour une évolution technologique structurante, commencer par [`docs/architecture/migration-playbook.md`](docs/architecture/migration-playbook.md) et la [`checklist de migration`](docs/architecture/migration-checklist.md). Les décisions qui modifient les principes d'architecture doivent être tracées par ADR.
+
+Le scénario de migration à privilégier pour une application installable est généralement :
+
+1. conserver le modèle métier et les tests ;
+2. isoler les accès plateforme ;
+3. ajouter Electron comme shell si nécessaire ;
+4. migrer le stockage vers un adaptateur local approprié ;
+5. ne remplacer le renderer React que si le bénéfice est démontré ;
+6. valider chaque tranche par les tests de non-régression ;
+7. supprimer l'ancien runtime/adaptateur uniquement après validation complète.
 
 ## Licence
 
