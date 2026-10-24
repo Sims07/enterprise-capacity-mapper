@@ -331,7 +331,7 @@ function App() {
 
     return browserInteractions.listenForDismissal({
       pointerEvent: 'mousedown',
-      getInsideNode: () => document.querySelector('.context-menu'),
+      getInsideNode: () => browserInteractions.findElement('.context-menu'),
       onOutside: closeContextMenu,
       onEscape: closeContextMenu,
     });
