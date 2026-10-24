@@ -7,6 +7,7 @@ import CoverageTree from './components/CoverageTree.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
 import CartographerCompanion from './components/CartographerCompanion.jsx';
+import { createModelHistory } from './application/modelHistory.js';
 
 const SOURCE_URL_KEY = 'enterprise-capacity-mapper:source-url';
 const ACTIVE_LOCAL_MAP_KEY = 'enterprise-capacity-mapper:active-local-map';
@@ -71,8 +72,7 @@ function Field({ label, required = false, error, ...p }) {
 function App() {
   const [model, setModel] = useState(() => loadModel(DEMO_MODEL));
   const modelRef = useRef(model);
-  const undoStack = useRef([]);
-  const redoStack = useRef([]);
+  const modelHistory = useRef(createModelHistory(model));
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
@@ -299,15 +299,13 @@ function App() {
       notify(`Impossible de charger la cartographie : ${error.message}`);
     }
   };
-  const refreshHistoryState = () => setHistoryState({ canUndo: undoStack.current.length > 0, canRedo: redoStack.current.length > 0 });
+  const syncHistoryState = snapshot => setHistoryState({ canUndo: snapshot.canUndo, canRedo: snapshot.canRedo });
   const commitModel = nextModel => {
-    const currentModel = modelRef.current;
-    if (nextModel === currentModel) return;
-    undoStack.current = [...undoStack.current.slice(-49), currentModel];
-    redoStack.current = [];
-    modelRef.current = nextModel;
-    setModel(nextModel);
-    refreshHistoryState();
+    const snapshot = modelHistory.current.commit(nextModel);
+    if (snapshot.current === modelRef.current) return;
+    modelRef.current = snapshot.current;
+    setModel(snapshot.current);
+    syncHistoryState(snapshot);
   };
   const replaceModel = nextModel => commitModel(nextModel);
   const update = patch => commitModel({ ...modelRef.current, ...patch });
@@ -320,18 +318,18 @@ function App() {
     });
   };
   const undo = () => {
-    if (!undoStack.current.length) return;
-    redoStack.current.push(modelRef.current);
-    modelRef.current = undoStack.current.pop();
-    setModel(modelRef.current);
-    refreshHistoryState();
+    const snapshot = modelHistory.current.undo();
+    if (snapshot.current === modelRef.current) return;
+    modelRef.current = snapshot.current;
+    setModel(snapshot.current);
+    syncHistoryState(snapshot);
   };
   const redo = () => {
-    if (!redoStack.current.length) return;
-    undoStack.current = [...undoStack.current.slice(-49), modelRef.current];
-    modelRef.current = redoStack.current.pop();
-    setModel(modelRef.current);
-    refreshHistoryState();
+    const snapshot = modelHistory.current.redo();
+    if (snapshot.current === modelRef.current) return;
+    modelRef.current = snapshot.current;
+    setModel(snapshot.current);
+    syncHistoryState(snapshot);
   };
 
   useEffect(() => {
