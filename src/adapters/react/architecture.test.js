@@ -55,7 +55,7 @@ test('frontend factory returns a stable explicit set of application dependencies
   const aiFactory = settings => ({ settings });
   const preferences = { readTheme: () => 'dark' };
   const viewport = { resetScrollPositions: () => {} };
-  const browserInteractions = { clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {}, listenForKeyDown: () => () => {} };
+  const browserInteractions = { findElement: () => null, clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {}, listenForKeyDown: () => () => {} };
 
   const application = createFrontendApplication({
     repository,
