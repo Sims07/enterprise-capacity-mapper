@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.js';
 import { createFrontendApplication } from './adapters/react/architecture.js';
+import {
+  addLayoutDraftItem,
+  completeLayoutZones,
+  isDomainPlacementAvailable,
+  prepareLayoutForSave,
+  removeLayoutDraftItem,
+  renameLayoutDraftItem,
+  renameLayoutZone,
+} from './application/layoutCommands.js';
 import NewMapWizard from './components/NewMapWizard.jsx';
 import TogafGuide from './components/TogafGuide.jsx';
 import CoverageTree from './components/CoverageTree.jsx';
@@ -348,49 +357,21 @@ function App() {
     setModal('layout');
   };
 
-  const completeZones = (nextColumns, nextLayers, currentZones) => nextColumns.flatMap(column => nextLayers.map(layer => currentZones.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
+  const updateLayoutDraft = (kind, id, name) => setLayoutDraft(d => renameLayoutDraftItem(d, kind, id, name));
 
-  const updateLayoutDraft = (kind, id, name) => setLayoutDraft(d => {
-    const previous = d[kind].find(x => x.id === id);
-    const items = d[kind].map(x => x.id === id ? { ...x, name } : x);
-    const nextColumns = kind === 'columns' ? items : d.columns;
-    const nextLayers = kind === 'layers' ? items : d.layers;
-    const syncedZones = kind === 'columns' && previous ? d.zones.map(z => z.columnId === id && z.name === previous.name ? { ...z, name } : z) : d.zones;
-    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, syncedZones) };
-  });
+  const updateZoneDraft = (columnId, layerId, name) => setLayoutDraft(d => renameLayoutZone(d, columnId, layerId, name));
 
-  const updateZoneDraft = (columnId, layerId, name) => setLayoutDraft(d => ({ ...d, zones: d.zones.map(zone => zone.columnId === columnId && zone.layerId === layerId ? { ...zone, name } : zone) }));
+  const addLayoutItem = kind => setLayoutDraft(d => addLayoutDraftItem(d, kind, uid(kind === 'columns' ? 'column' : 'layer')));
 
-  const addLayoutItem = kind => setLayoutDraft(d => {
-    const items = [...d[kind], { id: uid(kind === 'columns' ? 'column' : 'layer'), name: kind === 'columns' ? 'Nouvelle colonne' : 'Nouveau layer', order: d[kind].length }];
-    const nextColumns = kind === 'columns' ? items : d.columns;
-    const nextLayers = kind === 'layers' ? items : d.layers;
-    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, d.zones) };
-  });
-
-  const removeLayoutItem = (kind, id) => setLayoutDraft(d => {
-    if (d[kind].length <= 1) return d;
-    const items = d[kind].filter(x => x.id !== id).map((x, i) => ({ ...x, order: i }));
-    const nextColumns = kind === 'columns' ? items : d.columns;
-    const nextLayers = kind === 'layers' ? items : d.layers;
-    return { ...d, [kind]: items, zones: completeZones(nextColumns, nextLayers, d.zones) };
-  });
+  const removeLayoutItem = (kind, id) => setLayoutDraft(d => removeLayoutDraftItem(d, kind, id));
 
   const saveLayout = () => {
-    if (!layoutDraft.columns.length || !layoutDraft.layers.length || [...layoutDraft.columns, ...layoutDraft.layers, ...layoutDraft.zones].some(x => !x.name.trim())) {
+    const prepared = prepareLayoutForSave(layoutDraft, layout, model.domains);
+    if (!prepared) {
       notify('Chaque colonne, layer et zone doit avoir un nom');
       return;
     }
-    const columnIds = new Set(layoutDraft.columns.map(x => x.id));
-    const layerIds = new Set(layoutDraft.layers.map(x => x.id));
-    const nextColumns = layoutDraft.columns.map((x, i) => ({ ...x, name: x.name.trim(), order: i }));
-    const nextLayers = layoutDraft.layers.map((x, i) => ({ ...x, name: x.name.trim(), order: i }));
-    const validZones = layoutDraft.zones.filter(zone => columnIds.has(zone.columnId) && layerIds.has(zone.layerId)).map(zone => ({ ...zone, name: zone.name.trim() }));
-    const zoneKeys = new Set(validZones.map(zone => `${zone.columnId}:${zone.layerId}`));
-    nextColumns.forEach(column => nextLayers.forEach(layer => {
-      if (!zoneKeys.has(`${column.id}:${layer.id}`)) validZones.push({ id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name });
-    }));
-    update({ layout: { ...layout, columns: nextColumns, layers: nextLayers, zones: validZones }, domains: model.domains.map((d, i) => ({ ...d, layout: { ...(d.layout || {}), columnId: columnIds.has(d.layout?.columnId) ? d.layout.columnId : nextColumns[i % nextColumns.length].id, layerId: layerIds.has(d.layout?.layerId) ? d.layout.layerId : nextLayers[0].id } })) });
+    update(prepared);
     setModal(null);
     notify('Structure enregistrée');
   };
@@ -410,19 +391,15 @@ function App() {
     notify(backup ? 'Cartographie créée · sauvegarde JSON téléchargée' : 'Cartographie créée');
   };
 
-  const placementAvailable = (domainId, columnId, layerId, columnSpan) => {
-    const start = columns.findIndex(c => c.id === columnId);
-    const span = Number(columnSpan) || 1;
-    if (start < 0 || span < 1 || start + span > columns.length) return false;
-    return !model.domains.some(d => {
-      if (d.id === domainId || (d.layout?.layerId || layers[0].id) !== layerId) return false;
-      const otherStart = columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id));
-      const otherSpan = Math.max(1, Number(d.layout?.columnSpan) || 1);
-      if (otherStart < 0) return false;
-      if (otherStart === start && otherSpan === span) return false;
-      return start < otherStart + otherSpan && otherStart < start + span;
-    });
-  };
+  const placementAvailable = (domainId, columnId, layerId, columnSpan) => isDomainPlacementAvailable({
+    domains: model.domains,
+    columns,
+    layers,
+    domainId,
+    columnId,
+    layerId,
+    columnSpan,
+  });
 
   const placeDomain = (domainId, columnId, layerId) => {
     if (!domainId) return;
