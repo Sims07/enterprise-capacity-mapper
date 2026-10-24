@@ -81,10 +81,10 @@ function App() {
   const mapService = mapServiceRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
-  const navigationRef = useRef(createNavigationPort({ onModeChange: setMode }));
-  const navigation = navigationRef.current;
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
+  const navigationRef = useRef(createNavigationPort({ onModeChange: setMode }));
+  const navigation = navigationRef.current;
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
   const dashboardHistoryEntry = useRef(false);
   const [pickedApps, setPickedApps] = useState([]);
