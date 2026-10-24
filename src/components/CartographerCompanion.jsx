@@ -51,7 +51,7 @@ function resultMessage(prompt, result, observations) {
   return result.summary;
 }
 
-export default function CartographerCompanion({ model, darkMode = false }) {
+export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory = createCompanionAiAdapter }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState([]);
@@ -287,7 +287,7 @@ export default function CartographerCompanion({ model, darkMode = false }) {
       }]);
       setQuery('');
       try {
-        const aiCompanion = createCompanionAiAdapter(providerSettings);
+        const aiCompanion = aiCompanionFactory(providerSettings);
         const answer = await aiCompanion.ask({
           provider: providerSettings.provider,
           model: providerSettings.model,
