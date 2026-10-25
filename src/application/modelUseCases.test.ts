@@ -24,7 +24,8 @@ test('updateCapabilityPriority updates only the selected capability immutably', 
   const updated = updateCapabilityPriority(current, 'c1', 'qualified');
   assert.equal(updated.capabilities[0].priority, 'qualified');
   assert.equal(current.capabilities[0].priority, 'unqualified');
-  assert.equal(updated.domains, current.domains);
+  assert.notEqual(updated.domains, current.domains);
+  assert.deepEqual(updated.domains, current.domains);
 });
 
 test('updateCapabilityPriority normalizes an absent priority and rejects unknown ids', () => {
