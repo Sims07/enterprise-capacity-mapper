@@ -41,8 +41,9 @@ export const createBrowserNavigationAdapter = ({
     back: () => history.back(),
     subscribePopState: handler => {
       if (!eventTarget) throw new Error('Navigation adapter requires an event target to subscribe to popstate');
-      eventTarget.addEventListener('popstate', handler);
-      return () => eventTarget.removeEventListener('popstate', handler);
+      const listener = (event: Event) => handler((event as PopStateEvent).state as NavigationState | null);
+      eventTarget.addEventListener('popstate', listener);
+      return () => eventTarget.removeEventListener('popstate', listener);
     },
   } satisfies NavigationPort;
   return Object.freeze(adapter);
