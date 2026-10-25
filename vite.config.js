@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'node:path';
 
 export default defineConfig(async () => {
   const coverageMode = process.env.COVERAGE === 'true';
@@ -21,8 +20,8 @@ export default defineConfig(async () => {
       enforce: 'post',
       apply: 'build',
       transform(code, id) {
-        const filename = path.resolve(id.split('?')[0]);
-        if (!/[\\/]src[\\/]/.test(filename) || !/\.(?:js|jsx|ts|tsx)$/.test(filename)) {
+        const filename = id.split('?')[0];
+        if (!filename.includes('/src/') || !/\.(?:js|jsx|ts|tsx)$/.test(filename)) {
           return null;
         }
 
