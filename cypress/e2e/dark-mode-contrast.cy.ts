@@ -1,8 +1,10 @@
 describe('Contrastes du thème sombre', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   });
 
   const openToolsMenu = () => {
