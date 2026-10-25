@@ -26,7 +26,6 @@ export const updateDomain = ({ domains, domainId, form, defaultColumnId, default
   if (!current) return domains;
   const updated = catalogWith({ domains, capabilities: [], applications: [] }).updateDomain(domainId, {
     name: form.name,
-    code: form.code?.trim() || current.code,
     description: form.description,
     color: resolveColor(form.color),
     layout: {
