@@ -194,6 +194,19 @@ export class Catalog {
     });
   }
 
+  replaceMappedRelations(applicationId: string, mappedItemIds: string[], selectedItemIds: string[]): Catalog {
+    const application = this.requireApplication(applicationId);
+    const allowed = new Set(mappedItemIds);
+    const selected = Catalog.unique(selectedItemIds);
+    selected.forEach(id => { this.requireMappedTarget(id); if (!allowed.has(id)) throw new Error(`Cible de cartographie inconnue : ${id}.`); });
+    const current = application.capabilityIds ?? [];
+    const next = [...current.filter(id => !allowed.has(id)), ...selected];
+    if (next.length === current.length && next.every((id, index) => id === current[index])) return this;
+    return this.with({ applications: this.model.applications.map(candidate => candidate.id === applicationId
+      ? { ...copyApplication(candidate), capabilityIds: next }
+      : copyApplication(candidate)) });
+  }
+
   removeDomain(domainId: string, depth = 2): Catalog {
     if (!this.model.domains.some(domain => domain.id === domainId)) return this;
     const capabilityIds = new Set(this.model.capabilities
@@ -228,7 +241,8 @@ export class Catalog {
   }
 
   private requireMappedTarget(targetId: string): Domain | Capability {
-    return this.model.layout?.depth === 1 ? this.requireDomain(targetId) : this.requireCapability(targetId);
+    const depth = (this.model.layout as { depth?: number } | undefined)?.depth;
+    return depth === 1 ? this.requireDomain(targetId) : this.requireCapability(targetId);
   }
 
   private requireApplication(applicationId: string): Application {
