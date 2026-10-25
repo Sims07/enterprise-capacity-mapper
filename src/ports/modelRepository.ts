@@ -25,17 +25,5 @@ export interface ModelRepository {
   exportModel(model: CatalogModel): void;
 }
 
-export const MODEL_REPOSITORY = Object.freeze({
-  load: 'load',
-  save: 'save',
-  loadLocalMaps: 'loadLocalMaps',
-  saveLocalMap: 'saveLocalMap',
-  loadRecentMaps: 'loadRecentMaps',
-  recordRecentMap: 'recordRecentMap',
-  updateRecentMap: 'updateRecentMap',
-  removeRecentMap: 'removeRecentMap',
-  importModel: 'importModel',
-  exportModel: 'exportModel',
-});
 
 export type { Application, Capability, Domain };

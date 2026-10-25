@@ -19,6 +19,7 @@ test('frontend factory composes application services from injected dependencies'
   const navigation = { goTo: mode => calls.push(['navigate', mode]) };
   const aiFactory = settings => ({ ask: question => ({ settings, question }) });
   const preferences = { readTheme: () => 'light' };
+  const companionPreferences = { load: () => ({ provider: 'ollama', model: 'llama3.2', endpoint: 'http://localhost:11434', enabled: false }), save: () => {}, defaults: { ollama: { label: 'Ollama', model: 'llama3.2', endpoint: 'http://localhost:11434' } } };
   const viewport = { resetScrollPositions: () => {} };
   const browserInteractions = { findElement: () => null, clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {}, listenForKeyDown: () => () => {} };
 
@@ -28,6 +29,7 @@ test('frontend factory composes application services from injected dependencies'
     repository,
     navigation,
     preferences,
+    companionPreferences,
     viewport,
     browserInteractions,
     createAiCompanion: aiFactory,
@@ -36,6 +38,7 @@ test('frontend factory composes application services from injected dependencies'
   assert.equal(application.repository, repository);
   assert.equal(application.navigation, navigation);
   assert.equal(application.preferences, preferences);
+  assert.equal(application.companionPreferences, companionPreferences);
   assert.equal(application.viewport, viewport);
   assert.equal(application.browserInteractions, browserInteractions);
   assert.equal(application.map.snapshot().current, model);
@@ -59,6 +62,7 @@ test('frontend factory returns a stable explicit set of application dependencies
   const map = { snapshot: () => ({ current: model }) };
   const aiFactory = settings => ({ settings });
   const preferences = { readTheme: () => 'dark' };
+  const companionPreferences = { load: () => ({ provider: 'ollama', model: 'llama3.2', endpoint: 'http://localhost:11434', enabled: false }), save: () => {}, defaults: {} };
   const viewport = { resetScrollPositions: () => {} };
   const browserInteractions = { findElement: () => null, clampMenuPosition: () => ({ x: 0, y: 0 }), listenForDismissal: () => () => {}, listenForKeyDown: () => () => {} };
 
@@ -67,12 +71,13 @@ test('frontend factory returns a stable explicit set of application dependencies
     navigation,
     map,
     preferences,
+    companionPreferences,
     viewport,
     browserInteractions,
     createAiCompanion: aiFactory,
   });
 
-  assert.deepEqual(Object.keys(application), ['repository', 'navigation', 'map', 'preferences', 'viewport', 'browserInteractions', 'aiCompanion']);
+  assert.deepEqual(Object.keys(application), ['repository', 'navigation', 'map', 'preferences', 'companionPreferences', 'viewport', 'browserInteractions', 'aiCompanion']);
   assert.equal(application.map, map);
   assert.equal(application.preferences, preferences);
   assert.equal(application.viewport, viewport);

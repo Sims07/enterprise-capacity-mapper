@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sendCompanionMessage } from '../../src/services/ai/companionProviders.ts';
+import { sendCompanionRequest } from '../../src/adapters/ai/providerClient.ts';
 
 const cartography = {
   name: 'Cartographie de test',
@@ -14,7 +14,7 @@ const response = data => ({ ok: true, status: 200, json: async () => data });
 
 test('Ollama utilise /api/chat et extrait la réponse textuelle', async () => {
   let request;
-  const answer = await sendCompanionMessage({
+  const answer = await sendCompanionRequest({
     provider: 'ollama', model: 'llama3.2', endpoint: 'http://localhost:11434',
     question: 'Quelles capacités sont couvertes ?', cartography,
     fetchImpl: async (url, options) => {
@@ -37,7 +37,7 @@ test('Ollama diffuse les fragments reçus et les expose au fil de la lecture', a
   const encoded = chunks.map(chunk => new TextEncoder().encode(chunk));
   let index = 0;
   const received = [];
-  const answer = await sendCompanionMessage({
+  const answer = await sendCompanionRequest({
     provider: 'ollama', model: 'llama3.1', endpoint: 'http://localhost:11434',
     question: 'Bonjour', cartography,
     onChunk: chunk => received.push(chunk),
@@ -69,7 +69,7 @@ test('Ollama analyse les lignes JSON du flux même sans lecteur streaming', asyn
     { message: { content: ' Je suis là.' }, done: true },
   ];
   const received = [];
-  const answer = await sendCompanionMessage({
+  const answer = await sendCompanionRequest({
     provider: 'ollama', model: 'qwen2.5:0.5b', endpoint: 'http://localhost:11434',
     question: 'Bonjour', cartography,
     onChunk: chunk => received.push(chunk),
@@ -85,7 +85,7 @@ test('Ollama analyse les lignes JSON du flux même sans lecteur streaming', asyn
 
 test('OpenAI envoie la clé dans le header et lit choices[0].message.content', async () => {
   let request;
-  const answer = await sendCompanionMessage({
+  const answer = await sendCompanionRequest({
     provider: 'openai', model: 'gpt-test', endpoint: 'https://api.example.test',
     apiKey: 'test-secret', question: 'Évalue cette carte', cartography,
     fetchImpl: async (url, options) => {
@@ -101,7 +101,7 @@ test('OpenAI envoie la clé dans le header et lit choices[0].message.content', a
 
 test('Gemini utilise le modèle configuré et extrait les parties de texte', async () => {
   let request;
-  const answer = await sendCompanionMessage({
+  const answer = await sendCompanionRequest({
     provider: 'gemini', model: 'gemini-test', endpoint: 'https://generativelanguage.googleapis.com',
     apiKey: 'test-secret', question: 'Explique la couverture', cartography,
     fetchImpl: async (url, options) => {
@@ -119,14 +119,14 @@ test('Gemini utilise le modèle configuré et extrait les parties de texte', asy
 
 test('refuse les appels cloud sans clé API', async () => {
   await assert.rejects(
-    sendCompanionMessage({ provider: 'openai', model: 'gpt-test', question: 'Question', cartography, fetchImpl: async () => response({}) }),
+    sendCompanionRequest({ provider: 'openai', model: 'gpt-test', question: 'Question', cartography, fetchImpl: async () => response({}) }),
     /clé API/
   );
 });
 
 test('masque le corps de réponse du fournisseur dans les erreurs HTTP', async () => {
   await assert.rejects(
-    sendCompanionMessage({
+    sendCompanionRequest({
       provider: 'ollama', model: 'llama3.2', question: 'Question', cartography,
       fetchImpl: async () => ({ ok: false, status: 503, json: async () => ({ error: 'internal details' }) }),
     }),

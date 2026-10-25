@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeCartography } from '../../src/services/ai/cartographyAnalysis.ts';
+import { analyzeCartography } from '../../src/domain/cartographyAnalysis.ts';
 
 const model = overrides => ({
   schemaVersion: 3,

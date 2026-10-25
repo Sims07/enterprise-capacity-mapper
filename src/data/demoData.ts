@@ -1,4 +1,4 @@
-import type { CatalogModel } from '../application/catalogUseCases.ts';
+import type { CatalogModel } from '../domain/catalogModel.ts';
 
 export const DEMO_MODEL: CatalogModel = {
   schemaVersion: 3,
