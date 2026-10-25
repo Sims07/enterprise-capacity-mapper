@@ -1,6 +1,8 @@
 import { sendCompanionRequest } from './providerClient.js';
 import { createAiCompanionPort } from '../../ports/aiCompanion.js';
 
+type CompanionAiSettings = { provider?: string; model?: string; endpoint?: string; apiKey?: string };
+
 /**
  * Infrastructure adapter for the AI provider implementation currently used by
  * the companion. Provider selection remains an outer concern.
@@ -13,7 +15,7 @@ export const createCompanionAiAdapter = ({
   model,
   endpoint,
   apiKey,
-} = {}) => createAiCompanionPort({
+}: CompanionAiSettings = {}) => createAiCompanionPort({
   send: ({ question, cartography, history, onChunk }) => sendCompanionRequest({
     provider,
     model,
