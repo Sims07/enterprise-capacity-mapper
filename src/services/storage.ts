@@ -1,4 +1,4 @@
-import type { CatalogModel } from '../application/catalogUseCases.ts';
+import type { CatalogModel } from '../domain/catalogModel.ts';
 
 const KEY = 'enterprise-capacity-mapper:model:v3';
 const LOCAL_MAPS_KEY = 'enterprise-capacity-mapper:local-maps:v1';
