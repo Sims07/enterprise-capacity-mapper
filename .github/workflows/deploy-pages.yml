@@ -14,8 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dependencies:
+    name: Install and cache shared dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install project dependencies
+        run: npm install
+      - name: Install coverage tooling
+        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
+      - name: Upload shared dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-dependencies
+          path: |
+            node_modules/
+            ~/.cache/Cypress/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 1
+
   build:
     runs-on: ubuntu-latest
+    needs: dependencies
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -52,6 +77,15 @@ jobs:
         run: npm run typecheck
       - name: Install coverage tooling
         run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
+      - name: Upload shared dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-dependencies
+          path: |
+            node_modules/
+            ~/.cache/Cypress/
+          include-hidden-files: true
+          retention-days: 1
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       - name: Build instrumented application for coverage
@@ -78,7 +112,7 @@ jobs:
   cypress:
     name: Cypress shard ${{ matrix.shard }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, dependencies]
     strategy:
       fail-fast: false
       matrix:
@@ -99,10 +133,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - name: Install project dependencies
-        run: npm install
-      - name: Install coverage tooling
-        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
+      - name: Download shared dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-dependencies
+          path: .
       - name: Download instrumented application
         uses: actions/download-artifact@v4
         with:
@@ -185,15 +220,18 @@ jobs:
   coverage:
     name: Merge Cypress coverage
     runs-on: ubuntu-latest
-    needs: cypress
+    needs: [cypress, dependencies]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
-      - name: Install project dependencies
-        run: npm install
+      - name: Download shared dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-dependencies
+          path: .
       - name: Download coverage from all shards
         uses: actions/download-artifact@v4
         with:
