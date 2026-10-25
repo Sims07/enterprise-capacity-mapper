@@ -1,12 +1,12 @@
 import type { CatalogModel, Application, Capability, Domain } from '../application/catalogUseCases.ts';
 
-export interface LocalMapEntry {
+export type LocalMapEntry = {
   id: string;
   name: string;
   model: CatalogModel;
   updatedAt?: string;
   openedAt?: string;
-}
+};
 
 /**
  * Outbound persistence port for cartography models.
