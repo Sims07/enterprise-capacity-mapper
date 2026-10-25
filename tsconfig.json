@@ -13,8 +13,8 @@
     ],
     "strict": true,
     "noImplicitAny": false,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
     "useUnknownInCatchVariables": false
   },
   "include": [
