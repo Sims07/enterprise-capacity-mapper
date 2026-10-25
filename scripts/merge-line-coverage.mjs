@@ -102,7 +102,7 @@ const summary = {
     consolidatedVsMainPercentagePoints: Number((pct - 82.24).toFixed(2)),
     note: 'main baseline is the previously recorded Cypress Istanbul line coverage; consolidated coverage is the union of unit and Cypress line hits.',
   },
-  methodology: 'A source line is covered when at least one unit test or Cypress test executes a statement mapped to it. Percentages are not added. Executable lines are the statement start lines, matching Istanbul's line-coverage convention; the denominator is their union.',
+  methodology: "A source line is covered when at least one unit test or Cypress test executes a statement mapped to it. Percentages are not added. Executable lines are the statement start lines, matching Istanbul line-coverage semantics; the denominator is their union.",
   files,
 };
 fs.mkdirSync('coverage-combined', { recursive: true });
