@@ -44,7 +44,7 @@ export class MapLayout {
   }
 
   static completeZones(columns: LayoutAxis[], layers: LayoutAxis[], zones: LayoutZone[]): LayoutZone[] {
-    return completeZones(columns, layers, zones).map(zone => ({ ...zone }));
+    return completeZones(columns, layers, zones).map(zone => cloneValue(zone));
   }
 
   renameItem(kind: 'columns' | 'layers', id: string, name: string): MapLayout {
@@ -125,8 +125,8 @@ export class MapLayout {
     }));
 
     return {
-      layout: { ...layout, columns, layers, zones },
-      domains: domains.map((domain, index) => ({
+      layout: cloneValue({ ...layout, columns, layers, zones }),
+      domains: domains.map((domain, index) => cloneValue({
         ...domain,
         layout: {
           ...(domain.layout || {}),
@@ -186,10 +186,10 @@ export class MapLayout {
     })) return null;
 
     return {
-      layout: { ...layout, mode: layoutMode, columns: columns.map(column => ({ ...column })), layers: layers.map(layer => ({ ...layer })) },
-      domains: domains.map(domain => domain.id === domainId
+      layout: cloneValue({ ...layout, mode: layoutMode, columns, layers }),
+      domains: domains.map(domain => cloneValue(domain.id === domainId
         ? { ...domain, layout: { ...(domain.layout || {}), columnId: targetColumn, layerId: targetLayer } }
-        : { ...domain, ...(domain.layout === undefined ? {} : { layout: { ...domain.layout } }) }),
+        : domain)),
     };
   }
 }
