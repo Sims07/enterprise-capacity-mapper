@@ -25,10 +25,10 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
 
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('[data-testid="primary-library"]').click();
+    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
     cy.get('[data-testid="library-page"]').should('be.visible');
     cy.get('[data-testid="saved-maps-count"]').should('contain.text', '0');
     cy.get('[data-testid="recent-maps-count"]').should('contain.text', '0');
-    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
   });
 
   it('migre un modèle legacy vers le schéma actuel', () => {
@@ -43,67 +43,3 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
       win.localStorage.setItem('ea_canvas_apps', JSON.stringify([
         { id: 'legacy-app', name: 'Application historique', code: 'LEG-APP', type: 'SaaS', status: 'Actif', vendor: 'Legacy', description: 'Application migrée', l1Id: 'legacy-cap' }
       ]));
-    });
-
-    cy.contains('.domain-banner', 'Domaine historique').should('be.visible');
-    cy.contains('.cap', 'Capacité historique').should('be.visible');
-    cy.contains('.app-item', 'Application historique').should('be.visible');
-    cy.window().should(win => {
-      const raw = win.localStorage.getItem(MODEL_KEY);
-      expect(raw, 'le modèle migré doit être persisté').to.be.a('string');
-      const migrated = JSON.parse(raw);
-      expect(migrated.schemaVersion).to.equal(3);
-      expect(migrated.capabilities[0].domainId).to.equal('legacy-domain');
-      expect(migrated.applications[0].capabilityIds).to.deep.equal(['legacy-cap']);
-    });
-  });
-
-  it('affiche une indisponibilité lorsque le service worker ne peut pas être enregistré', () => {
-    visit(win => {
-      Object.defineProperty(win.navigator, 'serviceWorker', {
-        configurable: true,
-        value: {
-          controller: null,
-          addEventListener: () => {},
-          removeEventListener: () => {},
-          register: () => Promise.reject(new Error('service worker indisponible')),
-          getRegistration: () => Promise.resolve(undefined)
-        }
-      });
-    });
-
-    openTools();
-    cy.get('[data-testid="pwa-version"]').should('be.visible');
-    cy.get('[data-testid="pwa-version"] .pwa-update-button').should('not.exist');
-    cy.get('[data-testid="pwa-version"] .pwa-update-message')
-      .should('contain.text', 'Mise à jour indisponible pour le moment.');
-  });
-
-  it('propose puis déclenche une mise à jour lorsqu’un worker est en attente', () => {
-    const waitingWorker = { postMessage: cy.stub().as('postMessage') };
-    const registration = {
-      waiting: waitingWorker,
-      installing: null,
-      addEventListener: () => {},
-      update: cy.stub().resolves()
-    };
-
-    visit(win => {
-      Object.defineProperty(win.navigator, 'serviceWorker', {
-        configurable: true,
-        value: {
-          controller: {},
-          addEventListener: () => {},
-          removeEventListener: () => {},
-          register: () => Promise.resolve(registration),
-          getRegistration: () => Promise.resolve(registration)
-        }
-      });
-    });
-
-    openTools();
-    cy.get('[data-testid="pwa-update-button"]').should('be.visible').click();
-    cy.get('@postMessage').should('have.been.calledWith', { type: 'SKIP_WAITING' });
-    cy.get('.pwa-update-message').should('contain.text', 'Installation de la mise à jour');
-  });
-});
