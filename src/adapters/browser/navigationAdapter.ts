@@ -15,7 +15,7 @@ export const createBrowserNavigationAdapter = ({
   location?: LocationLike;
   eventTarget?: EventTargetLike;
   onModeChange?: (mode: NavigationMode) => void;
-} = {}): NavigationPort => {
+} = {}) => {
   if (!history || !location) throw new Error('Navigation adapter requires browser history and location');
   const validateMode = (mode: NavigationMode): void => {
     if (!NAVIGATION_MODES.includes(mode)) throw new Error(`Mode de navigation inconnu : ${mode}`);
