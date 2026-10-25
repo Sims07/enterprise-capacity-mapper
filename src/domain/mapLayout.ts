@@ -98,6 +98,7 @@ export class MapLayout {
       !draft.layers.length ||
       !uniqueIds(draft.columns) ||
       !uniqueIds(draft.layers) ||
+      !uniqueIds(draft.zones) ||
       [...draft.columns, ...draft.layers, ...draft.zones].some(item => !item.name.trim())
     ) return null;
 
@@ -148,7 +149,7 @@ export class MapLayout {
     columnSpan: string | number;
   }): boolean {
     const start = columns.findIndex(column => column.id === columnId);
-    const span = Number(columnSpan) || 1;
+    const span = Number(columnSpan);
     if (start < 0 || !Number.isInteger(span) || span < 1 || start + span > columns.length || !layers.some(layer => layer.id === layerId)) return false;
 
     return !domains.some(domain => {
