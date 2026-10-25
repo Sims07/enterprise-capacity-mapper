@@ -466,7 +466,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
               ).map(domain => (
                 <article className="dashboard-domain-row" key={domain.id}>
                   <div className="dashboard-domain-label"><strong>{domain.name}</strong><span>{domain.coveredCount}/{domain.targetCount} couverts</span></div>
-                  <div className="dashboard-domain-progress" role="progressbar" aria-label={`Couverture ${domain.name}`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={domain.coverage}><span style={{ width: `${domain.coverage}%` }} /></div>
+                  <div className="dashboard-domain-progress" role="progressbar" aria-label={`Couverture ${domain.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={domain.coverage}><span style={{ width: `${domain.coverage}%` }} /></div>
                   <div className="dashboard-domain-meta"><b>{domain.coverage}%</b><span>{domain.gaps.length} gap{domain.gaps.length > 1 ? 's' : ''} · {domain.redundancies.length} redondance{domain.redundancies.length > 1 ? 's' : ''}</span></div>
                   {domain.gaps.length > 0 && <div className="dashboard-domain-detail"><span>À couvrir :</span> {domain.gaps.map(target => target.name).join(', ')}</div>}
                   <button type="button" className="dashboard-domain-filter-action" data-testid={`dashboard-domain-drilldown-${domain.id}`} onClick={() => focusDomain(domain.id)}>Explorer ce domaine dans la heatmap <span aria-hidden="true">↗</span></button>
