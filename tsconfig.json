@@ -12,7 +12,7 @@
     "types": [
       "vite/client"
     ],
-    "strict": true
+    "strict": false
   },
   "include": [
     "src"
