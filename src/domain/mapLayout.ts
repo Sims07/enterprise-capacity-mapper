@@ -157,6 +157,8 @@ export class MapLayout {
       const otherStart = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
       const otherSpan = Math.max(1, Number(domain.layout?.columnSpan) || 1);
       if (otherStart < 0) return false;
+      // Several domains may intentionally share the exact same matrix cell.
+      if (otherStart === start && otherSpan === span) return false;
       return start < otherStart + otherSpan && otherStart < start + span;
     });
   }
