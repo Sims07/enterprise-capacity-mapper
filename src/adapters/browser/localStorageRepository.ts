@@ -14,18 +14,18 @@ import type { CatalogModel } from '../../application/catalogUseCases.ts';
 import type { ModelRepository } from '../../ports/modelRepository.ts';
 
 /** Browser adapter for the model repository port. */
-export const createLocalStorageModelRepository = (): ModelRepository => {
+export const createLocalStorageModelRepository = () => {
   const adapter = {
-  load: loadModel,
-  save: saveModel,
-  loadLocalMaps,
-  saveLocalMap,
-  loadRecentMaps,
-  recordRecentMap,
-  updateRecentMap,
-  removeRecentMap,
-  importModel,
-  exportModel,
+    load: loadModel,
+    save: saveModel,
+    loadLocalMaps,
+    saveLocalMap,
+    loadRecentMaps,
+    recordRecentMap,
+    updateRecentMap,
+    removeRecentMap,
+    importModel,
+    exportModel,
   } satisfies ModelRepository;
   return Object.freeze(adapter);
 };
