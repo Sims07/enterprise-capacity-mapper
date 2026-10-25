@@ -58,7 +58,7 @@ export class Catalog {
 
   updateCapability(capabilityId: string, changes: Partial<Omit<Capability, 'id'>>): Catalog {
     const current = this.requireCapability(capabilityId);
-    const domainId = changes.domainId ?? current.domainId;
+    const domainId = changes.domainId || current.domainId;
     this.requireDomain(domainId);
     const name = changes.name === undefined
       ? current.name
@@ -154,9 +154,7 @@ export class Catalog {
       capabilities: this.model.capabilities.filter(capability => capability.domainId !== domainId),
       applications: this.model.applications.map(application => ({
         ...copyApplication(application),
-        ...(application.capabilityIds === undefined ? {} : {
-          capabilityIds: application.capabilityIds.filter(id => !removedRelationIds.has(id)),
-        }),
+        capabilityIds: (application.capabilityIds ?? []).filter(id => !removedRelationIds.has(id)),
       })),
     });
   }
