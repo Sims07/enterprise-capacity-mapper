@@ -44,12 +44,11 @@ function lineHits(fileMap) {
   const result = new Map();
   if (!fileMap?.statementMap || !fileMap?.s) return result;
   for (const [id, statement] of Object.entries(fileMap.statementMap)) {
-    const start = statement.start?.line;
-    const end = statement.end?.line;
-    if (!Number.isInteger(start) || !Number.isInteger(end)) continue;
-    for (let line = start; line <= end; line += 1) {
-      result.set(line, Math.max(result.get(line) ?? 0, fileMap.s[id] > 0 ? 1 : 0));
-    }
+    const line = statement.start?.line;
+    if (!Number.isInteger(line)) continue;
+    // Istanbul line coverage counts executable statements on their start line,
+    // not every line spanned by a multi-line statement.
+    result.set(line, Math.max(result.get(line) ?? 0, fileMap.s[id] > 0 ? 1 : 0));
   }
   return result;
 }
@@ -103,7 +102,7 @@ const summary = {
     consolidatedVsMainPercentagePoints: Number((pct - 82.24).toFixed(2)),
     note: 'main baseline is the previously recorded Cypress Istanbul line coverage; consolidated coverage is the union of unit and Cypress line hits.',
   },
-  methodology: 'A source line is covered when at least one unit test or Cypress test executes a statement mapped to it. Percentages are not added. The denominator is the union of executable source lines represented by either report.',
+  methodology: 'A source line is covered when at least one unit test or Cypress test executes a statement mapped to it. Percentages are not added. Executable lines are the statement start lines, matching Istanbul's line-coverage convention; the denominator is their union.',
   files,
 };
 fs.mkdirSync('coverage-combined', { recursive: true });
