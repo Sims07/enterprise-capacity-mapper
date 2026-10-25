@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createNavigationPort } from '../adapters/browser/navigationAdapter.ts';
+import { createBrowserNavigationAdapter } from '../adapters/browser/navigationAdapter.ts';
 
 const createBrowserHistory = () => {
   const calls = [];
@@ -26,10 +26,10 @@ const createBrowserHistory = () => {
   return { history, calls, eventCalls, eventTarget };
 };
 
-test('navigation port changes mode while preserving unrelated history state', () => {
+test('browser navigation adapter changes mode while preserving unrelated history state', () => {
   const { history, calls } = createBrowserHistory();
   const changedModes = [];
-  const navigation = createNavigationPort({
+  const navigation = createBrowserNavigationAdapter({
     history,
     location: { href: 'https://example.test/app/' },
     onModeChange: mode => changedModes.push(mode),
@@ -46,19 +46,19 @@ test('navigation port changes mode while preserving unrelated history state', ()
   assert.equal(navigation.currentMode(), 'relations');
 });
 
-test('navigation port rejects unsupported modes without mutating history', () => {
+test('browser navigation adapter rejects unsupported modes without mutating history', () => {
   const { history, calls } = createBrowserHistory();
-  const navigation = createNavigationPort({ history, location: { href: '/' } });
+  const navigation = createBrowserNavigationAdapter({ history, location: { href: '/' } });
 
   assert.throws(() => navigation.goTo('unknown'), /Mode de navigation inconnu/);
   assert.equal(calls.length, 0);
 });
 
 
-test('navigation port owns initialization, dashboard exploration, back and popstate subscription', () => {
+test('browser navigation adapter owns initialization, dashboard exploration, back and popstate subscription', () => {
   const { history, calls, eventCalls, eventTarget } = createBrowserHistory();
   const changedModes = [];
-  const navigation = createNavigationPort({
+  const navigation = createBrowserNavigationAdapter({
     history,
     location: { href: 'https://example.test/app/' },
     eventTarget,
