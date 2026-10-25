@@ -13,9 +13,9 @@ function normalizePath(value) {
     try { candidate = fileURLToPath(candidate); } catch { /* retain original */ }
   }
   candidate = candidate.replace(/\\\\/g, '/');
-  const srcMatch = candidate.match(/(?:^|\/)src\/(.*)$/);
+  const srcMatch = candidate.match(/(?:^|\\/)src\\/(.*)$/);
   if (srcMatch) return `src/${srcMatch[1]}`;
-  candidate = candidate.replace(/^https?:\/\/[^/]+\//, '').replace(/^\.\//, '');
+  candidate = candidate.replace(/^https?:\\/\\/[^/]+\\//, '').replace(/^\\.\\//, '');
   return path.posix.normalize(candidate);
 }
 
@@ -26,15 +26,7 @@ function readReport({ name, file }) {
   for (const [filename, data] of Object.entries(raw)) {
     const key = normalizePath(filename);
     if (!key.startsWith('src/')) continue;
-    const previous = normalized.get(key);
-    if (!previous) normalized.set(key, data);
-    else {
-      const merged = structuredClone(previous);
-      for (const [id, hits] of Object.entries(data.s ?? {})) {
-        merged.s[id] = Math.max(merged.s?.[id] ?? 0, hits);
-      }
-      normalized.set(key, merged);
-    }
+    if (!normalized.has(key)) normalized.set(key, data);
   }
   console.log(`${name}: ${normalized.size} source files in ${file}`);
   return normalized;
@@ -46,8 +38,6 @@ function lineHits(fileMap) {
   for (const [id, statement] of Object.entries(fileMap.statementMap)) {
     const line = statement.start?.line;
     if (!Number.isInteger(line)) continue;
-    // Istanbul line coverage counts executable statements on their start line,
-    // not every line spanned by a multi-line statement.
     result.set(line, Math.max(result.get(line) ?? 0, fileMap.s[id] > 0 ? 1 : 0));
   }
   return result;
@@ -55,64 +45,69 @@ function lineHits(fileMap) {
 
 const unit = readReport(inputs[0]);
 const cypress = readReport(inputs[1]);
-const filenames = new Set([...unit.keys(), ...cypress.keys()]);
 const files = {};
 let totalLines = 0;
-let coveredLines = 0;
-let unitCovered = 0;
 let cypressCovered = 0;
+let unitCoveredOnComparableScope = 0;
+let consolidatedCovered = 0;
 
-for (const filename of [...filenames].sort()) {
-  const unitLines = lineHits(unit.get(filename));
+for (const filename of [...cypress.keys()].sort()) {
   const cypressLines = lineHits(cypress.get(filename));
-  const allLines = new Set([...unitLines.keys(), ...cypressLines.keys()]);
-  if (!allLines.size) continue;
-  let covered = 0;
-  let unitCount = 0;
-  let cypressCount = 0;
-  for (const line of allLines) {
-    const u = unitLines.get(line) ?? 0;
-    const c = cypressLines.get(line) ?? 0;
-    if (u) unitCount += 1;
-    if (c) cypressCount += 1;
-    if (u || c) covered += 1;
+  const unitLines = lineHits(unit.get(filename));
+  // Keep the Cypress-instrumented executable lines as the denominator. This makes
+  // the consolidated figure comparable with the historical Cypress-only baseline.
+  let total = 0;
+  let cypressCoveredFile = 0;
+  let unitCoveredFile = 0;
+  let combinedCoveredFile = 0;
+  for (const [line, cypressHit] of cypressLines) {
+    total += 1;
+    const unitHit = unitLines.get(line) ?? 0;
+    if (cypressHit) cypressCoveredFile += 1;
+    if (unitHit) unitCoveredFile += 1;
+    if (cypressHit || unitHit) combinedCoveredFile += 1;
   }
+  if (!total) continue;
   files[filename] = {
-    lines: { total: allLines.size, covered, pct: Number((covered / allLines.size * 100).toFixed(2)) },
-    unit: { total: unitLines.size, covered: unitCount },
-    cypress: { total: cypressLines.size, covered: cypressCount },
+    lines: { total, covered: combinedCoveredFile, pct: Number((combinedCoveredFile / total * 100).toFixed(2)) },
+    cypress: { total, covered: cypressCoveredFile, pct: Number((cypressCoveredFile / total * 100).toFixed(2)) },
+    unitOnComparableScope: { total, covered: unitCoveredFile, pct: Number((unitCoveredFile / total * 100).toFixed(2)) },
   };
-  totalLines += allLines.size;
-  coveredLines += covered;
-  unitCovered += unitCount;
-  cypressCovered += cypressCount;
+  totalLines += total;
+  cypressCovered += cypressCoveredFile;
+  unitCoveredOnComparableScope += unitCoveredFile;
+  consolidatedCovered += combinedCoveredFile;
 }
 
-if (!totalLines) throw new Error('No executable source lines found in unit or Cypress coverage reports.');
-const pct = Number((coveredLines / totalLines * 100).toFixed(2));
+if (!totalLines) throw new Error('No executable Cypress source lines found for comparable coverage.');
+const pct = Number((consolidatedCovered / totalLines * 100).toFixed(2));
+const cypressPct = Number((cypressCovered / totalLines * 100).toFixed(2));
+const unitPct = Number((unitCoveredOnComparableScope / totalLines * 100).toFixed(2));
 const summary = {
-  total: { lines: { total: totalLines, covered: coveredLines, skipped: 0, pct } },
+  total: { lines: { total: totalLines, covered: consolidatedCovered, skipped: 0, pct } },
   suites: {
-    unit: { coveredLineOccurrences: unitCovered },
-    cypress: { coveredLineOccurrences: cypressCovered },
+    cypress: { lines: { total: totalLines, covered: cypressCovered, pct: cypressPct } },
+    unitOnComparableScope: { lines: { total: totalLines, covered: unitCoveredOnComparableScope, pct: unitPct } },
   },
   comparison: {
     mainCypressLinesPct: 82.24,
-    prCypressLinesPct: 32.77,
+    currentCypressLinesPct: cypressPct,
+    consolidatedLinesPct: pct,
     consolidatedVsMainPercentagePoints: Number((pct - 82.24).toFixed(2)),
-    note: 'main baseline is the previously recorded Cypress Istanbul line coverage; consolidated coverage is the union of unit and Cypress line hits.',
+    note: 'The denominator is the current Cypress-instrumented executable source lines, matching the historical main Cypress-only scope as closely as possible.',
   },
-  methodology: "A source line is covered when at least one unit test or Cypress test executes a statement mapped to it. Percentages are not added. Executable lines are the statement start lines, matching Istanbul line-coverage semantics; the denominator is their union.",
+  methodology: 'A source line is covered when either Cypress or a unit test executes a statement mapped to the same source file and line. The denominator is restricted to executable lines in the Cypress Istanbul report, so the consolidated percentage can be compared with the historical Cypress-only baseline. Unit-only coverage outside this scope is reported separately by c8.',
   files,
 };
 fs.mkdirSync('coverage-combined', { recursive: true });
-fs.writeFileSync('coverage-combined/coverage-summary.json', JSON.stringify(summary, null, 2) + '\n');
+fs.writeFileSync('coverage-combined/coverage-summary.json', JSON.stringify(summary, null, 2) + '\\n');
 fs.writeFileSync('coverage-combined/coverage-summary.txt', [
-  'Consolidated source line coverage (unit tests ∪ Cypress)',
-  `Lines: ${coveredLines}/${totalLines} (${pct}%)`,
-  'Previously recorded main Cypress baseline: 82.24%',
+  'Comparable source line coverage (same Cypress-instrumented denominator)',
+  `Cypress only: ${cypressCovered}/${totalLines} (${cypressPct}%)`,
+  `Unit tests on the same source lines: ${unitCoveredOnComparableScope}/${totalLines} (${unitPct}%)`,
+  `Consolidated union: ${consolidatedCovered}/${totalLines} (${pct}%)`,
+  'Historical main Cypress-only baseline: 82.24%',
   `Difference vs main baseline: ${summary.comparison.consolidatedVsMainPercentagePoints} percentage points`,
-  `Unit line hits (not additive): ${unitCovered}`,
-  `Cypress line hits (not additive): ${cypressCovered}`,
-].join('\n') + '\n');
+  'Note: coverage percentages overlap and must not be added.',
+].join('\\n') + '\\n');
 console.log(fs.readFileSync('coverage-combined/coverage-summary.txt', 'utf8'));
