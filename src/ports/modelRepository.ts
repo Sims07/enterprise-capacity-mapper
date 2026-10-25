@@ -21,7 +21,7 @@ export interface ModelRepository {
   recordRecentMap(input: { id: string; name: string; model: CatalogModel }): LocalMapEntry;
   updateRecentMap(input: { id: string; name: string; model: CatalogModel }): LocalMapEntry;
   removeRecentMap(id: string): LocalMapEntry[];
-  importModel(file: File): Promise<CatalogModel>;
+  importModel(source: { text(): Promise<string> }): Promise<CatalogModel>;
   exportModel(model: CatalogModel): void;
 }
 
