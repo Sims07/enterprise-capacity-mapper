@@ -4,7 +4,9 @@ import {
   createApplication,
   createCapability,
   createDomain,
+  removeCapabilityAndDependents,
   removeDomainAndDependents,
+  updateApplication,
   updateCapability,
   updateDomain,
 } from './catalogUseCases.ts';
@@ -126,4 +128,38 @@ test('removes a domain, its capabilities and the correct dependent application l
     ],
   });
   assert.deepEqual(removeDomainAndDependents({ model, domainId: 'domain-1', depth: 1 }).applications[0].capabilityIds, ['cap-2', 'external']);
+});
+
+test('updates applications through the domain and validates relations for depth one maps', () => {
+  const domains = [{ id: 'domain-1', code: 'D1', name: 'Domain' }];
+  const capabilities = [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }];
+  const updated = updateApplication({
+    applications: [{ id: 'app-1', name: 'Old', capabilityIds: ['cap-1'], extra: { keep: true } }],
+    applicationId: 'app-1',
+    form: { ...form, name: '  Updated  ', capabilityIds: ['cap-1'] },
+    domains,
+    capabilities,
+  });
+  assert.equal(updated[0].name, 'Updated');
+  assert.deepEqual(updated[0].extra, { keep: true });
+  assert.deepEqual(updated[0].capabilityIds, ['cap-1']);
+
+  const depthOne = createApplication({
+    applications: [],
+    form: { ...form, capabilityIds: ['domain-1'] },
+    id: 'app-depth-one',
+    domains,
+    capabilities,
+    layout: { depth: 1 },
+  });
+  assert.deepEqual(depthOne[0].capabilityIds, ['domain-1']);
+});
+
+test('removing a capability through the use case cleans application references', () => {
+  const model = {
+    domains: [{ id: 'domain-1', name: 'Domain', code: 'D1' }],
+    capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
+    applications: [{ id: 'app-1', name: 'Application', capabilityIds: ['cap-1', 'legacy'] }],
+  };
+  assert.deepEqual(removeCapabilityAndDependents({ model, capabilityId: 'cap-1' }).applications[0].capabilityIds, ['legacy']);
 });
