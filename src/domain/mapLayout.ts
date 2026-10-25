@@ -161,8 +161,13 @@ export class MapLayout {
   }): PreparedLayout | null {
     if (!domainId) return null;
     const moving = domains.find(domain => domain.id === domainId);
-    if (!moving) return null;
     if (!columns.length || !layers.length) return null;
+    if (!moving) {
+      return {
+        layout: { ...layout, mode: layoutMode, columns: columns.map(column => ({ ...column })), layers: layers.map(layer => ({ ...layer })) },
+        domains: domains.map(domain => ({ ...domain, ...(domain.layout === undefined ? {} : { layout: { ...domain.layout } }) })),
+      };
+    }
     const targetColumn = columnId || moving.layout?.columnId as string || columns[0].id;
     const targetLayer = layerId || moving.layout?.layerId as string || layers[0].id;
 
