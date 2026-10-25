@@ -1,5 +1,5 @@
-import { sendCompanionRequest } from './providerClient.js';
-import { createAiCompanionPort } from '../../ports/aiCompanion.js';
+import { sendCompanionRequest } from './providerClient.ts';
+import { createAiCompanionPort } from '../../ports/aiCompanion.ts';
 
 type CompanionAiSettings = { provider?: string; model?: string; endpoint?: string; apiKey?: string };
 
