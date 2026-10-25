@@ -1,11 +1,11 @@
-describe('Application smoke test', () => {
-  // Clear persisted state before the app starts, avoiding a redundant visit + reload per test.
-  const visitFresh = (path = '/') => cy.visit(path, {
-    onBeforeLoad(win) {
-      win.localStorage.clear();
-    },
-  });
+// Clear persisted state before the app starts, avoiding a redundant visit + reload per test.
+const visitFresh = (path = '/') => cy.visit(path, {
+  onBeforeLoad(win) {
+    win.localStorage.clear();
+  },
+});
 
+describe('Application smoke test', () => {
   const assertApplicationLoaded = () => {
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
