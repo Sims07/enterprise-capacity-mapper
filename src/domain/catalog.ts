@@ -70,6 +70,39 @@ export class Catalog {
     });
   }
 
+  updateCapabilityPriority(capabilityId: string, priority?: string): Catalog {
+    return this.updateCapability(capabilityId, { priority: priority || 'unqualified' });
+  }
+
+  linkApplicationToMappedItem(applicationId: string, mappedItemId: string): Catalog {
+    this.requireApplication(applicationId);
+    if (!this.model.capabilities.some(item => item.id === mappedItemId) && !this.model.domains.some(item => item.id === mappedItemId)) {
+      throw new Error(`Élément de cartographie introuvable : ${mappedItemId}.`);
+    }
+    const application = this.requireApplication(applicationId);
+    const ids = application.capabilityIds ?? [];
+    if (ids.includes(mappedItemId)) return this;
+    return this.with({ applications: this.model.applications.map(item => item.id === applicationId
+      ? { ...copyApplication(item), capabilityIds: [...ids, mappedItemId] }
+      : copyApplication(item)) });
+  }
+
+  synchronizeApplicationLinks(applicationId: string, managedIds: string[], selectedIds: string[]): Catalog {
+    const application = this.requireApplication(applicationId);
+    const managed = new Set(managedIds);
+    const selected = Catalog.unique(selectedIds);
+    selected.forEach(id => {
+      if (!managed.has(id) || (!this.model.capabilities.some(item => item.id === id) && !this.model.domains.some(item => item.id === id))) {
+        throw new Error(`Élément de cartographie introuvable : ${id}.`);
+      }
+    });
+    const nextIds = [...(application.capabilityIds ?? []).filter(id => !managed.has(id)), ...selected];
+    if (nextIds.length === (application.capabilityIds ?? []).length && nextIds.every((id, index) => id === application.capabilityIds?.[index])) return this;
+    return this.with({ applications: this.model.applications.map(item => item.id === applicationId
+      ? { ...copyApplication(item), capabilityIds: nextIds }
+      : copyApplication(item)) });
+  }
+
   removeCapability(capabilityId: string): Catalog {
     if (!this.model.capabilities.some(capability => capability.id === capabilityId)) return this;
     return this.with({
