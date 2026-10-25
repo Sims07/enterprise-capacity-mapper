@@ -6,6 +6,10 @@ Ce document définit les frontières qui permettent de remplacer React, Vite, le
 
 Le principe directeur est : **le modèle de cartographie et ses règles sont le noyau ; l'UI, le stockage et le runtime sont des adaptateurs.**
 
+## Référence normative
+
+Les règles TypeScript concrètes (choix entre `interface` et `type`, usage de `satisfies`, critères pour `implements`, composition/injection, tests et critères d'acceptation) sont définies dans le [référentiel officiel TypeScript](./typescript-architecture-standard.md) et décidées dans l'[ADR 0002](./adr/0002-typescript-ports-adapters.md). En cas de divergence, ces documents définissent la convention du projet ; le présent document décrit les frontières et le scénario de migration.
+
 ## 1. Couches recommandées
 
 ```text
