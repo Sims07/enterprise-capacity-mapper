@@ -34,17 +34,6 @@ describe('Contrastes du thème sombre', () => {
     cy.get('.search').should('be.visible');
   });
 
-  it('garde les actions du menu Outils accessibles en mode sombre', () => {
-    toggleTheme();
-    openToolsMenu();
-
-    cy.get('.app.theme-dark .toolbar-tools-panel').should('be.visible');
-    cy.get('[data-testid="new-map-button"]').should('be.visible').and('not.be.disabled');
-    cy.get('[data-testid="save-local-map"]').should('be.visible').and('not.be.disabled');
-    cy.get('[data-testid="export-model"]').should('be.visible').and('not.be.disabled');
-    cy.get('[data-testid="theme-toggle"]').should('be.visible');
-  });
-
   it('revient au thème clair sans conserver la classe sombre', () => {
     toggleTheme();
     cy.get('.app.theme-dark').should('exist');
@@ -52,15 +41,16 @@ describe('Contrastes du thème sombre', () => {
     cy.get('.app').should('not.have.class', 'theme-dark');
   });
 
-  it('présente les outils par catégorie et permet de fermer le menu au clavier', () => {
+  it('présente les outils accessibles par catégorie en thème sombre et ferme le menu au clavier', () => {
+    toggleTheme();
     openToolsMenu();
     cy.get('.toolbar-tools-panel').should('be.visible').within(() => {
       cy.contains('.toolbar-menu-heading', 'Cartographie').should('be.visible');
       cy.contains('.toolbar-menu-heading', 'Données').should('be.visible');
       cy.contains('.toolbar-menu-heading', 'Affichage').should('be.visible');
-      cy.get('[data-testid="new-map-button"]').should('be.visible');
-      cy.get('[data-testid="save-local-map"]').should('be.visible');
-      cy.get('[data-testid="export-model"]').should('be.visible');
+      cy.get('[data-testid="new-map-button"]').should('be.visible').and('not.be.disabled');
+      cy.get('[data-testid="save-local-map"]').should('be.visible').and('not.be.disabled');
+      cy.get('[data-testid="export-model"]').should('be.visible').and('not.be.disabled');
       cy.get('[data-testid="import-model"]').should('exist');
       cy.get('[data-testid="theme-toggle"]').should('be.visible');
     });
@@ -69,7 +59,14 @@ describe('Contrastes du thème sombre', () => {
     cy.get('[data-testid="tools-menu-toggle"]').should('have.focus');
   });
 
-  it('préserve le contraste de l’éditeur Structure en thème sombre', () => {
+  it('préserve le contraste de l’éditeur Structure en thèmes clair et sombre', () => {
+    cy.contains('.canvas-actions button', 'Structure').click();
+    cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
+    cy.get('.modal .structure-section').first().should('be.visible');
+    cy.get('.app').should('not.have.class', 'theme-dark');
+    cy.get('.modal .structure-section h3').first().should('be.visible');
+    cy.get('.modal .modal-actions').contains('button', 'Annuler').click();
+    cy.get('.modal').should('not.exist');
     toggleTheme();
     cy.contains('.canvas-actions button', 'Structure').click();
     cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
@@ -104,15 +101,6 @@ describe('Contrastes du thème sombre', () => {
     cy.get('.togaf-guide').should('not.exist');
   });
 
-  it('conserve les surfaces claires de l’éditeur Structure en thème clair', () => {
-    cy.contains('.canvas-actions button', 'Structure').click();
-    cy.get('.modal h2').should('contain.text', 'Personnaliser la structure');
-    cy.get('.modal .structure-section').first().should('be.visible');
-    cy.get('.app').should('not.have.class', 'theme-dark');
-    cy.get('.modal .structure-section h3').first().should('be.visible');
-    cy.get('.modal .modal-actions').contains('button', 'Annuler').click();
-    cy.get('.modal').should('not.exist');
-  });
 });
 
 export {};
