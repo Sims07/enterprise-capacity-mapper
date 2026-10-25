@@ -162,7 +162,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cypress-coverage-${{ matrix.shard }}
-          path: .nyc_output/
+          path: |
+            .nyc_output/
+            coverage/.nyc_output/
           if-no-files-found: warn
           retention-days: 14
       - name: Upload shard timing
@@ -215,6 +217,7 @@ jobs:
             }
           }
           visit(sourceRoot);
+          console.log('Downloaded coverage artifact contents:', files.length ? files.join('\\n') : '(no JSON files found)');
           let copied = 0;
           for (const file of files) {
             try {
