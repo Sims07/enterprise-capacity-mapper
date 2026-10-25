@@ -59,7 +59,7 @@ test('editing an application replaces only mapped relations and preserves unrela
     applications: source, mappedItems, link: { kind: 'application', id: 'app1' },
     checkedIds: ['cap2'],
     domains,
-    capabilities, domains, capabilities,
+    capabilities,
   });
   assert.deepEqual(result[0].capabilityIds, ['legacy', 'cap2']);
   assert.deepEqual(result[1].capabilityIds, ['cap1']);
