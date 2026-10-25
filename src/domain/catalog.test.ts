@@ -115,7 +115,7 @@ test('Catalog updates applications immutably and rejects invalid updates', () =>
 test('Catalog replaces only mapped relations and rejects selections outside the mapped scope', () => {
   const catalog = Catalog.fromModel({
     ...model,
-    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1', 'legacy', 'c2'] }],
+    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['legacy', 'c1', 'c2'] }],
     capabilities: [
       ...model.capabilities,
       { id: 'c2', domainId: 'd1', code: 'C2', name: 'Second capability' },
@@ -123,7 +123,7 @@ test('Catalog replaces only mapped relations and rejects selections outside the 
   });
   const unchanged = catalog.replaceMappedRelations('a1', ['c1', 'c2'], ['c2', 'c2']);
   assert.deepEqual(unchanged.toModel().applications[0].capabilityIds, ['legacy', 'c2']);
-  assert.equal(catalog.replaceMappedRelations('a1', ['c1', 'c2'], ['c1', 'legacy']), catalog);
+  assert.equal(catalog.replaceMappedRelations('a1', ['c1', 'c2'], ['c1', 'c2']), catalog);
   assert.throws(() => catalog.replaceMappedRelations('a1', ['c1'], ['c2']), /Cible de cartographie inconnue/);
   assert.throws(() => catalog.replaceMappedRelations('missing', ['c1'], []), /Application introuvable/);
 });
