@@ -7,7 +7,7 @@ import { createLocalStorageModelRepository } from '../browser/localStorageReposi
 import { createAppPreferences } from '../browser/appPreferences.ts';
 import { createBrowserViewport } from '../browser/browserViewport.ts';
 import { createBrowserInteractions } from '../browser/browserInteractions.ts';
-import { createNavigationPort } from '../browser/navigationAdapter.ts';
+import { createBrowserNavigationAdapter } from '../browser/navigationAdapter.ts';
 import { createMapService } from '../../application/mapService.ts';
 
 export type FrontendApplication = ReturnType<typeof createFrontendApplication>;
@@ -37,7 +37,7 @@ export const createFrontendApplication = ({
   createAiCompanion = createCompanionAiAdapter,
 }: FrontendApplicationOptions) => {
   const repository = injectedRepository || createLocalStorageModelRepository();
-  const navigation = injectedNavigation || createNavigationPort({ onModeChange });
+  const navigation = injectedNavigation || createBrowserNavigationAdapter({ onModeChange });
   const preferences = injectedPreferences || createAppPreferences();
   const viewport = injectedViewport || createBrowserViewport();
   const browserInteractions = injectedBrowserInteractions || createBrowserInteractions();
