@@ -289,10 +289,6 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       try {
         const aiCompanion = aiCompanionFactory(providerSettings);
         const answer = await aiCompanion.ask({
-          provider: providerSettings.provider,
-          model: providerSettings.model,
-          endpoint: providerSettings.endpoint,
-          apiKey,
           question,
           cartography: model,
           history,
