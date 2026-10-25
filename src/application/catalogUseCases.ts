@@ -1,19 +1,82 @@
+import { Catalog } from '../domain/catalog.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
 export type { Application, Capability, CatalogModel, Domain, Layout } from '../domain/catalogModel.ts';
+
 export type DomainForm = { code?: string; name: string; description?: string; color?: string; columnId?: string; layerId?: string; columnSpan?: string | number };
 export type CapabilityForm = { domainId: string; code?: string; name: string; description?: string; priority?: string };
 export type ApplicationForm = { name: string; code?: string; type?: string; status?: string; vendor?: string; capabilityIds?: string[]; description?: string };
 
-export const createDomain = ({ domains, form, id, defaultColumnId, defaultLayerId, resolveColor }: { domains: Domain[]; form: DomainForm; id: string; defaultColumnId: string; defaultLayerId: string; resolveColor: (color?: string) => string }): Domain[] => [
-  ...domains,
-  { id, code: form.code || 'CAP', name: form.name.trim(), description: form.description, color: resolveColor(form.color), layout: { columnId: form.columnId || defaultColumnId, layerId: form.layerId || defaultLayerId, columnSpan: Number(form.columnSpan) || 1 } },
-];
-export const updateDomain = ({ domains, domainId, form, defaultColumnId, defaultLayerId, resolveColor }: { domains: Domain[]; domainId: string; form: DomainForm; defaultColumnId: string; defaultLayerId: string; resolveColor: (color?: string) => string }): Domain[] => domains.map(domain => domain.id === domainId ? { ...domain, name: form.name.trim(), code: form.code?.trim() || domain.code, description: form.description, color: resolveColor(form.color), layout: { ...(domain.layout || {}), columnId: form.columnId || domain.layout?.columnId || defaultColumnId, layerId: form.layerId || domain.layout?.layerId || defaultLayerId, columnSpan: Number(form.columnSpan) || 1 } } : domain);
-export const createCapability = ({ capabilities, form, id }: { capabilities: Capability[]; form: CapabilityForm; id: string }): Capability[] => [...capabilities, { id, domainId: form.domainId, code: form.code || 'CAP-01', name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' }];
-export const updateCapability = ({ capabilities, capabilityId, form }: { capabilities: Capability[]; capabilityId: string; form: CapabilityForm }): Capability[] => capabilities.map(capability => capability.id === capabilityId ? { ...capability, name: form.name.trim(), description: form.description, priority: form.priority || 'unqualified' } : capability);
-export const createApplication = ({ applications, form, id }: { applications: Application[]; form: ApplicationForm; id: string }): Application[] => [...applications, { id, name: form.name.trim(), code: form.code || 'APP', type: form.type, status: form.status, vendor: form.vendor, capabilityIds: form.capabilityIds, description: form.description }];
-export const removeDomainAndDependents = ({ model, domainId, depth }: { model: CatalogModel; domainId: string; depth: number }) => {
-  const dependentCapabilityIds = model.capabilities.filter(capability => capability.domainId === domainId).map(capability => capability.id);
-  const removedRelationIds = new Set(depth === 1 ? [domainId] : dependentCapabilityIds);
-  return { domains: model.domains.filter(domain => domain.id !== domainId), capabilities: model.capabilities.filter(capability => capability.domainId !== domainId), applications: model.applications.map(application => ({ ...application, capabilityIds: (application.capabilityIds || []).filter(id => !removedRelationIds.has(id)) })) };
+const catalogWith = (model: CatalogModel): Catalog => Catalog.fromModel(model);
+
+export const createDomain = ({ domains, form, id, defaultColumnId, defaultLayerId, resolveColor, capabilities = [], applications = [], layout }: {
+  domains: Domain[]; form: DomainForm; id: string; defaultColumnId: string; defaultLayerId: string;
+  resolveColor: (color?: string) => string; capabilities?: Capability[]; applications?: Application[]; layout?: CatalogModel['layout'];
+}): Domain[] => catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) })
+  .createDomain({
+    id, code: form.code || 'CAP', name: form.name, description: form.description,
+    color: resolveColor(form.color),
+    layout: { columnId: form.columnId || defaultColumnId, layerId: form.layerId || defaultLayerId, columnSpan: Number(form.columnSpan) || 1 },
+  }).toModel().domains;
+
+export const updateDomain = ({ domains, domainId, form, defaultColumnId, defaultLayerId, resolveColor, capabilities = [], applications = [], layout }: {
+  domains: Domain[]; domainId: string; form: DomainForm; defaultColumnId: string; defaultLayerId: string;
+  resolveColor: (color?: string) => string; capabilities?: Capability[]; applications?: Application[]; layout?: CatalogModel['layout'];
+}): Domain[] => {
+  const current = domains.find(domain => domain.id === domainId);
+  if (!current) return domains;
+  const updated = catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) }).updateDomain(domainId, {
+    name: form.name,
+    code: form.code?.trim() || current.code,
+    description: form.description,
+    color: resolveColor(form.color),
+    layout: {
+      ...(current.layout || {}),
+      columnId: form.columnId || current.layout?.columnId || defaultColumnId,
+      layerId: form.layerId || current.layout?.layerId || defaultLayerId,
+      columnSpan: Number(form.columnSpan) || 1,
+    },
+  });
+  return updated.toModel().domains;
 };
+
+export const createCapability = ({ capabilities, form, id, domains = [] }: {
+  capabilities: Capability[]; form: CapabilityForm; id: string; domains?: Domain[];
+}): Capability[] => catalogWith({ domains, capabilities, applications: [] }).createCapability({
+  id, domainId: form.domainId, code: form.code || 'CAP-01', name: form.name,
+  description: form.description, priority: form.priority || 'unqualified',
+}).toModel().capabilities;
+
+export const updateCapability = ({ capabilities, capabilityId, form, domains = [] }: {
+  capabilities: Capability[]; capabilityId: string; form: CapabilityForm; domains?: Domain[];
+}): Capability[] => {
+  const current = capabilities.find(capability => capability.id === capabilityId);
+  if (!current) return capabilities;
+  return catalogWith({ domains, capabilities, applications: [] }).updateCapability(capabilityId, {
+    name: form.name,
+    description: form.description,
+    priority: form.priority || 'unqualified',
+  }).toModel().capabilities;
+};
+
+export const createApplication = ({ applications, form, id, domains = [], capabilities = [], layout }: {
+  applications: Application[]; form: ApplicationForm; id: string; domains?: Domain[]; capabilities?: Capability[]; layout?: CatalogModel['layout'];
+}): Application[] => catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) }).createApplication({
+  id, name: form.name, code: form.code || 'APP', type: form.type, status: form.status,
+  vendor: form.vendor, capabilityIds: form.capabilityIds, description: form.description,
+}).toModel().applications;
+
+export const updateApplication = ({ applications, applicationId, form, domains = [], capabilities = [], layout }: {
+  applications: Application[]; applicationId: string; form: ApplicationForm; domains?: Domain[]; capabilities?: Capability[]; layout?: CatalogModel['layout'];
+}): Application[] => {
+  if (!applications.some(application => application.id === applicationId)) return applications;
+  return catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) }).updateApplication(applicationId, {
+    name: form.name, code: form.code, type: form.type, status: form.status, vendor: form.vendor,
+    capabilityIds: form.capabilityIds, description: form.description,
+  }).toModel().applications;
+};
+
+export const removeCapabilityAndDependents = ({ model, capabilityId }: { model: CatalogModel; capabilityId: string }): CatalogModel =>
+  catalogWith(model).removeCapability(capabilityId).toModel();
+
+export const removeDomainAndDependents = ({ model, domainId, depth }: { model: CatalogModel; domainId: string; depth: number }): CatalogModel =>
+  catalogWith(model).removeDomain(domainId, depth).toModel();

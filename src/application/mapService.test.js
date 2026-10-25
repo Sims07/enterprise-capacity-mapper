@@ -5,8 +5,8 @@ import { createMapService } from './mapService.ts';
 const initial = {
   metadata: { name: 'Carte' },
   layout: { depth: 2 },
-  domains: [],
-  capabilities: [{ id: 'cap-1', name: 'Prospection', priority: 'unqualified' }],
+  domains: [{ id: 'domain-1', code: 'D1', name: 'Domain' }],
+  capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Prospection', priority: 'unqualified' }],
   applications: [],
 };
 

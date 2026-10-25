@@ -4,7 +4,9 @@ import {
   createApplication,
   createCapability,
   createDomain,
+  removeCapabilityAndDependents,
   removeDomainAndDependents,
+  updateApplication,
   updateCapability,
   updateDomain,
 } from './catalogUseCases.ts';
@@ -63,7 +65,7 @@ test('creates and updates domains while preserving layout fields and applying de
 });
 
 test('creates capabilities and updates existing capability details', () => {
-  const created = createCapability({ capabilities: [], form, id: 'cap-2' });
+  const created = createCapability({ domains: [{ id: 'domain-1', name: 'Domain', code: 'D1' }], capabilities: [], form, id: 'cap-2' });
   assert.deepEqual(created[0], {
     id: 'cap-2',
     domainId: 'domain-1',
@@ -74,13 +76,15 @@ test('creates capabilities and updates existing capability details', () => {
   });
 
   const updated = updateCapability({
-    capabilities: [{ id: 'cap-2', name: 'Old', extra: true, priority: 'P2' }, { id: 'other' }],
+    domains: [{ id: 'domain-1', name: 'Domain', code: 'D1' }],
+    capabilities: [{ id: 'cap-2', domainId: 'domain-1', name: 'Old', extra: true, priority: 'P2' }, { id: 'other' }],
     capabilityId: 'cap-2',
     form: { ...form, priority: '' },
   });
   assert.deepEqual(updated[0], {
     id: 'cap-2',
     name: 'Prospection',
+    domainId: 'domain-1',
     extra: true,
     priority: 'unqualified',
     description: 'Description',
@@ -91,6 +95,7 @@ test('creates capabilities and updates existing capability details', () => {
 test('creates applications with their selected relations', () => {
   assert.deepEqual(createApplication({
     applications: [{ id: 'existing' }],
+    capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
     form,
     id: 'app-1',
   })[1], {
@@ -118,9 +123,66 @@ test('removes a domain, its capabilities and the correct dependent application l
     domains: [{ id: 'domain-2' }],
     capabilities: [{ id: 'cap-2', domainId: 'domain-2' }],
     applications: [
-      { id: 'app-1', capabilityIds: ['cap-2', 'domain-1', 'external'] },
+      { id: 'app-1', capabilityIds: ['cap-2', 'external'] },
       { id: 'app-2', capabilityIds: [] },
     ],
   });
-  assert.deepEqual(removeDomainAndDependents({ model, domainId: 'domain-1', depth: 1 }).applications[0].capabilityIds, ['cap-1', 'cap-2', 'external']);
+  assert.deepEqual(removeDomainAndDependents({ model, domainId: 'domain-1', depth: 1 }).applications[0].capabilityIds, ['cap-2', 'external']);
+});
+
+test('updates applications through the domain and validates relations for depth one maps', () => {
+  const domains = [{ id: 'domain-1', code: 'D1', name: 'Domain' }];
+  const capabilities = [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }];
+  const updated = updateApplication({
+    applications: [{ id: 'app-1', name: 'Old', capabilityIds: ['cap-1'], extra: { keep: true } }],
+    applicationId: 'app-1',
+    form: { ...form, name: '  Updated  ', capabilityIds: ['cap-1'] },
+    domains,
+    capabilities,
+  });
+  assert.equal(updated[0].name, 'Updated');
+  assert.deepEqual(updated[0].extra, { keep: true });
+  assert.deepEqual(updated[0].capabilityIds, ['cap-1']);
+
+  const depthOne = createApplication({
+    applications: [],
+    form: { ...form, capabilityIds: ['domain-1'] },
+    id: 'app-depth-one',
+    domains,
+    capabilities,
+    layout: { depth: 1 },
+  });
+  assert.deepEqual(depthOne[0].capabilityIds, ['domain-1']);
+});
+
+test('removing a capability through the use case cleans application references', () => {
+  const model = {
+    domains: [{ id: 'domain-1', name: 'Domain', code: 'D1' }],
+    capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
+    applications: [{ id: 'app-1', name: 'Application', capabilityIds: ['cap-1', 'legacy'] }],
+  };
+  assert.deepEqual(removeCapabilityAndDependents({ model, capabilityId: 'cap-1' }).applications[0].capabilityIds, ['legacy']);
+});
+
+
+test('catalog use cases preserve multiple domains in the same matrix cell', () => {
+  const layout = {
+    mode: 'matrix',
+    columns: [{ id: 'c1', name: 'Business' }, { id: 'c2', name: 'Support' }],
+    layers: [{ id: 'l1', name: 'Core' }],
+    zones: [],
+  };
+  const domains = [
+    { id: 'domain-1', code: 'D1', name: 'Existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } },
+  ];
+  const created = createDomain({
+    domains, form: { ...form, columnId: 'c1', layerId: 'l1' }, id: 'domain-2',
+    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, layout,
+  });
+  assert.deepEqual(created.map(domain => domain.id), ['domain-1', 'domain-2']);
+  const updated = updateDomain({
+    domains: created, domainId: 'domain-2', form: { ...form, columnId: 'c1', layerId: 'l1' },
+    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, layout,
+  });
+  assert.equal(updated.find(domain => domain.id === 'domain-2')?.layout?.columnId, 'c1');
 });

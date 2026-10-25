@@ -33,7 +33,7 @@ Les fichiers sont regroupés par responsabilité, sans multiplier les couches in
 │   ├── data/            # Modèle de démonstration
 │   ├── services/        # Persistance, import/export, analyse et fournisseurs
 │   ├── styles/          # Styles CSS et tokens
-│   ├── main.jsx         # Point d'entrée React et enregistrement PWA
+│   ├── main.tsx         # Point d'entrée React et enregistrement PWA
 │   └── toolsMenuBehavior.js # Comportement du menu Outils
 ├── index.html
 ├── package.json
@@ -46,7 +46,7 @@ Le code React utilisé par l'application doit avoir une seule source de vérité
 
 - [`docs/architecture/current-state.md`](docs/architecture/current-state.md) — photographie de l'architecture actuelle et des couplages à surveiller.
 - [`docs/architecture/target-independence.md`](docs/architecture/target-independence.md) — frontières recommandées entre métier, application, ports et adaptateurs.
-- [`docs/architecture/typescript-architecture-standard.md`](docs/architecture/typescript-architecture-standard.md) — référentiel officiel TypeScript : ports, adaptateurs, `satisfies`, injection, modèle métier et tests.
+- [`docs/architecture/typescript-architecture-standard.md`](docs/architecture/typescript-architecture-standard.md) — référentiel officiel TypeScript : ports, adaptateurs, `satisfies`, injection, modèle métier et tests.\n- [`docs/architecture/adr/0003-rich-domain-model.md`](docs/architecture/adr/0003-rich-domain-model.md) — décisions sur les invariants métier, l’agrégat `Catalog` et le modèle riche `MapLayout`.
 - [`docs/architecture/migration-playbook.md`](docs/architecture/migration-playbook.md) — procédure de migration étape par étape et stratégie de non-régression.
 - [`docs/architecture/migration-checklist.md`](docs/architecture/migration-checklist.md) — checklist prête à l'emploi pour une future PR de migration.
 - [`docs/architecture/adr/0001-technology-migration-principles.md`](docs/architecture/adr/0001-technology-migration-principles.md) — décision d'architecture sur les principes de migration.
