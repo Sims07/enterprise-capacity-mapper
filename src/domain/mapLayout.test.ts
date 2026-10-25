@@ -79,8 +79,14 @@ test('MapLayout rejects overlaps, invalid spans and moves of unknown domains', (
   assert.equal(mapLayout.prepareDomainPlacement({
     domains, layout, layoutMode: 'matrix', columns, layers, domainId: 'missing', columnId: 'c1', layerId: 'l2',
   }), null);
-  assert.equal(mapLayout.prepareDomainPlacement({
+  assert.notEqual(mapLayout.prepareDomainPlacement({
     domains, layout, layoutMode: 'matrix', columns, layers, domainId: 'd1', columnId: 'c2', layerId: 'l1',
+  }), null);
+  assert.equal(mapLayout.prepareDomainPlacement({
+    domains: [
+      { id: 'd1', name: 'Domain 1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } },
+      { id: 'd2', name: 'Domain 2', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
+    ], layout, layoutMode: 'matrix', columns, layers, domainId: 'd1', columnId: 'c2', layerId: 'l1',
   }), null);
 });
 
