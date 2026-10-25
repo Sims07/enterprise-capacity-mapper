@@ -5,7 +5,7 @@ type LocationLike = Pick<Location, 'href'>;
 type EventTargetLike = Pick<EventTarget, 'addEventListener' | 'removeEventListener'>;
 
 /** Browser adapter implementing the navigation port through the History API. */
-export const createNavigationPort = ({
+export const createBrowserNavigationAdapter = ({
   history = globalThis.window?.history,
   location = globalThis.window?.location,
   eventTarget = globalThis.window,
