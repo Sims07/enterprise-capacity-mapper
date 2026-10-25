@@ -75,3 +75,21 @@ test('returns original application list when no relationship changes are needed'
   });
   assert.deepEqual(result[0].capabilityIds, ['cap1']);
 });
+
+test('uses domains as relationship targets when the map is at depth one', () => {
+  const source = [{ id: 'app1', name: 'Application 1', capabilityIds: [] }];
+  const linked = assignApplicationToCapability(source, 'app1', 'domain1', domains, capabilities, 1);
+  assert.deepEqual(linked[0].capabilityIds, ['domain1']);
+  const unlinked = unassignApplicationFromCapability(linked, 'app1', 'domain1', domains, capabilities, 1);
+  assert.deepEqual(unlinked[0].capabilityIds, []);
+  const edited = prepareLinkedApplications({
+    applications: source,
+    mappedItems: domains,
+    link: { kind: 'target', id: 'domain1' },
+    checkedIds: ['app1'],
+    domains,
+    capabilities,
+    depth: 1,
+  });
+  assert.deepEqual(edited[0].capabilityIds, ['domain1']);
+});
