@@ -101,7 +101,7 @@ const summary = {
   files,
 };
 fs.mkdirSync('coverage-combined', { recursive: true });
-fs.writeFileSync('coverage-combined/coverage-summary.json', JSON.stringify(summary, null, 2) + '\\n');
+fs.writeFileSync('coverage-combined/coverage-summary.json', JSON.stringify(summary, null, 2) + '\n');
 fs.writeFileSync('coverage-combined/coverage-summary.txt', [
   'Comparable source line coverage (same Cypress-instrumented denominator)',
   `Cypress only: ${cypressCovered}/${totalLines} (${cypressPct}%)`,
@@ -110,5 +110,5 @@ fs.writeFileSync('coverage-combined/coverage-summary.txt', [
   'Historical main Cypress-only baseline: 82.24%',
   `Difference vs main baseline: ${summary.comparison.consolidatedVsMainPercentagePoints} percentage points`,
   'Note: coverage percentages overlap and must not be added.',
-].join('\\n') + '\\n');
+].join('\n') + '\n');
 console.log(fs.readFileSync('coverage-combined/coverage-summary.txt', 'utf8'));
