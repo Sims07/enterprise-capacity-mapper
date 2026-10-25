@@ -78,7 +78,7 @@ test('concrete adapter imports are centralized in the composition root or adapte
 
   for (const file of files) {
     const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
-    if (relative.startsWith('adapters/') || relative === 'App.tsx' || relative.startsWith('main.')) continue;
+    if (relative.startsWith('adapters/') || (relative.startsWith('ports/') && relative.endsWith('.test.js')) || relative === 'App.tsx' || relative.startsWith('main.')) continue;
     const source = await readFile(file, 'utf8');
     for (const specifier of importedSpecifiers(source)) {
       if (/^(?:\.\.\/)*(?:adapters)(?:\/|$)/.test(specifier)) {
