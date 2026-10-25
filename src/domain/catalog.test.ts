@@ -83,10 +83,14 @@ test('Catalog removes a domain and its dependent capability links', () => {
 });
 
 test('Catalog creates an empty map while preserving unrelated metadata', () => {
-  const catalog = Catalog.fromModel({ ...model, metadata: { owner: 'team' } });
-  assert.deepEqual(catalog.createEmptyMap('New map', 'Description', { mode: 'matrix' }).toModel(), {
+  const catalog = Catalog.fromModel({ ...model, metadata: { owner: 'team', settings: { locale: 'fr' } } });
+  const created = catalog.createEmptyMap('New map', 'Description', { mode: 'matrix' });
+  assert.deepEqual(created.toModel(), {
     domains: [], capabilities: [], applications: [],
-    metadata: { owner: 'team', name: 'New map', description: 'Description' },
+    metadata: { owner: 'team', settings: { locale: 'fr' }, name: 'New map', description: 'Description' },
     layout: { mode: 'matrix' },
   });
+  const snapshot = catalog.toModel();
+  (snapshot.metadata as { settings: { locale: string } }).settings.locale = 'mutated';
+  assert.equal((catalog.toModel().metadata as { settings: { locale: string } }).settings.locale, 'fr');
 });
