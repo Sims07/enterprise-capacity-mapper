@@ -1,8 +1,10 @@
 describe('Dashboard de couverture', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   });
 
   it('garde les cartes du dashboard dans leurs limites sans chevauchement en vue dépliée', () => {
