@@ -148,7 +148,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     if (matchedApplications.length > 0) {
       const observations = [];
       matchedApplications.forEach(app => {
-        const ids = Array.isArray(app.capabilityIds) ? app.capabilityIds : [];
+        const ids: string[] = Array.isArray(app.capabilityIds) ? app.capabilityIds.filter((id): id is string => typeof id === 'string') : [];
         const linkedTargets = [...new Set(ids)].map(id => targetById.get(id)).filter((target): target is (typeof targets)[number] => Boolean(target));
         const missingTargets = [...new Set(ids)].filter(id => !targetById.has(id));
         linkedTargets.forEach(target => {
