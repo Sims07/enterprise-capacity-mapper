@@ -80,6 +80,9 @@ jobs:
           if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
             throw new Error('Core unit coverage report has no valid source line coverage.');
           }
+          if (lines.pct < 95) {
+            throw new Error(`Domain/application unit coverage is ${lines.pct}%; the minimum is 95%.`);
+          }
           console.log('Domain/application unit-test line coverage:', `${lines.covered}/${lines.total} (${lines.pct}%)`);
           NODE
       - name: Set build version
