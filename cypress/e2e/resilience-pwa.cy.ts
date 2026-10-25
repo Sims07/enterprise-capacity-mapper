@@ -42,7 +42,7 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
       ]));
     });
     cy.contains('.domain h3', 'Domaine historique').should('be.visible');
-    cy.contains('.cap h3', 'Capacité historique').should('be.visible');
+    cy.get('.cap .map-cap-select').should('contain.text', 'Capacité historique').and('be.visible');
     cy.window().then(win => {
       const migrated = JSON.parse(win.localStorage.getItem(MODEL_KEY) ?? 'null');
       expect(migrated?.schemaVersion, 'persisted schema version').to.equal(3);
