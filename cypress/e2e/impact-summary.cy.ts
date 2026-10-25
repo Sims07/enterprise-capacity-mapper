@@ -1,9 +1,9 @@
 describe('Lot 3 — synthèse de l’analyse d’impact', () => {
-  const resetApp = () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
-  };
+  const resetApp = () => cy.visit('/', {
+    onBeforeLoad(win) {
+      win.localStorage.clear();
+    },
+  });
 
   const openImpact = () => {
     cy.get('[data-testid="nav-analysis"]').click();
