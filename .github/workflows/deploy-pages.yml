@@ -127,9 +127,12 @@ jobs:
         run: |
           mkdir -p "/tmp/cypress-timing"
           START="$(date +%s)"
+          set +e
           npx cypress run --config defaultCommandTimeout=10000 --spec "${{ matrix.specs }}"
+          RESULT=$?
           END="$(date +%s)"
-          echo "Shard ${{ matrix.shard }} elapsed seconds: $((END - START))" | tee "/tmp/cypress-timing/shard-${{ matrix.shard }}.txt"
+          echo "Shard ${{ matrix.shard }} elapsed seconds: $((END - START)); exit code: $RESULT" | tee "/tmp/cypress-timing/shard-${{ matrix.shard }}.txt"
+          exit "$RESULT"
         env:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
@@ -193,27 +196,43 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: cypress-coverage-*
-          path: .nyc_output
-          merge-multiple: true
+          path: downloaded-coverage
       - name: Verify and merge Istanbul coverage maps
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const dir = '.nyc_output';
-          const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(file => file.endsWith('.json')) : [];
-          const populated = files.some(file => {
-            try {
-              const data = JSON.parse(fs.readFileSync(`${dir}/${file}`, 'utf8'));
-              return data && typeof data === 'object' && Object.keys(data).length > 0;
-            } catch {
-              return false;
+          import path from 'node:path';
+          const sourceRoot = 'downloaded-coverage';
+          const targetRoot = '.nyc_output';
+          fs.mkdirSync(targetRoot, { recursive: true });
+          const files = [];
+          function visit(dir) {
+            if (!fs.existsSync(dir)) return;
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const fullPath = path.join(dir, entry.name);
+              if (entry.isDirectory()) visit(fullPath);
+              else if (entry.name.endsWith('.json')) files.push(fullPath);
             }
-          });
-          if (!populated) {
+          }
+          visit(sourceRoot);
+          let copied = 0;
+          for (const file of files) {
+            try {
+              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+              if (!data || typeof data !== 'object' || Object.keys(data).length === 0) continue;
+              const shard = file.match(/cypress-coverage-(\\d+)/)?.[1] ?? 'unknown';
+              const destination = path.join(targetRoot, `shard-${shard}-${copied}.json`);
+              fs.copyFileSync(file, destination);
+              copied += 1;
+            } catch {
+              // Ignore non-JSON or malformed artifact files; fail below if no valid map remains.
+            }
+          }
+          if (copied === 0) {
             console.error('No non-empty Istanbul coverage maps were uploaded by the Cypress shards.');
             process.exit(1);
           }
-          console.log(`Found ${files.length} raw coverage map(s).`);
+          console.log(`Collected ${copied} coverage map(s) without overwriting maps from other shards.`);
           NODE
           npx --yes nyc merge .nyc_output coverage-merged.json
           mkdir -p .nyc_output-merged
