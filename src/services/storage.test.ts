@@ -104,12 +104,15 @@ test('migrates legacy level data to schema v3 and persists the migrated model', 
   });
 });
 
-test('rejects malformed local and recent map collections instead of silently accepting them', async () => {
+test('recovers from syntactically corrupted or structurally invalid local map collections', async () => {
   await withLocalStorage(storage => {
-    storage.setItem('enterprise-capacity-mapper:local-maps:v1', JSON.stringify([{ id: 'map-1', name: ' ', model: validModel() }]));
-    assert.throws(() => loadLocalMaps(), /bibliothèque locale.*invalide/i);
+    storage.setItem('enterprise-capacity-mapper:local-maps:v1', '{invalid json');
+    assert.deepEqual(loadLocalMaps(), []);
+    assert.equal(storage.getItem('enterprise-capacity-mapper:local-maps:v1'), null);
+
     storage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify({ not: 'an array' }));
-    assert.throws(() => loadRecentMaps(), /liste des cartographies récentes.*invalide/i);
+    assert.deepEqual(loadRecentMaps(), []);
+    assert.equal(storage.getItem('enterprise-capacity-mapper:recent-maps:v1'), null);
   });
 });
 
