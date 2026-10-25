@@ -489,12 +489,12 @@ function App() {
 
     setFormErrors({});
     if (modal === 'domain') {
-      update({ domains: createDomain({ domains: model.domains, form, id: uid('l0'), defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
+      update({ domains: createDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, form, id: uid('l0'), defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
       setMapQuery('');
       notify('Domaine N0 créé');
     }
     if (modal === 'edit-domain') {
-      update({ domains: updateDomain({ domains: model.domains, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
+      update({ domains: updateDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
