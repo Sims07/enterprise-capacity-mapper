@@ -10,5 +10,5 @@ export type AiQuestion = {
 
 /** Outbound contract for asking the AI companion, independent of any provider. */
 export interface AiCompanionPort {
-  ask(input: AiQuestion): unknown | Promise<unknown>;
+  ask(input: AiQuestion): string | Promise<string>;
 }
