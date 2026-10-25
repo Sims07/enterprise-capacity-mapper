@@ -87,7 +87,7 @@ function App() {
   if (!applicationRef.current) {
     applicationRef.current = createFrontendApplication({ initialModel: DEMO_MODEL });
   }
-  const { repository, map: mapService, navigation, aiCompanion, preferences, viewport, browserInteractions } = applicationRef.current;
+  const { repository, map: mapService, navigation, aiCompanion, preferences, companionPreferences, viewport, browserInteractions } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -1254,7 +1254,7 @@ function App() {
           </div>
         </Modal>
       )}
-      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} />
+      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} companionPreferences={companionPreferences} />
     </div>
   );
 }
