@@ -1,4 +1,4 @@
-import { sendCompanionRequest, PROVIDER_DEFAULTS } from '../../adapters/ai/providerClient.js';
+import { sendCompanionRequest, PROVIDER_DEFAULTS } from '../../adapters/ai/providerClient.ts';
 
 const PREFERENCES_KEY = 'enterprise-capacity-mapper:companion-provider-preferences';
 
