@@ -136,14 +136,13 @@ export class MapLayout {
   }): boolean {
     const start = columns.findIndex(column => column.id === columnId);
     const span = Number(columnSpan) || 1;
-    if (start < 0 || span < 1 || start + span > columns.length || !layers.some(layer => layer.id === layerId)) return false;
+    if (start < 0 || !Number.isInteger(span) || span < 1 || start + span > columns.length || !layers.some(layer => layer.id === layerId)) return false;
 
     return !domains.some(domain => {
       if (domain.id === domainId || (domain.layout?.layerId || layers[0].id) !== layerId) return false;
       const otherStart = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
       const otherSpan = Math.max(1, Number(domain.layout?.columnSpan) || 1);
       if (otherStart < 0) return false;
-      if (otherStart === start && otherSpan === span) return false;
       return start < otherStart + otherSpan && otherStart < start + span;
     });
   }
