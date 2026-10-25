@@ -1,9 +1,9 @@
 describe('Relations applications ↔ capacités', () => {
-  const fresh = (path = '/') => {
-    cy.visit(path);
-    cy.clearLocalStorage();
-    cy.reload();
-  };
+  const fresh = (path = '/') => cy.visit(path, {
+    onBeforeLoad(win) {
+      win.localStorage.clear();
+    },
+  });
   const openTree = () => {
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-relations"]').click();
