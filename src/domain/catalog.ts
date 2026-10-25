@@ -74,8 +74,11 @@ export class Catalog {
   }
 
   createEmptyMap(name: string, description: string | undefined, layout: unknown): Catalog {
+    const metadata = this.model.metadata && typeof this.model.metadata === 'object' && !Array.isArray(this.model.metadata)
+      ? this.model.metadata as Record<string, unknown>
+      : {};
     return this.with({
-      metadata: { ...(this.model.metadata ?? {}), name, description },
+      metadata: { ...metadata, name, description },
       layout,
       domains: [],
       capabilities: [],
