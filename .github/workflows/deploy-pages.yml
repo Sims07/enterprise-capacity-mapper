@@ -26,6 +26,11 @@ jobs:
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Initialize timing summary
+        run: |
+          echo '## CI stage timings' >> "$GITHUB_STEP_SUMMARY"
+          echo '| Stage | Duration | Exit code |' >> "$GITHUB_STEP_SUMMARY"
+          echo '|---|---:|---:|' >> "$GITHUB_STEP_SUMMARY"
       - name: Increment PWA version after merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -50,6 +55,7 @@ jobs:
           git push
       - name: Install project dependencies
         run: |
+          set +e
           START=$(date +%s)
           npm install
           RESULT=$?
