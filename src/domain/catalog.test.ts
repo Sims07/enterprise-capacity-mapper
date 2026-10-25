@@ -96,3 +96,46 @@ test('Catalog creates an empty map while preserving unrelated metadata', () => {
   assert.equal((catalog.toModel().metadata as { settings: { locale: string } }).settings.locale, 'fr');
 });
 
+
+
+test('Catalog updates applications immutably and rejects invalid updates', () => {
+  const catalog = Catalog.fromModel({
+    ...model,
+    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1'], nested: { retained: true } }],
+  });
+  const updated = catalog.updateApplication('a1', { name: '  Updated  ', capabilityIds: ['c1', 'c1'] });
+  assert.deepEqual(updated.toModel().applications[0], {
+    id: 'a1', name: 'Updated', capabilityIds: ['c1'], nested: { retained: true },
+  });
+  assert.equal(catalog.toModel().applications[0].name, 'Application');
+  assert.throws(() => catalog.updateApplication('missing', { name: 'No app' }), /Application introuvable/);
+  assert.throws(() => catalog.updateApplication('a1', { name: '   ' }), /obligatoire/);
+});
+
+test('Catalog replaces only mapped relations and rejects selections outside the mapped scope', () => {
+  const catalog = Catalog.fromModel({
+    ...model,
+    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['legacy', 'c1', 'c2'] }],
+    capabilities: [
+      ...model.capabilities,
+      { id: 'c2', domainId: 'd1', code: 'C2', name: 'Second capability' },
+    ],
+  });
+  const unchanged = catalog.replaceMappedRelations('a1', ['c1', 'c2'], ['c2', 'c2']);
+  assert.deepEqual(unchanged.toModel().applications[0].capabilityIds, ['legacy', 'c2']);
+  assert.equal(catalog.replaceMappedRelations('a1', ['c1', 'c2'], ['c1', 'c2']), catalog);
+  assert.throws(() => catalog.replaceMappedRelations('a1', ['c1'], ['c2']), /Cible de cartographie inconnue/);
+  assert.throws(() => catalog.replaceMappedRelations('missing', ['c1'], []), /Application introuvable/);
+});
+
+test('Catalog validates mapped targets for applications created at depth one', () => {
+  const depthOne = Catalog.fromModel({ ...model, layout: { depth: 1 } });
+  const created = depthOne.createApplication({ id: 'a2', name: 'New app', capabilityIds: ['d1'] });
+  assert.deepEqual(created.toModel().applications[1].capabilityIds, ['d1']);
+  assert.throws(() => depthOne.createApplication({ id: 'a3', name: 'Invalid app', capabilityIds: ['c1'] }), /Domaine introuvable/);
+});
+
+test('Catalog treats removing an unknown domain as an idempotent no-op', () => {
+  const catalog = Catalog.fromModel(model);
+  assert.equal(catalog.removeDomain('missing'), catalog);
+});
