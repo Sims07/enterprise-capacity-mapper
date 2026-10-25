@@ -52,7 +52,6 @@ export const updateCapability = ({ capabilities, capabilityId, form, domains = [
   const current = capabilities.find(capability => capability.id === capabilityId);
   if (!current) return capabilities;
   return catalogWith({ domains, capabilities, applications: [] }).updateCapability(capabilityId, {
-    domainId: form.domainId,
     name: form.name,
     description: form.description,
     priority: form.priority || 'unqualified',
