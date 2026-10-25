@@ -1,29 +1,18 @@
 import { sendCompanionRequest } from './providerClient.ts';
-import { createAiCompanionPort } from '../../ports/aiCompanion.ts';
+import type { AiCompanionPort, AiQuestion } from '../../ports/aiCompanion.ts';
 
 type CompanionAiSettings = { provider?: string; model?: string; endpoint?: string; apiKey?: string };
+type CompanionSender = (input: Record<string, unknown>) => unknown | Promise<unknown>;
 
-/**
- * Infrastructure adapter for the AI provider implementation currently used by
- * the companion. Provider selection remains an outer concern.
- *
- * Configuration is supplied by the composition root so the application port
- * remains independent from provider-specific settings.
- */
+/** Provider-specific adapter implementing the AI companion port. */
 export const createCompanionAiAdapter = ({
   provider,
   model,
   endpoint,
   apiKey,
-}: CompanionAiSettings = {}) => createAiCompanionPort({
-  send: ({ question, cartography, history, onChunk }) => sendCompanionRequest({
-    provider,
-    model,
-    endpoint,
-    apiKey,
-    question,
-    cartography,
-    history,
-    onChunk,
+  send = sendCompanionRequest,
+}: CompanionAiSettings & { send?: CompanionSender } = {}): AiCompanionPort => Object.freeze({
+  ask: ({ question, cartography, history = [], onChunk }: AiQuestion) => send({
+    provider, model, endpoint, apiKey, question, cartography, history, onChunk,
   }),
 });
