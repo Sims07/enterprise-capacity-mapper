@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test:e2e": "cypress run",
     "test:unit": "node --test",
-    "test:unit:coverage": "c8 --all --include='src/**' --exclude='**/*.test.*' --exclude='**/*.spec.*' --reporter=text-summary --reporter=json --reporter=json-summary --reports-dir=coverage-unit node --test",
+    "test:unit:coverage": "c8 --all --include='src/**' --exclude='**/*.test.*' --reporter=text-summary --reporter=json --reporter=json-summary --reports-dir=coverage-unit node --test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
