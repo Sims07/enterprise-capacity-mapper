@@ -92,7 +92,7 @@ export function validateModel(model: CatalogModel): CatalogModel {
   if (model.applications.some(x => x.capabilityIds?.some(id => !relationTargetIds.has(id)))) throw new Error('Une application référence une capacité inexistante.');
   return model;
 }
-export async function importModel(file: File): Promise<CatalogModel> { return validateModel(JSON.parse(await file.text()) as CatalogModel); }
+export async function importModel(source: { text(): Promise<string> }): Promise<CatalogModel> { return validateModel(JSON.parse(await source.text()) as CatalogModel); }
 function migrateV2(model: LegacyModel): CatalogModel { return normalizeModel({ ...model, schemaVersion: 3 }); }
 function normalizeModel(model: CatalogModel): CatalogModel {
   if (!model) return model;
