@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { importModel, normalizeJsonUrl, validateModel } from './storage.ts';
+import type { CatalogModel } from '../domain/catalogModel.ts';
 
-const validModel = () => ({
+const validModel = (): CatalogModel & { schemaVersion: number } => ({
   schemaVersion: 3,
   domains: [{ id: 'domain-1', code: 'D1', name: 'Domain' }],
   capabilities: [{ id: 'cap-1', domainId: 'domain-1', code: 'C1', name: 'Capability' }],
