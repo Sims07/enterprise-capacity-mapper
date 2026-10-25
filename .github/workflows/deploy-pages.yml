@@ -20,6 +20,12 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          cache: npm
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Increment PWA version after merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -43,15 +49,39 @@ jobs:
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
       - name: Install project dependencies
-        run: npm install
+        run: |
+          START=$(date +%s)
+          npm install
+          RESULT=$?
+          END=$(date +%s)
+          echo "| npm install | $((END - START)) s | $RESULT |" >> "$GITHUB_STEP_SUMMARY"
+          exit "$RESULT"
       - name: Run deterministic unit tests
-        run: npm run test:unit
+        run: |
+          START=$(date +%s)
+          npm run test:unit
+          RESULT=$?
+          END=$(date +%s)
+          echo "| Unit tests | $((END - START)) s | $RESULT |" >> "$GITHUB_STEP_SUMMARY"
+          exit "$RESULT"
       - name: Install coverage tooling
-        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
+        run: |
+          START=$(date +%s)
+          npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
+          RESULT=$?
+          END=$(date +%s)
+          echo "| Coverage tooling install | $((END - START)) s | $RESULT |" >> "$GITHUB_STEP_SUMMARY"
+          exit "$RESULT"
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       - name: Build instrumented application for coverage
-        run: npm run build -- --outDir dist-coverage
+        run: |
+          START=$(date +%s)
+          npm run build -- --outDir dist-coverage
+          RESULT=$?
+          END=$(date +%s)
+          echo "| Instrumented build | $((END - START)) s | $RESULT |" >> "$GITHUB_STEP_SUMMARY"
+          exit "$RESULT"
         env:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
@@ -72,7 +102,13 @@ jobs:
           cat /tmp/vite-preview.log
           exit 1
       - name: Run Cypress once and collect coverage
-        run: npx cypress run --config defaultCommandTimeout=10000
+        run: |
+          START=$(date +%s)
+          npx cypress run --config defaultCommandTimeout=10000
+          RESULT=$?
+          END=$(date +%s)
+          echo "| Cypress E2E | $((END - START)) s | $RESULT |" >> "$GITHUB_STEP_SUMMARY"
+          exit "$RESULT"
         env:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
@@ -146,7 +182,13 @@ jobs:
           fi
       - name: Build production application
         if: success()
-        run: npm run build
+        run: |
+          START=$(date +%s)
+          npm run build
+          RESULT=$?
+          END=$(date +%s)
+          echo "| Production build | $((END - START)) s | $RESULT |" >> "$GITHUB_STEP_SUMMARY"
+          exit "$RESULT"
         env:
           COVERAGE: 'false'
           VITE_COVERAGE: 'false'
