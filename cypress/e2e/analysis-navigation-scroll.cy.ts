@@ -1,8 +1,10 @@
 describe('Navigation analyse → relations', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
   });
