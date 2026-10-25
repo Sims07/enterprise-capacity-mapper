@@ -60,18 +60,18 @@ export const updateCapability = ({ capabilities, capabilityId, form, domains = [
   }).toModel().capabilities;
 };
 
-export const createApplication = ({ applications, form, id, capabilities = [] }: {
-  applications: Application[]; form: ApplicationForm; id: string; capabilities?: Capability[];
-}): Application[] => catalogWith({ domains: [], capabilities, applications }).createApplication({
+export const createApplication = ({ applications, form, id, domains = [], capabilities = [], layout }: {
+  applications: Application[]; form: ApplicationForm; id: string; domains?: Domain[]; capabilities?: Capability[]; layout?: CatalogModel['layout'];
+}): Application[] => catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) }).createApplication({
   id, name: form.name, code: form.code || 'APP', type: form.type, status: form.status,
   vendor: form.vendor, capabilityIds: form.capabilityIds, description: form.description,
 }).toModel().applications;
 
-export const updateApplication = ({ applications, applicationId, form, capabilities = [] }: {
-  applications: Application[]; applicationId: string; form: ApplicationForm; capabilities?: Capability[];
+export const updateApplication = ({ applications, applicationId, form, domains = [], capabilities = [], layout }: {
+  applications: Application[]; applicationId: string; form: ApplicationForm; domains?: Domain[]; capabilities?: Capability[]; layout?: CatalogModel['layout'];
 }): Application[] => {
   if (!applications.some(application => application.id === applicationId)) return applications;
-  return catalogWith({ domains: [], capabilities, applications }).updateApplication(applicationId, {
+  return catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) }).updateApplication(applicationId, {
     name: form.name, code: form.code, type: form.type, status: form.status, vendor: form.vendor,
     capabilityIds: form.capabilityIds, description: form.description,
   }).toModel().applications;
