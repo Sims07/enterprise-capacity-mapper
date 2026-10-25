@@ -2,7 +2,7 @@ import { sendCompanionRequest } from './providerClient.ts';
 import type { AiCompanionPort, AiQuestion } from '../../ports/aiCompanion.ts';
 
 type CompanionAiSettings = { provider?: string; model?: string; endpoint?: string; apiKey?: string };
-type CompanionSender = (input: Record<string, unknown>) => unknown | Promise<unknown>;
+type CompanionSender = typeof sendCompanionRequest;
 
 /** Provider-specific adapter implementing the AI companion port. */
 export const createCompanionAiAdapter = ({
