@@ -46,9 +46,11 @@ Le code React utilisé par l'application doit avoir une seule source de vérité
 
 - [`docs/architecture/current-state.md`](docs/architecture/current-state.md) — photographie de l'architecture actuelle et des couplages à surveiller.
 - [`docs/architecture/target-independence.md`](docs/architecture/target-independence.md) — frontières recommandées entre métier, application, ports et adaptateurs.
+- [`docs/architecture/typescript-architecture-standard.md`](docs/architecture/typescript-architecture-standard.md) — référentiel officiel TypeScript : ports, adaptateurs, `satisfies`, injection, modèle métier et tests.
 - [`docs/architecture/migration-playbook.md`](docs/architecture/migration-playbook.md) — procédure de migration étape par étape et stratégie de non-régression.
 - [`docs/architecture/migration-checklist.md`](docs/architecture/migration-checklist.md) — checklist prête à l'emploi pour une future PR de migration.
 - [`docs/architecture/adr/0001-technology-migration-principles.md`](docs/architecture/adr/0001-technology-migration-principles.md) — décision d'architecture sur les principes de migration.
+- [`docs/architecture/adr/0002-typescript-ports-adapters.md`](docs/architecture/adr/0002-typescript-ports-adapters.md) — décision officielle sur les ports et adaptateurs TypeScript.
 - [`AGENTS.md`](AGENTS.md) — règles de contribution et de travail des agents IA.
 
 ## Principes de migration
