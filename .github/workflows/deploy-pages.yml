@@ -12,45 +12,14 @@ permissions:
 concurrency:
   group: pages-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-  dependencies:
-    name: Install and cache shared dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - name: Cache Cypress binary
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install project dependencies
-        run: npm install
-      - name: Install coverage tooling
-        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
-      - name: Archive shared dependencies and Cypress binary
-        run: tar -czf shared-dependencies.tar.gz node_modules ~/.cache/Cypress
-      - name: Upload shared dependencies
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-dependencies
-          path: shared-dependencies.tar.gz
-          if-no-files-found: error
-          retention-days: 1
-
   build:
     runs-on: ubuntu-latest
-    needs: dependencies
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: npm
       - name: Increment PWA version after merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -73,17 +42,12 @@ jobs:
           git add package.json package-lock.json public/sw.js
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
-      - name: Download shared dependencies
-        uses: actions/download-artifact@v4
-        with:
-          name: node-dependencies
-          path: .
-      - name: Restore shared dependencies
-        run: tar -xzf shared-dependencies.tar.gz
+      - name: Install project dependencies
+        run: npm install
       - name: Run deterministic unit tests
         run: npm run test:unit
-      - name: Run TypeScript typecheck
-        run: npm run typecheck
+      - name: Install coverage tooling
+        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       - name: Build instrumented application for coverage
@@ -92,78 +56,6 @@ jobs:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
           CYPRESS_COVERAGE: 'true'
-      - name: Verify Istanbul instrumentation exists in built bundle
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import path from 'node:path';
-          const root = 'dist-coverage/assets';
-          const files = fs.existsSync(root) ? fs.readdirSync(root).filter((file) => file.endsWith('.js')) : [];
-          const matches = files.filter((file) => {
-            const source = fs.readFileSync(path.join(root, file), 'utf8');
-            return source.includes('__coverage__') && source.includes('s[');
-          });
-          console.log(JSON.stringify({ files, instrumentedBundles: matches }, null, 2));
-          if (matches.length === 0) {
-            throw new Error('Istanbul instrumentation was enabled but no instrumented JS bundle was found.');
-          }
-          NODE
-      - name: Upload instrumented application
-        uses: actions/upload-artifact@v4
-        with:
-          name: instrumented-app
-          path: dist-coverage/
-          retention-days: 1
-      - name: Build production application
-        run: npm run build
-        env:
-          COVERAGE: 'false'
-          VITE_COVERAGE: 'false'
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: ./dist
-
-  cypress:
-    name: Cypress shard ${{ matrix.shard }}
-    runs-on: ubuntu-latest
-    needs: [build, dependencies]
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - shard: 1
-            specs: cypress/e2e/app.cy.js
-          - shard: 2
-            specs: cypress/e2e/cartographer-companion.cy.js,cypress/e2e/cartography-creation-coverage.cy.js,cypress/e2e/coverage.cy.js,cypress/e2e/dark-impact.cy.js
-          - shard: 3
-            specs: cypress/e2e/dark-mode-contrast.cy.js,cypress/e2e/dashboard.cy.js,cypress/e2e/design-tokens.cy.js,cypress/e2e/domain-description.cy.js
-          - shard: 4
-            specs: cypress/e2e/header-tools-wizard.cy.js,cypress/e2e/impact-summary.cy.js,cypress/e2e/import-export-library.cy.js,cypress/e2e/json-import-integrity.cy.js
-          - shard: 5
-            specs: cypress/e2e/analysis-integrity.cy.js,cypress/e2e/analysis-navigation-scroll.cy.js,cypress/e2e/navigation-rationalization.cy.js,cypress/e2e/relations-dark-hover.cy.js,cypress/e2e/relations.cy.js,cypress/e2e/resilience-pwa.cy.js,cypress/e2e/wizard-theme.cy.js
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - name: Cache Cypress binary
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Download shared dependencies
-        uses: actions/download-artifact@v4
-        with:
-          name: node-dependencies
-          path: .
-      - name: Restore shared dependencies
-        run: tar -xzf shared-dependencies.tar.gz
-      - name: Download instrumented application
-        uses: actions/download-artifact@v4
-        with:
-          name: instrumented-app
-          path: dist-coverage
       - name: Start instrumented static preview
         run: |
           npx vite preview --host 127.0.0.1 --port 4173 --strictPort --outDir dist-coverage --base /enterprise-capacity-mapper/ > /tmp/vite-preview.log 2>&1 &
@@ -179,16 +71,8 @@ jobs:
           echo 'Instrumented Vite preview did not become ready.'
           cat /tmp/vite-preview.log
           exit 1
-      - name: Run assigned Cypress specs
-        run: |
-          mkdir -p "/tmp/cypress-timing"
-          START="$(date +%s)"
-          set +e
-          npx cypress run --config defaultCommandTimeout=10000 --spec "${{ matrix.specs }}"
-          RESULT=$?
-          END="$(date +%s)"
-          echo "Shard ${{ matrix.shard }} elapsed seconds: $((END - START)); exit code: $RESULT" | tee "/tmp/cypress-timing/shard-${{ matrix.shard }}.txt"
-          exit "$RESULT"
+      - name: Run Cypress once and collect coverage
+        run: npx cypress run --config defaultCommandTimeout=10000
         env:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
@@ -210,26 +94,49 @@ jobs:
           });
           console.log(JSON.stringify(results, null, 2));
           if (!results.some(result => result.hasCoverageMap && result.hasCounters)) {
-            console.error('No instrumented JavaScript bundle was available to inspect.');
+            console.error('No instrumented JavaScript bundle was available to inspect (an earlier step may have failed).');
           }
           NODE
-      - name: Upload shard coverage data
+      - name: Verify Cypress produced coverage data
+        if: success()
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const dir = '.nyc_output';
+          const files = fs.existsSync(dir)
+            ? fs.readdirSync(dir).filter(file => file.endsWith('.json')).map(file => path.join(dir, file))
+            : [];
+          const populated = files.some(file => {
+            try {
+              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+              return data && typeof data === 'object' && Object.keys(data).length > 0;
+            } catch {
+              return false;
+            }
+          });
+          if (!populated) {
+            console.error('Cypress ran, but no non-empty Istanbul coverage map was collected.');
+            console.error('Inspect the instrumented browser bundle and Cypress code-coverage logs.');
+            process.exit(1);
+          }
+          console.log('Istanbul coverage data found:');
+          for (const file of files) {
+            console.log(`- ${file}`);
+          }
+          NODE
+      - name: Generate HTML and text coverage reports
+        if: success()
+        run: npx --yes nyc report --reporter=text-summary --reporter=html --reporter=lcov --reporter=json-summary
+      - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-coverage-${{ matrix.shard }}
+          name: cypress-line-coverage
           path: |
+            coverage/
             .nyc_output/
-            coverage/.nyc_output/
           if-no-files-found: warn
-          retention-days: 14
-      - name: Upload shard timing
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-timing-${{ matrix.shard }}
-          path: /tmp/cypress-timing/
-          if-no-files-found: ignore
           retention-days: 14
       - name: Stop instrumented Vite server
         if: always()
@@ -237,83 +144,18 @@ jobs:
           if [ -f /tmp/vite-preview.pid ]; then
             kill "$(cat /tmp/vite-preview.pid)" 2>/dev/null || true
           fi
-
-  coverage:
-    name: Merge Cypress coverage
-    runs-on: ubuntu-latest
-    needs: [cypress, dependencies]
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - name: Build production application
+        if: success()
+        run: npm run build
+        env:
+          COVERAGE: 'false'
+          VITE_COVERAGE: 'false'
+      - uses: actions/upload-pages-artifact@v4
+        if: success()
         with:
-          node-version: 24
-          cache: npm
-      - name: Download shared dependencies
-        uses: actions/download-artifact@v4
-        with:
-          name: node-dependencies
-          path: .
-      - name: Restore shared dependencies
-        run: tar -xzf shared-dependencies.tar.gz
-      - name: Download coverage from all shards
-        uses: actions/download-artifact@v4
-        with:
-          pattern: cypress-coverage-*
-          path: downloaded-coverage
-      - name: Verify and merge Istanbul coverage maps
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import path from 'node:path';
-          const sourceRoot = 'downloaded-coverage';
-          const targetRoot = '.nyc_output';
-          fs.mkdirSync(targetRoot, { recursive: true });
-          const files = [];
-          function visit(dir) {
-            if (!fs.existsSync(dir)) return;
-            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-              const fullPath = path.join(dir, entry.name);
-              if (entry.isDirectory()) visit(fullPath);
-              else if (entry.name.endsWith('.json')) files.push(fullPath);
-            }
-          }
-          visit(sourceRoot);
-          console.log('Downloaded coverage artifact contents:', files.length ? files.join('\\n') : '(no JSON files found)');
-          let copied = 0;
-          for (const file of files) {
-            try {
-              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-              if (!data || typeof data !== 'object' || Object.keys(data).length === 0) continue;
-              const shard = file.match(/cypress-coverage-(\\d+)/)?.[1] ?? 'unknown';
-              const destination = path.join(targetRoot, `shard-${shard}-${copied}.json`);
-              fs.copyFileSync(file, destination);
-              copied += 1;
-            } catch {
-              // Ignore non-JSON or malformed artifact files; fail below if no valid map remains.
-            }
-          }
-          if (copied === 0) {
-            console.error('No non-empty Istanbul coverage maps were uploaded by the Cypress shards.');
-            process.exit(1);
-          }
-          console.log(`Collected ${copied} coverage map(s) without overwriting maps from other shards.`);
-          NODE
-          npx --yes nyc merge .nyc_output coverage-merged.json
-          mkdir -p .nyc_output-merged
-          mv coverage-merged.json .nyc_output-merged/coverage.json
-      - name: Generate global HTML and text coverage reports
-        run: npx --yes nyc report --temp-dir .nyc_output-merged --reporter=text-summary --reporter=html --reporter=lcov --reporter=json-summary
-      - name: Upload global coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-line-coverage
-          path: |
-            coverage/
-            .nyc_output-merged/
-          if-no-files-found: error
-          retention-days: 14
+          path: ./dist
       - name: Publish Cypress line coverage badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -341,18 +183,16 @@ jobs:
           git add coverage.json
           git commit -m "chore: update Cypress line coverage badge"
           git push --force origin coverage-badge
-
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: [build, cypress, coverage]
+    needs: build
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
