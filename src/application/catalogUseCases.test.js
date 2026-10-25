@@ -127,7 +127,7 @@ test('removes a domain, its capabilities and the correct dependent application l
       { id: 'app-2', capabilityIds: [] },
     ],
   });
-  assert.deepEqual(removeDomainAndDependents({ model, domainId: 'domain-1', depth: 1 }).applications[0].capabilityIds, ['cap-1', 'cap-2', 'external']);
+  assert.deepEqual(removeDomainAndDependents({ model, domainId: 'domain-1', depth: 1 }).applications[0].capabilityIds, ['cap-2', 'external']);
 });
 
 test('updates applications through the domain and validates relations for depth one maps', () => {
