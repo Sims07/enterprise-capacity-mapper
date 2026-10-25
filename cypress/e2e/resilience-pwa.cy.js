@@ -4,12 +4,11 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
   const RECENT_MAPS_KEY = 'enterprise-capacity-mapper:recent-maps:v1';
   const ACTIVE_RECENT_MAP_KEY = 'enterprise-capacity-mapper:active-recent-map';
 
-  const visit = onBeforeLoad => cy.visit('/', { onBeforeLoad });
-  const openTools = () => cy.get('[data-testid="tools-menu-toggle"]').click();
+  const visit = (onBeforeLoad: (win: Window) => void): Cypress.Chainable<Window> =>
+    cy.visit('/', { onBeforeLoad });
 
   it('reste navigable si le modèle local est corrompu', () => {
     visit(win => win.localStorage.setItem(MODEL_KEY, '{invalid json'));
-
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
     cy.get('[data-testid="nav-analysis"]').click();
@@ -22,7 +21,6 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
       win.localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify({ invalid: true }));
       win.localStorage.setItem(ACTIVE_RECENT_MAP_KEY, '__dismissed__');
     });
-
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('[data-testid="primary-library"]').click();
     cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
@@ -43,3 +41,19 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
       win.localStorage.setItem('ea_canvas_apps', JSON.stringify([
         { id: 'legacy-app', name: 'Application historique', code: 'LEG-APP', type: 'SaaS', status: 'Actif', vendor: 'Legacy', description: 'Application migrée', l1Id: 'legacy-cap' }
       ]));
+    });
+    cy.contains('.domain h3', 'Domaine historique').should('be.visible');
+    cy.contains('.cap h3', 'Capacité historique').should('be.visible');
+  });
+
+  it('conserve une cartographie locale valide après rechargement', () => {
+    visit(win => {
+      win.localStorage.setItem(LOCAL_MAPS_KEY, JSON.stringify([
+        { id: 'saved-1', name: 'Cartographie sauvegardée', model: null, savedAt: new Date().toISOString() }
+      ]));
+    });
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="library-page"]').should('be.visible');
+    cy.get('[data-testid="saved-maps-list"]').should('be.visible');
+  });
+});
