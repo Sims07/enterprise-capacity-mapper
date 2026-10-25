@@ -28,9 +28,9 @@ export const assignApplicationToCapability = (
   domains: Domain[] = [],
   capabilities: Capability[] = [],
   depth: TargetDepth = 2,
-): RelatedApplication[] => applicationSnapshots(
-  catalogFor(applications, domains, capabilities, depth).linkApplicationToMappedItem(appId, targetId),
-);
+): RelatedApplication[] => applications.some(application => application.id === appId)
+  ? applicationSnapshots(catalogFor(applications, domains, capabilities, depth).linkApplicationToMappedItem(appId, targetId))
+  : applications;
 
 export const unassignApplicationFromCapability = (
   applications: RelatedApplication[],
@@ -39,9 +39,9 @@ export const unassignApplicationFromCapability = (
   domains: Domain[] = [],
   capabilities: Capability[] = [],
   depth: TargetDepth = 2,
-): RelatedApplication[] => applicationSnapshots(
-  catalogFor(applications, domains, capabilities, depth).unlinkApplicationFromMappedItem(appId, targetId),
-);
+): RelatedApplication[] => applications.some(application => application.id === appId)
+  ? applicationSnapshots(catalogFor(applications, domains, capabilities, depth).unlinkApplicationFromMappedItem(appId, targetId))
+  : applications;
 
 export const linkPickedApplications = (
   applications: RelatedApplication[],
@@ -71,6 +71,7 @@ export const prepareLinkedApplications = ({
   depth?: TargetDepth;
 }): RelatedApplication[] => {
   if (!link) return applications;
+  if (link.kind !== 'target' && !applications.some(application => application.id === link.id)) return applications;
   const catalog = catalogFor(applications, domains, capabilities, depth);
   const mappedIds = mappedItems.map(item => item.id);
 
