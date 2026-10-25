@@ -1,13 +1,22 @@
 import type { CatalogModel } from '../application/catalogUseCases.ts';
 
-export type AiHistoryEntry = { role: string; content: string; [key: string]: unknown };
-export type AiQuestion = {
+export interface AiHistoryEntry {
+  role: string;
+  content: string;
+  [key: string]: unknown;
+}
+
+export interface AiQuestion {
   question: string;
   cartography: CatalogModel;
   history?: AiHistoryEntry[];
   onChunk?: (chunk: string) => void;
-};
-export type AiCompanionPort = { ask: (input: AiQuestion) => unknown | Promise<unknown> };
+}
+
+export interface AiCompanionPort {
+  ask(input: AiQuestion): unknown | Promise<unknown>;
+}
+
 export type AiCompanionSender = (input: AiQuestion) => unknown | Promise<unknown>;
 
 /** Outbound port for the AI companion. */
