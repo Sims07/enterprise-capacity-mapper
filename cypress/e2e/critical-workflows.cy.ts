@@ -111,6 +111,10 @@ describe('Critical user workflows — regression coverage', () => {
 
   it('refuse les imports JSON invalides sans modifier la cartographie active', () => {
     visitFresh();
+    cy.contains('.cap', 'Gestion des Prospects & Leads').should('be.visible');
+    cy.window().should(win => {
+      expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3'), 'modèle initial persisté').to.be.a('string');
+    });
     cy.window().then(win => {
       cy.wrap(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).as('modelBeforeImport');
     });
@@ -242,8 +246,9 @@ describe('Critical user workflows — regression coverage', () => {
     cy.visit('/');
     cy.get('body').should('have.css', 'overflow', 'hidden');
     cy.get('.app').should('have.css', 'height', '800px');
-    cy.get('.map-scroll').should('be.visible').then($scroll => {
+    cy.get('main').should('be.visible').then($scroll => {
       const initialTop = $scroll[0].scrollTop;
+      expect($scroll[0].scrollHeight, 'contenu de la cartographie défilable').to.be.greaterThan($scroll[0].clientHeight);
       cy.wrap($scroll).scrollTo('bottom');
       cy.wrap($scroll).should($el => expect($el[0].scrollTop).to.be.greaterThan(initialTop));
     });
