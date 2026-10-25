@@ -32,13 +32,12 @@ test('domain stays independent from application, UI, adapters and browser infras
 
   for (const file of files) {
     const source = await readFile(file, 'utf8');
-    if (/\\b(?:window|document|localStorage|sessionStorage)\\b/.test(source)) {
+    if (/\b(?:window|document|localStorage|sessionStorage)\b/.test(source)) {
       violations.push(`${path.relative(repositoryRoot, file)} -> direct browser global access`);
     }
     for (const specifier of importedSpecifiers(source)) {
       if (/^(?:\.\.\/)*(?:application|adapters|components|services\/ai)(?:\/|$)/.test(specifier)
         || /^(?:react|react-dom)(?:\/|$)/.test(specifier)
-        || /\b(?:window|document|localStorage|sessionStorage)\b/.test(specifier)) {
         violations.push(`${path.relative(repositoryRoot, file)} -> ${specifier}`);
       }
     }
