@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { DEMO_MODEL } from './data/demoData.js';
-import { createFrontendApplication } from './adapters/react/architecture.js';
+import { DEMO_MODEL } from './data/demoData.ts';
+import { createFrontendApplication } from './adapters/react/architecture.ts';
 import {
   addLayoutDraftItem,
   isDomainPlacementAvailable,
@@ -9,13 +9,13 @@ import {
   removeLayoutDraftItem,
   renameLayoutDraftItem,
   renameLayoutZone,
-} from './application/layoutUseCases.js';
+} from './application/layoutUseCases.ts';
 import {
   assignApplicationToCapability,
   linkPickedApplications,
   prepareLinkedApplications,
   unassignApplicationFromCapability,
-} from './application/relationshipUseCases.js';
+} from './application/relationshipUseCases.ts';
 import {
   createApplication,
   createCapability,
@@ -23,8 +23,8 @@ import {
   removeDomainAndDependents,
   updateCapability,
   updateDomain,
-} from './application/catalogUseCases.js';
-import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.js';
+} from './application/catalogUseCases.ts';
+import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.ts';
 import NewMapWizard from './components/NewMapWizard.tsx';
 import TogafGuide from './components/TogafGuide.tsx';
 import CoverageTree from './components/CoverageTree.tsx';
