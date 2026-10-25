@@ -49,11 +49,12 @@ export const createCapability = ({ capabilities, form, id, domains = [] }: {
 export const updateCapability = ({ capabilities, capabilityId, form, domains = [] }: {
   capabilities: Capability[]; capabilityId: string; form: CapabilityForm; domains?: Domain[];
 }): Capability[] => {
-  if (!capabilities.some(capability => capability.id === capabilityId)) return capabilities;
+  const current = capabilities.find(capability => capability.id === capabilityId);
+  if (!current) return capabilities;
   return catalogWith({ domains, capabilities, applications: [] }).updateCapability(capabilityId, {
     domainId: form.domainId,
     name: form.name,
-    code: form.code,
+    code: form.code?.trim() || current.code,
     description: form.description,
     priority: form.priority || 'unqualified',
   }).toModel().capabilities;
