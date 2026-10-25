@@ -1,9 +1,11 @@
 describe('Raffinements Outils et Nouvelle cartographie', () => {
   beforeEach(() => {
     cy.on('uncaught:exception', err => { throw err; });
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   });
 
   it('ferme Outils lorsqu’on clique ailleurs et avec Echap', () => {
