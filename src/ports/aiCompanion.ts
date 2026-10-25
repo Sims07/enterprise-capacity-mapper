@@ -1,4 +1,4 @@
-import type { CatalogModel } from '../application/catalogUseCases.ts';
+import type { CatalogModel } from '../domain/catalogModel.ts';
 
 export type AiHistoryEntry = { role: string; content: string; [key: string]: unknown };
 export type AiQuestion = {
