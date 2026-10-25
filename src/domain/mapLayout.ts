@@ -17,12 +17,15 @@ const completeZones = (columns: LayoutAxis[], layers: LayoutAxis[], currentZones
     { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }
   ));
 
-const cloneDraft = (draft: LayoutDraft): LayoutDraft => ({
-  ...draft,
-  columns: draft.columns.map(item => ({ ...item })),
-  layers: draft.layers.map(item => ({ ...item })),
-  zones: draft.zones.map(item => ({ ...item })),
-});
+const cloneValue = <T>(value: T): T => {
+  if (Array.isArray(value)) return value.map(item => cloneValue(item)) as T;
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneValue(item)])) as T;
+  }
+  return value;
+};
+
+const cloneDraft = (draft: LayoutDraft): LayoutDraft => cloneValue(draft);
 
 /** Immutable domain object: every transition returns a new layout value. */
 export class MapLayout {
