@@ -114,3 +114,5 @@ describe('Contrastes du thème sombre', () => {
     cy.get('.modal').should('not.exist');
   });
 });
+
+export {};

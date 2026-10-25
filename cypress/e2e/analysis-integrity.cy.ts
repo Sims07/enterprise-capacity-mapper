@@ -61,3 +61,5 @@ describe('Lot 2 — cohérence des indicateurs d’analyse', () => {
       .should('have.attr', 'aria-pressed', 'false');
   });
 });
+
+export {};

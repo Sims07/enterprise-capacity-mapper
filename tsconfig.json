@@ -10,7 +10,8 @@
     "jsx": "react-jsx",
     "types": [
       "vite/client",
-      "node"
+      "node",
+      "cypress"
     ],
     "strict": true,
     "noImplicitAny": false,
@@ -19,7 +20,11 @@
     "useUnknownInCatchVariables": false
   },
   "include": [
-    "src"
+    "src",
+    "cypress",
+    "cypress.config.ts",
+    "vite.config.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "src/**/*.test.ts"

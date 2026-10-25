@@ -9,10 +9,12 @@ describe('Instrumentation Istanbul pour Cypress', () => {
       expect(sourceFiles, 'fichiers src instrumentés').to.have.length.greaterThan(0);
 
       const executedFiles = sourceFiles.filter((file) => {
-        const counters = win.__coverage__[file]?.s ?? {};
+        const counters = (win.__coverage__[file] as { s?: Record<string, number> } | undefined)?.s ?? {};
         return Object.values(counters).some((count) => count > 0);
       });
       expect(executedFiles, 'fichiers src réellement exécutés').to.have.length.greaterThan(0);
     });
   });
 });
+
+export {};

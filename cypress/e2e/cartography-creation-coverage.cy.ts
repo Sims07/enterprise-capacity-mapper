@@ -118,3 +118,5 @@ describe('Lot 6 — création et arbre de cartographie', () => {
     cy.get('.tree-toggle').first().should('have.focus');
   });
 });
+
+export {};

@@ -65,3 +65,5 @@ describe('Smoke tests — application et navigation', () => {
     cy.window().its('navigator.serviceWorker').should('exist');
   });
 });
+
+export {};

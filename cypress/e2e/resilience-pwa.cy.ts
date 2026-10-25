@@ -4,7 +4,7 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
   const RECENT_MAPS_KEY = 'enterprise-capacity-mapper:recent-maps:v1';
   const ACTIVE_RECENT_MAP_KEY = 'enterprise-capacity-mapper:active-recent-map';
 
-  const visit = (onBeforeLoad: (win: Window) => void): Cypress.Chainable<Window> =>
+  const visit = (onBeforeLoad: (win: Cypress.AUTWindow) => void) =>
     cy.visit('/', { onBeforeLoad });
 
   it('reste navigable si le modèle local est corrompu', () => {
@@ -51,3 +51,5 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
     });
   });
 });
+
+export {};

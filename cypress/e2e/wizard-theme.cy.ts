@@ -51,3 +51,5 @@ describe('Nouvelle cartographie — thème', () => {
     });
   });
 });
+
+export {};

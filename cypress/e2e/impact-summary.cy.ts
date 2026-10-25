@@ -63,3 +63,5 @@ describe('Lot 3 — synthèse de l’analyse d’impact', () => {
       .should('have.attr', 'aria-pressed', 'false');
   });
 });
+
+export {};

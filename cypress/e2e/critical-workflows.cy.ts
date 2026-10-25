@@ -1,13 +1,13 @@
 // Focused end-to-end regression tests for critical browser workflows.
 // Business rules belong to unit/integration tests; Cypress verifies the real UI,
 // persistence boundary and PWA/browser integration.
-const visitFresh = (path = '/'): Cypress.Chainable<Window> => cy.visit(path, {
+const visitFresh = (path = '/') => cy.visit(path, {
   onBeforeLoad(win) {
     win.localStorage.clear();
   },
 });
 
-const openToolsMenu = (): Cypress.Chainable<unknown> => cy.get('[data-testid="tools-menu"]').then($menu => {
+const openToolsMenu = () => cy.get('[data-testid="tools-menu"]').then($menu => {
   if (!$menu.hasClass('is-open')) return cy.get('[data-testid="tools-menu-toggle"]').click();
   return undefined;
 });
@@ -203,11 +203,11 @@ describe('Critical user workflows — regression coverage', () => {
 
   it('enregistre le service worker PWA', () => {
     cy.visit('/enterprise-capacity-mapper/');
-    cy.window().then(win => new Cypress.Promise<Cypress.ServiceWorkerRegistration[]>((resolve, reject) => {
+    cy.window().then(win => new Cypress.Promise<boolean>((resolve, reject) => {
       const deadline = Date.now() + 5000;
       const poll = (): void => {
         win.navigator.serviceWorker.getRegistrations().then(registrations => {
-          if (registrations.length) resolve(registrations);
+          if (registrations.length) resolve(true);
           else if (Date.now() < deadline) setTimeout(poll, 100);
           else reject(new Error('Aucun service worker PWA enregistré après 5 secondes'));
         });
@@ -255,3 +255,5 @@ describe('Critical user workflows — regression coverage', () => {
     cy.window().its('scrollY').should('eq', 0);
   });
 });
+
+export {};

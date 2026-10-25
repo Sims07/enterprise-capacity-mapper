@@ -95,3 +95,5 @@ describe('Raffinements Outils et Nouvelle cartographie', () => {
       .should('have.css', 'color', 'rgb(243, 244, 246)');
   });
 });
+
+export {};

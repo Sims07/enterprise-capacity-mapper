@@ -36,16 +36,16 @@ jobs:
           export VERSION
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const path = 'public/sw.js';
+          const path = 'src/sw.ts';
           const source = fs.readFileSync(path, 'utf8');
           const cacheVersion = `ecm-v${process.env.VERSION}`;
-          const updated = source.replace(/^const CACHE='[^']+';/m, `const CACHE='${cacheVersion}';`);
+          const updated = source.replace(/^const CACHE = '[^']+';/m, `const CACHE = '${cacheVersion}';`);
           if (updated === source && !source.includes(`const CACHE='${cacheVersion}';`)) {
             throw new Error('Could not update the PWA service worker cache version');
           }
           fs.writeFileSync(path, updated);
           NODE
-          git add package.json package-lock.json public/sw.js
+          git add package.json package-lock.json src/sw.ts
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
       - name: Install project dependencies
@@ -167,7 +167,7 @@ jobs:
         run: npx --yes nyc report --reporter=text-summary --reporter=html --reporter=lcov --reporter=json --reporter=json-summary
       - name: Consolidate unit and Cypress line coverage
         if: success()
-        run: node scripts/merge-line-coverage.mjs
+        run: node scripts/merge-line-coverage.ts
       - name: Compare Cypress baseline and consolidated coverage
         if: success()
         run: |
@@ -213,7 +213,7 @@ jobs:
         if: success()
         with:
           path: ./dist
-      - name: Publish Cypress line coverage badge
+      - name: Publish combined line coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -240,7 +240,7 @@ jobs:
           git rm -rf .
           cp /tmp/coverage.json coverage.json
           git add coverage.json
-          git commit -m "chore: update Cypress line coverage badge"
+          git commit -m "chore: update combined line coverage badge"
           git push --force origin coverage-badge
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

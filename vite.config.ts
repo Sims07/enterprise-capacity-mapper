@@ -1,13 +1,15 @@
-import { defineConfig } from 'vite';
+import { resolve } from 'node:path';
+import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(async () => {
   const coverageMode = process.env.COVERAGE === 'true';
-  const plugins = [react()];
+  const plugins: PluginOption[] = [react()];
 
   // Instrumentation explicite après la transformation React, uniquement dans le build de test.
   if (coverageMode) {
-    const { createInstrumenter } = await import('istanbul-lib-instrument');
+    const instrumentationModule = 'istanbul-lib-instrument';
+    const { createInstrumenter } = await import(instrumentationModule);
     const instrumenter = createInstrumenter({
       coverageVariable: '__coverage__',
       compact: false,
@@ -21,7 +23,7 @@ export default defineConfig(async () => {
       apply: 'build',
       transform(code, id) {
         const filename = id.split('?')[0];
-        if (!filename.includes('/src/') || !/\.(?:js|jsx|ts|tsx)$/.test(filename)) {
+        if (filename.endsWith('/src/sw.ts') || !filename.includes('/src/') || !/\.(?:js|jsx|ts|tsx)$/.test(filename)) {
           return null;
         }
 
@@ -41,7 +43,19 @@ export default defineConfig(async () => {
   return {
     plugins,
     base: coverageMode ? '/enterprise-capacity-mapper/' : './',
-    build: { target: 'es2020', sourcemap: coverageMode },
+    build: {
+      target: 'es2020',
+      sourcemap: coverageMode,
+      rollupOptions: {
+        input: {
+          app: resolve(process.cwd(), 'index.html'),
+          sw: resolve(process.cwd(), 'src/sw.ts'),
+        },
+        output: {
+          entryFileNames: chunk => chunk.name === 'sw' ? 'sw.js' : 'assets/[name]-[hash].js',
+        },
+      },
+    },
     server: {
       host: '0.0.0.0',
       port: 5173,
