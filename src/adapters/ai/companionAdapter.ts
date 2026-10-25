@@ -11,11 +11,11 @@ export const createCompanionAiAdapter = ({
   endpoint,
   apiKey,
   send = sendCompanionRequest,
-}: CompanionAiSettings & { send?: CompanionSender } = {}): AiCompanionPort => {
+}: CompanionAiSettings & { send?: CompanionSender } = {}) => {
   const adapter = {
-  ask: ({ question, cartography, history = [], onChunk }: AiQuestion) => send({
-    provider, model, endpoint, apiKey, question, cartography, history, onChunk,
-  }),
+    ask: ({ question, cartography, history = [], onChunk }: AiQuestion) => send({
+      provider, model, endpoint, apiKey, question, cartography, history, onChunk,
+    }),
   } satisfies AiCompanionPort;
   return Object.freeze(adapter);
 };
