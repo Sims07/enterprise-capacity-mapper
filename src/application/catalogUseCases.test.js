@@ -123,7 +123,7 @@ test('removes a domain, its capabilities and the correct dependent application l
     domains: [{ id: 'domain-2' }],
     capabilities: [{ id: 'cap-2', domainId: 'domain-2' }],
     applications: [
-      { id: 'app-1', capabilityIds: ['cap-2', 'domain-1', 'external'] },
+      { id: 'app-1', capabilityIds: ['cap-2', 'external'] },
       { id: 'app-2', capabilityIds: [] },
     ],
   });
