@@ -181,6 +181,6 @@ test('catalog use cases delegate matrix placement invariants to the domain', () 
   }), /chevauche/);
   assert.throws(() => updateDomain({
     domains, domainId: 'domain-1', form: { ...form, columnId: 'c2', layerId: 'l1' },
-    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, mapLayout,
+    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, layout: mapLayout,
   }), /chevauche/);
 });
