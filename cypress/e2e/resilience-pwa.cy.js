@@ -1,10 +1,14 @@
-describe('Smoke tests — démarrage résilient', () => {
+describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
+  const MODEL_KEY = 'enterprise-capacity-mapper:model:v3';
+  const LOCAL_MAPS_KEY = 'enterprise-capacity-mapper:local-maps:v1';
+  const RECENT_MAPS_KEY = 'enterprise-capacity-mapper:recent-maps:v1';
+  const ACTIVE_RECENT_MAP_KEY = 'enterprise-capacity-mapper:active-recent-map';
+
+  const visit = onBeforeLoad => cy.visit('/', { onBeforeLoad });
+  const openTools = () => cy.get('[data-testid="tools-menu-toggle"]').click();
+
   it('reste navigable si le modèle local est corrompu', () => {
-    cy.visit('/', {
-      onBeforeLoad(win) {
-        win.localStorage.setItem('enterprise-capacity-mapper:model:v3', '{invalid json');
-      },
-    });
+    visit(win => win.localStorage.setItem(MODEL_KEY, '{invalid json'));
 
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
@@ -13,12 +17,10 @@ describe('Smoke tests — démarrage résilient', () => {
   });
 
   it('reste navigable si les bibliothèques locales ont une structure invalide', () => {
-    cy.visit('/', {
-      onBeforeLoad(win) {
-        win.localStorage.setItem('enterprise-capacity-mapper:local-maps:v1', JSON.stringify({ invalid: true }));
-        win.localStorage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify({ invalid: true }));
-        win.localStorage.setItem('enterprise-capacity-mapper:active-recent-map', '__dismissed__');
-      },
+    visit(win => {
+      win.localStorage.setItem(LOCAL_MAPS_KEY, JSON.stringify({ invalid: true }));
+      win.localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify({ invalid: true }));
+      win.localStorage.setItem(ACTIVE_RECENT_MAP_KEY, '__dismissed__');
     });
 
     cy.contains('Capacity Mapper').should('be.visible');
@@ -26,11 +28,11 @@ describe('Smoke tests — démarrage résilient', () => {
     cy.get('[data-testid="library-page"]').should('be.visible');
     cy.get('[data-testid="saved-maps-count"]').should('contain.text', '0');
     cy.get('[data-testid="recent-maps-count"]').should('contain.text', '0');
+    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
   });
 
   it('migre un modèle legacy vers le schéma actuel', () => {
-    const visit = onBeforeLoad => cy.visit('/', { onBeforeLoad });
-        visit(win => {
+    visit(win => {
       win.localStorage.removeItem(MODEL_KEY);
       win.localStorage.setItem('ea_canvas_l0', JSON.stringify([
         { id: 'legacy-domain', name: 'Domaine historique', code: 'LEG-0', description: 'Domaine migré', color: 'indigo' }
@@ -54,23 +56,6 @@ describe('Smoke tests — démarrage résilient', () => {
       expect(migrated.capabilities[0].domainId).to.equal('legacy-domain');
       expect(migrated.applications[0].capabilityIds).to.deep.equal(['legacy-cap']);
     });
-  });
-  });
-
-  it('signale les bibliothèques locales invalides sans bloquer la navigation', () => {
-    visit(win => {
-      win.localStorage.setItem(LOCAL_MAPS_KEY, JSON.stringify({ invalid: true }));
-      win.localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify({ invalid: true }));
-      // Empêche l'effet de synchronisation du récent actif de lire la collection
-      // corrompue avant que openLibrary puisse exercer son propre chemin de récupération.
-      win.localStorage.setItem(ACTIVE_RECENT_MAP_KEY, '__dismissed__');
-    });
-
-    cy.get('[data-testid="primary-library"]').click();
-    cy.get('[data-testid="library-page"]').should('be.visible');
-    cy.get('[data-testid="saved-maps-count"]').should('contain.text', '0');
-    cy.get('[data-testid="recent-maps-count"]').should('contain.text', '0');
-    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
   });
 
   it('affiche une indisponibilité lorsque le service worker ne peut pas être enregistré', () => {
@@ -117,13 +102,8 @@ describe('Smoke tests — démarrage résilient', () => {
     });
 
     openTools();
-    cy.get('[data-testid="pwa-update-button"]')
-      .should('be.visible')
-      .click();
+    cy.get('[data-testid="pwa-update-button"]').should('be.visible').click();
     cy.get('@postMessage').should('have.been.calledWith', { type: 'SKIP_WAITING' });
-    cy.get('.pwa-update-message')
-      .should('contain.text', 'Installation de la mise à jour');
+    cy.get('.pwa-update-message').should('contain.text', 'Installation de la mise à jour');
   });
-});
-
 });
