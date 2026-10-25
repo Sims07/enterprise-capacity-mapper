@@ -8,7 +8,8 @@ export default defineConfig(async () => {
 
   // Instrumentation explicite après la transformation React, uniquement dans le build de test.
   if (coverageMode) {
-    const { createInstrumenter } = await import('istanbul-lib-instrument');
+    const instrumentationModule = 'istanbul-lib-instrument';
+    const { createInstrumenter } = await import(instrumentationModule);
     const instrumenter = createInstrumenter({
       coverageVariable: '__coverage__',
       compact: false,
