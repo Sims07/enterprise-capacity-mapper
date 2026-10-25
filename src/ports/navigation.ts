@@ -26,7 +26,7 @@ export const createNavigationPort = ({
   eventTarget?: EventTargetLike;
   onModeChange?: (mode: NavigationMode) => void;
 } = {}): NavigationPort => {
-  if (!history || !location || !eventTarget) throw new Error('Navigation port requires browser history, location and event target');
+  if (!history || !location) throw new Error('Navigation port requires browser history and location');
   const validateMode = (mode: NavigationMode): void => {
     if (!NAVIGATION_MODES.includes(mode)) throw new Error(`Mode de navigation inconnu : ${mode}`);
   };
@@ -49,6 +49,10 @@ export const createNavigationPort = ({
     exploreDashboardTarget: () => pushMode('relations', { dashboardReturn: true }),
     replaceMode,
     back: () => history.back(),
-    subscribePopState: handler => { eventTarget.addEventListener('popstate', handler); return () => eventTarget.removeEventListener('popstate', handler); },
+    subscribePopState: handler => {
+      if (!eventTarget) throw new Error('Navigation port requires an event target to subscribe to popstate');
+      eventTarget.addEventListener('popstate', handler);
+      return () => eventTarget.removeEventListener('popstate', handler);
+    },
   });
 };
