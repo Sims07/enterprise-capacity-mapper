@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { analyzeCartography } from '../services/ai/cartographyAnalysis.js';
-import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences } from '../services/ai/companionProviders.js';
-import { createCompanionAiAdapter } from '../adapters/ai/companionAdapter.js';
+import { analyzeCartography } from '../services/ai/cartographyAnalysis.ts';
+import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences } from '../services/ai/companionProviders.ts';
+import { createCompanionAiAdapter } from '../adapters/ai/companionAdapter.ts';
 
 const PROMPTS = [
   { id: 'overview', label: 'Évaluer la cartographie', description: 'Obtenir une vue d’ensemble des points à examiner.', icon: '✦' },
@@ -139,7 +139,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     const domains = Array.isArray(model?.domains) ? model.domains : [];
     const depth = model?.layout?.depth === 1 ? 1 : 2;
     const targets = depth === 1 ? domains : capabilities;
-    const targetById = new Map(targets.map(item => [item.id, item]));
+    const targetById = new Map<string, (typeof targets)[number]>(targets.map(item => [item.id, item]));
     const matchedApplications = applications.filter(app => {
       const name = normalizeText(app?.name);
       return name.length > 0 && normalizedQuestion.includes(name);
@@ -148,8 +148,8 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     if (matchedApplications.length > 0) {
       const observations = [];
       matchedApplications.forEach(app => {
-        const ids = Array.isArray(app.capabilityIds) ? app.capabilityIds : [];
-        const linkedTargets = [...new Set(ids)].map(id => targetById.get(id)).filter(Boolean);
+        const ids: string[] = Array.isArray(app.capabilityIds) ? app.capabilityIds.filter((id): id is string => typeof id === 'string') : [];
+        const linkedTargets = [...new Set(ids)].map(id => targetById.get(id)).filter((target): target is (typeof targets)[number] => Boolean(target));
         const missingTargets = [...new Set(ids)].filter(id => !targetById.has(id));
         linkedTargets.forEach(target => {
           const domain = depth === 2 ? domains.find(item => item.id === target.domainId) : null;
@@ -289,10 +289,6 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       try {
         const aiCompanion = aiCompanionFactory(providerSettings);
         const answer = await aiCompanion.ask({
-          provider: providerSettings.provider,
-          model: providerSettings.model,
-          endpoint: providerSettings.endpoint,
-          apiKey,
           question,
           cartography: model,
           history,

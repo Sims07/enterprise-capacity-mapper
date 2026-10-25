@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAiCompanionPort } from './aiCompanion.js';
+import { createAiCompanionPort } from './aiCompanion.ts';
 
 test('AI companion port delegates the use case without knowing the provider', async () => {
   const received = [];

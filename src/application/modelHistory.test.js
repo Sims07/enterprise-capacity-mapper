@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createModelHistory } from './modelHistory.js';
+import { createModelHistory } from './modelHistory.ts';
 
 test('model history commits, undoes and redoes without React or browser APIs', () => {
   const initial = { value: 1 };

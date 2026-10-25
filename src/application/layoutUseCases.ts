@@ -2,13 +2,33 @@
  * Pure application rules for editing the capability-map layout.
  * React owns draft state and user feedback; this module owns transformations.
  */
-export const completeLayoutZones = (columns, layers, currentZones) =>
+
+export type LayoutAxis = { id: string; name: string; order?: number; [key: string]: unknown };
+export type LayoutZone = { id: string; columnId: string; layerId: string; name: string; [key: string]: unknown };
+export type LayoutDraft = { columns: LayoutAxis[]; layers: LayoutAxis[]; zones: LayoutZone[]; [key: string]: unknown };
+export type Layout = { mode?: string; columns?: LayoutAxis[]; layers?: LayoutAxis[]; zones?: LayoutZone[]; [key: string]: unknown };
+export type Domain = {
+  id: string;
+  layout?: { columnId?: string; layerId?: string; columnSpan?: string | number; [key: string]: unknown };
+  [key: string]: unknown;
+};
+
+export const completeLayoutZones = (
+  columns: LayoutAxis[],
+  layers: LayoutAxis[],
+  currentZones: LayoutZone[],
+): LayoutZone[] =>
   columns.flatMap(column => layers.map(layer =>
     currentZones.find(zone => zone.columnId === column.id && zone.layerId === layer.id) ||
     { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }
   ));
 
-export const renameLayoutDraftItem = (draft, kind, id, name) => {
+export const renameLayoutDraftItem = (
+  draft: LayoutDraft,
+  kind: 'columns' | 'layers',
+  id: string,
+  name: string,
+): LayoutDraft => {
   const previous = draft[kind].find(item => item.id === id);
   const items = draft[kind].map(item => item.id === id ? { ...item, name } : item);
   const columns = kind === 'columns' ? items : draft.columns;
@@ -19,15 +39,15 @@ export const renameLayoutDraftItem = (draft, kind, id, name) => {
   return { ...draft, [kind]: items, zones: completeLayoutZones(columns, layers, zones) };
 };
 
-export const renameLayoutZone = (draft, columnId, layerId, name) => ({
+export const renameLayoutZone = (draft: LayoutDraft, columnId: string, layerId: string, name: string): LayoutDraft => ({
   ...draft,
   zones: draft.zones.map(zone =>
     zone.columnId === columnId && zone.layerId === layerId ? { ...zone, name } : zone
   ),
 });
 
-export const addLayoutDraftItem = (draft, kind, id) => {
-  const item = {
+export const addLayoutDraftItem = (draft: LayoutDraft, kind: 'columns' | 'layers', id: string): LayoutDraft => {
+  const item: LayoutAxis = {
     id,
     name: kind === 'columns' ? 'Nouvelle colonne' : 'Nouveau layer',
     order: draft[kind].length,
@@ -38,7 +58,7 @@ export const addLayoutDraftItem = (draft, kind, id) => {
   return { ...draft, [kind]: items, zones: completeLayoutZones(columns, layers, draft.zones) };
 };
 
-export const removeLayoutDraftItem = (draft, kind, id) => {
+export const removeLayoutDraftItem = (draft: LayoutDraft, kind: 'columns' | 'layers', id: string): LayoutDraft => {
   if (draft[kind].length <= 1) return draft;
   const items = draft[kind].filter(item => item.id !== id).map((item, index) => ({ ...item, order: index }));
   const columns = kind === 'columns' ? items : draft.columns;
@@ -46,7 +66,11 @@ export const removeLayoutDraftItem = (draft, kind, id) => {
   return { ...draft, [kind]: items, zones: completeLayoutZones(columns, layers, draft.zones) };
 };
 
-export const prepareLayoutForSave = (layoutDraft, layout, domains) => {
+export const prepareLayoutForSave = (
+  layoutDraft: LayoutDraft,
+  layout: Layout,
+  domains: Domain[],
+): { layout: Layout; domains: Domain[] } | null => {
   if (
     !layoutDraft.columns.length ||
     !layoutDraft.layers.length ||
@@ -74,14 +98,24 @@ export const prepareLayoutForSave = (layoutDraft, layout, domains) => {
       ...domain,
       layout: {
         ...(domain.layout || {}),
-        columnId: columnIds.has(domain.layout?.columnId) ? domain.layout.columnId : columns[index % columns.length].id,
-        layerId: layerIds.has(domain.layout?.layerId) ? domain.layout.layerId : layers[0].id,
+        columnId: columnIds.has(domain.layout?.columnId as string) ? domain.layout?.columnId : columns[index % columns.length].id,
+        layerId: layerIds.has(domain.layout?.layerId as string) ? domain.layout?.layerId : layers[0].id,
       },
     })),
   };
 };
 
-export const isDomainPlacementAvailable = ({ domains, columns, layers, domainId, columnId, layerId, columnSpan }) => {
+export const isDomainPlacementAvailable = ({
+  domains, columns, layers, domainId, columnId, layerId, columnSpan,
+}: {
+  domains: Domain[];
+  columns: LayoutAxis[];
+  layers: LayoutAxis[];
+  domainId?: string;
+  columnId: string;
+  layerId: string;
+  columnSpan: string | number;
+}): boolean => {
   const start = columns.findIndex(column => column.id === columnId);
   const span = Number(columnSpan) || 1;
   if (start < 0 || span < 1 || start + span > columns.length) return false;
@@ -101,19 +135,21 @@ export const isDomainPlacementAvailable = ({ domains, columns, layers, domainId,
  * Returns null when the move would overlap another domain.
  */
 export const prepareDomainPlacement = ({
-  domains,
-  layout,
-  layoutMode,
-  columns,
-  layers,
-  domainId,
-  columnId,
-  layerId,
-}) => {
+  domains, layout, layoutMode, columns, layers, domainId, columnId, layerId,
+}: {
+  domains: Domain[];
+  layout: Layout;
+  layoutMode: string;
+  columns: LayoutAxis[];
+  layers: LayoutAxis[];
+  domainId?: string;
+  columnId?: string;
+  layerId?: string;
+}): { layout: Layout; domains: Domain[] } | null => {
   if (!domainId) return null;
   const moving = domains.find(domain => domain.id === domainId);
-  const targetColumn = columnId || moving?.layout?.columnId || columns[0].id;
-  const targetLayer = layerId || moving?.layout?.layerId || layers[0].id;
+  const targetColumn = columnId || moving?.layout?.columnId as string || columns[0].id;
+  const targetLayer = layerId || moving?.layout?.layerId as string || layers[0].id;
 
   if (moving && !isDomainPlacementAvailable({
     domains,
@@ -139,4 +175,3 @@ export const prepareDomainPlacement = ({
       : domain),
   };
 };
-

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createFrontendApplication } from './architecture.js';
+import { createFrontendApplication } from './architecture.ts';
 
 const model = {
   metadata: { name: 'Injected map' },

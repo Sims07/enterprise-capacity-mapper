@@ -9,10 +9,12 @@ import {
   saveLocalMap,
   saveModel,
   updateRecentMap,
-} from '../../services/storage.js';
+} from '../../services/storage.ts';
+import type { CatalogModel } from '../../application/catalogUseCases.ts';
+import type { ModelRepository } from '../../ports/modelRepository.ts';
 
 /** Browser adapter for the model repository port. */
-export const createLocalStorageModelRepository = () => ({
+export const createLocalStorageModelRepository = (): ModelRepository => ({
   load: loadModel,
   save: saveModel,
   loadLocalMaps,
@@ -24,3 +26,5 @@ export const createLocalStorageModelRepository = () => ({
   importModel,
   exportModel,
 });
+
+export type LocalStorageRepositoryModel = CatalogModel;

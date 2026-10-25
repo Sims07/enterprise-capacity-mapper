@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAppPreferences } from './appPreferences.js';
+import { createAppPreferences } from './appPreferences.ts';
 
 const createStorage = (initial = {}) => {
   const values = new Map(Object.entries(initial));

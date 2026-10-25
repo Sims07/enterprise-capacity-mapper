@@ -7,7 +7,7 @@ import {
   removeDomainAndDependents,
   updateCapability,
   updateDomain,
-} from './catalogUseCases.js';
+} from './catalogUseCases.ts';
 
 const resolveColor = color => color.toUpperCase();
 const form = {
