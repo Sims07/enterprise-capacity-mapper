@@ -74,7 +74,7 @@ test('concrete adapter and legacy service imports are centralized at the outer b
 
   for (const file of files) {
     const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
-    if (relative.startsWith('adapters/') || relative.endsWith('.test.js') || relative === 'App.tsx' || relative.startsWith('main.')) continue;
+    if (relative.startsWith('adapters/') || relative.endsWith('.test.ts') || relative === 'App.tsx' || relative.startsWith('main.')) continue;
     const source = await readFile(file, 'utf8');
     for (const specifier of importedSpecifiers(source)) {
       if (/^(?:\.\.\/)*(?:adapters|services\/ai)(?:\/|$)/.test(specifier)) {
