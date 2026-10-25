@@ -72,7 +72,6 @@ test('concrete adapter and legacy service imports are centralized at the outer b
 
   for (const file of files) {
     const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
-    // Legacy AI preference facade still delegates to the provider client; this separate migration is documented and intentionally outside this boundary rule.
     if (relative.startsWith('adapters/') || relative.endsWith('.test.js') || relative === 'App.tsx' || relative.startsWith('main.')) continue;
     const source = await readFile(file, 'utf8');
     for (const specifier of importedSpecifiers(source)) {
