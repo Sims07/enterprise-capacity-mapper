@@ -77,11 +77,12 @@ export class Catalog {
   }
 
   createEmptyMap(name: string, description: string | undefined, layout: unknown): Catalog {
+    const normalizedMapName = Catalog.requireName(name, 'Le nom de la cartographie est obligatoire.');
     const metadata = this.model.metadata && typeof this.model.metadata === 'object' && !Array.isArray(this.model.metadata)
       ? this.model.metadata as Record<string, unknown>
       : {};
     return this.with({
-      metadata: { ...metadata, name, description },
+      metadata: { ...metadata, name: normalizedMapName, description },
       layout,
       domains: [],
       capabilities: [],
