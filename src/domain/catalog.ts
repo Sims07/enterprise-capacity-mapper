@@ -35,7 +35,7 @@ export class Catalog {
     return this.with({ domains: [...this.model.domains, { ...domain, name }] });
   }
 
-  updateDomain(domainId: string, changes: Partial<Omit<Domain, 'id'>>): Catalog {
+  updateDomain(domainId: string, changes: Partial<Pick<Domain, 'code' | 'name' | 'description' | 'color' | 'layout'>>): Catalog {
     const current = this.requireDomain(domainId);
     const name = changes.name === undefined ? current.name : Catalog.requireName(changes.name, 'Le nom du domaine est obligatoire.');
     return this.with({
@@ -56,7 +56,7 @@ export class Catalog {
     return this.with({ capabilities: [...this.model.capabilities, { ...capability, name }] });
   }
 
-  updateCapability(capabilityId: string, changes: Partial<Omit<Capability, 'id'>>): Catalog {
+  updateCapability(capabilityId: string, changes: Partial<Pick<Capability, 'domainId' | 'code' | 'name' | 'description' | 'priority'>>): Catalog {
     const current = this.requireCapability(capabilityId);
     const domainId = changes.domainId || current.domainId;
     this.requireDomain(domainId);
@@ -111,7 +111,7 @@ export class Catalog {
     });
   }
 
-  updateApplication(applicationId: string, changes: Partial<Omit<Application, 'id'>>): Catalog {
+  updateApplication(applicationId: string, changes: Partial<Pick<Application, 'name' | 'code' | 'type' | 'status' | 'vendor' | 'capabilityIds' | 'description'>>): Catalog {
     const current = this.requireApplication(applicationId);
     const name = changes.name === undefined
       ? current.name
