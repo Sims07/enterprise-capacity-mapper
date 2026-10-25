@@ -39,7 +39,6 @@ test('frontend factory composes application services from injected dependencies'
   assert.equal(application.navigation, navigation);
   assert.equal(application.preferences, preferences);
   assert.equal(application.companionPreferences, companionPreferences);
-  assert.equal(application.companionPreferences, companionPreferences);
   assert.equal(application.viewport, viewport);
   assert.equal(application.browserInteractions, browserInteractions);
   assert.equal(application.map.snapshot().current, model);
