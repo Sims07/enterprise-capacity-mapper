@@ -64,6 +64,7 @@ jobs:
           exit "$RESULT"
       - name: Run deterministic unit tests
         run: |
+          set +e
           START=$(date +%s)
           npm run test:unit
           RESULT=$?
@@ -72,6 +73,7 @@ jobs:
           exit "$RESULT"
       - name: Install coverage tooling
         run: |
+          set +e
           START=$(date +%s)
           npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
           RESULT=$?
@@ -82,6 +84,7 @@ jobs:
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       - name: Build instrumented application for coverage
         run: |
+          set +e
           START=$(date +%s)
           npm run build -- --outDir dist-coverage
           RESULT=$?
@@ -109,6 +112,7 @@ jobs:
           exit 1
       - name: Run Cypress once and collect coverage
         run: |
+          set +e
           START=$(date +%s)
           npx cypress run --config defaultCommandTimeout=10000
           RESULT=$?
@@ -189,6 +193,7 @@ jobs:
       - name: Build production application
         if: success()
         run: |
+          set +e
           START=$(date +%s)
           npm run build
           RESULT=$?
