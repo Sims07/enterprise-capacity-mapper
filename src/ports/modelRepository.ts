@@ -18,6 +18,7 @@ export interface ModelRepository {
   loadLocalMaps(): LocalMapEntry[];
   saveLocalMap(input: { id?: string; name: string; model: CatalogModel }): LocalMapEntry;
   loadRecentMaps(): LocalMapEntry[];
+  consumeStorageRecoveryWarnings?(): string[];
   recordRecentMap(input: { id: string; name: string; model: CatalogModel }): LocalMapEntry;
   updateRecentMap(input: { id: string; name: string; model: CatalogModel }): LocalMapEntry;
   removeRecentMap(id: string): LocalMapEntry[];

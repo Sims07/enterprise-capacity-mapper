@@ -3,7 +3,7 @@ import { defineConfig } from 'cypress';
 export default defineConfig({
   e2e: {
     baseUrl: 'http://127.0.0.1:4173',
-    supportFile: process.env.COVERAGE === 'true' ? 'cypress/support/e2e.js' : false,
+    supportFile: process.env.COVERAGE === 'true' ? 'cypress/support/e2e.ts' : false,
     video: false,
     setupNodeEvents(on, config) {
       if (process.env.COVERAGE === 'true') {
