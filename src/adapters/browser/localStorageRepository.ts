@@ -10,7 +10,7 @@ import {
   saveModel,
   updateRecentMap,
 } from '../../services/storage.ts';
-import type { CatalogModel } from '../../application/catalogUseCases.ts';
+import type { CatalogModel } from '../../domain/catalogModel.ts';
 import type { ModelRepository } from '../../ports/modelRepository.ts';
 
 /** Browser adapter for the model repository port. */
