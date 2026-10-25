@@ -164,8 +164,9 @@ test('removing a capability through the use case cleans application references',
   assert.deepEqual(removeCapabilityAndDependents({ model, capabilityId: 'cap-1' }).applications[0].capabilityIds, ['legacy']);
 });
 
-test('catalog use cases delegate matrix placement invariants to the domain', () => {
-  const mapLayout = {
+
+test('catalog use cases preserve multiple domains in the same matrix cell', () => {
+  const layout = {
     mode: 'matrix',
     columns: [{ id: 'c1', name: 'Business' }, { id: 'c2', name: 'Support' }],
     layers: [{ id: 'l1', name: 'Core' }],
@@ -173,14 +174,15 @@ test('catalog use cases delegate matrix placement invariants to the domain', () 
   };
   const domains = [
     { id: 'domain-1', code: 'D1', name: 'Existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } },
-    { id: 'domain-2', code: 'D2', name: 'Occupied', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 1 } },
   ];
-  assert.throws(() => createDomain({
-    domains, form: { ...form, columnId: 'c1', layerId: 'l1' }, id: 'domain-3',
-    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, layout: mapLayout,
-  }), /chevauche/);
-  assert.throws(() => updateDomain({
-    domains, domainId: 'domain-1', form: { ...form, columnId: 'c2', layerId: 'l1' },
-    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, layout: mapLayout,
-  }), /chevauche/);
+  const created = createDomain({
+    domains, form: { ...form, columnId: 'c1', layerId: 'l1' }, id: 'domain-2',
+    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, layout,
+  });
+  assert.deepEqual(created.map(domain => domain.id), ['domain-1', 'domain-2']);
+  const updated = updateDomain({
+    domains: created, domainId: 'domain-2', form: { ...form, columnId: 'c1', layerId: 'l1' },
+    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, layout,
+  });
+  assert.equal(updated.find(domain => domain.id === 'domain-2')?.layout?.columnId, 'c1');
 });
