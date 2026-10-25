@@ -32,7 +32,7 @@ export const createBrowserNavigationAdapter = ({
     history.replaceState(stateWithMode(mode, extra), '', location.href);
     onModeChange?.(mode);
   };
-  return Object.freeze({
+  const adapter = {
     currentMode,
     initialize: (mode: NavigationMode) => { if (!history.state?.capacityMapperMode) replaceMode(mode); },
     goTo: (mode: NavigationMode) => pushMode(mode, { dashboardReturn: false }),
@@ -44,5 +44,6 @@ export const createBrowserNavigationAdapter = ({
       eventTarget.addEventListener('popstate', handler);
       return () => eventTarget.removeEventListener('popstate', handler);
     },
-  });
+  } satisfies NavigationPort;
+  return Object.freeze(adapter);
 };
