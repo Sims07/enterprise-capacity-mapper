@@ -1,4 +1,11 @@
 describe('Application smoke test', () => {
+  // Clear persisted state before the app starts, avoiding a redundant visit + reload per test.
+  const visitFresh = (path = '/') => cy.visit(path, {
+    onBeforeLoad(win) {
+      win.localStorage.clear();
+    },
+  });
+
   const assertApplicationLoaded = () => {
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
@@ -57,9 +64,7 @@ describe('Application smoke test', () => {
 
   it('reste utilisable à la largeur d’un iPhone 17 Pro sans débordement horizontal de page', () => {
     cy.viewport(402, 874);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('header').should('have.css', 'position', 'relative').then(header => {
@@ -112,9 +117,7 @@ describe('Application smoke test', () => {
   });
 
   it('ferme le menu contextuel quand on clique hors du menu', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.contains('.domain', 'Relation & Engagement Client').rightclick();
     cy.get('.context-menu').should('be.visible');
@@ -123,9 +126,7 @@ describe('Application smoke test', () => {
   });
 
   it('renomme une capacité N1 sans perdre ses applications associées', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.get('.cap').should('have.length', 10);
     cy.contains('.cap', 'Gestion des Prospects & Leads').within(() => {
@@ -143,9 +144,7 @@ describe('Application smoke test', () => {
   });
 
   it('annule et rétablit une modification avec les boutons et les raccourcis clavier', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.get('[data-testid="undo-button"]').should('be.disabled');
     cy.get('[data-testid="redo-button"]').should('be.disabled');
@@ -171,9 +170,7 @@ describe('Application smoke test', () => {
   });
 
   it('retire une cartographie des récents sans supprimer sa sauvegarde locale', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
@@ -197,9 +194,7 @@ describe('Application smoke test', () => {
   });
 
   it('enregistre une cartographie localement et permet de la rouvrir après rechargement', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
@@ -548,9 +543,7 @@ describe('Application smoke test', () => {
 
   it('regroupe les commandes secondaires dans Outils sans retirer les actions principales', () => {
     cy.viewport(1280, 800);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.get('.toolbar-switch').within(() => {
       cy.get('[data-testid="nav-cartography"]').should('be.visible');
@@ -603,9 +596,7 @@ describe('Application smoke test', () => {
 
   it('garde le menu Outils utilisable sur mobile sans débordement horizontal', () => {
     cy.viewport(402, 874);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.get('.toolbar-switch').should('be.visible');
     cy.get('[data-testid="new-map-button"]').should('not.exist');
@@ -623,9 +614,7 @@ describe('Application smoke test', () => {
 
   it('garde les compteurs d’applications lisibles en thème sombre et en présentation', () => {
     cy.viewport(1280, 800);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
     cy.get('[data-testid="theme-toggle"]').then($toggle => {
@@ -648,9 +637,7 @@ describe('Application smoke test', () => {
 
   it('conserve un contraste lisible au survol des applications en thème sombre', () => {
     cy.viewport(1280, 800);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.get('[data-testid="tools-menu"]').then($menu => { if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click(); });
 
@@ -775,9 +762,7 @@ describe('Application smoke test', () => {
 
   it('préserve la distinction visuelle entre domaines N0 et capacités N1 en présentation claire et sombre', () => {
     cy.viewport(1280, 800);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     const assertN0N1Contrast = () => {
       cy.get('.domain-card').first().then($domain => {
@@ -806,9 +791,7 @@ describe('Application smoke test', () => {
 
   it('renforce la lisibilité des axes et des zones de cartographie dans les deux thèmes et modes', () => {
     cy.viewport(1280, 800);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     const assertMapContrast = (theme, presentation) => {
       cy.get('.map .axis-label').first().should('be.visible')
@@ -848,9 +831,7 @@ describe('Application smoke test', () => {
 
   it('conserve le défilement horizontal dans la carte en présentation mobile sans élargir la page', () => {
     cy.viewport(402, 874);
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     openToolsMenu();
     cy.get('[data-testid="presentation-toggle"]').click();
@@ -876,9 +857,7 @@ describe('Dashboard — filtres de la heatmap', () => {
 
   beforeEach(() => {
     cy.on('uncaught:exception', err => { throw err; });
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="capability-dashboard"]').should('be.visible');
@@ -1024,9 +1003,7 @@ describe('Dashboard — filtres de la heatmap', () => {
 
   it('qualifie la priorité métier d’une capacité et filtre les gaps par priorité', () => {
     cy.get('[data-testid="dashboard-view-attention"]').click();
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
     cy.contains('.cap', 'Achats Fournisseurs').within(() => {
       cy.get('button[aria-label="Renommer Achats Fournisseurs"]').click();
     });
@@ -1100,9 +1077,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('ouvre la bibliothèque même si l’historique récent est corrompu', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     openToolsMenu();
     cy.get('[data-testid="save-local-map"]').click();
@@ -1121,9 +1096,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('affiche les récents même si la bibliothèque de sauvegardes est corrompue', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.window().then(win => {
       win.localStorage.setItem('enterprise-capacity-mapper:local-maps:v1', '{json invalide');
@@ -1137,9 +1110,7 @@ describe('Dashboard — filtres de la heatmap', () => {
   });
 
   it('refuse les imports JSON invalides sans modifier la cartographie active', () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    visitFresh();
 
     cy.window().should(win => {
       expect(win.localStorage.getItem('enterprise-capacity-mapper:model:v3')).to.be.a('string');
