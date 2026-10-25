@@ -353,6 +353,7 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('conserve la matrice et les extensions de colonnes pendant le filtrage', () => {
+    visitFresh();
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
@@ -431,6 +432,7 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('propose quatre intentions et affiche la synthèse adaptée à chacune', () => {
+    visitFresh();
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').should('have.attr', 'aria-pressed', 'true');
@@ -448,6 +450,7 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('combine recherche et domaine N0 puis réinitialise les filtres', () => {
+    visitFresh();
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
@@ -466,6 +469,7 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
+    visitFresh();
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').click();
