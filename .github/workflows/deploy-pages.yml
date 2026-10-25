@@ -92,6 +92,22 @@ jobs:
           COVERAGE: 'true'
           VITE_COVERAGE: 'true'
           CYPRESS_COVERAGE: 'true'
+      - name: Verify Istanbul instrumentation exists in built bundle
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const root = 'dist-coverage/assets';
+          const files = fs.existsSync(root) ? fs.readdirSync(root).filter((file) => file.endsWith('.js')) : [];
+          const matches = files.filter((file) => {
+            const source = fs.readFileSync(path.join(root, file), 'utf8');
+            return source.includes('__coverage__') && source.includes('s[');
+          });
+          console.log(JSON.stringify({ files, instrumentedBundles: matches }, null, 2));
+          if (matches.length === 0) {
+            throw new Error('Istanbul instrumentation was enabled but no instrumented JS bundle was found.');
+          }
+          NODE
       - name: Upload instrumented application
         uses: actions/upload-artifact@v4
         with:
