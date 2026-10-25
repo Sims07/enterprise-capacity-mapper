@@ -71,7 +71,7 @@ test('browser navigation adapter owns initialization, dashboard exploration, bac
   assert.deepEqual(changedModes, ['editor', 'relations']);
 
   const events = [];
-  const unsubscribe = navigation.subscribePopState(event => events.push(event.state.capacityMapperMode));
+  const unsubscribe = navigation.subscribePopState(state => events.push(state.capacityMapperMode));
   eventTarget.dispatch('popstate', { state: { capacityMapperMode: 'dashboard' } });
   unsubscribe();
   navigation.back();
