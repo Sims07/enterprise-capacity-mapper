@@ -66,7 +66,7 @@ export class Catalog {
   private static cloneModel(model: CatalogModel): CatalogModel {
     return {
       ...model,
-      domains: model.domains.map(domain => ({ ...domain, layout: domain.layout ? { ...domain.layout } : domain.layout })),
+      domains: model.domains.map(domain => domain.layout === undefined ? { ...domain } : { ...domain, layout: { ...domain.layout } }),
       capabilities: model.capabilities.map(capability => ({ ...capability })),
       applications: model.applications.map(copyApplication),
     };
