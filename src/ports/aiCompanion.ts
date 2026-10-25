@@ -1,17 +1,12 @@
 import type { CatalogModel } from '../application/catalogUseCases.ts';
 
-export interface AiHistoryEntry {
-  role: string;
-  content: string;
-  [key: string]: unknown;
-}
-
-export interface AiQuestion {
+export type AiHistoryEntry = { role: string; content: string; [key: string]: unknown };
+export type AiQuestion = {
   question: string;
   cartography: CatalogModel;
   history?: AiHistoryEntry[];
   onChunk?: (chunk: string) => void;
-}
+};
 
 export interface AiCompanionPort {
   ask(input: AiQuestion): unknown | Promise<unknown>;
