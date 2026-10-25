@@ -518,8 +518,8 @@ function App() {
   };
 
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-  const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId, model.domains, model.capabilities) });
-  const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId, model.domains, model.capabilities) });
+  const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
+  const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
   const hoverOn = e => { e.preventDefault(); e.currentTarget.classList.add('drop-over'); };
   const hoverOff = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-over'); };
   const onDrop = (e, capId) => { e.preventDefault(); e.currentTarget.classList.remove('drop-over'); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
@@ -527,7 +527,7 @@ function App() {
   const togglePicked = id => setPickedApps(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const linkPicked = targetId => {
     if (!pickedValid.length) return;
-    update({ applications: linkPickedApplications(apps, pickedValid, targetId, model.domains, model.capabilities) });
+    update({ applications: linkPickedApplications(apps, pickedValid, targetId, model.domains, model.capabilities, depth) });
     setPickedApps([]);
     notify(`${pickedValid.length} application(s) reliée(s)`);
   };
@@ -547,7 +547,7 @@ function App() {
   const toggleLinkChecked = id => setLinkChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
   const saveLink = () => {
     if (!link) return;
-    const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked, domains: model.domains, capabilities: model.capabilities });
+    const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked, domains: model.domains, capabilities: model.capabilities, depth });
     if (nextApps.some((a, i) => a !== apps[i])) update({ applications: nextApps });
     notify('Relations mises à jour');
     closeLink();
