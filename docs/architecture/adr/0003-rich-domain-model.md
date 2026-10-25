@@ -5,32 +5,44 @@
 
 ## Décision
 
-Le domaine de cartographie ne doit pas être un simple sac de données manipulé par l'UI ou par des cas d'utilisation qui dupliquent les règles métier. Les transitions métier et les invariants sont portés par des objets du domaine, tandis que les structures JSON restent des DTO à la frontière.
+Le domaine de cartographie ne sera pas un simple sac de données manipulé par l'UI. Les invariants métier et les transitions cohérentes appartiennent aux modèles du domaine ; les structures sérialisables restent des DTO à la frontière de persistance.
 
-Deux modèles riches sont introduits :
+Deux modèles riches portent les principales règles de cartographie :
 
-- `Catalog` (`src/domain/catalog.ts)) : agrégat du catalogue qui protège l'identité, les noms, les références domaine-capacité-application, les relations et les suppressions avec nettoyage des dépendances.
-- `MapLayout` (`src/domain/mapLayout.ts`) : objet de domaine immuable qui protège la cohérence de la matrice, les zones colonne/layer, les placements et les chevauchements.
+- `Catalog` : domaines N0, capacités N1, applications, relations, priorités, création et suppression cohérente.
+- `MapLayout` : colonnes, layers, zones, placements et règles d'occupation de la matrice TOGAF.
 
-`CatalogModel` reste le contrat sérialisable compatible avec les cartographies existantes. La réhydratation ne réécrit pas les données historiques à l'import ; les opérations métier appliquent les invariants au moment des transitions. Les conversions vers le DTO sont explicites via `toModel()`.
+Le domaine ne dépend ni de React, du DOM, de LocalStorage, de `fetch`, de Cypress ou d'un fournisseur IA.
 
-## Règles
+## Invariants
 
-- Une opération métier valide les invariants dont elle est responsable avant de produire un nouvel état.
-- Les opérations retournent de nouveaux snapshots ; les références reçues et les résultats exportés ne peuvent pas muter l'état interne.
-- Les identifiants de domaines, capacités et applications sont uniques dans leur collection.
-- Les noms requis ne peuvent pas être vides après normalisation.
+- Les noms de domaine, capacité et application ne sont pas vides après normalisation.
+- Les identifiants des entités créées sont obligatoires et uniques dans leur collection.
 - Une capacité doit référencer un domaine existant.
-- Une application ne peut lier que des cibles existantes au niveau de cartographie actif (domaines en profondeur 1, capacités en profondeur 2).
-- Les suppressions nettoient les relations vers les éléments supprimés et préservent les relations non concernées.
-- Une matrice enregistrée doit avoir au moins une colonne et un layer, des noms non vides et une zone pour chaque paire colonne/layer.
-- Un placement doit rester dans les limites de la matrice et ne pas chevaucher un autre domaine de la même couche.
-- Les cas d'utilisation traduisent les formulaires, fournissent les données et orchestrent le domaine ; ils ne réimplémentent pas ces invariants.
-- Pas de Value Object ni de classe artificielle : chaque abstraction doit représenter une règle ou un concept métier identifiable.
-- Le domaine ne dépend ni de React, du DOM, de LocalStorage, de `fetch`, de Cypress ou d'un fournisseur IA.
+- Une application ne peut référencer que des cibles de cartographie existantes au niveau actif (domaine ou capacité).
+- Les relations ne sont pas dupliquées ; la suppression d'une capacité nettoie les relations qui la ciblent.
+- Les mises à jour et transitions de domaine produisent des instantanés isolés ; un appelant ne peut pas muter l'état interne en modifiant un DTO retourné.
+- Les colonnes et layers doivent rester non vides ; les zones doivent être nommées et cohérentes avec la matrice.
+- Un placement respecte les limites, utilise un span entier positif et ne chevauche pas un autre domaine de la même layer.
+- La conversion DTO ↔ domaine reste à la frontière ; le JSON v3 existant est conservé.
 
-## Tests et migration
+## Règles de conception
 
-Chaque invariant significatif est couvert par des tests Node purs du domaine. Les tests d'application vérifient la traduction des formulaires vers les commandes du domaine, et Cypress reste l'oracle du comportement utilisateur.
+- Les composants React valident la saisie pour le retour utilisateur, mais le domaine protège lui-même les invariants.
+- Les cas d'utilisation orchestrent le domaine et les ports ; ils ne dupliquent pas les règles métier.
+- Les services d'application peuvent conserver les transformations d'orchestration et les requêtes de lecture qui ne représentent pas un invariant.
+- On n'introduit pas de classe uniquement pour satisfaire un pattern : chaque comportement doit correspondre à une responsabilité métier identifiable.
+- Les méthodes de domaine restent déterministes, sans accès au navigateur, au stockage ou au réseau.
 
-La migration doit rester compatible avec le format JSON v3, le déploiement GitHub Pages et les usages PWA. Les changements de comportement de données (par exemple le nettoyage de références orphelines lors d'une suppression) sont explicites et testés. Les futurs ajouts métier doivent être introduits dans le domaine avant d'être exposés dans React.
+## Migration et critères d'acceptation
+
+Chaque tranche :
+
+1. identifie une règle métier existante ;
+2. la déplace dans le domaine ;
+3. ajoute des tests unitaires purs pour les cas valides, invalides et limites ;
+4. adapte les cas d'utilisation et React sans modifier le comportement attendu ;
+5. conserve les scénarios Cypress comme oracle de régression ;
+6. supprime le code dupliqué uniquement après validation de la CI complète.
+
+Le lot 1 est considéré terminé lorsque les opérations de catalogue et les invariants de mise en page passent par ces modèles, que les cas d'utilisation ne reconstruisent plus ces règles, et que typecheck, tests unitaires, Cypress, couverture et build sont tous verts.
