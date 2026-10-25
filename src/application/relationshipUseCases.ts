@@ -51,9 +51,10 @@ export const linkPickedApplications = (
   capabilities: Capability[] = [],
   depth: TargetDepth = 2,
 ): RelatedApplication[] => {
-  if (!selectedApplicationIds.length) return applications;
+  const selected = selectedApplicationIds.filter(id => applications.some(application => application.id === id));
+  if (!selected.length) return applications;
   let catalog = catalogFor(applications, domains, capabilities, depth);
-  selectedApplicationIds.forEach(id => {
+  selected.forEach(id => {
     catalog = catalog.linkApplicationToMappedItem(id, targetId);
   });
   return applicationSnapshots(catalog);
