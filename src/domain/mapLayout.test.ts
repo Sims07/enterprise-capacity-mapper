@@ -50,6 +50,7 @@ test('MapLayout prepares only complete named layouts and repairs invalid placeme
   assert.equal(MapLayout.fromDraft({ ...source, columns: [] }).prepareForSave({}, []), null);
   assert.equal(MapLayout.fromDraft({ ...source, columns: [source.columns[0], { ...source.columns[0] }] }).prepareForSave({}, []), null);
   assert.equal(MapLayout.fromDraft({ ...source, zones: [source.zones[0], { ...source.zones[0], name: 'Duplicate zone' }] }).prepareForSave({}, []), null);
+  assert.equal(MapLayout.fromDraft({ ...source, zones: [source.zones[0], { ...source.zones[1], id: source.zones[0].id }] }).prepareForSave({}, []), null);
 });
 
 test('MapLayout rejects overlaps, invalid spans and moves of unknown domains', () => {
@@ -68,6 +69,7 @@ test('MapLayout rejects overlaps, invalid spans and moves of unknown domains', (
   assert.equal(available('c1', 'l2', 1), true);
   assert.equal(available('c2', 'l1', 1), false);
   assert.equal(available('c1', 'l1', 1.5), false);
+  assert.equal(available('c1', 'l1', 0), false);
   assert.equal(available('missing', 'l1', 1), false);
 
   assert.equal(mapLayout.prepareDomainPlacement({
