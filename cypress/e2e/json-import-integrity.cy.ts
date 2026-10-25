@@ -1,8 +1,10 @@
 describe('Lot 4 — intégrité de l’import JSON', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   });
 
   it('importe une cartographie valide en préservant les relations et l’étendue de matrice après rechargement', () => {
