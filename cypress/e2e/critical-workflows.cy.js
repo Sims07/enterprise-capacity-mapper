@@ -217,4 +217,185 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
 });
+
+  it('permet à un domaine de couvrir deux colonnes adjacentes et conserve cette étendue', () => {
+    openWizard();
+    cy.get('[data-testid="wizard-name"]').clear().type('Cartographie multi-colonnes');
+    cy.contains('button', 'Suivant').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-backup"]').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+
+    cy.get('.map-row:not(.map-head)').first().find('.cell-add').first().click();
+    cy.get('.modal .field input').eq(0).type('Capacité transverse');
+    cy.get('.modal .field input').eq(1).type('TRANSVERSE');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.contains('.domain', 'Capacité transverse').find('button[aria-label="Actions pour Capacité transverse"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
+    cy.get('.modal select').eq(2).select('2');
+    cy.contains('.modal button', 'Enregistrer').click();
+
+    cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
+    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 3);
+    cy.reload();
+    cy.contains('.domain', 'Capacité transverse').should('be.visible');
+    cy.get('.map-row:not(.map-head)').first().find('.map-cell').should('have.length', 3);
+    cy.get('.map-cell').first().should('have.attr', 'style').and('contain', 'span 2');
+  });
+
+  it('permet d’ajouter plusieurs domaines N0 dans la même cellule', () => {
+    openWizard();
+    cy.get('[data-testid="wizard-name"]').clear().type('Plusieurs domaines dans une cellule');
+    cy.contains('button', 'Suivant').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-backup"]').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+
+    const firstCell = '.map-row:not(.map-head) .map-cell';
+    cy.get(firstCell).first().find('.cell-add').click();
+    cy.get('.modal .field input').eq(0).type('Domaine N0 A');
+    cy.get('.modal .field input').eq(1).type('N0-A');
+    cy.contains('.modal button', 'Créer').click();
+    cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 A').should('be.visible');
+
+    cy.get(firstCell).first().find('.cell-add').click();
+    cy.get('.modal .field input').eq(0).type('Domaine N0 B');
+    cy.get('.modal .field input').eq(1).type('N0-B');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 A').should('be.visible');
+    cy.get(firstCell).first().contains('.domain h3', 'Domaine N0 B').should('be.visible');
+    cy.get(firstCell).first().find('.domain-card').eq(1).should('have.css', 'margin-top', '8px');
+    cy.get('.domain-card').should('have.length', 2);
+  });
+
+  it('affiche le domaine créé même si un filtre était actif', () => {
+    openWizard();
+    cy.get('[data-testid="template-blank"]').click();
+    cy.get('[data-testid="wizard-name"]').clear().type('Création avec filtre');
+    cy.contains('button', 'Suivant').click();
+    cy.contains('button', 'Suivant').click();
+    cy.get('[data-testid="wizard-backup"]').uncheck();
+    cy.get('[data-testid="wizard-create"]').click();
+
+    cy.get('[data-testid="map-filter"]').type('introuvable');
+    cy.get('.filter-count').should('contain.text', '0 / 0 domaines');
+
+    cy.get('.map-row:not(.map-head)').first().find('.cell-add').first().click();
+    cy.get('.modal .field input').eq(0).type('Domaine visible');
+    cy.get('.modal .field input').eq(1).type('VISIBLE');
+    cy.get('[data-testid="domain-color-hex"]').clear().type('#009e73');
+    cy.contains('.modal button', 'Créer').click();
+
+    cy.get('[data-testid="map-filter"]').should('have.value', '');
+    cy.contains('.domain h3', 'Domaine visible').should('be.visible');
+    cy.contains('.domain', 'Domaine visible').closest('.map-cell').find('.cell-add').should('have.css', 'margin-top', '10px');
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(0, 158, 115)');
+    cy.contains('.domain', 'Domaine visible').find('button[aria-label="Actions pour Domaine visible"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
+    cy.get('[data-testid="domain-color-option"][data-color="#a16207"]')
+      .should('have.attr', 'aria-pressed', 'false')
+      .click()
+      .should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="domain-color-hex"]').should('have.value', '#a16207');
+    cy.contains('.modal button', 'Enregistrer').click();
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(161, 98, 7)');
+    cy.reload();
+    cy.contains('.domain', 'Domaine visible').find('.domain-banner').should('have.css', 'background-color', 'rgb(161, 98, 7)');
+    cy.contains('.domain', 'Domaine visible').find('button[aria-label="Actions pour Domaine visible"]').click();
+    cy.get('.context-menu').contains('button', 'Modifier').click();
+    cy.get('[data-testid="domain-color-option"][data-color="#a16207"]').should('have.attr', 'aria-pressed', 'true');
+    cy.contains('.modal button', 'Annuler').click();
+    cy.get('.domain-card').should('have.length', 1);
+  });
+
+  it('filtre la cartographie et active puis quitte le mode présentation', () => {
+    cy.visit('/');
+    cy.get('.map-controls-row').should('be.visible');
+    cy.get('.canvas-title, .stats, .map-view-toggle').should('not.exist');
+    cy.get('.canvas-actions').should('not.contain.text', 'Domaine N0');
+    cy.get('.map-filter-bar').should('be.visible');
+    cy.get('[data-testid="map-filter"]').should('be.visible');
+    cy.get('[data-testid="map-filter"]').type('CAP-CRM');
+    cy.get('.filter-count').should('contain.text', '1 / 4 domaines');
+    cy.contains('.domain h3', 'Relation & Engagement Client').should('be.visible');
+    cy.contains('.domain h3', 'Finance, Gestion & Comptabilité').should('not.exist');
+    openToolsMenu();
+    cy.get('[data-testid="presentation-switch-input"]').should('have.attr', 'role', 'switch').and('not.be.checked');
+    cy.get('header').then($header => {
+      const before = $header[0].getBoundingClientRect();
+      const beforeHeight = before.height;
+      cy.get('[data-testid="presentation-toggle"]').then($toggle => {
+        const toggleBefore = $toggle[0].getBoundingClientRect();
+        cy.wrap($toggle).click();
+        cy.get('.app').should('have.class', 'presentation-mode');
+        cy.get('header').then($after => {
+          const after = $after[0].getBoundingClientRect();
+          expect(after.height, 'hauteur stable de l’en-tête').to.equal(beforeHeight);
+        });
+        cy.get('[data-testid="presentation-toggle"]').then($toggleAfter => {
+          const toggleAfter = $toggleAfter[0].getBoundingClientRect();
+          expect(toggleAfter.width, 'largeur stable du switch Présentation').to.equal(toggleBefore.width);
+          expect(toggleAfter.height, 'hauteur stable du switch Présentation').to.equal(toggleBefore.height);
+        });
+      });
+    });
+    cy.get('aside').should('not.be.visible');
+    cy.get('.workspace').should('have.css', 'grid-template-columns').and('not.contain', '300px');
+    cy.get('.presentation-mode .cap').should('have.length', 3).first().should('have.css', 'border-radius', '6px');
+    cy.get('.presentation-mode .cap-desc, .presentation-mode .cap .relations, .presentation-mode .cell-add, .presentation-mode .domain-actions').should('not.be.visible');
+    openToolsMenu();
+    cy.get('[data-testid="presentation-toggle"]').click();
+    cy.get('.app').should('not.have.class', 'presentation-mode');
+    cy.get('[data-testid="map-filter"]').should('have.value', 'CAP-CRM');
+    cy.get('.domain-card').should('have.length', 1);
+  });
+
+  it('conserve la matrice et les extensions de colonnes pendant le filtrage', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.window().then(win => {
+      const key = 'enterprise-capacity-mapper:model:v3';
+      const model = JSON.parse(win.localStorage.getItem(key));
+      model.domains.find(domain => domain.id === 'l0-1').layout.columnSpan = 2;
+      win.localStorage.setItem(key, JSON.stringify(model));
+    });
+    cy.reload();
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-dashboard"]').click();
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-map-layout"]').then($map => {
+      const initialColumns = $map.find('.dashboard-map-grid').first().css('grid-template-columns');
+      const initialColumnHeads = $map.find('.dashboard-map-column-headings').text();
+      const initialSpans = $map.find('.dashboard-map-cell[style*="span 2"]').length;
+      expect(initialSpans, 'au moins un domaine N0 occupe deux colonnes').to.be.greaterThan(0);
+      cy.get('[data-testid="dashboard-heatmap-status-filter"]').select('gap');
+      cy.get('[data-testid="dashboard-map-layout"]').should($filteredMap => {
+        expect($filteredMap.find('.dashboard-map-grid').first().css('grid-template-columns')).to.equal(initialColumns);
+        expect($filteredMap.find('.dashboard-map-column-headings').text()).to.equal(initialColumnHeads);
+        expect($filteredMap.find('.dashboard-map-cell[style*="span 2"]').length).to.equal(initialSpans);
+      });
+    });
+  });
+
+  it('enregistre le service worker PWA', () => {
+    cy.visit('/enterprise-capacity-mapper/');
+    cy.window().then((win) => {
+      return new Cypress.Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const poll = () => {
+          win.navigator.serviceWorker.getRegistrations().then((registrations) => {
+            if (registrations.length > 0) {
+              resolve(registrations);
+            } else if (Date.now() < deadline) {
+              setTimeout(poll, 100);
+            } else {
+              reject(new Error('Aucun service worker PWA enregistré après 5 secondes'));
+            }
+          });
+        };
+        poll();
+      });
+    });
+  });
 });
