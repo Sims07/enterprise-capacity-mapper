@@ -506,7 +506,7 @@ function App() {
       notify('Capacité N1 créée');
     }
     if (modal === 'app') {
-      update({ applications: createApplication({ applications: apps, capabilities: model.capabilities, form, id: uid('app') }) });
+      update({ applications: createApplication({ applications: apps, domains: model.domains, capabilities: model.capabilities, layout: model.layout, form, id: uid('app') }) });
       notify('Application créée');
     }
     setModal(null);
