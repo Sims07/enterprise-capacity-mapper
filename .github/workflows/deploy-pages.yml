@@ -67,6 +67,21 @@ jobs:
           }
           console.log('Unit-test line coverage:', `${lines.covered}/${lines.total} (${lines.pct}%)`);
           NODE
+      - name: Run unit tests with domain and application coverage
+        run: npm run test:unit:coverage:core
+      - name: Verify core unit coverage report
+        run: |
+          test -s coverage-unit-core/coverage-final.json
+          test -s coverage-unit-core/coverage-summary.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const summary = JSON.parse(fs.readFileSync('coverage-unit-core/coverage-summary.json', 'utf8'));
+          const lines = summary.total?.lines;
+          if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
+            throw new Error('Core unit coverage report has no valid source line coverage.');
+          }
+          console.log('Domain/application unit-test line coverage:', `${lines.covered}/${lines.total} (${lines.pct}%)`);
+          NODE
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       - name: Build instrumented application for coverage
@@ -174,6 +189,7 @@ jobs:
           path: |
             coverage/
             coverage-unit/
+            coverage-unit-core/
             coverage-combined/
             .nyc_output/
           if-no-files-found: warn
