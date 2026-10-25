@@ -163,3 +163,24 @@ test('removing a capability through the use case cleans application references',
   };
   assert.deepEqual(removeCapabilityAndDependents({ model, capabilityId: 'cap-1' }).applications[0].capabilityIds, ['legacy']);
 });
+
+test('catalog use cases delegate matrix placement invariants to the domain', () => {
+  const mapLayout = {
+    mode: 'matrix',
+    columns: [{ id: 'c1', name: 'Business' }, { id: 'c2', name: 'Support' }],
+    layers: [{ id: 'l1', name: 'Core' }],
+    zones: [],
+  };
+  const domains = [
+    { id: 'domain-1', code: 'D1', name: 'Existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } },
+    { id: 'domain-2', code: 'D2', name: 'Occupied', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 1 } },
+  ];
+  assert.throws(() => createDomain({
+    domains, form: { ...form, columnId: 'c1', layerId: 'l1' }, id: 'domain-3',
+    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, mapLayout,
+  }), /chevauche/);
+  assert.throws(() => updateDomain({
+    domains, domainId: 'domain-1', form: { ...form, columnId: 'c2', layerId: 'l1' },
+    defaultColumnId: 'c1', defaultLayerId: 'l1', resolveColor, mapLayout,
+  }), /chevauche/);
+});
