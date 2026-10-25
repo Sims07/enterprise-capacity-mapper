@@ -10,7 +10,7 @@
 
 ## Contrôle automatisé
 
-Le test `test/architecture-boundaries.test.js`, exécuté par `npm run test:unit`, vérifie les imports interdits dans le domaine et l'application ainsi que les imports d'adaptateurs hors de la frontière UI/composition. Toute exception doit être justifiée explicitement et rester dans la couche la plus externe possible.
+Le test `test/architecture-boundaries.test.js`, exécuté par `npm run test:unit`, vérifie les imports interdits dans le domaine et l'application ainsi que les imports d'adaptateurs dans le reste du code source hors de la frontière UI/composition. Exception connue et temporaire : `src/services/ai/companionProviders.ts` est une façade historique qui importe encore `providerClient.ts` et accède directement au stockage navigateur. Cette migration est explicitement hors de portée de cette première règle et doit être traitée dans une étape dédiée ; le test ne prétend donc pas encore contrôler cette façade.
 
 Ces contrôles sont volontairement statiques et légers : ils utilisent le runner Node déjà présent, sans nouvelle dépendance, navigateur, build supplémentaire ou impact sur Cypress/Istanbul.
 
