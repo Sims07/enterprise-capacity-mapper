@@ -20,9 +20,13 @@ test('validates a supported model and normalizes missing layout defaults', () =>
   assert.equal((validated.layout as { mode: string }).mode, 'matrix');
 });
 
-test('rejects unsupported schemas and broken capability references', () => {
-  assert.throws(() => validateModel({ ...validModel(), schemaVersion: 1 }), /Format de cartographie invalide/);
+test('rejects unsupported schemas before normalizing and does not mutate the invalid model', () => {
+  const unsupported = { ...validModel(), schemaVersion: 1 };
+  assert.throws(() => validateModel(unsupported), /Format de cartographie invalide/);
+  assert.equal(unsupported.schemaVersion, 1);
+});
 
+test('rejects broken capability references', () => {
   const invalidCapability = validModel();
   invalidCapability.capabilities[0].domainId = 'missing-domain';
   assert.throws(() => validateModel(invalidCapability), /capacité référence un domaine inexistant/i);
