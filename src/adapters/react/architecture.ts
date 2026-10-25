@@ -36,13 +36,13 @@ export const createFrontendApplication = ({
   browserInteractions: injectedBrowserInteractions,
   createAiCompanion = createCompanionAiAdapter,
 }: FrontendApplicationOptions) => {
-  const repository = injectedRepository || createLocalStorageModelRepository();
-  const navigation = injectedNavigation || createBrowserNavigationAdapter({ onModeChange });
-  const preferences = injectedPreferences || createAppPreferences();
-  const viewport = injectedViewport || createBrowserViewport();
-  const browserInteractions = injectedBrowserInteractions || createBrowserInteractions();
-  const map = injectedMap || createMapService({ repository, initialModel: repository.load(initialModel) });
-  const aiCompanion = (settings: Record<string, unknown> = {}): AiCompanionPort => createAiCompanion(settings ?? ai);
+  const repository = injectedRepository ?? createLocalStorageModelRepository();
+  const navigation = injectedNavigation ?? createBrowserNavigationAdapter({ onModeChange });
+  const preferences = injectedPreferences ?? createAppPreferences();
+  const viewport = injectedViewport ?? createBrowserViewport();
+  const browserInteractions = injectedBrowserInteractions ?? createBrowserInteractions();
+  const map = injectedMap ?? createMapService({ repository, initialModel: repository.load(initialModel) });
+  const aiCompanion = (settings?: Record<string, unknown>): AiCompanionPort => createAiCompanion(settings ?? ai);
 
   return Object.freeze({ repository, navigation, map, preferences, viewport, browserInteractions, aiCompanion });
 };
