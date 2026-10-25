@@ -135,8 +135,8 @@ function App() {
 
   useEffect(() => {
     navigation.initialize(mode);
-    return navigation.subscribePopState(event => {
-      const nextMode = event.state?.capacityMapperMode;
+    return navigation.subscribePopState(state => {
+      const nextMode = state?.capacityMapperMode;
       dashboardHistoryEntry.current = false;
       setDashboardReturnAvailable(false);
       setMode(['editor', 'dashboard', 'relations', 'impact', 'library'].includes(nextMode) ? nextMode : 'editor');

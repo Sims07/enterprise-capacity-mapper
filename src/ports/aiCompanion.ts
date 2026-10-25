@@ -1,4 +1,4 @@
-import type { CatalogModel } from '../application/catalogUseCases.ts';
+import type { CatalogModel } from '../domain/catalogModel.ts';
 
 export type AiHistoryEntry = { role: string; content: string; [key: string]: unknown };
 export type AiQuestion = {
@@ -7,13 +7,8 @@ export type AiQuestion = {
   history?: AiHistoryEntry[];
   onChunk?: (chunk: string) => void;
 };
-export type AiCompanionPort = { ask: (input: AiQuestion) => unknown | Promise<unknown> };
-export type AiCompanionSender = (input: AiQuestion) => unknown | Promise<unknown>;
 
-/** Outbound port for the AI companion. */
-export const createAiCompanionPort = ({ send }: { send: AiCompanionSender }): AiCompanionPort => {
-  if (typeof send !== 'function') throw new TypeError('AiCompanion port requires a send function');
-  return Object.freeze({
-    ask: ({ question, cartography, history = [], onChunk }: AiQuestion) => send({ question, cartography, history, onChunk }),
-  });
-};
+/** Outbound contract for asking the AI companion, independent of any provider. */
+export interface AiCompanionPort {
+  ask(input: AiQuestion): unknown | Promise<unknown>;
+}

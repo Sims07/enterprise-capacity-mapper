@@ -24,6 +24,7 @@ test('frontend factory composes application services from injected dependencies'
 
   const application = createFrontendApplication({
     initialModel: model,
+    ai: { provider: 'default-provider' },
     repository,
     navigation,
     preferences,
@@ -44,6 +45,10 @@ test('frontend factory composes application services from injected dependencies'
   const companion = application.aiCompanion(settings);
   assert.deepEqual(companion.ask('question'), {
     settings,
+    question: 'question',
+  });
+  assert.deepEqual(application.aiCompanion().ask('question'), {
+    settings: { provider: 'default-provider' },
     question: 'question',
   });
 });
