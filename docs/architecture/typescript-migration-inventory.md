@@ -73,7 +73,7 @@ Chaque composant devra typer ses props et les contrats échangés avec les use c
 - `index.html` charge directement `src/main.tsx`.
 - `main.tsx` et `App.tsx` sont les seuls points d'entrée applicatifs ; les anciens `main.jsx` et `App.jsx` ont été supprimés.
 - Les six composants React listés ci-dessus sont des fichiers TSX de première classe ; leurs anciens shims JSX ont été supprimés et `App.tsx` importe explicitement les fichiers TSX.
-- Les fichiers JavaScript de tests et les shims des modules du lot 2 restent temporaires, hors périmètre de suppression de ce lot. Le renforcement de `strict` et la suppression de ces shims doivent être traités dans une étape séparée avec typecheck complet.
+- Les anciens shims JavaScript de production ont été supprimés après bascule des tests unitaires vers les modules TypeScript. Les fichiers JavaScript restants dans `src` sont les tests unitaires ; ils importent directement les modules `.ts`. Les fichiers de configuration et Cypress restent en JavaScript hors du périmètre applicatif.
 
 ## Règles de bascule
 
@@ -86,4 +86,4 @@ Chaque composant devra typer ses props et les contrats échangés avec les use c
 
 ## Fin de migration
 
-Le lot 3 se termine par un renforcement progressif de `tsconfig` vers `strict`, puis par la suppression des shims et l'inventaire des fichiers JavaScript restants. Les fichiers de configuration/outillage (`vite.config.js`, `cypress.config.js`, scripts CI) restent hors migration applicative tant qu'un gain clair n'est pas démontré.
+La suppression des shims applicatifs est terminée. Le mode `strict` complet reste une étape distincte : l'audit initial a relevé de nombreuses erreurs de typage implicite et de nullabilité dans les composants et services, donc il ne doit pas être activé sans corrections ciblées et validation complète. Les fichiers de configuration/outillage (`vite.config.js`, `cypress.config.js`, scripts CI) restent hors migration applicative tant qu'un gain clair n'est pas démontré.
