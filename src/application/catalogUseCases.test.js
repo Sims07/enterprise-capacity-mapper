@@ -82,6 +82,7 @@ test('creates capabilities and updates existing capability details', () => {
   assert.deepEqual(updated[0], {
     id: 'cap-2',
     name: 'Prospection',
+    domainId: 'domain-1',
     extra: true,
     priority: 'unqualified',
     description: 'Description',
@@ -94,6 +95,7 @@ test('creates applications with their selected relations', () => {
     applications: [{ id: 'existing' }],
     capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
     form,
+    capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
     id: 'app-1',
   })[1], {
     id: 'app-1',
