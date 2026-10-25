@@ -1,4 +1,4 @@
-import type { CatalogModel, Application, Capability, Domain } from '../application/catalogUseCases.ts';
+import type { CatalogModel, Application, Capability, Domain } from '../domain/catalogModel.ts';
 
 export type LocalMapEntry = {
   id: string;
