@@ -1,8 +1,10 @@
 describe('Description des domaines N0 sur la cartographie', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   });
 
   const openFirstDomainEditor = () => {
