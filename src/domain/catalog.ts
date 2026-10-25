@@ -116,15 +116,16 @@ export class Catalog {
     const name = changes.name === undefined
       ? current.name
       : Catalog.requireName(changes.name, 'Le nom de l’application est obligatoire.');
-    const capabilityIds = changes.capabilityIds === undefined
+    const { capabilityIds: requestedCapabilityIds, ...otherChanges } = changes;
+    const capabilityIds = requestedCapabilityIds === undefined
       ? current.capabilityIds
-      : Catalog.unique(changes.capabilityIds);
+      : Catalog.unique(requestedCapabilityIds);
     capabilityIds?.forEach(id => this.requireMappedTarget(id));
     return this.with({
       applications: this.model.applications.map(application => application.id === applicationId
         ? {
           ...application,
-          ...changes,
+          ...otherChanges,
           id: application.id,
           name,
           ...(capabilityIds === undefined ? {} : { capabilityIds: [...capabilityIds] }),
