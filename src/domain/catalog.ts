@@ -184,8 +184,8 @@ export class Catalog {
     const capabilityIds = new Set(this.model.capabilities
       .filter(capability => capability.domainId === domainId)
       .map(capability => capability.id));
-    // Keep the established depth-1 behaviour; at depth 2 all N1 links are cleaned.
-    const removedRelationIds = new Set(depth === 1 ? [domainId] : [domainId, ...capabilityIds]);
+    // Remove links to the deleted domain and to every capability deleted with it.
+    const removedRelationIds = new Set([domainId, ...capabilityIds]);
     return this.with({
       domains: this.model.domains.filter(domain => domain.id !== domainId),
       capabilities: this.model.capabilities.filter(capability => capability.domainId !== domainId),
