@@ -353,6 +353,8 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('conserve la matrice et les extensions de colonnes pendant le filtrage', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.window().then(win => {
       const key = 'enterprise-capacity-mapper:model:v3';
@@ -429,6 +431,8 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('propose quatre intentions et affiche la synthèse adaptée à chacune', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').should('have.attr', 'aria-pressed', 'true');
     cy.get('[data-testid="dashboard-overview-intro"]').should('be.visible');
     cy.get('[data-testid="dashboard-coverage-heatmap"]').should('not.exist');
@@ -444,6 +448,8 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('combine recherche et domaine N0 puis réinitialise les filtres', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-coverage"]').click();
     cy.get('[data-testid="dashboard-heatmap-search"]').type('FIN-05');
     cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '0 / 10 éléments');
@@ -460,6 +466,8 @@ describe('Critical user workflows — regression coverage', () => {
   });
 
   it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-dashboard"]').click();
     cy.get('[data-testid="dashboard-view-overview"]').click();
     cy.get('[data-testid="dashboard-domain-drilldown-l0-2"]').click();
     cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
