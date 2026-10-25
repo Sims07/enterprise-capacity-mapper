@@ -72,7 +72,7 @@ function Modal({ title, children, onClose }) {
   );
 }
 
-function Field({ label, required = false, error, ...p }) {
+function Field({ label, required = false, error = undefined, ...p }) {
   return (
     <label className={'field ' + (error ? 'has-error' : '')}>
       <span>{label}{required && <b className="required" aria-hidden="true"> *</b>}</span>
@@ -118,7 +118,7 @@ function App() {
   const [modal, setModal] = useState(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [formErrors, setFormErrors] = useState({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [editingDomainId, setEditingDomainId] = useState(null);
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
@@ -432,7 +432,7 @@ function App() {
     update(patch);
   };
 
-  const openNew = (kind, parent, place) => {
+  const openNew = (kind, parent = null, place = null) => {
     setEditingDomainId(null);
     setEditingCapabilityId(null);
     setFormErrors({});
@@ -473,7 +473,7 @@ function App() {
   };
 
   const save = () => {
-    const errors = {};
+    const errors: Record<string, string> = {};
     if (!form.name.trim()) errors.name = 'Le nom est obligatoire.';
     if (modal !== 'edit-capability' && !form.code.trim()) errors.code = 'Le code est obligatoire.';
     if (modal === 'capability' && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
@@ -577,7 +577,7 @@ function App() {
     return (
       <section
         className={domainClass}
-        style={{ '--domain-color': resolveDomainColor(d.color) }}
+        style={{ '--domain-color': resolveDomainColor(d.color) } as React.CSSProperties}
         draggable
         onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
         onDragStart={e => e.dataTransfer.setData('domain', d.id)}
@@ -586,7 +586,7 @@ function App() {
         onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
         key={d.id}
       >
-        <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color), "--n0-header-color": resolveDomainColor(d.color), "--n0-header-text-color": domainTextColor(d.color) }}>
+        <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color), "--n0-header-color": resolveDomainColor(d.color), "--n0-header-text-color": domainTextColor(d.color) } as React.CSSProperties}>
           <div className="domain-banner-title">
             {depth === 1 ? (
               <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button>
@@ -1221,7 +1221,7 @@ function App() {
                     aria-label={color.name}
                     aria-pressed={resolveDomainColor(form.color) === color.value}
                     title={color.name}
-                    style={{ '--swatch-color': color.value }}
+                    style={{ '--swatch-color': color.value } as React.CSSProperties}
                     onClick={() => setForm({ ...form, color: color.value })}
                   />
                 ))}
@@ -1239,7 +1239,7 @@ function App() {
                   data-testid="domain-color-hex"
                   aria-label="Code couleur hexadécimal"
                   aria-invalid={!!formErrors.color}
-                  maxLength="7"
+                  maxLength={7}
                   value={form.color}
                   onChange={e => setForm({ ...form, color: e.target.value })}
                 />
