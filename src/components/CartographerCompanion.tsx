@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { analyzeCartography } from '../domain/cartographyAnalysis.ts';
-import type { CatalogModel } from '../domain/catalogModel.ts';
+import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
 import type { AiCompanionPort } from '../ports/aiCompanion.ts';
 import type { CompanionPreferencesPort } from '../ports/companionPreferences.ts';
 
@@ -52,8 +52,15 @@ function resultMessage(prompt, result, observations) {
   return result.summary;
 }
 
+type CompanionModel = Omit<CatalogModel, 'layout' | 'domains' | 'capabilities' | 'applications'> & {
+  layout?: { depth?: number; [key: string]: unknown };
+  domains: Domain[];
+  capabilities: Capability[];
+  applications: Application[];
+};
+
 export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences }: {
-  model: CatalogModel;
+  model: CompanionModel;
   darkMode?: boolean;
   aiCompanionFactory: (settings?: Record<string, unknown>) => AiCompanionPort;
   companionPreferences: CompanionPreferencesPort;
