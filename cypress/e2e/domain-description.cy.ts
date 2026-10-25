@@ -78,16 +78,16 @@ describe('Description des domaines N0 sur la cartographie', () => {
         (rule as CSSStyleRule).selectorText?.includes('.field textarea[data-testid="domain-description"]')
       );
       const focusRule = rules.find(rule =>
-        rule.selectorText?.includes('.field textarea:focus-visible')
+        (rule as CSSStyleRule).selectorText?.includes('.field textarea:focus-visible')
       );
 
       expect(fieldRule, 'règle du champ description').to.exist;
       expect(focusRule, 'règle de focus du champ description').to.exist;
       expect((fieldRule as CSSStyleRule).style.getPropertyValue('background')).to.equal('var(--color-surface)');
-      expect(fieldRule.style.getPropertyValue('color')).to.equal('var(--color-text)');
-      expect(fieldRule.style.getPropertyValue('border')).to.include('--color-border-strong');
+      expect((fieldRule as CSSStyleRule).style.getPropertyValue('color')).to.equal('var(--color-text)');
+      expect((fieldRule as CSSStyleRule).style.getPropertyValue('border')).to.include('--color-border-strong');
       expect((focusRule as CSSStyleRule).style.getPropertyValue('border-color')).to.equal('var(--color-focus)');
-      expect(focusRule.style.getPropertyValue('outline')).to.include('var(--color-focus)');
+      expect((focusRule as CSSStyleRule).style.getPropertyValue('outline')).to.include('var(--color-focus)');
     });
   });
 
