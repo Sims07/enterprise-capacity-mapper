@@ -96,8 +96,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const impactGaps = impactTargets.filter(target => target.coverageCount === 0);
   const targetLabel = depth === 1 ? 'domaines N0' : 'capacités N1';
   const targetSingular = depth === 1 ? 'domaine' : 'capacité';
-  const enrichedById = new Map(stats.enriched.map(target => [target.id, target] as const));
-  const capabilitiesByDomain = new Map(domains.map(domain => [domain.id, stats.enriched.filter(target => target.domainId === domain.id)] as const));
+  const enrichedById = new Map<string, (typeof stats.enriched)[number]>(stats.enriched.map(target => [target.id, target]));
+  const capabilitiesByDomain = new Map<string, typeof stats.enriched>(domains.map(domain => [domain.id, stats.enriched.filter(target => target.domainId === domain.id)]));
   const normalizedQuery = searchQuery.trim().toLocaleLowerCase('fr');
   const matchesFilters = (target, domain) => {
     const targetDomainId = depth === 1 ? target.id : target.domainId;
