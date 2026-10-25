@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBrowserViewport } from './browserViewport.js';
+import { createBrowserViewport } from './browserViewport.ts';
 
 class FakeElement {
   constructor({ parentElement = null, top = 0, bottom = 300, scrollHeight = 400, clientHeight = 100 } = {}) {

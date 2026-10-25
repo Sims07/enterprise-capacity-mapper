@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBrowserInteractions } from './browserInteractions.js';
+import { createBrowserInteractions } from './browserInteractions.ts';
 
 const createDocument = () => {
   const listeners = new Map();
