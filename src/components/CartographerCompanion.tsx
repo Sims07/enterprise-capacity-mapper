@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { analyzeCartography } from '../services/ai/cartographyAnalysis.ts';
-import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences } from '../services/ai/companionProviders.ts';
+import { analyzeCartography } from '../domain/cartographyAnalysis.ts';
 
 const PROMPTS = [
   { id: 'overview', label: 'Évaluer la cartographie', description: 'Obtenir une vue d’ensemble des points à examiner.', icon: '✦' },
@@ -50,7 +49,7 @@ function resultMessage(prompt, result, observations) {
   return result.summary;
 }
 
-export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory }) {
+export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState([]);
@@ -58,7 +57,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   const [mode, setMode] = useState('guided');
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [providerSettings, setProviderSettings] = useState(() => loadCompanionProviderPreferences());
+  const [providerSettings, setProviderSettings] = useState(() => companionPreferences.load());
   const [apiKey, setApiKey] = useState('');
   const [showProviderSettings, setShowProviderSettings] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -67,7 +66,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   const conversationRef = useRef(null);
 
   useEffect(() => {
-    saveCompanionProviderPreferences(providerSettings);
+    companionPreferences.save(providerSettings);
   }, [providerSettings]);
 
   useEffect(() => {
@@ -365,7 +364,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               <span className="companion-avatar" aria-hidden="true">✦</span>
               <div>
                 <p className="companion-message-role">Compagnon cartographe</p>
-                <p className="companion-answer-meta">{exchange.status === 'streaming' ? `Génération en cours · ${PROVIDER_DEFAULTS[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${PROVIDER_DEFAULTS[exchange.source]?.label || exchange.source}`}</p>
+                <p className="companion-answer-meta">{exchange.status === 'streaming' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
               </div>
             </div>
             {exchange.status === 'streaming' && !exchange.answer ? (
@@ -442,7 +441,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           <div className="companion-mode-note" role="note">
             <span className="companion-status-dot" aria-hidden="true" />
             <span>{providerSettings.enabled
-              ? <><strong>Fournisseur actif : {PROVIDER_DEFAULTS[providerSettings.provider].label}</strong> · la question et le contexte métier seront transmis à ce fournisseur.</>
+              ? <><strong>Fournisseur actif : {companionPreferences.defaults[providerSettings.provider].label}</strong> · la question et le contexte métier seront transmis à ce fournisseur.</>
               : <><strong>Analyse locale</strong> · aucune donnée transmise</>}</span>
           </div>
 
@@ -456,10 +455,10 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                 <span>Fournisseur</span>
                 <select data-testid="companion-provider" value={providerSettings.provider} onChange={event => {
                   const provider = event.target.value;
-                  setProviderSettings(current => ({ ...current, provider, model: PROVIDER_DEFAULTS[provider].model, endpoint: PROVIDER_DEFAULTS[provider].endpoint }));
+                  setProviderSettings(current => ({ ...current, provider, model: companionPreferences.defaults[provider].model, endpoint: companionPreferences.defaults[provider].endpoint }));
                   setApiKey('');
                 }}>
-                  {Object.entries(PROVIDER_DEFAULTS).map(([value, option]) => <option value={value} key={value}>{option.label}</option>)}
+                  {Object.entries(companionPreferences.defaults).map(([value, option]) => <option value={value} key={value}>{option.label}</option>)}
                 </select>
               </label>
               <label className="companion-provider-field">
@@ -595,7 +594,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           ) : (
             <p className="companion-guided-footer">Les résultats restent disponibles dans cet onglet. Passez en mode Conversation pour poser une question libre.</p>
           )}
-          <p className="companion-footer-note">Historique conservé pendant cette session · {providerSettings.enabled ? `fournisseur ${PROVIDER_DEFAULTS[providerSettings.provider].label} activé` : 'mode local, aucun envoi réseau'}</p>
+          <p className="companion-footer-note">Historique conservé pendant cette session · {providerSettings.enabled ? `fournisseur ${companionPreferences.defaults[providerSettings.provider].label} activé` : 'mode local, aucun envoi réseau'}</p>
         </section>
       )}
       <button
