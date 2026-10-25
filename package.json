@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test:e2e": "cypress run",
     "test:unit": "node --test",
+    "test:unit:coverage": "node --experimental-test-coverage --test --test-coverage-include='src/**' --test-coverage-exclude='**/*.test.*'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
