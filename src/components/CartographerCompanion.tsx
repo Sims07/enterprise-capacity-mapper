@@ -139,7 +139,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     const domains = Array.isArray(model?.domains) ? model.domains : [];
     const depth = model?.layout?.depth === 1 ? 1 : 2;
     const targets = depth === 1 ? domains : capabilities;
-    const targetById = new Map(targets.map(item => [item.id, item] as const));
+    const targetById = new Map<string, (typeof targets)[number]>(targets.map(item => [item.id, item]));
     const matchedApplications = applications.filter(app => {
       const name = normalizeText(app?.name);
       return name.length > 0 && normalizedQuestion.includes(name);
@@ -149,7 +149,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       const observations = [];
       matchedApplications.forEach(app => {
         const ids = Array.isArray(app.capabilityIds) ? app.capabilityIds : [];
-        const linkedTargets = [...new Set(ids)].map(id => targetById.get(id)).filter(Boolean);
+        const linkedTargets = [...new Set(ids)].map(id => targetById.get(id)).filter((target): target is (typeof targets)[number] => Boolean(target));
         const missingTargets = [...new Set(ids)].filter(id => !targetById.has(id));
         linkedTargets.forEach(target => {
           const domain = depth === 2 ? domains.find(item => item.id === target.domainId) : null;
