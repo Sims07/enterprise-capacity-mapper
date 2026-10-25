@@ -95,7 +95,6 @@ test('creates applications with their selected relations', () => {
     applications: [{ id: 'existing' }],
     capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
     form,
-    capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
     id: 'app-1',
   })[1], {
     id: 'app-1',
