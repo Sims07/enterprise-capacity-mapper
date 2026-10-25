@@ -37,7 +37,7 @@ test('domain stays independent from application, UI, adapters and browser infras
     }
     for (const specifier of importedSpecifiers(source)) {
       if (/^(?:\.\.\/)*(?:application|adapters|components|services\/ai)(?:\/|$)/.test(specifier)
-        || /^(?:react|react-dom)(?:\/|$)/.test(specifier)
+        || /^(?:react|react-dom)(?:\/|$)/.test(specifier)) {
         violations.push(`${path.relative(repositoryRoot, file)} -> ${specifier}`);
       }
     }
