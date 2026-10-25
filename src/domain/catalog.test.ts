@@ -56,10 +56,18 @@ test('Catalog validates application names, IDs and linked capabilities', () => {
 test('Catalog removes a capability and cleans up dependent application links', () => {
   const catalog = Catalog.fromModel({
     ...model,
-    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1', 'external'] }],
+    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1', 'd1', 'external'] }],
   });
   assert.deepEqual(catalog.removeCapability('c1').toModel().applications[0].capabilityIds, ['external']);
   assert.deepEqual(catalog.removeCapability('missing').toModel(), catalog.toModel());
+});
+
+test('depth-1 catalogs link applications to domains and clean every deleted reference', () => {
+  const catalog = Catalog.fromModel({ ...model, layout: { depth: 1 }, applications: [{ id: 'a1', name: 'Application', capabilityIds: ['d1', 'c1', 'legacy'] }] });
+  const linked = catalog.linkApplicationToMappedItem('a1', 'd1');
+  assert.deepEqual(linked.toModel().applications[0].capabilityIds, ['d1', 'c1', 'legacy']);
+  assert.throws(() => catalog.linkApplicationToMappedItem('a1', 'c1'), /Domaine introuvable/);
+  assert.deepEqual(linked.removeDomain('d1', 1).toModel().applications[0].capabilityIds, ['legacy']);
 });
 
 test('Catalog removes a domain and its dependent capability links', () => {
