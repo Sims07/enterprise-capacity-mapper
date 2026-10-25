@@ -1,5 +1,4 @@
 import type { Application, Capability, CatalogModel, Domain } from './catalogModel.ts';
-import { MapLayout, type LayoutAxis, type MapLayoutData } from './mapLayout.ts';
 
 const normalizedName = (name: string): string => name.trim();
 const cloneValue = <T>(value: T): T => {
@@ -36,18 +35,16 @@ export class Catalog {
   createDomain(domain: Domain): Catalog {
     const name = Catalog.requireName(domain.name, 'Le nom du domaine est obligatoire.');
     Catalog.requireUniqueId(this.model.domains, domain.id, 'domaine');
-    const created = { ...domain, name };
-    this.validateDomainPlacement(created, this.model.domains);
-    return this.with({ domains: [...this.model.domains, created] });
+    return this.with({ domains: [...this.model.domains, { ...domain, name }] });
   }
 
   updateDomain(domainId: string, changes: Partial<Pick<Domain, 'code' | 'name' | 'description' | 'color' | 'layout'>>): Catalog {
     const current = this.requireDomain(domainId);
     const name = changes.name === undefined ? current.name : Catalog.requireName(changes.name, 'Le nom du domaine est obligatoire.');
-    const updated = { ...current, ...changes, id: current.id, name };
-    this.validateDomainPlacement(updated, this.model.domains);
     return this.with({
-      domains: this.model.domains.map(domain => domain.id === domainId ? updated : domain),
+      domains: this.model.domains.map(domain => domain.id === domainId
+        ? { ...domain, ...changes, id: domain.id, name }
+        : domain),
     });
   }
 
@@ -208,20 +205,6 @@ export class Catalog {
 
   private with(changes: Partial<CatalogModel>): Catalog {
     return new Catalog(Catalog.cloneModel({ ...this.model, ...changes }));
-  }
-
-  private validateDomainPlacement(domain: Domain, domains: Domain[]): void {
-    const layout = this.model.layout as MapLayoutData | undefined;
-    const columns = layout?.columns;
-    const layers = layout?.layers;
-    if (!columns?.length || !layers?.length || layout?.mode !== 'matrix') return;
-    const columnId = domain.layout?.columnId || columns[0].id;
-    const layerId = domain.layout?.layerId || layers[0].id;
-    const available = MapLayout.fromDraft({ columns, layers, zones: layout.zones ?? [] }).isPlacementAvailable({
-      domains, columns: columns as LayoutAxis[], layers: layers as LayoutAxis[], domainId: domain.id,
-      columnId, layerId, columnSpan: domain.layout?.columnSpan ?? 1,
-    });
-    if (!available) throw new Error('Le placement du domaine est hors matrice ou chevauche un autre domaine.');
   }
 
   private requireDomain(domainId: string): Domain {
