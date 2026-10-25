@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { importModel, loadLocalMaps, loadModel, loadRecentMaps, normalizeJsonUrl, recordRecentMap, saveLocalMap, validateModel } from './storage.ts';
+import { consumeStorageRecoveryWarnings, importModel, loadLocalMaps, loadModel, loadRecentMaps, normalizeJsonUrl, recordRecentMap, saveLocalMap, validateModel } from './storage.ts';
 import type { CatalogModel } from '../domain/catalogModel.ts';
 
 const validModel = (): CatalogModel & { schemaVersion: number } => ({
@@ -109,10 +109,13 @@ test('recovers from syntactically corrupted or structurally invalid local map co
     storage.setItem('enterprise-capacity-mapper:local-maps:v1', '{invalid json');
     assert.deepEqual(loadLocalMaps(), []);
     assert.equal(storage.getItem('enterprise-capacity-mapper:local-maps:v1'), null);
+    assert.deepEqual(consumeStorageRecoveryWarnings(), ['bibliothèque locale']);
+    assert.deepEqual(consumeStorageRecoveryWarnings(), []);
 
     storage.setItem('enterprise-capacity-mapper:recent-maps:v1', JSON.stringify({ not: 'an array' }));
     assert.deepEqual(loadRecentMaps(), []);
     assert.equal(storage.getItem('enterprise-capacity-mapper:recent-maps:v1'), null);
+    assert.deepEqual(consumeStorageRecoveryWarnings(), ['historique des récents']);
   });
 });
 
