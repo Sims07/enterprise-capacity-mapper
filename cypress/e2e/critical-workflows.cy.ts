@@ -7,9 +7,9 @@ const visitFresh = (path = '/'): Cypress.Chainable<Window> => cy.visit(path, {
   },
 });
 
-const openToolsMenu = (): Cypress.Chainable<JQuery<HTMLElement>> => cy.get('[data-testid="tools-menu"]').then($menu => {
-  if (!$menu.hasClass('is-open')) cy.get('[data-testid="tools-menu-toggle"]').click();
-  return $menu;
+const openToolsMenu = (): Cypress.Chainable<unknown> => cy.get('[data-testid="tools-menu"]').then($menu => {
+  if (!$menu.hasClass('is-open')) return cy.get('[data-testid="tools-menu-toggle"]').click();
+  return undefined;
 });
 
 const openWizard = (): void => {
