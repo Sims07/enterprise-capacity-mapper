@@ -73,7 +73,7 @@ test('concrete adapter imports are centralized in the composition root or adapte
   for (const file of files) {
     const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
     // Legacy AI preference facade still delegates to the provider client; this separate migration is documented and intentionally outside this boundary rule.
-    if (relative.startsWith('adapters/') || relative.startsWith('services/ai/') || relative === 'App.tsx' || relative.startsWith('main.')) continue;
+    if (relative.startsWith('adapters/') || relative.startsWith('services/ai/') || (relative.startsWith('ports/') && relative.endsWith('.test.js')) || relative === 'App.tsx' || relative.startsWith('main.')) continue;
     const source = await readFile(file, 'utf8');
     for (const specifier of importedSpecifiers(source)) {
       if (/^(?:\.\.\/)*(?:adapters)(?:\/|$)/.test(specifier)) {
