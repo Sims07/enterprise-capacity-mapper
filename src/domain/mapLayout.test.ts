@@ -84,9 +84,9 @@ test('MapLayout deeply isolates nested DTO values from its input and snapshots',
   const source = draft() as any;
   source.columns[0].metadata = { owner: { team: 'Architecture' } };
   const layout = MapLayout.fromDraft(source);
-  source.columns[0].metadata.owner.team = 'changed input';
-  assert.equal(layout.toDraft().columns[0].metadata.owner.team, 'Architecture');
+  (source.columns[0].metadata as any).owner.team = 'changed input';
+  assert.equal((layout.toDraft().columns[0].metadata as any).owner.team, 'Architecture');
   const snapshot = layout.toDraft();
-  snapshot.columns[0].metadata.owner.team = 'changed snapshot';
+  (snapshot.columns[0].metadata as any).owner.team = 'changed snapshot';
   assert.equal(layout.toDraft().columns[0].metadata.owner.team, 'Architecture');
 });
