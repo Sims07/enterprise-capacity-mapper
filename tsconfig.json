@@ -11,7 +11,11 @@
     "types": [
       "vite/client"
     ],
-    "strict": false
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false
   },
   "include": [
     "src"
