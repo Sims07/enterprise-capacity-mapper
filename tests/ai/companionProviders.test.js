@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sendCompanionMessage } from '../../src/services/ai/companionProviders.js';
+import { sendCompanionMessage } from '../../src/services/ai/companionProviders.ts';
 
 const cartography = {
   name: 'Cartographie de test',
