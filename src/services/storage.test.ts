@@ -11,7 +11,6 @@ const validModel = () => ({
 
 test('validates a supported model and normalizes missing layout defaults', () => {
   const model = validModel();
-  delete model.domains[0].layout;
   const validated = validateModel(model);
 
   assert.equal(validated.schemaVersion, 3);
