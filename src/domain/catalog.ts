@@ -70,6 +70,16 @@ export class Catalog {
     });
   }
 
+  createEmptyMap(name: string, description: string | undefined, layout: unknown): Catalog {
+    return this.with({
+      metadata: { ...(this.model.metadata ?? {}), name, description },
+      layout,
+      domains: [],
+      capabilities: [],
+      applications: [],
+    });
+  }
+
   updateCapabilityPriority(capabilityId: string, priority?: string): Catalog {
     return this.updateCapability(capabilityId, { priority: priority || 'unqualified' });
   }
