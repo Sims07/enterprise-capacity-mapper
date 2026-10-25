@@ -1,11 +1,11 @@
 import type { CatalogModel } from '../../application/catalogUseCases.ts';
-import { createCompanionAiAdapter } from '../ai/companionAdapter.js';
-import { createLocalStorageModelRepository } from '../browser/localStorageRepository.js';
-import { createAppPreferences } from '../browser/appPreferences.js';
-import { createBrowserViewport } from '../browser/browserViewport.js';
-import { createBrowserInteractions } from '../browser/browserInteractions.js';
-import { createMapService } from '../../application/mapService.js';
-import { createNavigationPort } from '../../ports/navigation.js';
+import { createCompanionAiAdapter } from '../ai/companionAdapter.ts';
+import { createLocalStorageModelRepository } from '../browser/localStorageRepository.ts';
+import { createAppPreferences } from '../browser/appPreferences.ts';
+import { createBrowserViewport } from '../browser/browserViewport.ts';
+import { createBrowserInteractions } from '../browser/browserInteractions.ts';
+import { createMapService } from '../../application/mapService.ts';
+import { createNavigationPort } from '../../ports/navigation.ts';
 
 export type FrontendApplication = ReturnType<typeof createFrontendApplication>;
 export type FrontendApplicationOptions = {
