@@ -10,6 +10,8 @@ type ModelMetadata = Record<string, unknown> & { name?: string; updatedAt?: stri
 type LegacyModel = CatalogModel & { schemaVersion: number; metadata?: ModelMetadata };
 type StoredModel = CatalogModel & { schemaVersion: number; metadata?: ModelMetadata };
 
+const metadataOf = (model: CatalogModel): ModelMetadata => (model.metadata && typeof model.metadata === 'object' ? model.metadata as ModelMetadata : {});
+
 export function loadModel(fallback: CatalogModel): CatalogModel {
   try {
     const raw = localStorage.getItem(KEY);
@@ -51,10 +53,9 @@ function legacyModel(): LegacyModel | null {
 export function saveModel(model: CatalogModel): void {
   localStorage.setItem(KEY, JSON.stringify({
     ...normalizeModel(model),
-    metadata: { ...(model.metadata || {}), updatedAt: new Date().toISOString() },
+    metadata: { ...metadataOf(model), updatedAt: new Date().toISOString() },
   }));
 }
-
 export function loadLocalMaps(): MapEntry[] { return loadMapCollection(LOCAL_MAPS_KEY, 'La bibliothèque locale de cartographies est invalide.'); }
 export function saveLocalMap({ id, name, model }: { id?: string; name: string; model: CatalogModel }): MapEntry {
   const cleanName = name.trim(); if (!cleanName) throw new Error('Le nom de la cartographie est obligatoire.');
@@ -65,14 +66,14 @@ export function saveLocalMap({ id, name, model }: { id?: string; name: string; m
 export function loadRecentMaps(): MapEntry[] { return loadMapCollection(RECENT_MAPS_KEY, 'La liste des cartographies récentes est invalide.'); }
 export function removeRecentMap(id: string): MapEntry[] { const next = loadRecentMaps().filter(entry => entry.id !== id); localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify(next)); return next; }
 export function recordRecentMap({ id, name, model }: { id: string; name: string; model: CatalogModel }): MapEntry {
-  const entries = loadRecentMaps(); const metadata = model.metadata as ModelMetadata | undefined;
-  const recent: MapEntry = { id, name: name.trim() || metadata?.name || 'Cartographie sans nom', model: validateModel(model), openedAt: new Date().toISOString() };
+  const entries = loadRecentMaps(); const metadata = metadataOf(model);
+  const recent: MapEntry = { id, name: name.trim() || metadata.name || 'Cartographie sans nom', model: validateModel(model), openedAt: new Date().toISOString() };
   const next = [recent, ...entries.filter(entry => entry.id !== id)].slice(0, 10); localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify(next)); return recent;
 }
 export function updateRecentMap({ id, name, model }: { id: string; name: string; model: CatalogModel }): MapEntry {
   const entries = loadRecentMaps(); const index = entries.findIndex(entry => entry.id === id); if (index < 0) return recordRecentMap({ id, name, model });
-  const metadata = model.metadata as ModelMetadata | undefined;
-  const recent = { ...entries[index], name: name.trim() || metadata?.name || 'Cartographie sans nom', model: validateModel(model) }; entries[index] = recent;
+  const metadata = metadataOf(model);
+  const recent = { ...entries[index], name: name.trim() || metadata.name || 'Cartographie sans nom', model: validateModel(model) }; entries[index] = recent;
   localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify(entries)); return recent;
 }
 function loadMapCollection(key: string, errorMessage: string): MapEntry[] {
