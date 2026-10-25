@@ -32,11 +32,13 @@ jobs:
         run: npm install
       - name: Install coverage tooling
         run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
+      - name: Archive shared dependencies and Cypress binary
+        run: tar -czf shared-dependencies.tar.gz node_modules ~/.cache/Cypress
       - name: Upload shared dependencies
         uses: actions/upload-artifact@v4
         with:
           name: node-dependencies
-          path: node_modules/
+          path: shared-dependencies.tar.gz
           if-no-files-found: error
           retention-days: 1
 
@@ -76,6 +78,8 @@ jobs:
         with:
           name: node-dependencies
           path: .
+      - name: Restore shared dependencies
+        run: tar -xzf shared-dependencies.tar.gz
       - name: Run deterministic unit tests
         run: npm run test:unit
       - name: Run TypeScript typecheck
@@ -137,6 +141,8 @@ jobs:
         with:
           name: node-dependencies
           path: .
+      - name: Restore shared dependencies
+        run: tar -xzf shared-dependencies.tar.gz
       - name: Download instrumented application
         uses: actions/download-artifact@v4
         with:
@@ -231,6 +237,8 @@ jobs:
         with:
           name: node-dependencies
           path: .
+      - name: Restore shared dependencies
+        run: tar -xzf shared-dependencies.tar.gz
       - name: Download coverage from all shards
         uses: actions/download-artifact@v4
         with:
