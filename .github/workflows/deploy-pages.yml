@@ -45,7 +45,7 @@ jobs:
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
       - name: Install project dependencies
-        run: npm ci
+        run: npm install
       - name: Run deterministic unit tests
         run: npm run test:unit
       - name: Run TypeScript typecheck
@@ -100,7 +100,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install project dependencies
-        run: npm ci
+        run: npm install
       - name: Install coverage tooling
         run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
       - name: Download instrumented application
@@ -191,7 +191,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install project dependencies
-        run: npm ci
+        run: npm install
       - name: Download coverage from all shards
         uses: actions/download-artifact@v4
         with:
