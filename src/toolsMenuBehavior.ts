@@ -10,7 +10,7 @@ const closeToolsMenuOnEscape = event => {
   const menu = document.querySelector('[data-testid="tools-menu"]');
   if (menu?.hasAttribute('open')) {
     menu.removeAttribute('open');
-    menu.querySelector('[data-testid="tools-menu-toggle"]')?.focus();
+    menu.querySelector<HTMLElement>('[data-testid="tools-menu-toggle"]')?.focus();
   }
 };
 
