@@ -12,11 +12,12 @@ function normalizePath(value) {
   if (candidate.startsWith('file://')) {
     try { candidate = fileURLToPath(candidate); } catch { /* retain original */ }
   }
-  candidate = candidate.replace(/\\\\/g, '/');
-  const srcMatch = candidate.match(/(?:^|\\/)src\\/(.*)$/);
-  if (srcMatch) return `src/${srcMatch[1]}`;
-  candidate = candidate.replace(/^https?:\\/\\/[^/]+\\//, '').replace(/^\\.\\//, '');
-  return path.posix.normalize(candidate);
+  candidate = candidate.split(String.fromCharCode(92)).join('/');
+  const marker = '/src/';
+  const sourceIndex = candidate.lastIndexOf(marker);
+  if (sourceIndex >= 0) return path.posix.normalize(candidate.slice(sourceIndex + 1));
+  if (candidate.startsWith('src/')) return path.posix.normalize(candidate);
+  return path.posix.normalize(candidate.replace(/^\.\//, ''));
 }
 
 function readReport({ name, file }) {
