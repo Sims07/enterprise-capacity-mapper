@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { analyzeCartography } from '../services/ai/cartographyAnalysis.js';
-import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences } from '../services/ai/companionProviders.js';
-import { createCompanionAiAdapter } from '../adapters/ai/companionAdapter.js';
+import { analyzeCartography } from '../services/ai/cartographyAnalysis.ts';
+import { loadCompanionProviderPreferences, PROVIDER_DEFAULTS, saveCompanionProviderPreferences } from '../services/ai/companionProviders.ts';
+import { createCompanionAiAdapter } from '../adapters/ai/companionAdapter.ts';
 
 const PROMPTS = [
   { id: 'overview', label: 'Évaluer la cartographie', description: 'Obtenir une vue d’ensemble des points à examiner.', icon: '✦' },
