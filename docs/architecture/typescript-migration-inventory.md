@@ -68,6 +68,13 @@ Migrer ensuite, par périmètre fonctionnel :
 
 Chaque composant devra typer ses props et les contrats échangés avec les use cases/adapters, sans introduire de `any` global.
 
+## État du lot 3
+
+- `index.html` charge directement `src/main.tsx`.
+- `main.tsx` et `App.tsx` sont les seuls points d'entrée applicatifs ; les anciens `main.jsx` et `App.jsx` ont été supprimés.
+- Les six composants React listés ci-dessus sont des fichiers TSX de première classe ; leurs anciens shims JSX ont été supprimés et `App.tsx` importe explicitement les fichiers TSX.
+- Les fichiers JavaScript de tests et les shims des modules du lot 2 restent temporaires, hors périmètre de suppression de ce lot. Le renforcement de `strict` et la suppression de ces shims doivent être traités dans une étape séparée avec typecheck complet.
+
 ## Règles de bascule
 
 1. Créer le `.ts`/`.tsx` à partir du fichier source complet vérifié.

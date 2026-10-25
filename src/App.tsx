@@ -25,12 +25,12 @@ import {
   updateDomain,
 } from './application/catalogUseCases.js';
 import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.js';
-import NewMapWizard from './components/NewMapWizard.jsx';
-import TogafGuide from './components/TogafGuide.jsx';
-import CoverageTree from './components/CoverageTree.jsx';
-import Dashboard from './components/Dashboard.jsx';
-import PwaUpdateNotice from './components/PwaUpdateNotice.jsx';
-import CartographerCompanion from './components/CartographerCompanion.jsx';
+import NewMapWizard from './components/NewMapWizard.tsx';
+import TogafGuide from './components/TogafGuide.tsx';
+import CoverageTree from './components/CoverageTree.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
+import CartographerCompanion from './components/CartographerCompanion.tsx';
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
