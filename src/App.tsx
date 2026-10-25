@@ -498,15 +498,15 @@ function App() {
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
-      update({ capabilities: updateCapability({ capabilities: model.capabilities, capabilityId: editingCapabilityId, form }) });
+      update({ capabilities: updateCapability({ domains: model.domains, capabilities: model.capabilities, capabilityId: editingCapabilityId, form }) });
       notify('Capacité N1 modifiée');
     }
     if (modal === 'capability') {
-      update({ capabilities: createCapability({ capabilities: model.capabilities, form, id: uid('l1') }) });
+      update({ capabilities: createCapability({ domains: model.domains, capabilities: model.capabilities, form, id: uid('l1') }) });
       notify('Capacité N1 créée');
     }
     if (modal === 'app') {
-      update({ applications: createApplication({ applications: apps, form, id: uid('app') }) });
+      update({ applications: createApplication({ applications: apps, capabilities: model.capabilities, form, id: uid('app') }) });
       notify('Application créée');
     }
     setModal(null);
