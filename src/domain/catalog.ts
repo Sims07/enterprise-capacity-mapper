@@ -130,7 +130,7 @@ export class Catalog {
     const name = Catalog.requireName(application.name, 'Le nom de l’application est obligatoire.');
     Catalog.requireUniqueId(this.model.applications, application.id, 'application');
     const capabilityIds = Catalog.unique(application.capabilityIds ?? []);
-    capabilityIds.forEach(id => this.requireCapability(id));
+    capabilityIds.forEach(id => this.requireMappedTarget(id));
     return this.with({
       applications: [...this.model.applications, {
         ...application,
@@ -148,7 +148,7 @@ export class Catalog {
     const capabilityIds = changes.capabilityIds === undefined
       ? current.capabilityIds
       : Catalog.unique(changes.capabilityIds);
-    capabilityIds?.forEach(id => this.requireCapability(id));
+    capabilityIds?.forEach(id => this.requireMappedTarget(id));
     return this.with({
       applications: this.model.applications.map(application => application.id === applicationId
         ? {
@@ -163,24 +163,33 @@ export class Catalog {
   }
 
   linkApplicationToCapability(applicationId: string, capabilityId: string): Catalog {
-    const application = this.requireApplication(applicationId);
     this.requireCapability(capabilityId);
+    return this.linkApplicationToMappedItem(applicationId, capabilityId);
+  }
+
+  unlinkApplicationFromCapability(applicationId: string, capabilityId: string): Catalog {
+    return this.unlinkApplicationFromMappedItem(applicationId, capabilityId);
+  }
+
+  linkApplicationToMappedItem(applicationId: string, targetId: string): Catalog {
+    const application = this.requireApplication(applicationId);
+    this.requireMappedTarget(targetId);
     const capabilityIds = application.capabilityIds ?? [];
-    if (capabilityIds.includes(capabilityId)) return this;
+    if (capabilityIds.includes(targetId)) return this;
     return this.with({
       applications: this.model.applications.map(candidate => candidate.id === applicationId
-        ? { ...copyApplication(candidate), capabilityIds: [...capabilityIds, capabilityId] }
+        ? { ...copyApplication(candidate), capabilityIds: [...capabilityIds, targetId] }
         : copyApplication(candidate)),
     });
   }
 
-  unlinkApplicationFromCapability(applicationId: string, capabilityId: string): Catalog {
+  unlinkApplicationFromMappedItem(applicationId: string, targetId: string): Catalog {
     const application = this.requireApplication(applicationId);
     const capabilityIds = application.capabilityIds ?? [];
-    if (!capabilityIds.includes(capabilityId)) return this;
+    if (!capabilityIds.includes(targetId)) return this;
     return this.with({
       applications: this.model.applications.map(candidate => candidate.id === applicationId
-        ? { ...copyApplication(candidate), capabilityIds: capabilityIds.filter(id => id !== capabilityId) }
+        ? { ...copyApplication(candidate), capabilityIds: capabilityIds.filter(id => id !== targetId) }
         : copyApplication(candidate)),
     });
   }
@@ -191,7 +200,7 @@ export class Catalog {
       .filter(capability => capability.domainId === domainId)
       .map(capability => capability.id));
     // Keep the established depth-1 behaviour; at depth 2 all N1 links are cleaned.
-    const removedRelationIds = new Set(depth === 1 ? [domainId] : capabilityIds);
+    const removedRelationIds = new Set([domainId, ...capabilityIds]);
     return this.with({
       domains: this.model.domains.filter(domain => domain.id !== domainId),
       capabilities: this.model.capabilities.filter(capability => capability.domainId !== domainId),
@@ -216,6 +225,10 @@ export class Catalog {
     const capability = this.model.capabilities.find(candidate => candidate.id === capabilityId);
     if (!capability) throw new Error(`Capacité introuvable : ${capabilityId}.`);
     return capability;
+  }
+
+  private requireMappedTarget(targetId: string): Domain | Capability {
+    return this.model.layout?.depth === 1 ? this.requireDomain(targetId) : this.requireCapability(targetId);
   }
 
   private requireApplication(applicationId: string): Application {
