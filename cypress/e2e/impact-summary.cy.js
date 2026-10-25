@@ -1,8 +1,10 @@
 describe('Lot 3 — synthèse de l’analyse d’impact', () => {
   const resetApp = () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   };
 
   const openImpact = () => {
