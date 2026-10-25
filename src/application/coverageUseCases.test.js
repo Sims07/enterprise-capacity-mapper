@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveCoverageOverview, getCapabilityCoverageState } from './coverageUseCases.js';
+import { deriveCoverageOverview, getCapabilityCoverageState } from './coverageUseCases.ts';
 
 const mappedItems = [{ id: 'cap-1' }, { id: 'cap-2' }, { id: 'cap-3' }, { id: 'domain-1' }];
 const applications = [

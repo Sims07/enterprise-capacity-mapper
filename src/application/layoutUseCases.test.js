@@ -9,7 +9,7 @@ import {
   removeLayoutDraftItem,
   renameLayoutDraftItem,
   renameLayoutZone,
-} from './layoutUseCases.js';
+} from './layoutUseCases.ts';
 
 const draft = () => ({
   columns: [{ id: 'c1', name: 'Business', order: 0 }, { id: 'c2', name: 'Support', order: 1 }],

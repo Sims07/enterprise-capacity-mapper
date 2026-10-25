@@ -5,7 +5,7 @@ import {
   linkPickedApplications,
   prepareLinkedApplications,
   unassignApplicationFromCapability,
-} from './relationshipUseCases.js';
+} from './relationshipUseCases.ts';
 
 const applications = () => [
   { id: 'app1', capabilityIds: ['cap1'] },
