@@ -43,7 +43,7 @@ test('editing a target relation adds and removes it from checked applications on
     applications: source, mappedItems, link: { kind: 'target', id: 'cap2' },
     checkedIds: ['app1', 'app3'],
     domains,
-    capabilities, domains, capabilities,
+    capabilities,
   });
   assert.deepEqual(result[0].capabilityIds, ['cap1', 'cap2']);
   assert.deepEqual(result[1].capabilityIds, []);
