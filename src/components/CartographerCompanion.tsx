@@ -152,7 +152,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     const domains = Array.isArray(model?.domains) ? model.domains : [];
     const depth = model?.layout?.depth === 1 ? 1 : 2;
     const targets = depth === 1 ? domains : capabilities;
-    const targetById = new Map<string, (typeof targets)[number]>(targets.map(item => [item.id, item]));
+    const targetById = new Map<string, (typeof targets)[number]>(targets.map(item => [item.id, item] as const));
     const matchedApplications = applications.filter(app => {
       const name = normalizeText(app?.name);
       return name.length > 0 && normalizedQuestion.includes(name);
