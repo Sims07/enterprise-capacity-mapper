@@ -41,7 +41,9 @@ test('editing a target relation adds and removes it from checked applications on
   const source = applications();
   const result = prepareLinkedApplications({
     applications: source, mappedItems, link: { kind: 'target', id: 'cap2' },
-    checkedIds: ['app1', 'app3'], domains, capabilities,
+    checkedIds: ['app1', 'app3'],
+    domains,
+    capabilities, domains, capabilities,
   });
   assert.deepEqual(result[0].capabilityIds, ['cap1', 'cap2']);
   assert.deepEqual(result[1].capabilityIds, []);
@@ -55,7 +57,9 @@ test('editing an application replaces only mapped relations and preserves unrela
   ];
   const result = prepareLinkedApplications({
     applications: source, mappedItems, link: { kind: 'application', id: 'app1' },
-    checkedIds: ['cap2'], domains, capabilities,
+    checkedIds: ['cap2'],
+    domains,
+    capabilities, domains, capabilities,
   });
   assert.deepEqual(result[0].capabilityIds, ['legacy', 'cap2']);
   assert.deepEqual(result[1].capabilityIds, ['cap1']);
@@ -65,7 +69,9 @@ test('returns original application list when no relationship changes are needed'
   const source = [{ id: 'app1', name: 'Application 1', capabilityIds: ['cap1'] }];
   const result = prepareLinkedApplications({
     applications: source, mappedItems: [{ id: 'cap1' }], link: { kind: 'target', id: 'cap1' },
-    checkedIds: ['app1'], domains, capabilities,
+    checkedIds: ['app1'],
+    domains,
+    capabilities, domains, capabilities,
   });
   assert.deepEqual(result[0].capabilityIds, ['cap1']);
 });
