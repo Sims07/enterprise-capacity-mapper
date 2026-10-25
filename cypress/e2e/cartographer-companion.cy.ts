@@ -186,3 +186,5 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-provider-key"]').should('have.value', '');
   });
 });
+
+export {};

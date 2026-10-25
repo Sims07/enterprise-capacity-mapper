@@ -378,3 +378,5 @@ describe('Relations applications ↔ capacités', () => {
   });
 
 });
+
+export {};

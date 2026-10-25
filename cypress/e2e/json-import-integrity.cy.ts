@@ -58,3 +58,5 @@ describe('Lot 4 — intégrité de l’import JSON', () => {
       .should('contain.text', 'Salesforce CRM');
   });
 });
+
+export {};

@@ -25,3 +25,5 @@ describe('Relations — hover N1 en Dark Linear', () => {
 
   });
 });
+
+export {};

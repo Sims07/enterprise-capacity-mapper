@@ -7,7 +7,12 @@ const inputs = [
   { name: 'cypress', file: 'coverage/coverage-final.json' },
 ];
 
-function normalizePath(value) {
+interface CoverageFile {
+  statementMap?: Record<string, { start?: { line?: number } }>;
+  s?: Record<string, number>;
+}
+
+function normalizePath(value: string): string {
   let candidate = String(value);
   if (candidate.startsWith('file://')) {
     try { candidate = fileURLToPath(candidate); } catch { /* retain original */ }
@@ -20,9 +25,9 @@ function normalizePath(value) {
   return path.posix.normalize(candidate.replace(/^\.\//, ''));
 }
 
-function readReport({ name, file }) {
+function readReport({ name, file }: { name: string; file: string }): Map<string, CoverageFile> {
   if (!fs.existsSync(file)) throw new Error(`Missing ${file}; cannot calculate consolidated coverage.`);
-  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, CoverageFile>;
   const normalized = new Map();
   for (const [filename, data] of Object.entries(raw)) {
     const key = normalizePath(filename);
@@ -33,7 +38,7 @@ function readReport({ name, file }) {
   return normalized;
 }
 
-function lineHits(fileMap) {
+function lineHits(fileMap: CoverageFile | undefined): Map<number, number> {
   const result = new Map();
   if (!fileMap?.statementMap || !fileMap?.s) return result;
   for (const [id, statement] of Object.entries(fileMap.statementMap)) {

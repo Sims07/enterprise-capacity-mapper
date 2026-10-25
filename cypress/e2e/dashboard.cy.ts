@@ -306,3 +306,5 @@ describe('Dashboard de couverture', () => {
   });
 
 });
+
+export {};

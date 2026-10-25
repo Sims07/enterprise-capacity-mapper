@@ -27,3 +27,5 @@ describe('Navigation analyse → relations', () => {
     cy.get('[data-testid="return-to-dashboard"]').should('not.be.visible');
   });
 });
+
+export {};

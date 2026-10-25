@@ -85,7 +85,7 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
     cy.window().then(win => {
       cy.stub(win.URL, 'createObjectURL').returns('blob:coverage-test');
       cy.stub(win.URL, 'revokeObjectURL');
-      cy.stub(win.HTMLAnchorElement.prototype, 'click').callsFake(function () {
+      cy.stub(win.HTMLAnchorElement.prototype, 'click').callsFake(function (this: HTMLAnchorElement) {
         expect(this.href).to.contain('blob:coverage-test');
         const parts = this.download.split('-');
         expect(parts[0]).to.equal('enterprise');
@@ -102,3 +102,5 @@ describe('Lot 7 — import/export et bibliothèque locale', () => {
     cy.get('@downloadClick').should('have.been.calledOnce');
   });
 });
+
+export {};
