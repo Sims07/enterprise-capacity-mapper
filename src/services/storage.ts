@@ -83,9 +83,9 @@ function loadMapCollection(key: string, errorMessage: string): MapEntry[] {
 }
 export function exportModel(model: CatalogModel): void { const blob = new Blob([JSON.stringify(model, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `enterprise-capacity-mapper-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url); }
 export function validateModel(model: CatalogModel): CatalogModel {
-  model = normalizeModel(model);
-  const candidate = model as CatalogModel & { schemaVersion?: number };
-  if (!candidate || candidate.schemaVersion !== 3 || !Array.isArray(model.domains) || !Array.isArray(model.capabilities) || !Array.isArray(model.applications)) throw new Error('Format de cartographie invalide ou version non supportée.');
+  const candidate = model as (CatalogModel & { schemaVersion?: number }) | null | undefined;
+  if (!candidate || candidate.schemaVersion !== 3 || !Array.isArray(candidate.domains) || !Array.isArray(candidate.capabilities) || !Array.isArray(candidate.applications)) throw new Error('Format de cartographie invalide ou version non supportée.');
+  model = normalizeModel(candidate as CatalogModel);
   const domainIds = new Set(model.domains.map(x => x.id)); const capIds = new Set(model.capabilities.map(x => x.id));
   if (model.capabilities.some(x => !domainIds.has(x.domainId))) throw new Error('Une capacité référence un domaine inexistant.');
   const relationTargetIds = (model.layout as { depth?: number } | undefined)?.depth === 1 ? domainIds : capIds;
