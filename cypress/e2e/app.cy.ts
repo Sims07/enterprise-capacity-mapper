@@ -42,17 +42,12 @@ describe('Smoke tests — application et navigation', () => {
     cy.get('.coverage-tree').should('be.visible');
   });
 
-  it('reste utilisable sur un viewport mobile sans débordement horizontal de page', () => {
+  it('reste utilisable sur mobile sans débordement de page et permet le défilement interne', () => {
     cy.viewport(390, 844);
     visitFresh();
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('.map-filter-bar').should('be.visible');
     assertNoHorizontalPageOverflow();
-  });
-
-  it('permet le défilement interne de la cartographie sur mobile', () => {
-    cy.viewport(390, 844);
-    visitFresh();
     cy.get('.map-matrix').should('be.visible').then($map => {
       const element = $map[0];
       expect(element.scrollWidth).to.be.at.least(element.clientWidth);

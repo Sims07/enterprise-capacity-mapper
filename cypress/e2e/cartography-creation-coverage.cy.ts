@@ -1,9 +1,9 @@
 describe('Lot 6 — création et arbre de cartographie', () => {
-  const fresh = () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
-  };
+  const fresh = () => cy.visit('/', {
+    onBeforeLoad(win) {
+      win.localStorage.clear();
+    },
+  });
 
   const openWizard = () => {
     cy.get('[data-testid="tools-menu-toggle"]').click();

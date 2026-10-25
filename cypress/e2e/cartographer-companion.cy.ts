@@ -1,8 +1,10 @@
 describe('Compagnon cartographe — interface locale', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   });
 
   it('ouvre le panneau accessible et présente les deux modes', () => {
