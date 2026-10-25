@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createNavigationPort } from './navigation.js';
+import { createNavigationPort } from './navigation.ts';
 
 const createBrowserHistory = () => {
   const calls = [];
