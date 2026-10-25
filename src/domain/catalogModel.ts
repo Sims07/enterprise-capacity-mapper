@@ -1,4 +1,4 @@
-/** Core cartography data structures. Kept independent from UI and infrastructure. */
+/** Data transfer structures used at the persistence/application boundary. */
 export type Layout = { columnId?: string; layerId?: string; columnSpan?: number; [key: string]: unknown };
 export type Domain = { id: string; code: string; name: string; description?: string; color?: string; layout?: Layout; [key: string]: unknown };
 export type Capability = { id: string; domainId: string; code?: string; name: string; description?: string; priority?: string; [key: string]: unknown };
