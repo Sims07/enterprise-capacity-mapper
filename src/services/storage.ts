@@ -6,8 +6,9 @@ const RECENT_MAPS_KEY = 'enterprise-capacity-mapper:recent-maps:v1';
 const LEGACY = ['ea_canvas_l0', 'ea_canvas_l1', 'ea_canvas_apps'];
 
 type MapEntry = { id: string; name: string; model: CatalogModel; updatedAt?: string; openedAt?: string };
-type LegacyModel = CatalogModel & { schemaVersion: number; metadata?: Record<string, unknown> };
-type StoredModel = CatalogModel & { schemaVersion?: number; metadata?: Record<string, unknown> };
+type ModelMetadata = Record<string, unknown> & { name?: string; updatedAt?: string };
+type LegacyModel = CatalogModel & { schemaVersion: number; metadata?: ModelMetadata };
+type StoredModel = CatalogModel & { schemaVersion: number; metadata?: ModelMetadata };
 
 export function loadModel(fallback: CatalogModel): CatalogModel {
   try {
@@ -64,12 +65,14 @@ export function saveLocalMap({ id, name, model }: { id?: string; name: string; m
 export function loadRecentMaps(): MapEntry[] { return loadMapCollection(RECENT_MAPS_KEY, 'La liste des cartographies récentes est invalide.'); }
 export function removeRecentMap(id: string): MapEntry[] { const next = loadRecentMaps().filter(entry => entry.id !== id); localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify(next)); return next; }
 export function recordRecentMap({ id, name, model }: { id: string; name: string; model: CatalogModel }): MapEntry {
-  const entries = loadRecentMaps(); const recent: MapEntry = { id, name: name.trim() || String(model.metadata?.name || 'Cartographie sans nom'), model: validateModel(model), openedAt: new Date().toISOString() };
+  const entries = loadRecentMaps(); const metadata = model.metadata as ModelMetadata | undefined;
+  const recent: MapEntry = { id, name: name.trim() || metadata?.name || 'Cartographie sans nom', model: validateModel(model), openedAt: new Date().toISOString() };
   const next = [recent, ...entries.filter(entry => entry.id !== id)].slice(0, 10); localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify(next)); return recent;
 }
 export function updateRecentMap({ id, name, model }: { id: string; name: string; model: CatalogModel }): MapEntry {
   const entries = loadRecentMaps(); const index = entries.findIndex(entry => entry.id === id); if (index < 0) return recordRecentMap({ id, name, model });
-  const recent = { ...entries[index], name: name.trim() || String(model.metadata?.name || 'Cartographie sans nom'), model: validateModel(model) }; entries[index] = recent;
+  const metadata = model.metadata as ModelMetadata | undefined;
+  const recent = { ...entries[index], name: name.trim() || metadata?.name || 'Cartographie sans nom', model: validateModel(model) }; entries[index] = recent;
   localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify(entries)); return recent;
 }
 function loadMapCollection(key: string, errorMessage: string): MapEntry[] {
