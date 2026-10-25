@@ -38,7 +38,7 @@ Point de composition : choisit et injecte les adaptateurs
 
 La flèche représente une dépendance de code, pas le flux d'exécution. Le code applicatif peut appeler un port ; l'adaptateur concret est fourni de l'extérieur. Le domaine ne doit pas importer React, des composants UI, des API navigateur ni des adaptateurs concrets.
 
-Un port peut être entrant (par exemple une commande exposée à l'UI) ou sortant (par exemple un dépôt de cartographies). On ne crée pas un port artificiel autour de chaque fonction interne.
+Un port peut être entrant (par exemple une commande exposée à l'UI) ou sortant (par exemple un dépôt de cartographies). Les contrats ne doivent pas utiliser directement des types de plateforme comme `File`, `History` ou `PopStateEvent` : préférer une forme minimale décrivant les capacités requises, puis faire la traduction dans l'adaptateur. On ne crée pas un port artificiel autour de chaque fonction interne.
 
 ## 3. Règles TypeScript : `interface`, `type`, `satisfies`, `implements`
 
@@ -56,7 +56,7 @@ Un port doit :
 
 Conserver les alias `type` pour les modèles de données, états, unions discriminées, paramètres et résultats, notamment lorsque les formes sont composées ou dérivées d'autres types.
 
-Ne pas transformer automatiquement tous les `type` en `interface`, ni les données JSON en classes. Le format persistant reste un contrat de données versionné ; un type TypeScript seul ne valide pas des données reçues au runtime. Les données importées doivent continuer à passer par la validation/normalisation existante.
+Ne pas transformer automatiquement tous les `type` en `interface`, ni les données JSON en classes. Le format persistant reste un contrat de données versionné ; un type TypeScript seul ne valide pas des données reçues au runtime. Les données importées doivent continuer à passer par la validation/normalisation existante. Les types du modèle de cartographie vivent dans `src/domain/catalogModel.ts` et ne dépendent pas de la couche application.
 
 ### 3.3 Adaptateur simple : objet typé avec `satisfies`
 
@@ -139,6 +139,7 @@ Les règles TOGAF/capability mapping ne doivent pas être modifiées par un refa
 | Besoin | Port / contrat | Adaptateur actuel | Évolution possible |
 |---|---|---|---|
 | Cartographies et persistance | `ModelRepository` | LocalStorage + services de stockage | IndexedDB, fichier local, source distante |
+| Modèle métier | `src/domain/catalogModel.ts` | Types purs, sans dépendance de plateforme | Ajouter des opérations métier pures et des invariants testés au domaine |
 | Navigation | `NavigationPort` | History API du navigateur | autre shell/runtime |
 | Compagnon IA | `AiCompanionPort` | client fournisseur configuré | autre fournisseur ou faux adaptateur de test |
 | Préférences et viewport | à maintenir derrière les frontières existantes pertinentes | API navigateur | autre runtime si nécessaire |
