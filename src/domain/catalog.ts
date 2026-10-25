@@ -4,7 +4,11 @@ const normalizeName = (name: string): string => name.trim();
 const copyApplication = (application: Application): Application => ({ ...application, capabilityIds: application.capabilityIds ? [...application.capabilityIds] : application.capabilityIds });
 
 export class Catalog {
-  private constructor(private readonly model: CatalogModel) {}
+  private readonly model: CatalogModel;
+
+  private constructor(model: CatalogModel) {
+    this.model = model;
+  }
 
   static fromModel(model: CatalogModel): Catalog { return new Catalog(Catalog.cloneModel(model)); }
   toModel(): CatalogModel { return Catalog.cloneModel(this.model); }
