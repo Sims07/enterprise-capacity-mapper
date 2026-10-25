@@ -71,7 +71,7 @@ test('returns original application list when no relationship changes are needed'
     applications: source, mappedItems: [{ id: 'cap1' }], link: { kind: 'target', id: 'cap1' },
     checkedIds: ['app1'],
     domains,
-    capabilities, domains, capabilities,
+    capabilities,
   });
   assert.deepEqual(result[0].capabilityIds, ['cap1']);
 });
