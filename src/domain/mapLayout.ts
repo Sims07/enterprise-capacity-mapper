@@ -92,9 +92,12 @@ export class MapLayout {
 
   prepareForSave(layout: MapLayoutData, domains: DomainPlacement[]): PreparedLayout | null {
     const draft = this.draft;
+    const uniqueIds = (items: { id: string }[]) => items.every(item => item.id.trim()) && new Set(items.map(item => item.id)).size === items.length;
     if (
       !draft.columns.length ||
       !draft.layers.length ||
+      !uniqueIds(draft.columns) ||
+      !uniqueIds(draft.layers) ||
       [...draft.columns, ...draft.layers, ...draft.zones].some(item => !item.name.trim())
     ) return null;
 
@@ -105,11 +108,18 @@ export class MapLayout {
     const zones = draft.zones
       .filter(zone => columnIds.has(zone.columnId) && layerIds.has(zone.layerId))
       .map(zone => ({ ...zone, name: zone.name.trim() }));
-    const zoneKeys = new Set(zones.map(zone => `${zone.columnId}:${zone.layerId}`));
+    const zoneKeys = new Set<string>();
+    for (const zone of zones) {
+      const key = `${zone.columnId}:${zone.layerId}`;
+      if (zoneKeys.has(key)) return null;
+      zoneKeys.add(key);
+    }
 
     columns.forEach(column => layers.forEach(layer => {
-      if (!zoneKeys.has(`${column.id}:${layer.id}`)) {
-        zones.push({ id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name });
+      const key = `${column.id}:${layer.id}`;
+      if (!zoneKeys.has(key)) {
+        zones.push({ id: key, columnId: column.id, layerId: layer.id, name: column.name });
+        zoneKeys.add(key);
       }
     }));
 
