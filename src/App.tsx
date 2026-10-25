@@ -527,7 +527,7 @@ function App() {
   const togglePicked = id => setPickedApps(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const linkPicked = targetId => {
     if (!pickedValid.length) return;
-    update({ applications: linkPickedApplications(apps, pickedValid, targetId) });
+    update({ applications: linkPickedApplications(apps, pickedValid, targetId, model.domains, model.capabilities) });
     setPickedApps([]);
     notify(`${pickedValid.length} application(s) reliée(s)`);
   };
