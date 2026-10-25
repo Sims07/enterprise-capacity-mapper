@@ -398,4 +398,87 @@ describe('Critical user workflows — regression coverage', () => {
       });
     });
   });
+
+  it('affiche un assistant Nouvelle cartographie stylé et adapté au mobile', () => {
+    cy.visit('/');
+      cy.viewport(1280, 800);
+      openToolsMenu();
+      cy.get('[data-testid="new-map-button"]').click();
+      cy.get('.modal.wizard')
+        .should('be.visible')
+        .and('have.css', 'border-radius', '16px')
+        .and('have.css', 'width', '920px');
+      cy.get('.wizard-steps li.current').should('have.attr', 'aria-current', 'step');
+      cy.get('[data-testid="template-capability-map"]')
+        .should('have.attr', 'aria-pressed', 'true')
+        .and('be.visible');
+      cy.contains('button', 'Suivant').click();
+      cy.get('.axis-editor').should('have.length', 2).and('have.css', 'border-radius', '11px');
+      cy.get('[data-testid="wizard-preview"]').should('be.visible');
+
+      cy.viewport(390, 740);
+      cy.get('.modal.wizard').should('be.visible').then(modal => {
+        const rect = modal[0].getBoundingClientRect();
+        expect(rect.left).to.be.at.least(0);
+        expect(rect.right).to.be.at.most(390);
+      });
+      cy.get('.wizard-structure').should('have.css', 'grid-template-columns').then(columns => {
+        expect(columns).to.match(/^\d+(?:\.\d+)?px$/);
+      });
+      cy.get('.wizard .wizard-footer').should('be.visible');
+  });
+
+  it('propose quatre intentions et affiche la synthèse adaptée à chacune', () => {
+    cy.get('[data-testid="dashboard-view-overview"]').should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="dashboard-overview-intro"]').should('be.visible');
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-attention"]').click();
+    cy.get('[data-testid="dashboard-gap-priorities"]').should('be.visible');
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('not.exist');
+    cy.get('[data-testid="dashboard-view-impact"]').click();
+    cy.get('[data-testid="dashboard-coverage-heatmap"]').should('be.visible');
+    cy.get('[data-testid="dashboard-impact-empty"]').should('be.visible');
+  });
+
+  it('combine recherche et domaine N0 puis réinitialise les filtres', () => {
+    cy.get('[data-testid="dashboard-view-coverage"]').click();
+    cy.get('[data-testid="dashboard-heatmap-search"]').type('FIN-05');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '0 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-search"]').clear().type('Facturation');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-domain-filter"]').select('l0-2');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '1 / 10 éléments');
+    cy.get('[data-testid="dashboard-filter-results"] .dashboard-target').should('have.length', 1).and('contain.text', 'Facturation');
+    cy.get('[data-testid="dashboard-heatmap-reset"]').click();
+    cy.get('[data-testid="dashboard-heatmap-search"]').should('have.value', '');
+    cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'all');
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'all');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '10 / 10 éléments');
+  });
+
+  it('permet de filtrer la heatmap depuis la synthèse d’un domaine N0', () => {
+    cy.get('[data-testid="dashboard-view-overview"]').click();
+    cy.get('[data-testid="dashboard-domain-drilldown-l0-2"]').click();
+    cy.get('[data-testid="dashboard-heatmap-domain-filter"]').should('have.value', 'l0-2');
+    cy.get('[data-testid="dashboard-heatmap-result-count"]').should('contain.text', '3 / 10 éléments');
+    cy.get('[data-testid="dashboard-heatmap-search"]').should('have.value', '');
+    cy.get('[data-testid="dashboard-heatmap-status-filter"]').should('have.value', 'all');
+  });
+
+  it('affiche les récents même si la bibliothèque de sauvegardes est corrompue', () => {
+    visitFresh();
+
+    cy.window().then(win => {
+      win.localStorage.setItem('enterprise-capacity-mapper:local-maps:v1', '{json invalide');
+    });
+    cy.get('[data-testid="primary-library"]').click();
+
+    cy.get('[data-testid="library-page"]').should('be.visible');
+    cy.get('[data-testid="saved-maps-empty"]').should('be.visible');
+    cy.get('[data-testid="recent-maps-list"]').should('be.visible');
+    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
+  });
 });
