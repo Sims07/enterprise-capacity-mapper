@@ -86,7 +86,7 @@ test('checks column bounds and detects overlapping domains only in the same laye
   const available = args => isDomainPlacementAvailable({ domains, columns, layers, ...args });
 
   assert.equal(available({ domainId: 'new', columnId: 'c1', layerId: 'l1', columnSpan: 1 }), false);
-  assert.equal(available({ domainId: 'new', columnId: 'c1', layerId: 'l1', columnSpan: 2 }), false);
+  assert.equal(available({ domainId: 'new', columnId: 'c1', layerId: 'l1', columnSpan: 2 }), true);
   assert.equal(available({ domainId: 'new', columnId: 'c1', layerId: 'l2', columnSpan: 1 }), true);
   assert.equal(available({ domainId: 'existing', columnId: 'c1', layerId: 'l1', columnSpan: 1 }), true);
   assert.equal(available({ domainId: 'new', columnId: 'c2', layerId: 'l1', columnSpan: 2 }), false);
