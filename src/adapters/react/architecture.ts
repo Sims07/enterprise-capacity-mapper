@@ -1,4 +1,4 @@
-import type { CatalogModel } from '../../application/catalogUseCases.ts';
+import type { CatalogModel } from '../../domain/catalogModel.ts';
 import type { ModelRepository } from '../../ports/modelRepository.ts';
 import type { NavigationPort, NavigationMode } from '../../ports/navigation.ts';
 import type { AiCompanionPort } from '../../ports/aiCompanion.ts';
