@@ -159,21 +159,23 @@ describe('Dashboard de couverture', () => {
     });
   });
 
-  it('garde le surlignage actif sur le switch de vue Analyse', () => {
+  it('garde un seul onglet actif sans curseur hérité, sur desktop et mobile', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     const tabs = ['[data-testid="tab-relations"]', '[data-testid="tab-dashboard"]'];
     tabs.forEach(selector => {
       cy.get(selector).click().should('have.class', 'active');
-      cy.get('.analysis-view-switch > button.active').should('have.length', 1).and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
+      cy.get('.analysis-view-switch > button.active').should('have.length', 1)
+        .and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
     });
-  });
-
-  it('affiche le Dashboard comme onglet actif sans curseur hérité de Cartographie', () => {
-    cy.get('[data-testid="nav-analysis"]').click();
-    cy.get('[data-testid="tab-dashboard"]').click().should('have.class', 'active');
+    cy.get('[data-testid="tab-dashboard"]').should('have.class', 'active');
     cy.get('.analysis-view-switch').should('be.visible');
     cy.get('.analysis-view-switch').then($switch => expect(getComputedStyle($switch[0], '::before').content).to.equal('none'));
     cy.get('[data-testid="tab-dashboard"]').then($button => expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)'));
+
+    cy.viewport(390, 844);
+    cy.get('[data-testid="tab-relations"]').click();
+    cy.get('.analysis-view-switch > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
+    cy.get('.analysis-view-switch > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
   });
 
   it('préserve le menu Outils et les libellés complets sur mobile', () => {
@@ -185,13 +187,6 @@ describe('Dashboard de couverture', () => {
     });
   });
 
-  it('garde un onglet actif sans curseur violet débordant', () => {
-    cy.viewport(390, 844);
-    cy.get('[data-testid="nav-analysis"]').click();
-    cy.get('[data-testid="tab-relations"]').click();
-    cy.get('.analysis-view-switch > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
-    cy.get('.analysis-view-switch > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
-  });
 
   it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
     cy.get('[data-testid="nav-analysis"]').click();
