@@ -1,4 +1,5 @@
 import {
+  consumeStorageRecoveryWarnings,
   exportModel,
   importModel,
   loadLocalMaps,
@@ -21,6 +22,7 @@ export const createLocalStorageModelRepository = () => {
     loadLocalMaps,
     saveLocalMap,
     loadRecentMaps,
+    consumeStorageRecoveryWarnings,
     recordRecentMap,
     updateRecentMap,
     removeRecentMap,
