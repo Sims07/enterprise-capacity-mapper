@@ -26,6 +26,7 @@ export const updateDomain = ({ domains, domainId, form, defaultColumnId, default
   if (!current) return domains;
   const updated = catalogWith({ domains, capabilities: [], applications: [] }).updateDomain(domainId, {
     name: form.name,
+    code: form.code?.trim() || current.code,
     description: form.description,
     color: resolveColor(form.color),
     layout: {
@@ -53,7 +54,6 @@ export const updateCapability = ({ capabilities, capabilityId, form, domains = [
   return catalogWith({ domains, capabilities, applications: [] }).updateCapability(capabilityId, {
     domainId: form.domainId,
     name: form.name,
-    code: form.code?.trim() || current.code,
     description: form.description,
     priority: form.priority || 'unqualified',
   }).toModel().capabilities;
