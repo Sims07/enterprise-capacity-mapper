@@ -34,7 +34,7 @@ La stack actuelle est React + Vite, avec `react-dom`, Vite et Cypress. Les comma
 
 La sémantique métier est indépendante de React :
 
-`Domaine N0 → Capacité N1 → Application`
+`Domaine N0 → Capacité N1 → Application`\n\nLe code TypeScript introduit désormais deux modèles de domaine riches : `Catalog` (`src/domain/catalog.ts`) pour les identités, références et relations du catalogue, et `MapLayout` (`src/domain/mapLayout.ts`) pour les règles de matrice et de placement. `CatalogModel` reste le DTO JSON à la frontière de persistance ; il ne doit pas être utilisé comme objet métier mutable. Les cas d’usage adaptent les formulaires puis délèguent les transitions au domaine.
 
 Une cartographie peut également être configurée en profondeur 1 :
 
@@ -69,7 +69,7 @@ Le dépôt autorise une source JSON distante pour les données partagées/publi�
 
 ## 6. Tests et oracle comportemental
 
-Les tests Cypress couvrent de nombreux parcours visibles : chargement, création, relations, import/export, compagnon IA, dashboard et thèmes. Des tests unitaires Node couvrent les règles déterministes du compagnon.
+Les tests Cypress couvrent de nombreux parcours visibles : chargement, création, relations, import/export, compagnon IA, dashboard et thèmes. Les tests unitaires Node couvrent les règles déterministes et les transitions pures des modèles `Catalog` et `MapLayout`, ainsi que les cas d’usage d'application.
 
 La suite E2E doit être considérée comme un **oracle comportemental** : lors d'une migration, on cherche à conserver les comportements attendus, pas les sélecteurs, composants ou détails d'implémentation React.
 
