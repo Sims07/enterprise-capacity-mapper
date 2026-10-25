@@ -1,9 +1,27 @@
 {
   "name": "enterprise-capacity-mapper",
   "private": true,
-  "version": "2.0.40",
+  "version": "2.0.41",
   "type": "module",
-  "scripts": {"dev":"vite","build":"vite build","preview":"vite preview","test:e2e":"cypress run","test:unit":"node --test","typecheck":"tsc --noEmit"},
-  "dependencies": {"@vitejs/plugin-react":"latest","vite":"latest","react":"latest","react-dom":"latest"},
-  "devDependencies": {"cypress":"latest","typescript":"latest","@types/node":"latest","@types/react":"latest","@types/react-dom":"latest"}
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:e2e": "cypress run",
+    "test:unit": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "cypress": "latest",
+    "typescript": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
 }
