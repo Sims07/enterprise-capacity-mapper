@@ -18,8 +18,16 @@ const catalogFor = (
   layout: { depth },
 } as CatalogModel);
 
-const applicationSnapshots = (catalog: Catalog): RelatedApplication[] =>
-  catalog.toModel().applications as RelatedApplication[];
+const applicationSnapshots = (catalog: Catalog, original: RelatedApplication[]): RelatedApplication[] => {
+  const snapshots = catalog.toModel().applications as RelatedApplication[];
+  let changed = false;
+  const result = snapshots.map((snapshot, index) => {
+    if (JSON.stringify(snapshot) === JSON.stringify(original[index])) return original[index];
+    changed = true;
+    return snapshot;
+  });
+  return changed ? result : original;
+};
 
 export const assignApplicationToCapability = (
   applications: RelatedApplication[],
@@ -29,7 +37,7 @@ export const assignApplicationToCapability = (
   capabilities: Capability[] = [],
   depth: TargetDepth = 2,
 ): RelatedApplication[] => applications.some(application => application.id === appId)
-  ? applicationSnapshots(catalogFor(applications, domains, capabilities, depth).linkApplicationToMappedItem(appId, targetId))
+  ? applicationSnapshots(catalogFor(applications, domains, capabilities, depth).linkApplicationToMappedItem(appId, targetId), applications)
   : applications;
 
 export const unassignApplicationFromCapability = (
@@ -40,7 +48,7 @@ export const unassignApplicationFromCapability = (
   capabilities: Capability[] = [],
   depth: TargetDepth = 2,
 ): RelatedApplication[] => applications.some(application => application.id === appId)
-  ? applicationSnapshots(catalogFor(applications, domains, capabilities, depth).unlinkApplicationFromMappedItem(appId, targetId))
+  ? applicationSnapshots(catalogFor(applications, domains, capabilities, depth).unlinkApplicationFromMappedItem(appId, targetId), applications)
   : applications;
 
 export const linkPickedApplications = (
@@ -57,7 +65,7 @@ export const linkPickedApplications = (
   selected.forEach(id => {
     catalog = catalog.linkApplicationToMappedItem(id, targetId);
   });
-  return applicationSnapshots(catalog);
+  return applicationSnapshots(catalog, applications);
 };
 
 export const prepareLinkedApplications = ({
@@ -84,8 +92,8 @@ export const prepareLinkedApplications = ({
         ? next.linkApplicationToMappedItem(application.id, link.id)
         : next.unlinkApplicationFromMappedItem(application.id, link.id);
     });
-    return applicationSnapshots(next);
+    return applicationSnapshots(next, applications);
   }
 
-  return applicationSnapshots(catalog.replaceMappedRelations(link.id, mappedIds, checkedIds));
+  return applicationSnapshots(catalog.replaceMappedRelations(link.id, mappedIds, checkedIds), applications);
 };
