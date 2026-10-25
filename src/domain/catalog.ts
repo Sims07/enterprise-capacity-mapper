@@ -1,12 +1,15 @@
 import type { Application, Capability, CatalogModel, Domain } from './catalogModel.ts';
 
 const normalizedName = (name: string): string => name.trim();
-const copyApplication = (application: Application): Application => ({
-  ...application,
-  ...(application.capabilityIds === undefined
-    ? {}
-    : { capabilityIds: [...application.capabilityIds] }),
-});
+const cloneValue = <T>(value: T): T => {
+  if (Array.isArray(value)) return value.map(item => cloneValue(item)) as T;
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneValue(item)])) as T;
+  }
+  return value;
+};
+
+const copyApplication = (application: Application): Application => cloneValue(application);
 
 /**
  * Rich aggregate for the cartography domain.
@@ -239,13 +242,6 @@ export class Catalog {
   }
 
   private static cloneModel(model: CatalogModel): CatalogModel {
-    return {
-      ...model,
-      domains: model.domains.map(domain => domain.layout === undefined
-        ? { ...domain }
-        : { ...domain, layout: { ...domain.layout } }),
-      capabilities: model.capabilities.map(capability => ({ ...capability })),
-      applications: model.applications.map(copyApplication),
-    };
+    return cloneValue(model);
   }
 }
