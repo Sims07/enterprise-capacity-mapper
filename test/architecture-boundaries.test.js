@@ -66,17 +66,17 @@ test('application orchestrates through domain and ports, never through concrete 
   assert.deepEqual(violations, [], `Forbidden application dependencies:\n${violations.join('\n')}`);
 });
 
-test('concrete adapter imports are centralized in the composition root or adapter layer', async () => {
+test('concrete adapter and legacy service imports are centralized at the outer boundary', async () => {
   const files = await collectSourceFiles(sourceRoot);
   const violations = [];
 
   for (const file of files) {
     const relative = path.relative(sourceRoot, file).split(path.sep).join('/');
     // Legacy AI preference facade still delegates to the provider client; this separate migration is documented and intentionally outside this boundary rule.
-    if (relative.startsWith('adapters/') || relative.startsWith('services/ai/') || relative.endsWith('.test.js') || relative === 'App.tsx' || relative.startsWith('main.')) continue;
+    if (relative.startsWith('adapters/') || relative.endsWith('.test.js') || relative === 'App.tsx' || relative.startsWith('main.')) continue;
     const source = await readFile(file, 'utf8');
     for (const specifier of importedSpecifiers(source)) {
-      if (/^(?:\.\.\/)*(?:adapters)(?:\/|$)/.test(specifier)) {
+      if (/^(?:\.\.\/)*(?:adapters|services\/ai)(?:\/|$)/.test(specifier)) {
         violations.push(`${relative} -> ${specifier}`);
       }
     }
