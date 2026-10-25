@@ -7,6 +7,9 @@ export type NavigationState = {
   [key: string]: unknown;
 };
 
+/** State delivered by the navigation adapter when browser history changes. */
+export type NavigationPopStateHandler = (state: NavigationState | null) => void;
+
 /** Inbound/outbound navigation contract used by the application layer. */
 export interface NavigationPort {
   currentMode(): NavigationMode;
@@ -15,5 +18,5 @@ export interface NavigationPort {
   exploreDashboardTarget(): void;
   replaceMode(mode: NavigationMode, extra?: Record<string, unknown>): void;
   back(): void;
-  subscribePopState(handler: EventListener): () => void;
+  subscribePopState(handler: NavigationPopStateHandler): () => void;
 }
