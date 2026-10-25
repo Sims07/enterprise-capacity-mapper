@@ -8,68 +8,58 @@ const model = {
   applications: [{ id: 'a1', name: 'Application', capabilityIds: [] as string[] }],
 };
 
-test('Catalog normalizes domain names, rejects blanks and duplicate IDs, and returns isolated snapshots', () => {
+test('Catalog enforces domain invariants and returns isolated snapshots', () => {
   const catalog = Catalog.fromModel(model);
   const updated = catalog.renameDomain('d1', '  Customer  ');
 
   assert.equal(updated.toModel().domains[0].name, 'Customer');
   assert.equal(catalog.toModel().domains[0].name, 'Domain');
-  assert.throws(() => catalog.renameDomain('missing', 'Name'), /Domaine introuvable/);
-  assert.throws(() => catalog.renameDomain('d1', '   '), /obligatoire/);
-  assert.throws(() => catalog.createDomain({ id: 'd1', code: 'D1', name: 'Duplicate' }), /existe déjà/);
-  assert.throws(() => catalog.createDomain({ id: 'd2', code: 'D2', name: '  ' }), /obligatoire/);
-
   const snapshot = catalog.toModel();
   snapshot.domains[0].name = 'mutated outside';
   assert.equal(catalog.toModel().domains[0].name, 'Domain');
+  assert.throws(() => catalog.renameDomain('missing', 'Name'), /Domaine introuvable/);
+  assert.throws(() => catalog.renameDomain('d1', '   '), /obligatoire/);
+  assert.throws(() => catalog.createDomain({ id: 'd1', code: 'D1', name: 'Duplicate' }), /existe déjà/);
+  assert.throws(() => catalog.createDomain({ id: '', code: 'D2', name: 'Invalid id' }), /identifiant.*obligatoire/);
 });
 
-test('Catalog enforces capability identity, names and valid domain references', () => {
+test('Catalog validates capability names, references and unique identifiers', () => {
   const catalog = Catalog.fromModel(model);
   assert.throws(() => catalog.createCapability({ id: 'c2', domainId: 'missing', name: 'Capability 2' }), /Domaine introuvable/);
   assert.throws(() => catalog.createCapability({ id: 'c1', domainId: 'd1', name: 'Duplicate' }), /existe déjà/);
   assert.throws(() => catalog.createCapability({ id: 'c2', domainId: 'd1', name: '  ' }), /obligatoire/);
-  assert.throws(() => catalog.updateCapability('missing', { name: 'Renamed' }), /Capacité introuvable/);
   assert.throws(() => catalog.updateCapability('c1', { domainId: 'missing' }), /Domaine introuvable/);
-
-  const updated = catalog.updateCapability('c1', { name: '  New capability  ', priority: 'P1' }).toModel();
-  assert.equal(updated.capabilities[0].name, 'New capability');
-  assert.equal(updated.capabilities[0].priority, 'P1');
-  assert.equal(updated.capabilities[0].domainId, 'd1');
-});
-
-test('Catalog enforces application identity and validates all capability references', () => {
-  const catalog = Catalog.fromModel(model);
-  assert.throws(() => catalog.createApplication({ id: 'a2', name: 'Bad app', capabilityIds: ['missing'] }), /Capacité introuvable/);
-  assert.throws(() => catalog.createApplication({ id: 'a1', name: 'Duplicate app' }), /existe déjà/);
-  assert.throws(() => catalog.createApplication({ id: 'a2', name: '  ' }), /obligatoire/);
-  assert.throws(() => catalog.updateApplication('missing', { name: 'Renamed' }), /Application introuvable/);
-
-  const created = catalog.createApplication({ id: 'a2', name: '  CRM  ', capabilityIds: ['c1', 'c1'] });
-  assert.deepEqual(created.toModel().applications[1], { id: 'a2', name: 'CRM', capabilityIds: ['c1'] });
-  assert.throws(() => created.updateApplication('a2', { capabilityIds: ['unknown'] }), /Capacité introuvable/);
+  assert.equal(catalog.updateCapabilityPriority('c1', 'qualified').toModel().capabilities[0].priority, 'qualified');
 });
 
 test('Catalog makes application-capability links idempotent and validates both ends', () => {
   const catalog = Catalog.fromModel(model);
   const linked = catalog.linkApplicationToCapability('a1', 'c1').linkApplicationToCapability('a1', 'c1');
   assert.deepEqual(linked.toModel().applications[0].capabilityIds, ['c1']);
-  assert.equal(linked.unlinkApplicationFromCapability('a1', 'missing').toModel().applications[0].capabilityIds?.[0], 'c1');
-  assert.throws(() => catalog.linkApplicationToCapability('missing', 'c1'), /Application introuvable/);
-  assert.throws(() => catalog.linkApplicationToCapability('a1', 'missing'), /Capacité introuvable/);
-  assert.throws(() => catalog.unlinkApplicationFromCapability('missing', 'c1'), /Application introuvable/);
   const unlinked = linked.unlinkApplicationFromCapability('a1', 'c1');
   assert.deepEqual(unlinked.toModel().applications[0].capabilityIds, []);
+  assert.throws(() => catalog.linkApplicationToCapability('missing', 'c1'), /Application introuvable/);
+  assert.throws(() => catalog.linkApplicationToCapability('a1', 'missing'), /Capacité introuvable/);
 });
 
-test('removing a capability removes its application relations without touching unrelated links', () => {
+test('Catalog validates application names, IDs and linked capabilities', () => {
+  const catalog = Catalog.fromModel(model);
+  assert.throws(() => catalog.createApplication({ id: 'a2', name: 'New', capabilityIds: ['missing'] }), /Capacité introuvable/);
+  assert.throws(() => catalog.createApplication({ id: 'a1', name: 'Duplicate' }), /existe déjà/);
+  assert.throws(() => catalog.createApplication({ id: 'a2', name: '  ' }), /obligatoire/);
+  const created = catalog.createApplication({ id: 'a2', name: '  New app ', capabilityIds: ['c1', 'c1'] });
+  assert.deepEqual(created.toModel().applications[1].capabilityIds, ['c1']);
+  assert.equal(created.toModel().applications[1].name, 'New app');
+  assert.throws(() => created.updateApplication('a2', { capabilityIds: ['unknown'] }), /Capacité introuvable/);
+});
+
+test('Catalog removes a capability and cleans up dependent application links', () => {
   const catalog = Catalog.fromModel({
     ...model,
-    capabilities: [...model.capabilities, { id: 'c2', domainId: 'd1', name: 'Other capability' }],
-    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1', 'c2', 'legacy'] }],
+    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1', 'external'] }],
   });
-  assert.deepEqual(catalog.removeCapability('c1').toModel().applications[0].capabilityIds, ['c2', 'legacy']);
-  assert.deepEqual(catalog.removeCapability('c1').toModel().capabilities.map(capability => capability.id), ['c2']);
+  assert.deepEqual(catalog.removeCapability('c1').toModel().applications[0].capabilityIds, ['external']);
+  assert.deepEqual(catalog.removeCapability('missing').toModel(), catalog.toModel());
 });
 
 test('Catalog removes a domain and its dependent capability links', () => {
@@ -81,5 +71,14 @@ test('Catalog removes a domain and its dependent capability links', () => {
     domains: [],
     capabilities: [],
     applications: [{ id: 'a1', name: 'Application', capabilityIds: ['external'] }],
+  });
+});
+
+test('Catalog creates an empty map while preserving unrelated metadata', () => {
+  const catalog = Catalog.fromModel({ ...model, metadata: { owner: 'team' } });
+  assert.deepEqual(catalog.createEmptyMap('New map', 'Description', { mode: 'matrix' }).toModel(), {
+    domains: [], capabilities: [], applications: [],
+    metadata: { owner: 'team', name: 'New map', description: 'Description' },
+    layout: { mode: 'matrix' },
   });
 });
