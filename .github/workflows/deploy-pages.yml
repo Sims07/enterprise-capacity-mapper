@@ -23,6 +23,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install project dependencies
         run: npm install
       - name: Install coverage tooling
@@ -31,11 +36,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-dependencies
-          path: |
-            node_modules/
-            ~/.cache/Cypress/
-          include-hidden-files: true
-          if-no-files-found: warn
+          path: node_modules/
+          if-no-files-found: error
           retention-days: 1
 
   build:
@@ -69,23 +71,15 @@ jobs:
           git add package.json package-lock.json public/sw.js
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
-      - name: Install project dependencies
-        run: npm install
+      - name: Download shared dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: node-dependencies
+          path: .
       - name: Run deterministic unit tests
         run: npm run test:unit
       - name: Run TypeScript typecheck
         run: npm run typecheck
-      - name: Install coverage tooling
-        run: npm install --no-save --legacy-peer-deps @cypress/code-coverage istanbul-lib-instrument
-      - name: Upload shared dependencies
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-dependencies
-          path: |
-            node_modules/
-            ~/.cache/Cypress/
-          include-hidden-files: true
-          retention-days: 1
       - name: Set build version
         run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
       - name: Build instrumented application for coverage
@@ -133,6 +127,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Download shared dependencies
         uses: actions/download-artifact@v4
         with:
