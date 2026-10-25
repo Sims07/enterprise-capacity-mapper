@@ -219,6 +219,7 @@ function App() {
       setRecentMaps([]);
       errors.push('historique des récents');
     }
+    errors.push(...(repository.consumeStorageRecoveryWarnings?.() ?? []));
     setPendingLocalMap(null);
     navigateToMode('library');
     setModal(null);
