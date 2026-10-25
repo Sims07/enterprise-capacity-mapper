@@ -75,7 +75,7 @@ test('creates capabilities and updates existing capability details', () => {
 
   const updated = updateCapability({
     domains: [{ id: 'domain-1', name: 'Domain', code: 'D1' }],
-    capabilities: [{ id: 'cap-2', domainId: 'domain-1', name: 'Old', extra: true, priority: 'P2' }, { id: 'other', domainId: 'domain-1', name: 'Other' }],
+    capabilities: [{ id: 'cap-2', domainId: 'domain-1', name: 'Old', extra: true, priority: 'P2' }, { id: 'other' }],
     capabilityId: 'cap-2',
     form: { ...form, priority: '' },
   });
