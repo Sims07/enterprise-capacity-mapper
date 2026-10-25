@@ -63,7 +63,7 @@ test('creates and updates domains while preserving layout fields and applying de
 });
 
 test('creates capabilities and updates existing capability details', () => {
-  const created = createCapability({ capabilities: [], form, id: 'cap-2' });
+  const created = createCapability({ domains: [{ id: 'domain-1', name: 'Domain', code: 'D1' }], capabilities: [], form, id: 'cap-2' });
   assert.deepEqual(created[0], {
     id: 'cap-2',
     domainId: 'domain-1',
@@ -74,7 +74,8 @@ test('creates capabilities and updates existing capability details', () => {
   });
 
   const updated = updateCapability({
-    capabilities: [{ id: 'cap-2', name: 'Old', extra: true, priority: 'P2' }, { id: 'other' }],
+    domains: [{ id: 'domain-1', name: 'Domain', code: 'D1' }],
+    capabilities: [{ id: 'cap-2', domainId: 'domain-1', name: 'Old', extra: true, priority: 'P2' }, { id: 'other', domainId: 'domain-1', name: 'Other' }],
     capabilityId: 'cap-2',
     form: { ...form, priority: '' },
   });
@@ -91,6 +92,7 @@ test('creates capabilities and updates existing capability details', () => {
 test('creates applications with their selected relations', () => {
   assert.deepEqual(createApplication({
     applications: [{ id: 'existing' }],
+    capabilities: [{ id: 'cap-1', domainId: 'domain-1', name: 'Capability' }],
     form,
     id: 'app-1',
   })[1], {
