@@ -8,23 +8,23 @@ export type ApplicationForm = { name: string; code?: string; type?: string; stat
 
 const catalogWith = (model: CatalogModel): Catalog => Catalog.fromModel(model);
 
-export const createDomain = ({ domains, form, id, defaultColumnId, defaultLayerId, resolveColor }: {
+export const createDomain = ({ domains, form, id, defaultColumnId, defaultLayerId, resolveColor, capabilities = [], applications = [], layout }: {
   domains: Domain[]; form: DomainForm; id: string; defaultColumnId: string; defaultLayerId: string;
-  resolveColor: (color?: string) => string;
-}): Domain[] => catalogWith({ domains, capabilities: [], applications: [] })
+  resolveColor: (color?: string) => string; capabilities?: Capability[]; applications?: Application[]; layout?: CatalogModel['layout'];
+}): Domain[] => catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) })
   .createDomain({
     id, code: form.code || 'CAP', name: form.name, description: form.description,
     color: resolveColor(form.color),
     layout: { columnId: form.columnId || defaultColumnId, layerId: form.layerId || defaultLayerId, columnSpan: Number(form.columnSpan) || 1 },
   }).toModel().domains;
 
-export const updateDomain = ({ domains, domainId, form, defaultColumnId, defaultLayerId, resolveColor }: {
+export const updateDomain = ({ domains, domainId, form, defaultColumnId, defaultLayerId, resolveColor, capabilities = [], applications = [], layout }: {
   domains: Domain[]; domainId: string; form: DomainForm; defaultColumnId: string; defaultLayerId: string;
-  resolveColor: (color?: string) => string;
+  resolveColor: (color?: string) => string; capabilities?: Capability[]; applications?: Application[]; layout?: CatalogModel['layout'];
 }): Domain[] => {
   const current = domains.find(domain => domain.id === domainId);
   if (!current) return domains;
-  const updated = catalogWith({ domains, capabilities: [], applications: [] }).updateDomain(domainId, {
+  const updated = catalogWith({ domains, capabilities, applications, ...(layout === undefined ? {} : { layout }) }).updateDomain(domainId, {
     name: form.name,
     code: form.code?.trim() || current.code,
     description: form.description,
