@@ -94,3 +94,22 @@ test('Catalog creates an empty map while preserving unrelated metadata', () => {
   (snapshot.metadata as { settings: { locale: string } }).settings.locale = 'mutated';
   assert.equal((catalog.toModel().metadata as { settings: { locale: string } }).settings.locale, 'fr');
 });
+
+test('Catalog protects matrix placements on domain creation and update', () => {
+  const matrix = {
+    ...model,
+    layout: {
+      mode: 'matrix',
+      columns: [{ id: 'c1', name: 'Business' }, { id: 'c2', name: 'Support' }],
+      layers: [{ id: 'l1', name: 'Core' }, { id: 'l2', name: 'Support' }],
+      zones: [],
+    },
+    domains: [{ id: 'd1', code: 'D1', name: 'Domain', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } }],
+  };
+  const catalog = Catalog.fromModel(matrix);
+  assert.throws(() => catalog.createDomain({
+    id: 'd2', code: 'D2', name: 'Overlapping', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 },
+  }), /chevauche/);
+  assert.throws(() => catalog.updateDomain('d1', { layout: { columnId: 'missing', layerId: 'l1', columnSpan: 1 } }), /hors matrice/);
+  assert.equal(catalog.updateDomain('d1', { layout: { columnId: 'c2', layerId: 'l1', columnSpan: 1 } }).toModel().domains[0].layout?.columnId, 'c2');
+});
