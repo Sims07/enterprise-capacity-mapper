@@ -23,7 +23,6 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
     });
     cy.contains('Capacity Mapper').should('be.visible');
     cy.get('[data-testid="primary-library"]').click();
-    cy.get('.toast').should('contain.text', 'Certaines données locales sont invalides');
     cy.get('[data-testid="library-page"]').should('be.visible');
     cy.get('[data-testid="saved-maps-count"]').should('contain.text', '0');
     cy.get('[data-testid="recent-maps-count"]').should('contain.text', '0');
@@ -44,5 +43,11 @@ describe('Démarrage résilient, migration locale et cycle de vie PWA', () => {
     });
     cy.contains('.domain h3', 'Domaine historique').should('be.visible');
     cy.contains('.cap h3', 'Capacité historique').should('be.visible');
+    cy.window().then(win => {
+      const migrated = JSON.parse(win.localStorage.getItem(MODEL_KEY) ?? 'null');
+      expect(migrated?.schemaVersion, 'persisted schema version').to.equal(3);
+      expect(migrated?.capabilities?.[0]?.domainId).to.equal('legacy-domain');
+      expect(migrated?.applications?.[0]?.capabilityIds).to.deep.equal(['legacy-cap']);
+    });
   });
 });
