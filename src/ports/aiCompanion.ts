@@ -8,16 +8,7 @@ export type AiQuestion = {
   onChunk?: (chunk: string) => void;
 };
 
+/** Outbound contract for asking the AI companion, independent of any provider. */
 export interface AiCompanionPort {
   ask(input: AiQuestion): unknown | Promise<unknown>;
 }
-
-export type AiCompanionSender = (input: AiQuestion) => unknown | Promise<unknown>;
-
-/** Outbound port for the AI companion. */
-export const createAiCompanionPort = ({ send }: { send: AiCompanionSender }): AiCompanionPort => {
-  if (typeof send !== 'function') throw new TypeError('AiCompanion port requires a send function');
-  return Object.freeze({
-    ask: ({ question, cartography, history = [], onChunk }: AiQuestion) => send({ question, cartography, history, onChunk }),
-  });
-};
