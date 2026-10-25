@@ -1,8 +1,10 @@
 describe('Navigation rationalisée', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   });
 
   it('présente une navigation principale sans titres de groupe redondants', () => {
