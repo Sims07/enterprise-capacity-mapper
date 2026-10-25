@@ -1,11 +1,11 @@
 export const NAVIGATION_MODES = ['editor', 'dashboard', 'relations', 'impact', 'library'] as const;
 export type NavigationMode = typeof NAVIGATION_MODES[number];
 
-export interface NavigationState {
+export type NavigationState = {
   capacityMapperMode?: NavigationMode;
   dashboardReturn?: boolean;
   [key: string]: unknown;
-}
+};
 
 /** Outbound port for navigation; browser history is supplied by the adapter. */
 export interface NavigationPort {
