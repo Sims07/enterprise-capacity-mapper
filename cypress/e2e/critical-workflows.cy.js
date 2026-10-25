@@ -216,7 +216,6 @@ describe('Critical user workflows — regression coverage', () => {
     cy.contains('.cap', 'Gestion des Prospects & Leads').should('be.visible');
   });
 
-});
 
   it('permet à un domaine de couvrir deux colonnes adjacentes et conserve cette étendue', () => {
     openWizard();
