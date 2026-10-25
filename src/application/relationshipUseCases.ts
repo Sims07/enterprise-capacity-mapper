@@ -8,11 +8,17 @@ export type Link = { kind: 'target' | 'application'; id: string };
 const withCatalog = (applications: RelatedApplication[], domains: Domain[], capabilities: Capability[]) =>
   Catalog.fromModel({ domains, capabilities, applications });
 
+const preserveOriginalWhenUnchanged = (original: RelatedApplication[], next: RelatedApplication[]): RelatedApplication[] =>
+  next.length === original.length && next.every((item, index) => JSON.stringify(item) === JSON.stringify(original[index]))
+    ? original
+    : next;
+
 export const assignApplicationToCapability = (
   applications: RelatedApplication[], appId: string, capabilityId: string,
   domains: Domain[] = [], capabilities: Capability[] = [],
 ): RelatedApplication[] => withCatalog(applications, domains, capabilities)
   .linkApplicationToCapability(appId, capabilityId).toModel().applications;
+
 
 export const unassignApplicationFromCapability = (
   applications: RelatedApplication[], appId: string, capabilityId: string,
@@ -29,7 +35,7 @@ export const linkPickedApplications = (
   for (const applicationId of new Set(selectedApplicationIds)) {
     catalog = catalog.linkApplicationToMappedItem(applicationId, targetId);
   }
-  return catalog.toModel().applications;
+  return preserveOriginalWhenUnchanged(applications, catalog.toModel().applications);
 };
 
 export const prepareLinkedApplications = ({
@@ -57,5 +63,5 @@ export const prepareLinkedApplications = ({
   } else {
     catalog = catalog.synchronizeApplicationLinks(link.id, managedIds, checkedIds);
   }
-  return catalog.toModel().applications;
+  return preserveOriginalWhenUnchanged(applications, catalog.toModel().applications);
 };
