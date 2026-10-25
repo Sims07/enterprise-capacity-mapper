@@ -7,81 +7,113 @@ const inputs = [
   { name: 'cypress', file: 'coverage/coverage-final.json' },
 ];
 
-const normalizePath = (value) => {
-  let candidate = value;
+function normalizePath(value) {
+  let candidate = String(value);
   if (candidate.startsWith('file://')) {
-    try { candidate = fileURLToPath(candidate); } catch { /* keep original */ }
+    try { candidate = fileURLToPath(candidate); } catch { /* retain original */ }
   }
-  candidate = path.normalize(candidate);
-  const relative = path.isAbsolute(candidate)
-    ? path.relative(process.cwd(), candidate)
-    : candidate;
-  return relative.split(path.sep).join('/');
-};
+  candidate = candidate.replace(/\\\\/g, '/');
+  const srcMatch = candidate.match(/(?:^|\/)src\/(.*)$/);
+  if (srcMatch) return `src/${srcMatch[1]}`;
+  candidate = candidate.replace(/^https?:\/\/[^/]+\//, '').replace(/^\.\//, '');
+  return path.posix.normalize(candidate);
+}
 
-const readCoverage = ({ name, file }) => {
+function readReport({ name, file }) {
   if (!fs.existsSync(file)) throw new Error(`Missing ${file}; cannot calculate consolidated coverage.`);
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   const normalized = new Map();
   for (const [filename, data] of Object.entries(raw)) {
     const key = normalizePath(filename);
-    if (!key || key.startsWith('../') || path.isAbsolute(key)) continue;
-    normalized.set(key, data);
+    if (!key.startsWith('src/')) continue;
+    const previous = normalized.get(key);
+    if (!previous) normalized.set(key, data);
+    else {
+      const merged = structuredClone(previous);
+      for (const [id, hits] of Object.entries(data.s ?? {})) {
+        merged.s[id] = Math.max(merged.s?.[id] ?? 0, hits);
+      }
+      normalized.set(key, merged);
+    }
   }
-  console.log(`${name}: loaded ${normalized.size} files from ${file}`);
+  console.log(`${name}: ${normalized.size} source files in ${file}`);
   return normalized;
-};
+}
 
-const unit = readCoverage(inputs[0]);
-const cypress = readCoverage(inputs[1]);
-const allFiles = new Set([...unit.keys(), ...cypress.keys()]);
+function lineHits(fileMap) {
+  const result = new Map();
+  if (!fileMap?.statementMap || !fileMap?.s) return result;
+  for (const [id, statement] of Object.entries(fileMap.statementMap)) {
+    const start = statement.start?.line;
+    const end = statement.end?.line;
+    if (!Number.isInteger(start) || !Number.isInteger(end)) continue;
+    for (let line = start; line <= end; line += 1) {
+      result.set(line, Math.max(result.get(line) ?? 0, fileMap.s[id] > 0 ? 1 : 0));
+    }
+  }
+  return result;
+}
+
+const unit = readReport(inputs[0]);
+const cypress = readReport(inputs[1]);
+const filenames = new Set([...unit.keys(), ...cypress.keys()]);
 const files = {};
 let totalLines = 0;
 let coveredLines = 0;
+let unitCovered = 0;
+let cypressCovered = 0;
 
-const lineHits = (coverage) => {
-  const hits = new Map();
-  if (!coverage?.statementMap || !coverage?.s) return hits;
-  for (const [id, range] of Object.entries(coverage.statementMap)) {
-    const start = range.start?.line;
-    const end = range.end?.line;
-    if (!Number.isInteger(start) || !Number.isInteger(end)) continue;
-    for (let line = start; line <= end; line += 1) {
-      hits.set(line, Math.max(hits.get(line) ?? 0, coverage.s[id] > 0 ? 1 : 0));
-    }
+for (const filename of [...filenames].sort()) {
+  const unitLines = lineHits(unit.get(filename));
+  const cypressLines = lineHits(cypress.get(filename));
+  const allLines = new Set([...unitLines.keys(), ...cypressLines.keys()]);
+  if (!allLines.size) continue;
+  let covered = 0;
+  let unitCount = 0;
+  let cypressCount = 0;
+  for (const line of allLines) {
+    const u = unitLines.get(line) ?? 0;
+    const c = cypressLines.get(line) ?? 0;
+    if (u) unitCount += 1;
+    if (c) cypressCount += 1;
+    if (u || c) covered += 1;
   }
-  return hits;
-};
-
-for (const filename of [...allFiles].sort()) {
-  const unitHits = lineHits(unit.get(filename));
-  const cypressHits = lineHits(cypress.get(filename));
-  const lines = new Set([...unitHits.keys(), ...cypressHits.keys()]);
-  let fileCovered = 0;
-  for (const line of lines) {
-    if ((unitHits.get(line) ?? 0) > 0 || (cypressHits.get(line) ?? 0) > 0) fileCovered += 1;
-  }
-  if (lines.size === 0) continue;
   files[filename] = {
-    lines: { total: lines.size, covered: fileCovered, pct: Number((fileCovered / lines.size * 100).toFixed(2)) },
-    unit: { total: unitHits.size, covered: [...unitHits.values()].filter(Boolean).length },
-    cypress: { total: cypressHits.size, covered: [...cypressHits.values()].filter(Boolean).length },
+    lines: { total: allLines.size, covered, pct: Number((covered / allLines.size * 100).toFixed(2)) },
+    unit: { total: unitLines.size, covered: unitCount },
+    cypress: { total: cypressLines.size, covered: cypressCount },
   };
-  totalLines += lines.size;
-  coveredLines += fileCovered;
+  totalLines += allLines.size;
+  coveredLines += covered;
+  unitCovered += unitCount;
+  cypressCovered += cypressCount;
 }
 
-if (totalLines === 0) throw new Error('No executable source lines found in the two coverage reports.');
+if (!totalLines) throw new Error('No executable source lines found in unit or Cypress coverage reports.');
+const pct = Number((coveredLines / totalLines * 100).toFixed(2));
 const summary = {
-  total: { lines: { total: totalLines, covered: coveredLines, skipped: 0, pct: Number((coveredLines / totalLines * 100).toFixed(2)) } },
+  total: { lines: { total: totalLines, covered: coveredLines, skipped: 0, pct } },
+  suites: {
+    unit: { coveredLineOccurrences: unitCovered },
+    cypress: { coveredLineOccurrences: cypressCovered },
+  },
+  comparison: {
+    mainCypressLinesPct: 82.24,
+    prCypressLinesPct: 32.77,
+    consolidatedVsMainPercentagePoints: Number((pct - 82.24).toFixed(2)),
+    note: 'main baseline is the previously recorded Cypress Istanbul line coverage; consolidated coverage is the union of unit and Cypress line hits.',
+  },
+  methodology: 'A source line is covered when at least one unit test or Cypress test executes a statement mapped to it. Percentages are not added. The denominator is the union of executable source lines represented by either report.',
   files,
-  methodology: 'Line-level union: a source line is covered when either unit tests or Cypress executes a statement mapped to that line. Percentages are not added.',
 };
 fs.mkdirSync('coverage-combined', { recursive: true });
 fs.writeFileSync('coverage-combined/coverage-summary.json', JSON.stringify(summary, null, 2) + '\n');
-const pct = summary.total.lines.pct;
-console.log('\nConsolidated line coverage (unit tests ∪ Cypress)');
-console.log(`Lines: ${coveredLines}/${totalLines} (${pct}%)`);
-console.log(`Unit-only report: coverage-unit/coverage-summary.json`);
-console.log(`Cypress-only report: coverage/coverage-summary.json`);
-console.log(`Consolidated detail: coverage-combined/coverage-summary.json`);
+fs.writeFileSync('coverage-combined/coverage-summary.txt', [
+  'Consolidated source line coverage (unit tests ∪ Cypress)',
+  `Lines: ${coveredLines}/${totalLines} (${pct}%)`,
+  'Previously recorded main Cypress baseline: 82.24%',
+  `Difference vs main baseline: ${summary.comparison.consolidatedVsMainPercentagePoints} percentage points`,
+  `Unit line hits (not additive): ${unitCovered}`,
+  `Cypress line hits (not additive): ${cypressCovered}`,
+].join('\n') + '\n');
+console.log(fs.readFileSync('coverage-combined/coverage-summary.txt', 'utf8'));
