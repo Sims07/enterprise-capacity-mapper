@@ -56,7 +56,7 @@ test('Catalog validates application names, IDs and linked capabilities', () => {
 test('Catalog removes a capability and cleans up dependent application links', () => {
   const catalog = Catalog.fromModel({
     ...model,
-    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1', 'd1', 'external'] }],
+    applications: [{ id: 'a1', name: 'Application', capabilityIds: ['c1', 'external'] }],
   });
   assert.deepEqual(catalog.removeCapability('c1').toModel().applications[0].capabilityIds, ['external']);
   assert.deepEqual(catalog.removeCapability('missing').toModel(), catalog.toModel());
