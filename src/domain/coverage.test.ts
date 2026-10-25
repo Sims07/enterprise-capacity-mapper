@@ -21,15 +21,41 @@ test('coverage domain classifies gaps, coverage and redundancy', () => {
   });
 });
 
-test('coverage domain derives impact, selected gaps and redundancy without mutation', () => {
+test('coverage overview derives impact, selected gaps and redundancy without mutation', () => {
   const result = deriveCoverageOverview({ mappedItems, applications, selectedIds: ['cap-2', 'cap-3'] });
   assert.deepEqual(result.touched, [applications[0]]);
   assert.deepEqual(result.gaps, [{ id: 'cap-3' }]);
   assert.deepEqual(result.redundancy, [{ id: 'cap-1' }]);
   assert.deepEqual(applications[0].capabilityIds, ['cap-1', 'cap-2', 'domain-1']);
+});
+
+test('coverage overview returns empty impact and gaps for an empty selection but still reports redundancy', () => {
+  const result = deriveCoverageOverview({ mappedItems, applications, selectedIds: [] });
+  assert.deepEqual(result.touched, []);
+  assert.deepEqual(result.gaps, []);
+  assert.deepEqual(result.redundancy, [{ id: 'cap-1' }]);
+});
+
+test('coverage overview deduplicates selected ids and reports only selected uncovered targets', () => {
+  const result = deriveCoverageOverview({
+    mappedItems,
+    applications,
+    selectedIds: ['cap-3', 'cap-3', 'cap-2'],
+  });
+  assert.deepEqual(result.gaps, [{ id: 'cap-3' }]);
+  assert.deepEqual(result.touched, [applications[0]]);
+});
+
+test('coverage state treats missing relations as empty and counts each application once per target', () => {
+  const withoutRelations = { id: 'app-empty', name: 'Empty' };
+  assert.deepEqual(getCapabilityCoverageState('cap-3', [withoutRelations]).apps, []);
+  assert.deepEqual(getCapabilityCoverageState('cap-1', [
+    { id: 'app-1', capabilityIds: ['cap-1', 'cap-1'] },
+    { id: 'app-2', capabilityIds: ['cap-1'] },
+  ]).apps.map(application => application.id), ['app-1', 'app-2']);
   assert.deepEqual(deriveCoverageOverview({
     mappedItems: [{ id: 'cap-3' }],
-    applications: [{ id: 'app-empty', name: 'Empty' }],
+    applications: [withoutRelations],
     selectedIds: ['cap-3'],
   }).gaps, [{ id: 'cap-3' }]);
 });
