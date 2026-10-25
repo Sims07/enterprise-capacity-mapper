@@ -1,8 +1,10 @@
 describe('Lot 2 — cohérence des indicateurs d’analyse', () => {
   const resetApp = () => {
-    cy.visit('/');
-    cy.clearLocalStorage();
-    cy.reload();
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+      },
+    });
   };
 
   const openRelations = () => {
