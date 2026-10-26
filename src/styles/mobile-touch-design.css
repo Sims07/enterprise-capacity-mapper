@@ -435,3 +435,11 @@
     gap: 8px 12px;
   }
 }
+
+@media (max-width: 900px) {
+  .tree-actions > button.tree-impact-toggle,
+  .tree-actions > button.tree-link-here,
+  .tree-actions > button.tree-link {
+    min-height: 40px;
+  }
+}
