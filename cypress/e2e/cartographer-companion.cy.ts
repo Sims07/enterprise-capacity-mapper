@@ -214,7 +214,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.intercept('POST', 'http://localhost:11434/api/chat', {
       statusCode: 200,
       headers: { 'access-control-allow-origin': 'http://127.0.0.1:4173' },
-      body: { message: { content: '## Constat\\nLa cartographie présente un point à vérifier.\\n\\n## Recommandation\\n- Vérifier le rattachement métier.\\n- Confirmer le périmètre avec les équipes.' } },
+      body: { message: { content: '## Constat\nLa cartographie présente un point à vérifier.\n\n## Recommandation\n- Vérifier le rattachement métier.\n- Confirmer le périmètre avec les équipes.' } },
     }).as('formattedAnswer');
 
     cy.get('[data-testid="companion-launcher"]').click();
