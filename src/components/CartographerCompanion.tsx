@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { analyzeCartography } from '../domain/cartographyAnalysis.ts';
+import { analyzeCartography, buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
 import type { AiCompanionPort } from '../ports/aiCompanion.ts';
 import type { CompanionPreferencesPort } from '../ports/companionPreferences.ts';
