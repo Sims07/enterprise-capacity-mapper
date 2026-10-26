@@ -1,0 +1,29 @@
+/* On narrow screens, use the document as the primary vertical scroll container.
+ * Keeping `main` as a nested overflow container prevents touch scrolling on
+ * some mobile browsers when the responsive grid grows beyond the viewport.
+ */
+@media (max-width: 900px) {
+  html,
+  body {
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #root,
+  .app {
+    min-height: 100%;
+    height: auto;
+  }
+
+  .workspace {
+    min-height: 0;
+  }
+
+  main {
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+  }
+}
