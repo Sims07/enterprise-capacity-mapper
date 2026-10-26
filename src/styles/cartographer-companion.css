@@ -720,3 +720,12 @@
   .companion-mascot-toggle { gap: 3px; padding: 4px; font-size: 9px; }
   .companion-header { gap: 7px; padding-right: 10px; padding-left: 10px; }
 }
+
+/* Two-mascot dialogue: clear speaker identity without competing with the answer. */
+.companion-duo-control { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 8px 0; }
+.companion-duo-control button { border: 1px solid var(--companion-border); border-radius: 8px; padding: 6px 9px; color: var(--companion-text); background: var(--companion-panel); font: inherit; font-size: 11px; cursor: pointer; }
+.companion-duo-control button.is-active { border-color: var(--companion-accent); background: var(--companion-accent-soft); }
+.companion-duo-control button:disabled { opacity: .55; cursor: not-allowed; }
+.companion-duo-control p { margin: 0; color: var(--companion-muted); font-size: 10px; line-height: 1.4; }
+.companion-duo-turn { margin-top: 10px; padding: 10px; border: 1px solid var(--companion-border); border-radius: 3px 13px 13px 13px; background: var(--companion-panel); }
+.companion-duo-heading .companion-avatar { flex: 0 0 25px; width: 25px; height: 25px; }
