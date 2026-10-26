@@ -8,25 +8,35 @@ describe('Défilement mobile', () => {
     });
   });
 
-  const assertPageCanScroll = () => {
-    cy.document().its('documentElement.scrollHeight').should('be.greaterThan', 844);
-    cy.window().then(win => {
-      const before = win.scrollY;
-      cy.scrollTo('bottom');
-      cy.window().its('scrollY').should('be.greaterThan', before);
+  const assertMainCanScroll = () => {
+    cy.get('main').then($main => {
+      const element = $main[0];
+      expect(element.scrollHeight).to.be.greaterThan(element.clientHeight);
+      const before = element.scrollTop;
+      cy.wrap(element).scrollTo('bottom');
+      cy.wrap(element).should($scroller => {
+        expect($scroller[0].scrollTop).to.be.greaterThan(before);
+      });
     });
   };
 
-  it('permet de faire défiler la cartographie sur mobile', () => {
+  it('fait défiler le contenu de la cartographie sans faire défiler le document', () => {
     cy.get('[data-testid="nav-cartography"]').click();
     cy.get('main').should('be.visible');
-    assertPageCanScroll();
+    cy.window().its('scrollY').should('equal', 0);
+    cy.get('main').then($main => {
+      expect($main[0].scrollHeight).to.be.greaterThan($main[0].clientHeight);
+    });
+    assertMainCanScroll();
+    cy.window().its('scrollY').should('equal', 0);
   });
 
-  it('permet de faire défiler la page Analyse sur mobile', () => {
+  it('fait défiler le contenu de la page Analyse sans faire défiler le document', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     cy.get('main').should('be.visible');
-    assertPageCanScroll();
+    cy.window().its('scrollY').should('equal', 0);
+    assertMainCanScroll();
+    cy.window().its('scrollY').should('equal', 0);
   });
 });
 
