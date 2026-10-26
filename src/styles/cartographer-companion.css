@@ -624,3 +624,77 @@
     padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 }
+
+
+/* Lot 2: les preuves deviennent des actions de navigation explicites. */
+.companion-evidence-chip.is-navigable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.companion-evidence-chip.is-navigable:hover {
+  border-color: var(--companion-accent);
+  background: var(--companion-accent-soft);
+}
+.companion-evidence-chip.is-navigable:focus-visible,
+.companion-generated-references button:focus-visible,
+.companion-clarification button:focus-visible {
+  outline: 3px solid var(--companion-accent);
+  outline-offset: 2px;
+}
+.companion-generated-references,
+.companion-clarification {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--companion-border);
+  border-radius: 9px;
+  background: var(--companion-bg);
+}
+.companion-generated-references > strong,
+.companion-clarification > strong {
+  color: var(--companion-text);
+  font-size: 12px;
+}
+.companion-generated-references > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.companion-generated-references button,
+.companion-clarification button {
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid var(--companion-border);
+  border-radius: 7px;
+  background: var(--companion-panel);
+  color: var(--companion-text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.companion-generated-references button:hover,
+.companion-clarification button:hover {
+  border-color: var(--companion-accent);
+  background: var(--companion-accent-soft);
+}
+.companion-clarification button span {
+  color: var(--companion-muted);
+  font-size: 11px;
+}
+.companion-reference-warning {
+  margin: 10px 0 0;
+  padding: 9px;
+  border: 1px solid #d97706;
+  border-radius: 8px;
+  background: var(--companion-bg);
+  color: var(--companion-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
