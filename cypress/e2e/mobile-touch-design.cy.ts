@@ -82,6 +82,36 @@ describe('Polissage tactile mobile', () => {
     cy.get('.companion-close').should('be.visible');
   });
 
+  it('recalcule la hauteur du compagnon quand le viewport visuel se réduit comme avec le clavier mobile', () => {
+    cy.viewport(390, 844);
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-panel"]').should('be.visible');
+
+    cy.window().then(win => {
+      const visualViewport = win.visualViewport;
+      expect(visualViewport, 'API VisualViewport disponible dans le navigateur de test').to.exist;
+      if (!visualViewport) return;
+
+      // Simule la réduction du viewport visible causée par le clavier virtuel.
+      Object.defineProperty(visualViewport, 'height', { configurable: true, value: 310 });
+      Object.defineProperty(visualViewport, 'offsetTop', { configurable: true, value: 18 });
+      visualViewport.dispatchEvent(new win.Event('resize'));
+    });
+
+    cy.get('[data-testid="companion-panel"]').should($panel => {
+      const panel = $panel[0];
+      expect(panel.style.getPropertyValue('--companion-visual-viewport-height')).to.equal('310px');
+      expect(panel.style.getPropertyValue('--companion-visual-viewport-offset-top')).to.equal('18px');
+      expect(panel.getBoundingClientRect().height).to.be.closeTo(310, 1);
+      expect(panel.getBoundingClientRect().top).to.be.closeTo(18, 1);
+    });
+
+    cy.get('[data-testid="companion-question"]').should('not.exist');
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').should('be.visible');
+    cy.get('[data-testid="companion-submit"]').should('be.visible');
+  });
+
   it('préserve une vraie zone de conversation sur les petits écrans', () => {
     cy.viewport(320, 640);
     cy.get('[data-testid="companion-launcher"]').click();
