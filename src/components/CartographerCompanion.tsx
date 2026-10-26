@@ -283,6 +283,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       prompt,
       answer: resultMessage(prompt, fullResult, observations),
       observations,
+      brief: buildDecisionBrief({ observations }),
       counts,
       source: 'local',
       mascot,
