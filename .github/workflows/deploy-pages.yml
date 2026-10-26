@@ -29,6 +29,9 @@ jobs:
       - name: Increment PWA version after merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          # Another workflow run may have advanced main after this run checked out its SHA.
+          # Rebase onto the latest branch before deriving the next version to avoid a stale push.
+          git pull --rebase origin main
           npm version patch --no-git-tag-version
           VERSION="$(node -p 'require("./package.json").version')"
           git config user.name "github-actions[bot]"
