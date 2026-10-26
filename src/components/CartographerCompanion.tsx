@@ -190,6 +190,8 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     // On narrow screens the companion covers the map, so reveal the selected entity after navigation.
     if (window.matchMedia('(max-width: 600px)').matches) {
       setOpen(false);
+      // Navigation updates the map in the parent as well; restore focus after both updates settle.
+      window.setTimeout(() => triggerRef.current?.focus(), 0);
     }
   };
 
