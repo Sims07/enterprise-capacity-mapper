@@ -48,10 +48,7 @@ test('signale une cible non couverte et une application non reliée', () => {
 });
 
 test('signale les doublons potentiels sans confondre les accents et la casse', () => {
-  const result = analyzeCartography(model({
-    domains: [{ id: 'd1', name: 'Finance' }, { id: 'd2', name: 'FINANCE' }],
-    capabilities: [{ id: 'c1', domainId: 'd1', name: 'Gestion de la facturation' }],
-  }));
+  const result = analyzeCartography(model({ domains: [{ id: 'd1', name: 'Finance' }, { id: 'd2', name: 'FINANCE' }] }));
   assert.ok(result.observations.some(item => item.ruleId === 'name.duplicate'));
 });
 
@@ -63,12 +60,7 @@ test('suggère de revoir un intitulé verbal sans en faire une erreur', () => {
 });
 
 test('ne considère pas des statuts applicatifs différents comme une incohérence', () => {
-  const result = analyzeCartography(model({
-    applications: [
-      { id: 'a1', name: 'ERP actuel', status: 'Actif', capabilityIds: ['c1'] },
-      { id: 'a2', name: 'ERP cible', status: 'Cible', capabilityIds: ['c1'] },
-    ],
-  }));
+  const result = analyzeCartography(model({ applications: [{ id: 'a1', name: 'ERP actuel', status: 'Actif', capabilityIds: ['c1'] }, { id: 'a2', name: 'ERP cible', status: 'Cible', capabilityIds: ['c1'] }] }));
   assert.equal(result.observations.some(item => /statut|cycle de vie/i.test(item.ruleId + ' ' + item.title)), false);
 });
 
@@ -93,4 +85,10 @@ test('produit une question de revue même lorsque la cartographie est cohérente
   assert.equal(brief.hasFindings, false);
   assert.equal(brief.priorities.length, 0);
   assert.equal(brief.questions.length, 1);
+});
+
+test('rend le brief de décision visible dans le résumé de revue locale', () => {
+  const result = analyzeCartography(model({ applications: [{ id: 'a1', name: 'ERP', capabilityIds: [] }] }));
+  assert.match(result.summary, /À retenir:/);
+  assert.match(result.summary, /Questions de revue:/);
 });
