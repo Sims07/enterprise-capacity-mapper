@@ -86,7 +86,7 @@ function validateGeneratedReferences(answer: string, model: CompanionModel) {
 }
 
 function formatAnswerInline(text: string) {
-  return text.split(/(\\*\\*[^*]+\\*\\*)/g).map((part, index) =>
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
     part.startsWith('**') && part.endsWith('**')
       ? <strong key={index}>{part.slice(2, -2)}</strong>
       : part
@@ -94,16 +94,16 @@ function formatAnswerInline(text: string) {
 }
 
 function FormattedAnswer({ text, testId }: { text: string; testId?: string }) {
-  const lines = String(text ?? '').replace(/\\r\\n/g, '\\n').split('\\n');
+  const lines = String(text ?? '').replace(/\r\n/g, '\n').split('\n');
   return (
     <div className="companion-answer-text companion-formatted-answer" data-testid={testId}>
       {lines.map((rawLine, index) => {
         const line = rawLine.trim();
         if (!line) return <div className="companion-answer-spacer" aria-hidden="true" key={index} />;
-        const heading = line.match(/^#{1,3}\\s+(.+)$/) || line.match(/^\\*\\*(.+)\\*\\*:?[ \\t]*$/)
+        const heading = line.match(/^#{1,3}\s+(.+)$/) || line.match(/^\*\*(.+)\*\*:?[ \t]*$/)
           || (line.endsWith(':') && line.length <= 90 ? [line, line.slice(0, -1)] : null);
-        if (heading) return <h4 className="companion-answer-heading" key={index}>{formatAnswerInline(heading[1].replace(/\\*\\*/g, ''))}</h4>;
-        const bullet = line.match(/^(?:[-*•]\\s+|\\d+[.)]\\s+)(.+)$/);
+        if (heading) return <h4 className="companion-answer-heading" key={index}>{formatAnswerInline(heading[1].replace(/\*\*/g, ''))}</h4>;
+        const bullet = line.match(/^(?:[-*•]\s+|\d+[.)]\s+)(.+)$/);
         if (bullet) return (
           <div className="companion-answer-list-item" key={index}>
             <span aria-hidden="true">•</span>
