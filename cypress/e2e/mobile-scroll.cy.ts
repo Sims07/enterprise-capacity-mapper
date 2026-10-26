@@ -13,9 +13,9 @@ describe('Défilement mobile', () => {
       const element = $element[0];
       expect(element.clientHeight, `${selector} must have a usable height`).to.be.greaterThan(300);
 
-      // Empty-state screens may not naturally overflow. Add deterministic content
-      // so this test checks the scroll container itself rather than application data.
-      const testContent = document.createElement('div');
+      // Use the application's document: Cypress's runner document is separate.
+      // Deterministic content avoids depending on whether the screen has user data.
+      const testContent = element.ownerDocument.createElement('div');
       testContent.dataset.testid = 'mobile-scroll-test-content';
       testContent.style.height = '1600px';
       testContent.style.minHeight = '1600px';
