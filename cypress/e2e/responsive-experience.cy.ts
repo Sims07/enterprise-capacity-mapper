@@ -26,6 +26,19 @@ describe('Architecture d’expérience responsive', () => {
       .and('have.class', 'experience-shell--mobile');
     cy.get('[data-testid="nav-cartography"]').should('be.visible');
   });
+
+  it('bascule entre les adaptateurs sans laisser le wrapper mobile contaminer le desktop', () => {
+    cy.viewport(1280, 900);
+    visitFresh();
+    cy.get('[data-ui-experience="mobile"]').should('not.exist');
+
+    cy.viewport(390, 844);
+    cy.get('[data-ui-experience="mobile"]').should('be.visible');
+
+    cy.viewport(1280, 900);
+    cy.get('[data-ui-experience="mobile"]').should('not.exist');
+    cy.get('[data-testid="nav-cartography"]').should('be.visible');
+  });
 });
 
 export {};
