@@ -671,7 +671,10 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
                       {exchange.brief.priorities.slice(0, 3).map(item => (
                         <li key={item.id}>
                           <span className={'companion-severity severity-' + item.severity}>{item.label}</span>
-                          <span>{item.title}</span>
+                          <span>
+                            {item.title}
+                            {item.evidence?.length > 0 && <small className="companion-priority-evidence">{item.evidence.map(evidence => evidence.name).filter(Boolean).join(' · ')}</small>}
+                          </span>
                         </li>
                       ))}
                     </ul>
