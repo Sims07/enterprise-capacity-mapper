@@ -1,7 +1,7 @@
 # Enterprise Capacity Mapper
 
 [![Deploy PWA to GitHub Pages](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
-[![Cypress line coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Sims07/enterprise-capacity-mapper/coverage-badge/coverage.json&cacheSeconds=300)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
+[![Combined line coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Sims07/enterprise-capacity-mapper/coverage-badge/coverage.json&cacheSeconds=300)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
 [![Latest release](https://img.shields.io/github/v/release/Sims07/enterprise-capacity-mapper?display_name=tag&sort=semver)](https://github.com/Sims07/enterprise-capacity-mapper/releases)
 [![GitHub issues](https://img.shields.io/github/issues/Sims07/enterprise-capacity-mapper)](https://github.com/Sims07/enterprise-capacity-mapper/issues)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
@@ -24,29 +24,35 @@ Les fichiers sont regroupés par responsabilité, sans multiplier les couches in
 ```text
 .
 ├── .github/workflows/   # Déploiement et contrôles GitHub Actions
-├── cypress/e2e/         # Scénarios de tests de bout en bout
+├── cypress/e2e/         # Scénarios de tests de bout en bout (*.cy.ts)
 ├── docs/                # Documentation fonctionnelle, architecture et migration
 ├── public/              # Manifest, icônes et service worker PWA
 ├── src/
-│   ├── App.jsx          # Orchestration et comportements métier
-│   ├── components/      # Composants React réutilisables / autonomes
+│   ├── App.tsx          # Orchestration UI
+│   ├── adapters/        # Adaptateurs de plateforme / fournisseurs
+│   ├── application/     # Cas d'usage
+│   ├── components/      # Composants React TSX
 │   ├── data/            # Modèle de démonstration
-│   ├── services/        # Persistance, import/export, analyse et fournisseurs
+│   ├── domain/          # Modèle métier et règles
+│   ├── ports/           # Contrats d'architecture
+│   ├── services/        # Services applicatifs, notamment stockage
 │   ├── styles/          # Styles CSS et tokens
 │   ├── main.tsx         # Point d'entrée React et enregistrement PWA
-│   └── toolsMenuBehavior.js # Comportement du menu Outils
+│   └── sw.ts            # Service worker
 ├── index.html
 ├── package.json
-└── vite.config.js
+└── vite.config.ts
 ```
 
-Le code React utilisé par l'application doit avoir une seule source de vérité : les composants vivent dans `src/components/`, et la documentation fonctionnelle reste à la racine ou dans `docs/`, jamais dans `src/`. Tous les fichiers CSS sont regroupés dans `src/styles/`.
+Le code applicatif et les tests Cypress sont en TypeScript. Les fichiers JavaScript ne font plus partie du code source applicatif ni des spécifications E2E ; les éventuels fichiers d'outillage restant hors périmètre ne sont pas assimilés au code métier.
 
 ## Documentation d'architecture et de migration
 
-- [`docs/architecture/current-state.md`](docs/architecture/current-state.md) — photographie de l'architecture actuelle et des couplages à surveiller.
+- [`docs/architecture/current-state.md`](docs/architecture/current-state.md) — photographie de l'architecture actuelle, de la pyramide de tests et des couplages à surveiller.
 - [`docs/architecture/target-independence.md`](docs/architecture/target-independence.md) — frontières recommandées entre métier, application, ports et adaptateurs.
-- [`docs/architecture/typescript-architecture-standard.md`](docs/architecture/typescript-architecture-standard.md) — référentiel officiel TypeScript : ports, adaptateurs, `satisfies`, injection, modèle métier et tests.\n- [`docs/architecture/adr/0003-rich-domain-model.md`](docs/architecture/adr/0003-rich-domain-model.md) — décisions sur les invariants métier, l’agrégat `Catalog` et le modèle riche `MapLayout`.
+- [`docs/architecture/typescript-architecture-standard.md`](docs/architecture/typescript-architecture-standard.md) — référentiel officiel TypeScript : ports, adaptateurs, `satisfies`, injection, modèle métier et tests.
+- [`docs/architecture/typescript-migration-inventory.md`](docs/architecture/typescript-migration-inventory.md) — inventaire de migration et état de sortie du JavaScript applicatif.
+- [`docs/architecture/adr/0003-rich-domain-model.md`](docs/architecture/adr/0003-rich-domain-model.md) — décisions sur les invariants métier, l'agrégat `Catalog` et le modèle riche `MapLayout`.
 - [`docs/architecture/migration-playbook.md`](docs/architecture/migration-playbook.md) — procédure de migration étape par étape et stratégie de non-régression.
 - [`docs/architecture/migration-checklist.md`](docs/architecture/migration-checklist.md) — checklist prête à l'emploi pour une future PR de migration.
 - [`docs/architecture/adr/0001-technology-migration-principles.md`](docs/architecture/adr/0001-technology-migration-principles.md) — décision d'architecture sur les principes de migration.
@@ -65,7 +71,7 @@ Le code React utilisé par l'application doit avoir une seule source de vérité
 
 ## Caractéristiques actuelles
 
-- **Frontend** : React + Vite, statique et compatible GitHub Pages.
+- **Frontend** : React + Vite + TypeScript, statique et compatible GitHub Pages.
 - **PWA** : manifest + service worker + cache offline.
 - **Données locales** : LocalStorage V3 par défaut, avec migration automatique des anciennes clés `ea_canvas_*`.
 - **Échange** : import/export JSON versionné (`schemaVersion: 3`).
@@ -78,6 +84,18 @@ Le code React utilisé par l'application doit avoir une seule source de vérité
 - **Compagnon IA** : analyse déterministe locale et fournisseurs configurables, avec séparation des responsabilités et protections documentées.
 - **Déploiement** : GitHub Actions → GitHub Pages.
 - **Backend** : aucun backend requis pour le fonctionnement nominal.
+
+## Stratégie de tests
+
+La pyramide de tests est organisée pour mettre le maximum de confiance au niveau le moins coûteux :
+
+1. **Domaine / unitaires** — règles métier, invariants, calculs, migrations et transitions pures.
+2. **Application / contrats / adaptateurs** — cas d'usage et frontières avec LocalStorage, navigation, préférences et fournisseurs IA via injection de dépendances.
+3. **Cypress E2E** — parcours utilisateurs critiques, intégration UI/browser/PWA et quelques scénarios de bout en bout représentatifs.
+
+La CI impose **95 % minimum de couverture ligne sur le noyau domaine + application**. La couverture consolidée correspond à l'union des lignes couvertes par les tests unitaires et Cypress sur le périmètre commun ; c'est cette valeur consolidée qui alimente le badge. La couverture Cypress seule est publiée comme métrique technique complémentaire.
+
+La dernière rationalisation documentée de Cypress a ramené la suite à **17 specs / 105 tests**, sans suppression des parcours métier critiques, avec **79,27 % de couverture Cypress**, **87,21 % de couverture consolidée** et **96,8 % de couverture unitaire domaine/application**.
 
 ## Utiliser l'application
 
@@ -167,6 +185,14 @@ Les règles déterministes peuvent également être vérifiées avec :
 ```bash
 npm run test:unit
 ```
+
+Pour reproduire les contrôles de typage :
+
+```bash
+npm run typecheck
+```
+
+La CI exécute également les couvertures unitaires, la couverture Cypress, leur consolidation, puis le build de production avant publication.
 
 ## Données
 
