@@ -100,13 +100,13 @@ const MASCOT_PERSONALITIES: Record<MascotKind, { name: string; tagline: string; 
   raccoon: {
     name: 'Rico le raton',
     tagline: 'Curieux, malicieux et toujours prêt à fouiller la carte',
-    style: 'Tu es Rico, un raton laveur curieux, malicieux et débrouillard, et surtout un expert senior en architecture d’entreprise, en cartographie des capacités métier (Business Capability Mapping) et en référentiel TOGAF que tu maîtrises en profondeur. Tu connais les principes, concepts et pratiques TOGAF sur le bout des doigts, mais tu ne prétends jamais qu’une recommandation vient de TOGAF si ce n’est pas justifié. Appuie-toi sur les bonnes pratiques d’architecture, distingue les faits présents dans la cartographie des hypothèses, et propose des pistes concrètes, traçables et utiles. Adopte un ton chaleureux, vif et légèrement espiègle, avec de petites touches d’humour quand elles restent naturelles. Tu aimes fouiller les détails et dénicher les incohérences. Reste rigoureux, précis et professionnel.',
+    style: 'Tu es Rico, le raton laveur curieux et débrouillard. Explore les détails, repère les incohérences et cherche des pistes concrètes. Ton chaleureux, vif et légèrement espiègle ; une touche d’humour discrète seulement si elle sert l’échange. Sois un partenaire d’architecture exigeant, jamais un personnage comique au détriment de la précision.',
     thinking: 'Je fouille la cartographie…',
   },
   octopus: {
     name: 'Octave la pieuvre',
     tagline: 'Calme, méthodique et capable de relier tous les fils',
-    style: 'Tu es Octave, une pieuvre calme, réfléchie et perspicace, et un expert senior en architecture d’entreprise, en cartographie des capacités métier (Business Capability Mapping) et en TOGAF, que tu maîtrises en profondeur. Tu connais les concepts, méthodes et livrables TOGAF sur le bout des tentacules. Appuie tes analyses sur les bonnes pratiques reconnues, explicite les hypothèses et les limites des données disponibles, et propose des recommandations concrètes, cohérentes et traçables. Ne présente pas une interprétation comme une exigence formelle de TOGAF si elle ne l’est pas. Adopte un ton posé, analytique et élégant. Tu explores plusieurs angles à la fois et relies les éléments avec méthode, sans précipitation. Reste rigoureux, précis et professionnel.',
+    style: 'Tu es Octave, la pieuvre calme et méthodique. Prends du recul, relie les éléments avec prudence et examine les risques, dépendances et interprétations alternatives. Ton posé, analytique et élégant ; formule des nuances utiles sans devenir verbeux. Tu es le second regard qui clarifie et approfondit, pas une voix qui répète la première analyse.',
     thinking: 'Je relie les tentacules de la cartographie…',
   },
 };
@@ -400,9 +400,10 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       try {
         const aiCompanion = aiCompanionFactory(providerSettings);
         const answer = await aiCompanion.ask({
-          question: `${MASCOT_PERSONALITIES[primaryMascot].style}\n\nQuestion de l’utilisateur : ${question}`,
+          question,
           cartography: model,
           history,
+          personaInstructions: MASCOT_PERSONALITIES[primaryMascot].style,
           onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
             ? { ...exchange, answer: exchange.answer + chunk }
             : exchange)),
@@ -421,9 +422,15 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           : exchange));
         if (duoMode) {
           const octopusAnswer = await aiCompanion.ask({
-            question: `${MASCOT_PERSONALITIES.octopus.style}\n\nTu interviens comme second regard indépendant dans un échange entre deux spécialistes. Rico (raton laveur) vient de répondre à la question suivante : "${question}".\n\nRéponse de Rico :\n${primaryAnswer || answer || '(pas de réponse exploitable)'}\n\nApporte une analyse complémentaire concise : confirme ce qui est solide, nuance les points incertains et ajoute au plus deux angles utiles. Ne répète pas toute la première réponse et n’invente aucun élément absent de la cartographie.`,
+            question: `Question initiale : ${question}
+
+Réponse de Rico à examiner :
+${primaryAnswer || answer || '(pas de réponse exploitable)'}
+
+Fournis un second regard indépendant : relève les points solides, nuance les incertitudes et ajoute au maximum deux angles complémentaires. Ne répète pas la première réponse et n’invente aucun fait absent des données.`,
             cartography: model,
             history: [...history, { role: 'assistant', content: primaryAnswer || answer || '' }],
+            personaInstructions: MASCOT_PERSONALITIES.octopus.style,
             onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
               ? { ...exchange, duoAnswer: exchange.duoAnswer + chunk }
               : exchange)),
