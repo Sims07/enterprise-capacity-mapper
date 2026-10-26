@@ -2549,6 +2549,30 @@ body::-webkit-scrollbar,
     border-radius: 10px;
   }
 
+  /* La matrice devient une pile de zones lisibles plutôt qu'un tableau trop large. */
+  .map-row {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .map-row.map-head {
+    display: none;
+  }
+
+  .map-row > .axis-label {
+    width: 100%;
+    padding: 8px 4px 2px;
+  }
+
+  .map-cell {
+    width: 100%;
+    min-width: 0;
+    grid-column: auto !important;
+  }
+
   .domain-card {
     width: 100%;
     min-width: 0;
