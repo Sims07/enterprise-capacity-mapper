@@ -27,14 +27,23 @@
   }
 
   .workspace {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-height: 0;
-    height: auto;
+    height: 0;
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+    overflow: hidden;
   }
 
-  main {
+  .workspace > aside {
+    min-height: 0;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  .workspace > main {
     min-width: 0;
     min-height: 0;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -42,13 +51,14 @@
     overscroll-behavior-y: contain;
   }
 
-  /* The library is rendered as a sibling of main, not inside .workspace.
+  /* The library is rendered as a sibling of .workspace.
    * Give it the remaining viewport space and its own scroll area.
    */
   .app > .library-page {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
     min-height: 0;
+    height: 0;
     width: 100%;
     box-sizing: border-box;
     overflow-y: auto;
