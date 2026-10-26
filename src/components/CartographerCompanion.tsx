@@ -49,7 +49,7 @@ function resultMessage(prompt, result, observations) {
       ? `La revue structurelle a relevé ${observations.length} point(s) à examiner. Les constats sont rattachés aux éléments de la cartographie.`
       : 'Aucun problème structurel n’a été détecté par les règles locales.';
   }
-  return result.summary;
+  return String(result.summary ?? '').split(/\r?\n\s*\r?\n/)[0];
 }
 
 type CompanionModel = Omit<CatalogModel, 'layout' | 'domains' | 'capabilities' | 'applications'> & {
