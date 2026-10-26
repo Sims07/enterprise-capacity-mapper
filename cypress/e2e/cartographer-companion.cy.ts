@@ -180,7 +180,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-question"]').type('Évalue la couverture de cette cartographie');
     cy.get('[data-testid="companion-submit"]').click();
 
-    cy.get('[data-testid="companion-thinking"]').should('be.visible').and('contain.text', 'Le modèle prépare sa réponse');
+    cy.get('[data-testid="companion-thinking"]').should('be.visible').and('contain.text', 'Je fouille la cartographie');
     cy.wait('@ollamaChat').its('request.body.messages').should('have.length.at.least', 2);
     cy.get('[data-testid="companion-answer"]').should('contain.text', 'Réponse Ollama simulée');
     cy.get('[data-testid="companion-exchange"]').last().find('.companion-no-findings').should('not.exist');
@@ -278,6 +278,51 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-reference-warning"]').should('contain.text', '1 référence');
     cy.get('[data-testid="companion-generated-reference"]').click();
     cy.get('[data-entity-id="l1-5"] [data-testid="map-cap-select"]').should('have.attr', 'aria-pressed', 'true');
+  });
+
+
+  it('adapte la personnalité affichée au choix de mascotte', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('#companion-title').should('contain.text', 'Rico le raton');
+    cy.get('[data-testid="companion-personality-tagline"]').should('contain.text', 'Curieux, malicieux');
+    cy.get('[data-testid="companion-mascot-toggle"]').click();
+    cy.get('#companion-title').should('contain.text', 'Octave la pieuvre');
+    cy.get('[data-testid="companion-personality-tagline"]').should('contain.text', 'Calme, méthodique');
+    cy.get('[data-testid="companion-mascot-toggle"]').click();
+    cy.get('#companion-title').should('contain.text', 'Rico le raton');
+  });
+
+  it('fait dialoguer Rico et Octave et identifie clairement chaque réponse', () => {
+    cy.intercept('OPTIONS', 'http://localhost:11434/api/chat', {
+      statusCode: 204,
+      headers: {
+        'access-control-allow-origin': 'http://127.0.0.1:4173',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'content-type',
+      },
+    });
+    cy.intercept('POST', 'http://localhost:11434/api/chat', {
+      statusCode: 200,
+      headers: { 'access-control-allow-origin': 'http://127.0.0.1:4173' },
+      body: { message: { content: 'Je recommande de vérifier les liens entre capacités et applications.' } },
+    }).as('ollamaDuo');
+
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-duo-toggle"]').should('be.disabled');
+    cy.get('[data-testid="companion-settings-toggle"]').click();
+    cy.get('[data-testid="companion-provider-enabled"]').check();
+    cy.get('[data-testid="companion-duo-toggle"]').should('be.enabled').click().should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="companion-duo-control"]').should('be.visible').and('contain.text', 'Rico répond');
+    cy.get('[data-testid="companion-question"]').type('Analyse les liens entre capacités et applications');
+    cy.get('[data-testid="companion-submit"]').click();
+    cy.wait('@ollamaDuo');
+    cy.wait('@ollamaDuo');
+    cy.get('[data-testid="companion-answer"]').should('contain.text', 'vérifier les liens');
+    cy.get('[data-testid="companion-duo-turn"]').should('be.visible');
+    cy.get('[data-testid="companion-duo-answer"]').should('contain.text', 'vérifier les liens');
+    cy.get('[data-testid="companion-exchange"] .companion-assistant-message > .companion-assistant-heading').should('have.length', 1);
+    cy.get('[data-testid="companion-duo-turn"] .companion-assistant-heading .companion-message-role').should('contain.text', 'Octave la pieuvre');
   });
 
 });

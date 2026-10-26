@@ -16,7 +16,7 @@ test('Ollama utilise /api/chat et extrait la réponse textuelle', async () => {
   let request;
   const answer = await sendCompanionRequest({
     provider: 'ollama', model: 'llama3.2', endpoint: 'http://localhost:11434',
-    question: 'Quelles capacités sont couvertes ?', cartography,
+    question: 'Quelles capacités sont couvertes ?', cartography, personaInstructions: 'Tu es Rico : curieux, concis et méthodique.',
     fetchImpl: async (url, options) => {
       request = { url, options };
       return response({ message: { content: 'La capacité Comptabilité générale.' } });
@@ -26,6 +26,8 @@ test('Ollama utilise /api/chat et extrait la réponse textuelle', async () => {
   assert.equal(request.url, 'http://localhost:11434/api/chat');
   assert.equal(JSON.parse(request.options.body).stream, true);
   assert.match(JSON.parse(request.options.body).messages[0].content, /TOGAF/);
+  assert.match(JSON.parse(request.options.body).messages[0].content, /Tu es Rico : curieux, concis et méthodique/);
+  assert.equal(JSON.parse(request.options.body).messages.at(-1).content, 'Quelles capacités sont couvertes ?');
   assert.doesNotMatch(JSON.parse(request.options.body).messages[0].content, /NE PAS TRANSMETTRE/);
 });
 

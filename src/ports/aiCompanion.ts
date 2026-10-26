@@ -5,6 +5,8 @@ export type AiQuestion = {
   question: string;
   cartography: CatalogModel;
   history?: AiHistoryEntry[];
+  /** Instructions de rôle et de style injectées dans le message système, jamais dans la question utilisateur. */
+  personaInstructions?: string;
   onChunk?: (chunk: string) => void;
 };
 
