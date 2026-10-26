@@ -52,11 +52,18 @@ describe('Smoke tests — application et navigation', () => {
     cy.get('header').then($header => {
       expect($header[0].getBoundingClientRect().height).to.be.lessThan(190);
     });
-    cy.get('.primary-navigation').should('be.visible').then($nav => {
-      const buttons = $nav.find('button');
-      expect(buttons.length).to.equal(3);
-      const tops = [...buttons].map(button => button.getBoundingClientRect().top);
-      expect(Math.max(...tops) - Math.min(...tops)).to.be.lessThan(1);
+    cy.get('.primary-navigation').should('be.visible').within(() => {
+      const navigationSelectors = [
+        '[data-testid="nav-cartography"]',
+        '[data-testid="nav-analysis"]',
+        '[data-testid="primary-library"]',
+      ];
+      navigationSelectors.forEach(selector => cy.get(selector).should('be.visible'));
+      cy.get(navigationSelectors.join(',')).then($buttons => {
+        expect($buttons).to.have.length(3);
+        const tops = [...$buttons].map(button => button.getBoundingClientRect().top);
+        expect(Math.max(...tops) - Math.min(...tops)).to.be.lessThan(1);
+      });
     });
     cy.get('.toolbar-actions').should('be.visible');
     cy.get('[data-testid="undo-button"]').should('have.css', 'min-height', '42px');
