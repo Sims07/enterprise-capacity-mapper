@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeCartography } from '../../src/domain/cartographyAnalysis.ts';
+import { analyzeCartography, buildDecisionBrief } from '../../src/domain/cartographyAnalysis.ts';
 
 const model = overrides => ({
   schemaVersion: 3,
@@ -25,52 +25,38 @@ test('un modèle cohérent et couvert ne génère pas de constat', () => {
 });
 
 test('signale une capacité rattachée à un domaine absent', () => {
-  const result = analyzeCartography(model({
-    capabilities: [{ id: 'c1', domainId: 'absent', name: 'Facturation' }],
-  }));
+  const result = analyzeCartography(model({ capabilities: [{ id: 'c1', domainId: 'absent', name: 'Facturation' }] }));
   assert.ok(result.observations.some(item => item.ruleId === 'relationship.capability-domain-missing'));
 });
 
 test('signale une relation applicative vers une cible absente', () => {
-  const result = analyzeCartography(model({
-    applications: [{ id: 'a1', name: 'ERP', capabilityIds: ['absent'] }],
-  }));
+  const result = analyzeCartography(model({ applications: [{ id: 'a1', name: 'ERP', capabilityIds: ['absent'] }] }));
   assert.ok(result.observations.some(item => item.ruleId === 'relationship.application-target-missing'));
   assert.ok(result.observations.some(item => item.ruleId === 'coverage.target-uncovered'));
 });
 
 test('en profondeur 1, la couverture cible les domaines N0', () => {
-  const result = analyzeCartography(model({
-    layout: { depth: 1 },
-    applications: [{ id: 'a1', name: 'ERP', capabilityIds: ['d1'] }],
-  }));
+  const result = analyzeCartography(model({ layout: { depth: 1 }, applications: [{ id: 'a1', name: 'ERP', capabilityIds: ['d1'] }] }));
   assert.equal(result.observations.some(item => item.ruleId === 'coverage.target-uncovered'), false);
   assert.equal(result.context.depth, 1);
 });
 
 test('signale une cible non couverte et une application non reliée', () => {
-  const result = analyzeCartography(model({
-    applications: [{ id: 'a1', name: 'ERP', capabilityIds: [] }],
-  }));
+  const result = analyzeCartography(model({ applications: [{ id: 'a1', name: 'ERP', capabilityIds: [] }] }));
   assert.ok(result.observations.some(item => item.ruleId === 'coverage.target-uncovered'));
   assert.ok(result.observations.some(item => item.ruleId === 'coverage.application-unlinked'));
 });
 
 test('signale les doublons potentiels sans confondre les accents et la casse', () => {
   const result = analyzeCartography(model({
-    domains: [
-      { id: 'd1', name: 'Finance' },
-      { id: 'd2', name: 'FINANCE' },
-    ],
+    domains: [{ id: 'd1', name: 'Finance' }, { id: 'd2', name: 'FINANCE' }],
     capabilities: [{ id: 'c1', domainId: 'd1', name: 'Gestion de la facturation' }],
   }));
   assert.ok(result.observations.some(item => item.ruleId === 'name.duplicate'));
 });
 
 test('suggère de revoir un intitulé verbal sans en faire une erreur', () => {
-  const result = analyzeCartography(model({
-    capabilities: [{ id: 'c1', domainId: 'd1', name: 'Gérer les factures' }],
-  }));
+  const result = analyzeCartography(model({ capabilities: [{ id: 'c1', domainId: 'd1', name: 'Gérer les factures' }] }));
   const observation = result.observations.find(item => item.ruleId === 'naming.action-phrase');
   assert.ok(observation);
   assert.equal(observation.severity, 'suggestion');
@@ -91,4 +77,20 @@ test('ne modifie jamais le modèle analysé', () => {
   const before = structuredClone(input);
   analyzeCartography(input);
   assert.deepEqual(input, before);
+});
+
+test('construit un brief de décision priorisé sans inventer de conclusion métier', () => {
+  const result = analyzeCartography(model({ applications: [{ id: 'a1', name: 'ERP', capabilityIds: ['absent'] }] }));
+  const brief = buildDecisionBrief(result);
+  assert.equal(brief.hasFindings, true);
+  assert.ok(brief.priorities.length > 0);
+  assert.equal(brief.priorities[0].severity, 'error');
+  assert.ok(brief.questions.some(question => /couvert|lacunes|incomplètes/i.test(question)));
+});
+
+test('produit une question de revue même lorsque la cartographie est cohérente', () => {
+  const brief = buildDecisionBrief(analyzeCartography(model()));
+  assert.equal(brief.hasFindings, false);
+  assert.equal(brief.priorities.length, 0);
+  assert.equal(brief.questions.length, 1);
 });
