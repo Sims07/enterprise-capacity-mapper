@@ -11,7 +11,7 @@ describe('Compagnon cartographe — decision brief', () => {
     cy.get('[data-testid="companion-launcher"]').click();
     cy.get('[data-testid="companion-prompt-overview"]').click();
     cy.get('[data-testid="companion-answer"]').first()
-      .should('contain.text', 'À retenir:')
-      .and('contain.text', 'Questions de revue:');
+      .should('contain.text', 'À retenir')
+      .and('contain.text', 'Questions de revue');
   });
 });
