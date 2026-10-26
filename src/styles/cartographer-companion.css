@@ -699,8 +699,8 @@
   line-height: 1.5;
 }
 
-/* Mascotte du compagnon : SVG autonome, accessible et cohérente avec les deux thèmes. */
-.companion-mascot-svg { display: block; width: 100%; height: 100%; }
+/* Illustrations raster haute qualité, intégrées localement pour rester disponibles hors ligne. */
+.companion-mascot-svg { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .companion-brand-mark { overflow: hidden; }
 .companion-brand-mark .companion-mascot-svg { width: 37px; height: 37px; }
 .companion-avatar { display: block; overflow: hidden; }
