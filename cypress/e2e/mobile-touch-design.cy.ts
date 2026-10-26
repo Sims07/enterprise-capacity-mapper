@@ -34,9 +34,9 @@ describe('Polissage tactile mobile', () => {
       const rect = dialog.getBoundingClientRect();
       const style = getComputedStyle(dialog);
 
-      expect(rect.width, 'dialog width should fit the phone viewport').to.be.closeTo(390, 1);
+      expect(rect.width, 'dialog width should fit the phone viewport').to.be.closeTo(window.innerWidth, 1);
       expect(rect.left, 'dialog should align with the viewport edge').to.be.closeTo(0, 1);
-      expect(rect.bottom, 'dialog should not extend below the viewport').to.be.at.most(844);
+      expect(rect.bottom, 'dialog should not extend below the layout viewport').to.be.at.most(window.innerHeight + 1);
       expect(rect.top, 'dialog should have a visible portion').to.be.greaterThan(0);
       expect(style.borderTopLeftRadius).to.equal('18px');
     });
@@ -51,9 +51,9 @@ describe('Polissage tactile mobile', () => {
     cy.get('.companion-launcher').should('be.visible').click();
     cy.get('.companion-panel').should('be.visible').then($panel => {
       const rect = $panel[0].getBoundingClientRect();
-      expect(rect.width).to.be.closeTo(390, 1);
+      expect(rect.width).to.be.closeTo(window.innerWidth, 1);
       expect(rect.top).to.be.at.most(1);
-      expect(rect.bottom).to.be.closeTo(844, 1);
+      expect(rect.bottom).to.be.closeTo(window.innerHeight, 1);
     });
     cy.get('.companion-close').should('be.visible');
   });
