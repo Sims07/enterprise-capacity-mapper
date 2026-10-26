@@ -377,6 +377,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     event.preventDefault();
     const question = query.trim();
     if (!question || isSending) return;
+    const primaryMascot: MascotKind = duoMode ? 'raccoon' : mascot;
 
     if (providerSettings.enabled) {
       const exchangeId = `${Date.now()}-${history.length}`;
@@ -389,7 +390,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
         observations: [],
         counts: { total: 0, errors: 0, reviews: 0, suggestions: 0 },
         source: providerSettings.provider,
-        mascot,
+        mascot: primaryMascot,
         duoMode,
         duoAnswer: '',
         duoStatus: null,
@@ -399,7 +400,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       try {
         const aiCompanion = aiCompanionFactory(providerSettings);
         const answer = await aiCompanion.ask({
-          question: `${MASCOT_PERSONALITIES[mascot].style}\n\nQuestion de l’utilisateur : ${question}`,
+          question: `${MASCOT_PERSONALITIES[primaryMascot].style}\n\nQuestion de l’utilisateur : ${question}`,
           cartography: model,
           history,
           onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
