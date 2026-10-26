@@ -176,7 +176,8 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-dashboard"]').then($button => expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)'));
 
     cy.viewport(390, 844);
-    cy.get('[data-testid="tab-relations"]').click();
+    cy.get('[data-ui-experience="mobile"]').should('exist');
+    cy.get('[data-testid="tab-relations"]').should('be.visible').click();
     cy.get('.analysis-view-switch > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
     cy.get('.analysis-view-switch > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
   });
