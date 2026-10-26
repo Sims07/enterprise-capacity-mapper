@@ -47,7 +47,7 @@ describe('Compagnon cartographe — interface locale', () => {
 
   it('présente une revue locale en sections plutôt que de fusionner synthèse et questions', () => {
     cy.get('[data-testid="companion-launcher"]').click();
-    cy.get('[data-testid="companion-prompt-structure"]').click();
+    cy.get('[data-testid="companion-prompt-overview"]').click();
 
     cy.get('[data-testid="companion-answer"]').should('be.visible')
       .and('not.contain.text', 'Questions de revue :')
