@@ -10,9 +10,9 @@
 
 ## Contrôle automatisé
 
-Le test `test/architecture-boundaries.test.js`, exécuté par `npm run test:unit`, vérifie les imports interdits dans le domaine et l'application ainsi que les imports d'adaptateurs dans le reste du code source hors de la frontière UI/composition. L’analyse déterministe de cartographie réside dans le domaine. Les préférences du compagnon IA sont exposées via `CompanionPreferencesPort`, implémenté par un adaptateur navigateur et injecté au composant depuis le composition root. Les anciens modules `src/services/ai/*` ne doivent plus être importés par les composants ou les couches internes.
+Le test `test/architecture-boundaries.test.ts`, exécuté par `npm run test:unit`, vérifie les imports interdits dans le domaine, l'application et les ports, ainsi que les imports d'adaptateurs dans le reste du code source hors de la frontière UI/composition. Il bloque également les dépendances directes vers React, Cypress, les API Node et les API de stockage navigateur depuis les couches internes. L’analyse déterministe de cartographie réside dans le domaine. Les préférences du compagnon IA sont exposées via `CompanionPreferencesPort`, implémenté par un adaptateur navigateur et injecté au composant depuis le composition root. Les anciens modules `src/services/ai/*` ne doivent plus être importés par les composants ou les couches internes.
 
-Ces contrôles sont volontairement statiques et légers : ils utilisent le runner Node déjà présent, sans nouvelle dépendance, navigateur, build supplémentaire ou impact sur Cypress/Istanbul.
+Ces contrôles sont volontairement statiques et légers : ils utilisent le runner Node déjà présent, sans nouvelle dépendance, navigateur, build supplémentaire ou impact sur Cypress/Istanbul. Cette approche joue le rôle de garde-fou architectural léger, sans ajouter un outil de graphe de dépendances alors que les frontières du projet restent simples et explicites.
 
 ## Points d'audit et stratégie
 
