@@ -187,6 +187,39 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-provider-clear-key"]').click();
     cy.get('[data-testid="companion-provider-key"]').should('have.value', '');
   });
+
+  it('garde les textes utiles lisibles et les contrôles confortables', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-prompt-coverage"]').should('be.visible').then(prompt => {
+      expect(parseFloat(getComputedStyle(prompt[0]).fontSize), 'taille du raccourci').to.be.at.least(13);
+      expect(parseFloat(getComputedStyle(prompt[0]).minHeight), 'hauteur minimale du raccourci').to.be.at.least(48);
+    });
+    cy.get('[data-testid="companion-prompt-coverage"]').click();
+    cy.get('[data-testid="companion-answer"]').should('be.visible').then(answer => {
+      expect(parseFloat(getComputedStyle(answer[0]).fontSize), 'taille de la réponse').to.be.at.least(12);
+    });
+    cy.get('[data-testid="companion-question"]').then(input => {
+      expect(parseFloat(getComputedStyle(input[0]).fontSize), 'taille du champ de question').to.be.at.least(14);
+      expect(parseFloat(getComputedStyle(input[0]).height), 'hauteur du champ de question').to.be.at.least(42);
+    });
+  });
+
+  it('utilise presque tout l’écran sur mobile et conserve une zone de fermeture accessible', () => {
+    cy.viewport(390, 740);
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-panel"]').should('be.visible').then(panel => {
+      const rect = panel[0].getBoundingClientRect();
+      expect(rect.left, 'marge gauche').to.be.at.least(0);
+      expect(rect.top, 'marge haute').to.be.at.least(0);
+      expect(rect.right, 'bord droit').to.be.at.most(390);
+      expect(rect.bottom, 'bord bas').to.be.at.most(740);
+      expect(rect.height, 'hauteur de l’espace mobile').to.be.at.least(700);
+    });
+    cy.get('[data-testid="companion-close"]').should('be.visible').and('have.attr', 'aria-label', 'Fermer le compagnon').click();
+    cy.get('[data-testid="companion-panel"]').should('not.exist');
+    cy.get('[data-testid="companion-launcher"]').should('have.focus');
+  });
+
 });
 
 export {};
