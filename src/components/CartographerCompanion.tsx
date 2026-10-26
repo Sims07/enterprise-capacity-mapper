@@ -93,6 +93,18 @@ function evidenceExists(item: { type?: string; id?: string | null }, model: Comp
   return false;
 }
 
+
+import { COMPANION_MASCOT_IMAGES, type MascotKind } from './companion-mascots';
+
+function MascotIcon({ kind, className = '' }: { kind: MascotKind; className?: string }) {
+  return <img
+    className={className}
+    src={COMPANION_MASCOT_IMAGES[kind]}
+    alt={kind === 'raccoon' ? 'Mascotte raton laveur' : 'Mascotte pieuvre'}
+    draggable={false}
+  />;
+}
+
 export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences, onNavigateToEvidence }: {
   model: CompanionModel;
   darkMode?: boolean;
@@ -101,6 +113,15 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   onNavigateToEvidence?: (item: EvidenceReference) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [mascot, setMascot] = useState<MascotKind>(() => {
+    try { return window.localStorage.getItem('companion-mascot') === 'octopus' ? 'octopus' : 'raccoon'; }
+    catch { return 'raccoon'; }
+  });
+  const toggleMascot = () => setMascot(current => {
+    const next: MascotKind = current === 'raccoon' ? 'octopus' : 'raccoon';
+    try { window.localStorage.setItem('companion-mascot', next); } catch { /* Keep the selection for this session if storage is unavailable. */ }
+    return next;
+  });
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState([]);
   const [activePrompt, setActivePrompt] = useState(null);
@@ -436,7 +457,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
 
           <div className="companion-assistant-message">
             <div className="companion-assistant-heading">
-              <span className="companion-avatar" aria-hidden="true">✦</span>
+              <MascotIcon kind={mascot} className="companion-avatar companion-mascot-svg" />
               <div>
                 <p className="companion-message-role">Compagnon cartographe</p>
                 <p className="companion-answer-meta">{exchange.status === 'streaming' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
@@ -538,11 +559,12 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           ref={panelRef}
         >
           <div className="companion-header">
-            <div className="companion-brand-mark" aria-hidden="true">✦</div>
+            <div className="companion-brand-mark"><MascotIcon kind={mascot} className="companion-mascot-svg" /></div>
             <div className="companion-heading">
               <h2 id="companion-title">Compagnon cartographe</h2>
               <p>Votre revue de cartographie d’entreprise</p>
             </div>
+            <button type="button" className="companion-mascot-toggle" aria-label={mascot === 'raccoon' ? 'Passer à la mascotte pieuvre' : 'Revenir à la mascotte raton laveur'} data-testid="companion-mascot-toggle" onClick={toggleMascot}><MascotIcon kind={mascot === 'raccoon' ? 'octopus' : 'raccoon'} className="companion-mascot-toggle-icon" /><span>{mascot === 'raccoon' ? 'Pieuvre' : 'Raton laveur'}</span></button>
             <button type="button" className="companion-settings-toggle" aria-label="Configurer le fournisseur IA" data-testid="companion-settings-toggle" aria-expanded={showProviderSettings} onClick={() => setShowProviderSettings(value => !value)}>IA</button>
             <button type="button" className="companion-close" aria-label="Fermer le compagnon" data-testid="companion-close" onClick={() => { setOpen(false); triggerRef.current?.focus(); }}>×</button>
           </div>
@@ -675,7 +697,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             {mode === 'conversation' && history.length === 0 && (
               <div className="companion-start">
                 <div className="companion-welcome">
-                  <span className="companion-avatar" aria-hidden="true">✦</span>
+                  <MascotIcon kind={mascot} className="companion-avatar companion-mascot-svg" />
                   <div>
                     <p className="companion-message-title">Bonjour, regardons votre cartographie.</p>
                     <p>{providerSettings.enabled ? 'Posez une question en langage naturel. Les réponses du modèle apparaissent progressivement pendant leur génération.' : 'Posez une question en langage naturel pour examiner votre cartographie avec les contrôles locaux.'}</p>
@@ -716,7 +738,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
         ref={triggerRef}
         onClick={() => setOpen(value => !value)}
       >
-        <span className="companion-launcher-icon" aria-hidden="true">{open ? '×' : '✦'}</span>
+        <span className="companion-launcher-icon" aria-hidden="true">{open ? '×' : <MascotIcon kind={mascot} className="companion-launcher-mascot" />}</span>
         <span>{open ? 'Fermer' : 'Compagnon'}</span>
         {!open && <span className="companion-launcher-status" aria-hidden="true" />}
       </button>
