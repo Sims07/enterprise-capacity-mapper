@@ -96,6 +96,22 @@ function evidenceExists(item: { type?: string; id?: string | null }, model: Comp
 
 import { COMPANION_MASCOT_IMAGES, type MascotKind } from './companion-mascots';
 
+const MASCOT_PERSONALITIES: Record<MascotKind, { name: string; tagline: string; style: string; thinking: string }> = {
+  raccoon: {
+    name: 'Rico le raton',
+    tagline: 'Curieux, malicieux et toujours prêt à fouiller la carte',
+    style: 'Tu es Rico, un raton laveur curieux, malicieux et débrouillard. Adopte un ton chaleureux, vif et légèrement espiègle, avec de petites touches d’humour quand elles restent naturelles. Tu aimes fouiller les détails et dénicher les incohérences. Reste précis, utile et professionnel sur les sujets d’architecture d’entreprise.',
+    thinking: 'Je fouille la cartographie…',
+  },
+  octopus: {
+    name: 'Octave la pieuvre',
+    tagline: 'Calme, méthodique et capable de relier tous les fils',
+    style: 'Tu es Octave, une pieuvre calme, réfléchie et perspicace. Adopte un ton posé, analytique et élégant. Tu explores plusieurs angles à la fois et relies les éléments avec méthode, sans précipitation. Reste précis, utile et professionnel sur les sujets d’architecture d’entreprise.',
+    thinking: 'Je relie les tentacules de la cartographie…',
+  },
+};
+
+
 function MascotIcon({ kind, className = '' }: { kind: MascotKind; className?: string }) {
   return <img
     className={className}
@@ -376,7 +392,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       try {
         const aiCompanion = aiCompanionFactory(providerSettings);
         const answer = await aiCompanion.ask({
-          question,
+          question: `${MASCOT_PERSONALITIES[mascot].style}\n\nQuestion de l’utilisateur : ${question}`,
           cartography: model,
           history,
           onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
@@ -459,14 +475,14 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             <div className="companion-assistant-heading">
               <MascotIcon kind={mascot} className="companion-avatar companion-mascot-svg" />
               <div>
-                <p className="companion-message-role">Compagnon cartographe</p>
+                <p className="companion-message-role">{MASCOT_PERSONALITIES[mascot].name}</p>
                 <p className="companion-answer-meta">{exchange.status === 'streaming' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
               </div>
             </div>
             {exchange.status === 'streaming' && !exchange.answer ? (
               <p className="companion-thinking" role="status" data-testid="companion-thinking">
                 <span className="companion-thinking-indicator" aria-hidden="true" />
-                Le modèle prépare sa réponse…
+                {MASCOT_PERSONALITIES[mascot].thinking}
               </p>
             ) : (
               <p className="companion-answer-text" data-testid="companion-answer">{exchange.answer}</p>
@@ -561,8 +577,8 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           <div className="companion-header">
             <div className="companion-brand-mark"><MascotIcon kind={mascot} className="companion-mascot-svg" /></div>
             <div className="companion-heading">
-              <h2 id="companion-title">Compagnon cartographe</h2>
-              <p>Votre revue de cartographie d’entreprise</p>
+              <h2 id="companion-title">{MASCOT_PERSONALITIES[mascot].name}</h2>
+              <p data-testid="companion-personality-tagline">{MASCOT_PERSONALITIES[mascot].tagline}</p>
             </div>
             <button type="button" className="companion-mascot-toggle" aria-label={mascot === 'raccoon' ? 'Passer à la mascotte pieuvre' : 'Revenir à la mascotte raton laveur'} data-testid="companion-mascot-toggle" onClick={toggleMascot}><MascotIcon kind={mascot === 'raccoon' ? 'octopus' : 'raccoon'} className="companion-mascot-toggle-icon" /><span>{mascot === 'raccoon' ? 'Pieuvre' : 'Raton laveur'}</span></button>
             <button type="button" className="companion-settings-toggle" aria-label="Configurer le fournisseur IA" data-testid="companion-settings-toggle" aria-expanded={showProviderSettings} onClick={() => setShowProviderSettings(value => !value)}>IA</button>
