@@ -299,7 +299,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-settings-toggle"]').click();
     cy.get('[data-testid="companion-provider-enabled"]').check();
     cy.get('[data-testid="companion-duo-toggle"]').should('be.enabled').click().should('have.attr', 'aria-pressed', 'true');
-    cy.get('[data-testid="companion-duo-control"]').should('not.exist');
+    cy.get('[data-testid="companion-duo-control"]').should('be.visible').and('contain.text', 'Rico répond');
   });
 
 });
