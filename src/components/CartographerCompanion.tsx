@@ -205,6 +205,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       observations,
       counts,
       source: 'local',
+      mascot,
     }]);
   };
 
@@ -367,6 +368,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       observations,
       counts,
       source,
+      mascot,
       clarificationOptions,
     }]);
   };
@@ -441,9 +443,9 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
         setHistory(previous => previous.map(exchange => exchange.id === exchangeId
           ? {
               ...exchange,
-              answer: `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`,
-              source: 'error',
-              status: null,
+              ...(exchange.status === 'duo-follow-up'
+                ? { duoAnswer: `Octave n’a pas pu terminer son analyse complémentaire. ${error.message}`, duoStatus: null, status: null }
+                : { answer: `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`, source: 'error', status: null }),
             }
           : exchange));
       } finally {
@@ -719,7 +721,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               </button>
             </div>
             {mode === 'conversation' && (
-              <div className="companion-duo-control">
+              <div className="companion-duo-control" data-testid="companion-duo-control">
                 <button
                   type="button"
                   className={duoMode ? 'is-active' : ''}
