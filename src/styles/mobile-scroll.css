@@ -1,6 +1,5 @@
-/* Keep a single viewport-sized shell on narrow screens while retaining `main`
- * as the scroll container. This preserves the fixed application chrome and
- * avoids relying on nested document scrolling for touch devices.
+/* Keep a single viewport-sized shell on narrow screens while retaining
+ * a dedicated content scroller and fixed application navigation.
  */
 @media (max-width: 900px) {
   html,
@@ -36,6 +35,22 @@
   main {
     min-width: 0;
     min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+  }
+
+  /* The library is rendered as a sibling of main, not inside .workspace.
+   * Give it the remaining viewport space and its own scroll area.
+   */
+  .app > .library-page {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
