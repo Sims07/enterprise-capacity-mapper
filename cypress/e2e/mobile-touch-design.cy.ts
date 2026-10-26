@@ -48,6 +48,27 @@ describe('Polissage tactile mobile', () => {
     });
   });
 
+  it('garde les actions de Relations accessibles sans débordement horizontal', () => {
+    cy.get('[data-testid="nav-analysis"]').click();
+    cy.get('[data-testid="tab-relations"]').should('be.visible').click();
+
+    cy.get('.coverage-tree').should('be.visible');
+    cy.get('.tree-actions').first().should('be.visible').within(() => {
+      cy.get('button').each($button => {
+        expect($button[0].getBoundingClientRect().height).to.be.at.least(40);
+      });
+    });
+
+    cy.get('.tree-row').each($row => {
+      const row = $row[0];
+      expect(row.scrollWidth, 'relation row should not create horizontal overflow').to.be.at.most(row.clientWidth + 1);
+    });
+
+    cy.document().should(doc => {
+      expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth);
+    });
+  });
+
   it('ouvre le compagnon dans une surface adaptée à la hauteur du téléphone', () => {
     cy.get('.companion-launcher').should('be.visible').click();
     cy.get('.companion-panel').should('be.visible').then($panel => {
