@@ -257,3 +257,37 @@ describe('Critical user workflows — regression coverage', () => {
 });
 
 export {};
+
+
+describe('Cartographie responsive mobile', () => {
+  beforeEach(() => {
+    cy.on('uncaught:exception', (err: Error) => { throw err; });
+  });
+
+  it('utilise presque toute la largeur disponible en portrait avec un espacement entre les cartes', () => {
+    cy.viewport(390, 844);
+    visitFresh();
+    cy.get('.domain-card').should('have.length.greaterThan', 0).first().then($card => {
+      const card = $card[0].getBoundingClientRect();
+      expect(card.width).to.be.greaterThan(300);
+      expect(card.left).to.be.greaterThan(0);
+      expect(card.right).to.be.lessThan(390);
+    });
+    cy.get('.domain-card').then($cards => {
+      const cards = [...$cards].map(card => card.getBoundingClientRect()).filter(rect => rect.width > 0);
+      expect(cards.length).to.be.greaterThan(1);
+      expect(cards.every(rect => rect.width > 300)).to.equal(true);
+    });
+  });
+
+  it('garde la cartographie visible et défilante en paysage', () => {
+    cy.viewport(844, 390);
+    visitFresh();
+    cy.get('.app > .workspace > main').should('be.visible').then($main => {
+      const rect = $main[0].getBoundingClientRect();
+      expect(rect.height).to.be.greaterThan(100);
+      expect(rect.width).to.be.greaterThan(300);
+    });
+    cy.get('.domain-card').should('have.length.greaterThan', 0).first().should('be.visible');
+  });
+});
