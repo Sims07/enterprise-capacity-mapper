@@ -218,9 +218,9 @@
   }
 
   /* The companion becomes a focused, nearly full-screen workspace on phones. */
-  .companion-panel {
+  .companion-root .companion-panel {
     inset: env(safe-area-inset-top, 0px) 0 0;
-    width: 100%;
+    width: auto;
     height: auto;
     max-height: none;
     min-height: 0;
