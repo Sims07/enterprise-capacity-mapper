@@ -1,29 +1,70 @@
-/* On narrow screens, use the document as the primary vertical scroll container.
- * Keeping `main` as a nested overflow container prevents touch scrolling on
- * some mobile browsers when the responsive grid grows beyond the viewport.
+/* Keep a single viewport-sized shell on narrow screens while retaining
+ * a dedicated content scroller and fixed application navigation.
  */
 @media (max-width: 900px) {
   html,
   body {
     min-height: 100%;
-    height: auto;
-    overflow-x: hidden;
-    overflow-y: auto;
+    height: 100%;
+    overflow: hidden;
   }
 
   #root,
   .app {
-    min-height: 100%;
-    height: auto;
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    flex: 0 0 auto;
+    position: relative;
   }
 
   .workspace {
+    flex: 1 1 0;
     min-height: 0;
+    height: 0;
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+    overflow: hidden;
   }
 
-  main {
+  .workspace > aside {
+    min-height: 0;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  .workspace > main {
     min-width: 0;
     min-height: 0;
-    overflow: visible;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+  }
+
+  /* The library is rendered as a sibling of .workspace.
+   * Give it the remaining viewport space and its own scroll area.
+   */
+  .app > .library-page {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
   }
 }
