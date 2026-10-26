@@ -45,6 +45,21 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-prompt-structure"]').should('be.visible');
   });
 
+  it('présente une revue locale en sections plutôt que de fusionner synthèse et questions', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-prompt-structure"]').click();
+
+    cy.get('[data-testid="companion-answer"]').should('be.visible')
+      .and('not.contain.text', 'Questions de revue :')
+      .and('not.contain.text', 'À retenir :');
+    cy.get('[data-testid="companion-decision-brief"]').should('be.visible').within(() => {
+      cy.get('h4').first().should('contain.text', 'À retenir');
+      cy.get('ul').should('have.length.at.least', 1);
+      cy.get('li').should('have.length.at.most', 5);
+      cy.contains('Questions à trancher').should('exist');
+    });
+  });
+
   it('permet de supprimer un échange avec confirmation', () => {
     cy.get('[data-testid="companion-launcher"]').click();
     cy.get('[data-testid="companion-prompt-coverage"]').click();
@@ -185,6 +200,37 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-answer"]').should('contain.text', 'Réponse Ollama simulée');
     cy.get('[data-testid="companion-exchange"]').last().find('.companion-no-findings').should('not.exist');
     cy.get('[data-testid="companion-panel"]').should('contain.text', 'Fournisseur actif : Ollama (local)');
+  });
+
+  it('met en forme les réponses IA avec des titres et des listes lisibles', () => {
+    cy.intercept('OPTIONS', 'http://localhost:11434/api/chat', {
+      statusCode: 204,
+      headers: {
+        'access-control-allow-origin': 'http://127.0.0.1:4173',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'content-type',
+      },
+    });
+    cy.intercept('POST', 'http://localhost:11434/api/chat', {
+      statusCode: 200,
+      headers: { 'access-control-allow-origin': 'http://127.0.0.1:4173' },
+      body: { message: { content: '## Constat\\nLa cartographie présente un point à vérifier.\\n\\n## Recommandation\\n- Vérifier le rattachement métier.\\n- Confirmer le périmètre avec les équipes.' } },
+    }).as('formattedAnswer');
+
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-settings-toggle"]').click();
+    cy.get('[data-testid="companion-provider-enabled"]').check();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').type('Fais une revue de la cartographie');
+    cy.get('[data-testid="companion-submit"]').click();
+    cy.wait('@formattedAnswer');
+
+    cy.get('[data-testid="companion-answer"]').within(() => {
+      cy.get('.companion-answer-heading').should('have.length.at.least', 2);
+      cy.get('.companion-answer-list-item').should('have.length', 2);
+      cy.contains('Constat').should('exist');
+      cy.contains('Vérifier le rattachement métier').should('exist');
+    });
   });
 
   it('ne persiste jamais une clé API cloud dans les préférences locales', () => {
