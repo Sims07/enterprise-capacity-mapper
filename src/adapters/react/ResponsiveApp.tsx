@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import App from '../../App.tsx';
-import DesktopExperience from './DesktopExperience.tsx';
-import MobileExperience from './MobileExperience.tsx';
 
 export const MOBILE_BREAKPOINT = 900;
 
@@ -34,17 +32,7 @@ export const useExperienceKind = () => {
 export default function ResponsiveApp() {
   const experienceKind = useExperienceKind();
 
-  if (experienceKind === 'mobile') {
-    return (
-      <MobileExperience>
-        <App />
-      </MobileExperience>
-    );
-  }
-
-  return (
-    <DesktopExperience>
-      <App />
-    </DesktopExperience>
-  );
+  // Keep App at a stable React tree position so viewport changes do not
+  // remount it and discard in-progress UI state or the in-memory application.
+  return <App experienceKind={experienceKind} />;
 }
