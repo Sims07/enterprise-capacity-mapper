@@ -183,10 +183,27 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     const panel = panelRef.current;
     const visualViewport = window.visualViewport;
     const updateViewport = () => {
-      const height = visualViewport?.height ?? window.innerHeight;
-      const offsetTop = visualViewport?.offsetTop ?? 0;
-      panel.style.setProperty('--companion-visual-viewport-height', `${Math.round(height)}px`);
-      panel.style.setProperty('--companion-visual-viewport-offset-top', `${Math.round(offsetTop)}px`);
+      const isMobile = window.matchMedia('(max-width: 600px)').matches;
+      if (!isMobile) {
+        panel.style.removeProperty('height');
+        panel.style.removeProperty('max-height');
+        panel.style.removeProperty('top');
+        panel.style.removeProperty('bottom');
+        panel.style.removeProperty('--companion-visual-viewport-height');
+        panel.style.removeProperty('--companion-visual-viewport-offset-top');
+        return;
+      }
+
+      const height = Math.round(visualViewport?.height ?? window.innerHeight);
+      const offsetTop = Math.round(visualViewport?.offsetTop ?? 0);
+      panel.style.setProperty('--companion-visual-viewport-height', height + 'px');
+      panel.style.setProperty('--companion-visual-viewport-offset-top', offsetTop + 'px');
+      // Inline sizing wins over legacy responsive declarations and keeps the panel
+      // tied to the visible viewport even when the virtual keyboard is open.
+      panel.style.height = height + 'px';
+      panel.style.maxHeight = height + 'px';
+      panel.style.top = offsetTop + 'px';
+      panel.style.bottom = 'auto';
     };
 
     updateViewport();
