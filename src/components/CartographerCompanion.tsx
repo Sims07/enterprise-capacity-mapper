@@ -142,6 +142,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   const [history, setHistory] = useState([]);
   const [activePrompt, setActivePrompt] = useState(null);
   const [mode, setMode] = useState('guided');
+  const [duoMode, setDuoMode] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [providerSettings, setProviderSettings] = useState(() => companionPreferences.load());
@@ -386,6 +387,10 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
         observations: [],
         counts: { total: 0, errors: 0, reviews: 0, suggestions: 0 },
         source: providerSettings.provider,
+        mascot,
+        duoMode,
+        duoAnswer: '',
+        duoStatus: null,
         status: 'streaming',
       }]);
       setQuery('');
@@ -400,15 +405,38 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             : exchange)),
         });
         const validated = validateGeneratedReferences(answer || '', model);
+        const primaryAnswer = validated.answer || '';
         setHistory(previous => previous.map(exchange => exchange.id === exchangeId
           ? {
               ...exchange,
-              answer: validated.answer || exchange.answer.replace(/\[\[(domain|capability|application):([^\]]+)\]\]/g, ''),
+              answer: primaryAnswer || exchange.answer.replace(/\[\[(domain|capability|application):([^\]]+)\]\]/g, ''),
               references: validated.references,
               invalidReferences: validated.invalidReferences,
-              status: null,
+              status: duoMode ? 'duo-follow-up' : null,
+              duoStatus: duoMode ? 'streaming' : null,
             }
           : exchange));
+        if (duoMode) {
+          const octopusAnswer = await aiCompanion.ask({
+            question: `${MASCOT_PERSONALITIES.octopus.style}\n\nTu interviens comme second regard indépendant dans un échange entre deux spécialistes. Rico (raton laveur) vient de répondre à la question suivante : "${question}".\n\nRéponse de Rico :\n${primaryAnswer || answer || '(pas de réponse exploitable)'}\n\nApporte une analyse complémentaire concise : confirme ce qui est solide, nuance les points incertains et ajoute au plus deux angles utiles. Ne répète pas toute la première réponse et n’invente aucun élément absent de la cartographie.`,
+            cartography: model,
+            history: [...history, { role: 'assistant', content: primaryAnswer || answer || '' }],
+            onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+              ? { ...exchange, duoAnswer: exchange.duoAnswer + chunk }
+              : exchange)),
+          });
+          const validatedOctopus = validateGeneratedReferences(octopusAnswer || '', model);
+          setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+            ? {
+                ...exchange,
+                duoAnswer: validatedOctopus.answer || exchange.duoAnswer.replace(/\[\[(domain|capability|application):([^\]]+)\]\]/g, ''),
+                duoReferences: validatedOctopus.references,
+                duoInvalidReferences: validatedOctopus.invalidReferences,
+                duoStatus: null,
+                status: null,
+              }
+            : exchange));
+        }
       } catch (error) {
         setHistory(previous => previous.map(exchange => exchange.id === exchangeId
           ? {
@@ -473,10 +501,10 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
 
           <div className="companion-assistant-message">
             <div className="companion-assistant-heading">
-              <MascotIcon kind={mascot} className="companion-avatar companion-mascot-svg" />
+              <MascotIcon kind={exchange.mascot || mascot} className="companion-avatar companion-mascot-svg" />
               <div>
-                <p className="companion-message-role">{MASCOT_PERSONALITIES[mascot].name}</p>
-                <p className="companion-answer-meta">{exchange.status === 'streaming' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
+                <p className="companion-message-role">{MASCOT_PERSONALITIES[exchange.mascot || mascot].name}</p>
+                <p className="companion-answer-meta">{exchange.status === 'streaming' || exchange.status === 'duo-follow-up' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
               </div>
             </div>
             {exchange.status === 'streaming' && !exchange.answer ? (
@@ -489,6 +517,29 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             )}
             {exchange.status === 'streaming' && exchange.answer && (
               <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
+            )}
+            {exchange.duoMode && (
+              <div className="companion-duo-turn" data-testid="companion-duo-turn">
+                <div className="companion-assistant-heading companion-duo-heading">
+                  <MascotIcon kind="octopus" className="companion-avatar companion-mascot-svg" />
+                  <div>
+                    <p className="companion-message-role">{MASCOT_PERSONALITIES.octopus.name}</p>
+                    <p className="companion-answer-meta">{exchange.duoStatus === 'streaming' ? 'Second regard en cours…' : 'Analyse complémentaire'}</p>
+                  </div>
+                </div>
+                {exchange.duoStatus === 'streaming' && !exchange.duoAnswer
+                  ? <p className="companion-thinking" role="status">Octave examine la réponse de Rico…</p>
+                  : <p className="companion-answer-text" data-testid="companion-duo-answer">{exchange.duoAnswer}</p>}
+                {exchange.duoReferences?.length > 0 && (
+                  <div className="companion-generated-references" data-testid="companion-duo-references">
+                    <strong>Références vérifiées par Octave</strong>
+                    <div>{exchange.duoReferences.map(reference => (
+                      <button type="button" key={reference.type + ':' + reference.id} data-testid="companion-duo-reference" onClick={() => onNavigateToEvidence?.(reference)}>{reference.name}</button>
+                    ))}</div>
+                  </div>
+                )}
+                {exchange.duoInvalidReferences > 0 && <p className="companion-reference-warning" role="status">{exchange.duoInvalidReferences} référence(s) proposées par Octave ne correspondent pas à la cartographie.</p>}
+              </div>
             )}
             {exchange.status !== 'streaming' && exchange.references?.length > 0 && (
               <div className="companion-generated-references" data-testid="companion-generated-references">
@@ -667,6 +718,22 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                 Conversation
               </button>
             </div>
+            {mode === 'conversation' && (
+              <div className="companion-duo-control">
+                <button
+                  type="button"
+                  className={duoMode ? 'is-active' : ''}
+                  data-testid="companion-duo-toggle"
+                  aria-pressed={duoMode}
+                  disabled={!providerSettings.enabled}
+                  title={!providerSettings.enabled ? 'Activez un fournisseur IA pour faire dialoguer Rico et Octave.' : 'Faire répondre Rico puis demander un second regard à Octave.'}
+                  onClick={() => setDuoMode(value => !value)}
+                >
+                  Dialogue Rico + Octave
+                </button>
+                <p>{!providerSettings.enabled ? 'Activez un fournisseur IA dans les réglages pour utiliser le dialogue à deux.' : duoMode ? 'Rico répond, puis Octave apporte un second regard indépendant.' : 'Mode duo désactivé : une seule mascotte répond.'}</p>
+              </div>
+            )}
             {history.length > 0 && (
               <div className="companion-clear-actions">
                 {confirmClear ? (
