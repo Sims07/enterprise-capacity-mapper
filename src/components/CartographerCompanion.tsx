@@ -178,6 +178,34 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   }, [open]);
 
   useEffect(() => {
+    if (!open || !panelRef.current) return undefined;
+
+    const panel = panelRef.current;
+    const visualViewport = window.visualViewport;
+    const updateViewport = () => {
+      const height = visualViewport?.height ?? window.innerHeight;
+      const offsetTop = visualViewport?.offsetTop ?? 0;
+      panel.style.setProperty('--companion-visual-viewport-height', `${Math.round(height)}px`);
+      panel.style.setProperty('--companion-visual-viewport-offset-top', `${Math.round(offsetTop)}px`);
+    };
+
+    updateViewport();
+    visualViewport?.addEventListener('resize', updateViewport);
+    visualViewport?.addEventListener('scroll', updateViewport);
+    window.addEventListener('resize', updateViewport);
+    window.addEventListener('orientationchange', updateViewport);
+
+    return () => {
+      visualViewport?.removeEventListener('resize', updateViewport);
+      visualViewport?.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('resize', updateViewport);
+      window.removeEventListener('orientationchange', updateViewport);
+      panel.style.removeProperty('--companion-visual-viewport-height');
+      panel.style.removeProperty('--companion-visual-viewport-offset-top');
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (conversationRef.current) {
       conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
     }
