@@ -17,7 +17,7 @@
     "noImplicitAny": false,
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
-    "useUnknownInCatchVariables": true
+    "useUnknownInCatchVariables": false
   },
   "include": [
     "src",
