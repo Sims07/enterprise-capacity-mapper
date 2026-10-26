@@ -94,26 +94,15 @@ function evidenceExists(item: { type?: string; id?: string | null }, model: Comp
 }
 
 
-type MascotKind = 'raccoon' | 'octopus';
+import { COMPANION_MASCOT_IMAGES, type MascotKind } from './companion-mascots';
 
 function MascotIcon({ kind, className = '' }: { kind: MascotKind; className?: string }) {
-  if (kind === 'octopus') {
-    return <svg className={className} viewBox="0 0 48 48" role="img" aria-label="Mascotte pieuvre" xmlns="http://www.w3.org/2000/svg">
-      <g fill="#e5a16b" stroke="#70452f" strokeWidth="1.8"><path d="M12 27c-7 0-8 8-3 10 4 2 7-1 7-5M19 31c-5 3-4 10 1 11 4 1 7-3 6-7M29 31c5 3 4 10-1 11-4 1-7-3-6-7M36 27c7 0 8 8 3 10-4 2-7-1-7-5" fill="none"/><path d="M9 24a15 15 0 1 1 30 0v4c0 7-7 11-15 11S9 35 9 28z"/></g>
-      <path d="M13 13c3-5 8-7 11-7s8 2 11 7" fill="none" stroke="#f7c99b" strokeWidth="3" strokeLinecap="round"/>
-      <ellipse cx="19" cy="24" rx="3" ry="4" fill="#24334b"/><ellipse cx="29" cy="24" rx="3" ry="4" fill="#24334b"/><circle cx="20" cy="23" r="1" fill="#fff"/><circle cx="30" cy="23" r="1" fill="#fff"/>
-      <path d="M21 30q3 3 6 0" fill="none" stroke="#70452f" strokeWidth="1.8" strokeLinecap="round"/><circle cx="14" cy="29" r="2" fill="#e88787"/><circle cx="34" cy="29" r="2" fill="#e88787"/>
-    </svg>;
-  }
-  return <svg className={className} viewBox="0 0 48 48" role="img" aria-label="Mascotte raton laveur" xmlns="http://www.w3.org/2000/svg">
-    <path d="M8 35c-5 2-5 7 0 8 5 1 9-3 12-7" fill="#b8c1cc" stroke="#526173" strokeWidth="1.8" strokeLinecap="round"/>
-    <path d="M9 15 7 5l11 6M39 15l2-10-11 6" fill="#aeb8c5" stroke="#526173" strokeWidth="1.8" strokeLinejoin="round"/>
-    <path d="M9 21c0-10 6-15 15-15s15 5 15 15v8c0 9-7 14-15 14S9 38 9 29z" fill="#cbd3dc" stroke="#526173" strokeWidth="1.8"/>
-    <path d="M8 22q8-9 16 0 8-9 16 0l-2 8q-7 8-14 0-7 8-14 0z" fill="#354254"/>
-    <ellipse cx="17" cy="24" rx="3" ry="4" fill="#fff"/><ellipse cx="31" cy="24" rx="3" ry="4" fill="#fff"/><circle cx="18" cy="24" r="1.8" fill="#1e293b"/><circle cx="30" cy="24" r="1.8" fill="#1e293b"/>
-    <path d="M21 30q3-3 6 0l-3 3z" fill="#354254"/><path d="M20 34q4 4 8 0" fill="none" stroke="#354254" strokeWidth="1.7" strokeLinecap="round"/>
-    <path d="M11 33h8M29 33h8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><circle cx="13" cy="30" r="2" fill="#e88787"/><circle cx="35" cy="30" r="2" fill="#e88787"/>
-  </svg>;
+  return <img
+    className={className}
+    src={COMPANION_MASCOT_IMAGES[kind]}
+    alt={kind === 'raccoon' ? 'Mascotte raton laveur' : 'Mascotte pieuvre'}
+    draggable={false}
+  />;
 }
 
 export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences, onNavigateToEvidence }: {
