@@ -1,0 +1,32 @@
+/* Mobile/PWA header polish: keep the primary navigation visually intentional. */
+.primary-navigation .toolbar-tools-toggle > span[aria-hidden="true"] {
+  display: none !important;
+}
+
+.primary-navigation .toolbar-tools-toggle::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transform-origin: center;
+  transition: transform 140ms ease;
+}
+
+.primary-navigation .toolbar-tools.is-open .toolbar-tools-toggle::after {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+
+/* iOS standalone PWAs can expose the safe-area/status-bar as a translucent layer.
+   Match it to the application's dark header instead of letting the page show through. */
+@media (max-width: 900px) {
+  html {
+    background: #0f172a;
+  }
+
+  body {
+    background: #0f172a;
+  }
+}
