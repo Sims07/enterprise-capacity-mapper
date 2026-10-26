@@ -954,3 +954,116 @@
     height: 19px;
   }
 }
+
+/* Réponses du compagnon : conserver une hiérarchie visuelle au lieu d'un bloc de texte. */
+.companion-root .companion-formatted-answer {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.companion-root .companion-formatted-answer .companion-answer-paragraph {
+  margin: 0;
+  color: var(--companion-text);
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.companion-root .companion-formatted-answer .companion-answer-heading {
+  margin: 5px 0 0;
+  color: var(--companion-text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.companion-root .companion-formatted-answer .companion-answer-list-item {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 5px;
+  align-items: start;
+  color: var(--companion-accent);
+}
+.companion-root .companion-formatted-answer .companion-answer-list-item > span {
+  padding-top: 1px;
+  font-weight: 800;
+}
+.companion-root .companion-formatted-answer .companion-answer-list-item p {
+  margin: 0;
+  color: var(--companion-text);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.companion-root .companion-answer-spacer {
+  height: 2px;
+}
+.companion-root .companion-decision-brief {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--companion-border);
+  border-radius: 12px;
+  background: var(--companion-bg);
+}
+.companion-root .companion-decision-section {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.companion-root .companion-decision-section + .companion-decision-section {
+  padding-top: 10px;
+  border-top: 1px solid var(--companion-border);
+}
+.companion-root .companion-decision-section h4 {
+  margin: 0;
+  color: var(--companion-text);
+  font-size: 12px;
+  font-weight: 850;
+}
+.companion-root .companion-decision-priorities,
+.companion-root .companion-review-questions {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.companion-root .companion-decision-priorities li {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  color: var(--companion-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.companion-root .companion-decision-priorities .companion-severity {
+  margin-top: 1px;
+  font-size: 10px;
+}
+.companion-root .companion-review-questions li {
+  position: relative;
+  padding-left: 17px;
+  color: var(--companion-text);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.companion-root .companion-review-questions li::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--companion-accent);
+  content: "→";
+  font-weight: 800;
+}
+
+
+.companion-root .companion-priority-evidence {
+  display: block;
+  margin-top: 2px;
+  color: var(--companion-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { analyzeCartography } from '../domain/cartographyAnalysis.ts';
+import { analyzeCartography, buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
 import type { AiCompanionPort } from '../ports/aiCompanion.ts';
 import type { CompanionPreferencesPort } from '../ports/companionPreferences.ts';
@@ -49,7 +49,7 @@ function resultMessage(prompt, result, observations) {
       ? `La revue structurelle a relevé ${observations.length} point(s) à examiner. Les constats sont rattachés aux éléments de la cartographie.`
       : 'Aucun problème structurel n’a été détecté par les règles locales.';
   }
-  return result.summary;
+  return String(result.summary ?? '').split(/\r?\n\s*\r?\n/)[0];
 }
 
 type CompanionModel = Omit<CatalogModel, 'layout' | 'domains' | 'capabilities' | 'applications'> & {
@@ -83,6 +83,37 @@ function validateGeneratedReferences(answer: string, model: CompanionModel) {
     return '';
   }).replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
   return { answer: cleanedAnswer, references, invalidReferences };
+}
+
+function formatAnswerInline(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={index}>{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
+function FormattedAnswer({ text, testId }: { text: string; testId?: string }) {
+  const lines = String(text ?? '').replace(/\r\n/g, '\n').split('\n');
+  return (
+    <div className="companion-answer-text companion-formatted-answer" data-testid={testId}>
+      {lines.map((rawLine, index) => {
+        const line = rawLine.trim();
+        if (!line) return <div className="companion-answer-spacer" aria-hidden="true" key={index} />;
+        const heading = line.match(/^#{1,3}\s+(.+)$/) || line.match(/^\*\*(.+)\*\*:?[ \t]*$/)
+          || (line.endsWith(':') && line.length <= 90 ? [line, line.slice(0, -1)] : null);
+        if (heading) return <h4 className="companion-answer-heading" key={index}>{formatAnswerInline(heading[1].replace(/\*\*/g, ''))}</h4>;
+        const bullet = line.match(/^(?:[-*•]\s+|\d+[.)]\s+)(.+)$/);
+        if (bullet) return (
+          <div className="companion-answer-list-item" key={index}>
+            <span aria-hidden="true">•</span>
+            <p>{formatAnswerInline(bullet[1])}</p>
+          </div>
+        );
+        return <p className="companion-answer-paragraph" key={index}>{formatAnswerInline(line)}</p>;
+      })}
+    </div>
+  );
 }
 
 function evidenceExists(item: { type?: string; id?: string | null }, model: CompanionModel) {
@@ -252,6 +283,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       prompt,
       answer: resultMessage(prompt, fullResult, observations),
       observations,
+      brief: buildDecisionBrief({ observations }),
       counts,
       source: 'local',
       mascot,
@@ -572,7 +604,7 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
                 {MASCOT_PERSONALITIES[mascot].thinking}
               </p>
             ) : (
-              <p className="companion-answer-text" data-testid="companion-answer">{exchange.answer}</p>
+              <FormattedAnswer text={exchange.answer} testId="companion-answer" />
             )}
             {exchange.status === 'streaming' && exchange.answer && (
               <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
@@ -588,7 +620,7 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
                 </div>
                 {exchange.duoStatus === 'streaming' && !exchange.duoAnswer
                   ? <p className="companion-thinking" role="status">Octave examine la réponse de Rico…</p>
-                  : <p className="companion-answer-text" data-testid="companion-duo-answer">{exchange.duoAnswer}</p>}
+                  : <FormattedAnswer text={exchange.duoAnswer} testId="companion-duo-answer" />}
                 {exchange.duoReferences?.length > 0 && (
                   <div className="companion-generated-references" data-testid="companion-duo-references">
                     <strong>Références vérifiées par Octave</strong>
@@ -631,6 +663,34 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
               </div>
             )}
 
+            {exchange.status !== 'streaming' && exchange.source === 'local' && exchange.brief && (
+              <section className="companion-decision-brief" data-testid="companion-decision-brief" aria-label="Synthèse de la revue">
+                {exchange.brief.priorities.length > 0 && (
+                  <div className="companion-decision-section">
+                    <h4>À retenir</h4>
+                    <ul className="companion-decision-priorities">
+                      {exchange.brief.priorities.slice(0, 3).map(item => (
+                        <li key={item.id}>
+                          <span className={'companion-severity severity-' + item.severity}>{item.label}</span>
+                          <span>
+                            {item.title}
+                            {item.evidence?.length > 0 && <small className="companion-priority-evidence">{item.evidence.map(evidence => evidence.name).filter(Boolean).join(' · ')}</small>}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {exchange.observations.length > 0 && exchange.brief.questions.length > 0 && (
+                  <div className="companion-decision-section">
+                    <h4>Questions à trancher</h4>
+                    <ul className="companion-review-questions">
+                      {exchange.brief.questions.slice(0, 2).map(question => <li key={question}>{question}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            )}
             {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
               <details className="companion-details">
                 <summary>Voir les constats ({exchange.observations.length})</summary>
