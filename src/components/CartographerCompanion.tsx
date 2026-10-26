@@ -502,7 +502,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                           <span>Éléments concernés</span>
                           {observation.evidence.map((item, itemIndex) => (
                             evidenceExists(item, model) ? (
-                              <button type="button" className="companion-evidence-chip is-navigable" key={(item.id || item.name) + ':' + itemIndex} data-testid="companion-evidence-link" data-evidence-id={item.id} onClick={() => onNavigateToEvidence?.({ type: item.type as EvidenceReference['type'], id: item.id, name: item.name })}>{item.name} ↗</button>
+                              <button type="button" className="companion-evidence-chip is-navigable" key={(item.id || item.name) + ':' + itemIndex} data-testid="companion-evidence-link" data-evidence-id={item.id} onClick={() => onNavigateToEvidence?.({ type: item.type as EvidenceReference['type'], id: item.id as string, name: item.name })}>{item.name} ↗</button>
                             ) : (
                               <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
                             )
