@@ -285,3 +285,153 @@
     transition: none;
   }
 }
+
+
+/* Mobile hierarchy pass: keep analysis and relation actions readable at phone width. */
+@media (max-width: 900px) {
+  .tree-toolbar {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .tree-select {
+    width: 100%;
+  }
+
+  .tree-bulk {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .tree-bulk > button {
+    min-height: 40px;
+  }
+
+  .tree-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 5px 8px;
+    padding: 8px;
+  }
+
+  .tree-row > .tree-toggle {
+    flex: 1 1 100%;
+    width: 100%;
+    min-height: 40px;
+    padding: 5px 2px;
+  }
+
+  .tree-row > .tree-cov,
+  .tree-row > .tree-count {
+    margin-left: 22px;
+    align-self: center;
+  }
+
+  .tree-actions {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    min-width: 0;
+    gap: 6px;
+    padding-left: 22px;
+  }
+
+  .tree-actions > button {
+    min-height: 40px;
+    max-width: 100%;
+    padding: 8px 10px;
+    white-space: normal;
+    line-height: 1.25;
+    text-align: left;
+  }
+
+  .tree-children {
+    padding: 6px 8px 10px 12px;
+  }
+
+  .tree-app {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 5px 8px;
+    margin-left: 0;
+    padding: 9px;
+    overflow-wrap: anywhere;
+  }
+
+  .tree-app > b {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+
+  .tree-app > small {
+    grid-column: 2;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .tree-app > .badge {
+    grid-column: 3;
+    grid-row: 1;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .tree-app > .tree-remove {
+    grid-column: 3;
+    grid-row: 2;
+    width: 36px;
+    height: 36px;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 680px) {
+  .dashboard-target {
+    grid-template-columns: minmax(0, 1fr) auto 18px;
+    grid-template-areas:
+      "name name name"
+      "status priority action";
+    align-items: center;
+    gap: 7px;
+    min-height: 72px;
+    padding: 10px;
+  }
+
+  .dashboard-target-name {
+    grid-area: name;
+    display: -webkit-box;
+    overflow: hidden;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.35;
+  }
+
+  .dashboard-target .dashboard-status {
+    grid-area: status;
+    justify-self: start;
+  }
+
+  .dashboard-target .dashboard-priority,
+  .dashboard-target .dashboard-priority-placeholder {
+    grid-area: priority;
+    justify-self: start;
+  }
+
+  .dashboard-target .dashboard-target-action {
+    grid-area: action;
+    justify-self: end;
+  }
+
+  .dashboard-panel-heading {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .dashboard-heatmap-legend {
+    gap: 8px 12px;
+  }
+}
