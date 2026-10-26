@@ -76,7 +76,8 @@ describe('Smoke tests — application et navigation', () => {
 
     cy.get('.presentation-mode .map-row:not(.map-head)').each($row => {
       const row = $row[0];
-      expect(getComputedStyle(row).gridTemplateColumns, 'mobile layer row should use one column').to.equal('370px');
+      const tracks = getComputedStyle(row).gridTemplateColumns.trim().split(/\s+/).filter(Boolean);
+      expect(tracks, 'mobile layer row should use one column').to.have.length(1);
       expect(row.scrollWidth, 'mobile layer row should not overflow horizontally').to.be.at.most(row.clientWidth + 1);
       cy.wrap($row).find('.map-cell').each($cell => {
         const cell = $cell[0];
