@@ -10,6 +10,26 @@ const assertNoHorizontalPageOverflow = () => {
   });
 };
 
+const assertMobileMapStacked = () => {
+  cy.get('.map-matrix').should('be.visible').then($map => {
+    const element = $map[0];
+    expect(element.scrollWidth, 'mobile map must not require horizontal scrolling').to.be.at.most(element.clientWidth + 1);
+  });
+
+  cy.get('.map-row:not(.map-head)').each($row => {
+    const row = $row[0];
+    const tracks = getComputedStyle(row).gridTemplateColumns.trim().split(/\s+/).filter(Boolean);
+    expect(tracks, 'mobile layer row should use one column').to.have.length(1);
+    expect(row.scrollWidth, 'mobile layer row should not overflow horizontally').to.be.at.most(row.clientWidth + 1);
+    cy.wrap($row).find('.map-cell').each($cell => {
+      const cell = $cell[0];
+      expect(cell.getBoundingClientRect().width, 'map card should fill the available mobile width').to.be.closeTo(row.clientWidth, 1);
+    });
+  });
+
+  cy.get('.map-cell .cell-column-label').should('have.length.greaterThan', 0);
+};
+
 describe('Smoke tests — application et navigation', () => {
   beforeEach(() => {
     cy.on('uncaught:exception', err => { throw err; });
@@ -67,25 +87,13 @@ describe('Smoke tests — application et navigation', () => {
     });
     cy.get('.toolbar-actions').should('be.visible');
     cy.get('[data-testid="undo-button"]').should('have.css', 'min-height', '42px');
+
+    assertMobileMapStacked();
+    assertNoHorizontalPageOverflow();
+
     cy.get('[data-testid="presentation-toggle"]').should('be.visible').click();
-
-    cy.get('.presentation-mode .map-matrix').should('be.visible').then($map => {
-      const element = $map[0];
-      expect(element.scrollWidth, 'stacked mobile map must not require horizontal scrolling').to.be.at.most(element.clientWidth + 1);
-    });
-
-    cy.get('.presentation-mode .map-row:not(.map-head)').each($row => {
-      const row = $row[0];
-      const tracks = getComputedStyle(row).gridTemplateColumns.trim().split(/\s+/).filter(Boolean);
-      expect(tracks, 'mobile layer row should use one column').to.have.length(1);
-      expect(row.scrollWidth, 'mobile layer row should not overflow horizontally').to.be.at.most(row.clientWidth + 1);
-      cy.wrap($row).find('.map-cell').each($cell => {
-        const cell = $cell[0];
-        expect(cell.getBoundingClientRect().width, 'map card should fill the available mobile width').to.be.closeTo(row.clientWidth, 1);
-      });
-    });
-
-    cy.get('.presentation-mode .map-cell .cell-column-label').should('have.length.greaterThan', 0);
+    cy.get('.presentation-mode').should('exist');
+    assertMobileMapStacked();
     assertNoHorizontalPageOverflow();
   });
 
