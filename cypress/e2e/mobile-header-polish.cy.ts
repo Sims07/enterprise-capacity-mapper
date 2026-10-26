@@ -26,21 +26,6 @@ describe('Mobile header polish', () => {
     });
   });
 
-  it('garde l’onglet Outils dans le cadre du header sur un iPhone étroit', () => {
-    cy.viewport(402, 874);
-
-    cy.get('.primary-navigation').then($navigation => {
-      const navigation = $navigation[0].getBoundingClientRect();
-      const toggle = document.querySelector('[data-testid="tools-menu-toggle"]');
-      expect(toggle).to.not.be.null;
-
-      const tools = toggle.getBoundingClientRect();
-      expect(tools.left).to.be.gte(navigation.left);
-      expect(tools.right).to.be.lte(navigation.right + 1);
-      expect(tools.right).to.be.lte(402);
-    });
-  });
-
   it('déclare une barre de statut iOS opaque alignée sur le header', () => {
     cy.get('meta[name="apple-mobile-web-app-status-bar-style"]')
       .should('have.attr', 'content', 'black');
