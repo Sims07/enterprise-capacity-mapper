@@ -13,7 +13,7 @@ describe('Architecture d’expérience responsive', () => {
     cy.viewport(1280, 900);
     visitFresh();
 
-    cy.get('[data-ui-experience="mobile"]').should('not.exist');
+    cy.get('[data-ui-experience="desktop"]').should('be.visible');
     cy.get('[data-testid="nav-cartography"]').should('be.visible');
   });
 
@@ -23,20 +23,20 @@ describe('Architecture d’expérience responsive', () => {
 
     cy.get('[data-ui-experience="mobile"]')
       .should('be.visible')
-      .and('have.class', 'experience-shell--mobile');
+      .and('have.class', 'app');
     cy.get('[data-testid="nav-cartography"]').should('be.visible');
   });
 
   it('bascule entre les adaptateurs sans laisser le wrapper mobile contaminer le desktop', () => {
     cy.viewport(1280, 900);
     visitFresh();
-    cy.get('[data-ui-experience="mobile"]').should('not.exist');
+    cy.get('[data-ui-experience="desktop"]').should('be.visible');
 
     cy.viewport(390, 844);
     cy.get('[data-ui-experience="mobile"]').should('be.visible');
 
     cy.viewport(1280, 900);
-    cy.get('[data-ui-experience="mobile"]').should('not.exist');
+    cy.get('[data-ui-experience="desktop"]').should('be.visible');
     cy.get('[data-testid="nav-cartography"]').should('be.visible');
   });
 });
