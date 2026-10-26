@@ -296,6 +296,21 @@ describe('Compagnon cartographe — interface locale', () => {
     });
   });
 
+  it('ferme le compagnon sur mobile et révèle la capacité ciblée par un constat local', () => {
+    cy.viewport(390, 740);
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-prompt-coverage"]').click();
+    cy.get('[data-testid="companion-exchange"]').last().find('details.companion-details summary').click();
+    cy.get('[data-testid="companion-evidence-link"]').first().invoke('attr', 'data-evidence-id').then(id => {
+      expect(id).to.be.a('string').and.not.be.empty;
+      cy.get('[data-testid="companion-evidence-link"]').first().click();
+      cy.get('[data-testid="companion-panel"]').should('not.exist');
+      cy.get('[data-testid="companion-launcher"]').should('have.focus');
+      cy.get('[data-entity-id]').filter((_, element) => element.getAttribute('data-entity-id') === id).should('be.visible')
+        .find('button[aria-pressed="true"]').should('exist');
+    });
+  });
+
   it('valide les références du fournisseur contre la carte et permet de les ouvrir', () => {
     cy.intercept('OPTIONS', 'http://localhost:11434/api/chat', {
       statusCode: 204,

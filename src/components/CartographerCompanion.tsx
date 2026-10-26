@@ -183,6 +183,17 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const conversationRef = useRef(null);
+  const wasOpenRef = useRef(false);
+
+  const navigateToEvidence = (item: EvidenceReference) => {
+    onNavigateToEvidence?.(item);
+    // On narrow screens the companion covers the map, so reveal the selected entity after navigation.
+    if (window.matchMedia('(max-width: 600px)').matches) {
+      setOpen(false);
+      // Navigation updates the map in the parent as well; restore focus after both updates settle.
+      window.setTimeout(() => triggerRef.current?.focus(), 0);
+    }
+  };
 
   useEffect(() => {
     companionPreferences.save(providerSettings);
@@ -200,12 +211,18 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     const handleKeyDown = event => {
       if (event.key === 'Escape') {
         setOpen(false);
-        triggerRef.current?.focus();
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     panelRef.current?.focus();
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
+  useEffect(() => {
+    // Restore focus after React has committed the closed state, when the panel no longer
+    // owns focus. Calling focus in the click handler is too early and can be undone by unmount.
+    if (wasOpenRef.current && !open) triggerRef.current?.focus();
+    wasOpenRef.current = open;
   }, [open]);
 
   useEffect(() => {
@@ -625,7 +642,7 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
                   <div className="companion-generated-references" data-testid="companion-duo-references">
                     <strong>Références vérifiées par Octave</strong>
                     <div>{exchange.duoReferences.map(reference => (
-                      <button type="button" key={reference.type + ':' + reference.id} data-testid="companion-duo-reference" onClick={() => onNavigateToEvidence?.(reference)}>{reference.name}</button>
+                      <button type="button" key={reference.type + ':' + reference.id} data-testid="companion-duo-reference" onClick={() => navigateToEvidence(reference)}>{reference.name}</button>
                     ))}</div>
                   </div>
                 )}
@@ -637,7 +654,7 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
                 <strong>Références vérifiées dans la carte</strong>
                 <div>
                   {exchange.references.map(reference => (
-                    <button type="button" key={reference.type + ':' + reference.id} data-testid="companion-generated-reference" onClick={() => onNavigateToEvidence?.(reference)}>
+                    <button type="button" key={reference.type + ':' + reference.id} data-testid="companion-generated-reference" onClick={() => navigateToEvidence(reference)}>
                       {reference.name}
                     </button>
                   ))}
@@ -709,7 +726,7 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
                           <span>Éléments concernés</span>
                           {observation.evidence.map((item, itemIndex) => (
                             evidenceExists(item, model) ? (
-                              <button type="button" className="companion-evidence-chip is-navigable" key={(item.id || item.name) + ':' + itemIndex} data-testid="companion-evidence-link" data-evidence-id={item.id} onClick={() => onNavigateToEvidence?.({ type: item.type as EvidenceReference['type'], id: item.id as string, name: item.name })}>{item.name} ↗</button>
+                              <button type="button" className="companion-evidence-chip is-navigable" key={(item.id || item.name) + ':' + itemIndex} data-testid="companion-evidence-link" data-evidence-id={item.id} onClick={() => navigateToEvidence({ type: item.type as EvidenceReference['type'], id: item.id as string, name: item.name })}>{item.name} ↗</button>
                             ) : (
                               <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
                             )
