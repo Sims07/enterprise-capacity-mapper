@@ -198,7 +198,8 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-answer"]').should('be.visible').then(answer => {
       expect(parseFloat(getComputedStyle(answer[0]).fontSize), 'taille de la réponse').to.be.at.least(12);
     });
-    cy.get('[data-testid="companion-question"]').then(input => {
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').should('be.visible').then(input => {
       expect(parseFloat(getComputedStyle(input[0]).fontSize), 'taille du champ de question').to.be.at.least(14);
       expect(parseFloat(getComputedStyle(input[0]).height), 'hauteur du champ de question').to.be.at.least(42);
     });
