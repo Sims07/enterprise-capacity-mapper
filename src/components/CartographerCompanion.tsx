@@ -59,11 +59,46 @@ type CompanionModel = Omit<CatalogModel, 'layout' | 'domains' | 'capabilities' |
   applications: Application[];
 };
 
-export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences }: {
+type EvidenceReference = { type: 'domain' | 'capability' | 'application'; id: string; name: string };
+
+function validateGeneratedReferences(answer: string, model: CompanionModel) {
+  const entities = {
+    domain: Array.isArray(model.domains) ? model.domains : [],
+    capability: Array.isArray(model.capabilities) ? model.capabilities : [],
+    application: Array.isArray(model.applications) ? model.applications : [],
+  };
+  const references: EvidenceReference[] = [];
+  let invalidReferences = 0;
+  const cleanedAnswer = String(answer ?? '').replace(/\[\[(domain|capability|application):([^\]]+)\]\]/g, (_marker, rawType: string, rawId: string) => {
+    const type = rawType as keyof typeof entities;
+    const id = rawId.trim();
+    const entity = entities[type].find(item => item.id === id);
+    if (!entity) {
+      invalidReferences += 1;
+      return '';
+    }
+    if (!references.some(reference => reference.type === type && reference.id === id)) {
+      references.push({ type, id, name: String(entity.name || '(sans nom)') });
+    }
+    return '';
+  }).replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  return { answer: cleanedAnswer, references, invalidReferences };
+}
+
+function evidenceExists(item: { type?: string; id?: string | null }, model: CompanionModel) {
+  if (!item.id) return false;
+  if (item.type === 'domain') return model.domains.some(entity => entity.id === item.id);
+  if (item.type === 'capability') return model.capabilities.some(entity => entity.id === item.id);
+  if (item.type === 'application') return model.applications.some(entity => entity.id === item.id);
+  return false;
+}
+
+export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences, onNavigateToEvidence }: {
   model: CompanionModel;
   darkMode?: boolean;
   aiCompanionFactory: (settings?: Record<string, unknown>) => AiCompanionPort;
   companionPreferences: CompanionPreferencesPort;
+  onNavigateToEvidence?: (item: EvidenceReference) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -309,8 +344,15 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             ? { ...exchange, answer: exchange.answer + chunk }
             : exchange)),
         });
+        const validated = validateGeneratedReferences(answer || '', model);
         setHistory(previous => previous.map(exchange => exchange.id === exchangeId
-          ? { ...exchange, answer: answer || exchange.answer, status: null }
+          ? {
+              ...exchange,
+              answer: validated.answer || exchange.answer.replace(/\[\[(domain|capability|application):([^\]]+)\]\]/g, ''),
+              references: validated.references,
+              invalidReferences: validated.invalidReferences,
+              status: null,
+            }
           : exchange));
       } catch (error) {
         setHistory(previous => previous.map(exchange => exchange.id === exchangeId
@@ -393,6 +435,23 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             {exchange.status === 'streaming' && exchange.answer && (
               <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
             )}
+            {exchange.status !== 'streaming' && exchange.references?.length > 0 && (
+              <div className="companion-generated-references" data-testid="companion-generated-references">
+                <strong>Références vérifiées dans la carte</strong>
+                <div>
+                  {exchange.references.map(reference => (
+                    <button type="button" key={reference.type + ':' + reference.id} data-testid="companion-generated-reference" onClick={() => onNavigateToEvidence?.(reference)}>
+                      {reference.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {exchange.status !== 'streaming' && exchange.invalidReferences > 0 && (
+              <p className="companion-reference-warning" role="status" data-testid="companion-reference-warning">
+                {exchange.invalidReferences} référence(s) proposée(s) par le modèle ne correspondent pas à un élément de cette cartographie et ont été écartées.
+              </p>
+            )}
 
             {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
               <details className="companion-details">
@@ -411,7 +470,11 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                         <div className="companion-evidence">
                           <span>Éléments concernés</span>
                           {observation.evidence.map((item, itemIndex) => (
-                            <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
+                            evidenceExists(item, model) ? (
+                              <button type="button" className="companion-evidence-chip is-navigable" key={(item.id || item.name) + ':' + itemIndex} data-testid="companion-evidence-link" onClick={() => onNavigateToEvidence?.({ type: item.type as EvidenceReference['type'], id: item.id, name: item.name })}>{item.name} ↗</button>
+                            ) : (
+                              <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
+                            )
                           ))}
                         </div>
                       )}
