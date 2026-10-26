@@ -733,11 +733,11 @@
 /* Mobile companion: prioritize the conversation, keep controls reachable, respect safe areas. */
 @media (max-width: 600px) {
   .companion-root .companion-panel {
-    inset: 0;
+    inset: var(--companion-visual-viewport-offset-top, 0px) 0 auto;
     width: auto;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100dvh;
+    height: var(--companion-visual-viewport-height, 100vh);
+    height: var(--companion-visual-viewport-height, 100dvh);
+    max-height: var(--companion-visual-viewport-height, 100dvh);
     min-height: 0;
     border: 0;
     border-radius: 0;
