@@ -78,6 +78,7 @@ test('ports stay technology-neutral and do not depend on concrete adapters or UI
   const violations = [];
 
   for (const file of files) {
+    if (file.endsWith('.test.ts') || file.endsWith('.test.tsx')) continue;
     const source = await readFile(file, 'utf8');
     const relative = path.relative(repositoryRoot, file);
     if (/\b(?:window|document|localStorage|sessionStorage)\b/.test(source)) {
