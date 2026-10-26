@@ -292,6 +292,16 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('#companion-title').should('contain.text', 'Rico le raton');
   });
 
+  it('identifie le locuteur dans l’historique et propose un mode dialogue à deux', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-duo-toggle"]').should('be.disabled');
+    cy.get('[data-testid="companion-settings-toggle"]').click();
+    cy.get('[data-testid="companion-provider-enabled"]').check();
+    cy.get('[data-testid="companion-duo-toggle"]').should('be.enabled').click().should('have.attr', 'aria-pressed', 'true');
+    cy.get('[data-testid="companion-duo-control"]').should('not.exist');
+  });
+
 });
 
 export {};
