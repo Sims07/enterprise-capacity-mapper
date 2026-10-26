@@ -219,6 +219,10 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       window.removeEventListener('orientationchange', updateViewport);
       panel.style.removeProperty('--companion-visual-viewport-height');
       panel.style.removeProperty('--companion-visual-viewport-offset-top');
+      panel.style.removeProperty('height');
+      panel.style.removeProperty('max-height');
+      panel.style.removeProperty('top');
+      panel.style.removeProperty('bottom');
     };
   }, [open]);
 
