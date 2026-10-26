@@ -2527,3 +2527,112 @@ body::-webkit-scrollbar,
 /* Navigation contextuelle depuis le dashboard vers Relations. */
 .relations-return-row { display: flex; justify-content: flex-start; margin: 0 0 12px; }
 .relations-return-button { min-height: 36px; }
+
+
+/* Mobile cartography: use the available width without changing desktop geometry. */
+@media (max-width: 600px) {
+  .app > .workspace > main {
+    padding: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .app > .workspace > aside {
+    padding: 12px;
+    max-height: 180px;
+  }
+
+  .map {
+    width: 100%;
+    min-width: 0;
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .domain-card {
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 12px;
+  }
+
+  .domain-banner {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .domain-banner-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .caps-list,
+  .caps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .cap {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* In landscape, keep the header compact and preserve a scrollable map area. */
+@media (max-width: 900px) and (orientation: landscape) {
+  .app {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .app > header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  .app > header h1 {
+    font-size: 16px;
+  }
+
+  .app > header .toolbar {
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .app > .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app > .workspace > aside {
+    max-height: 76px;
+    min-height: 0;
+    overflow: auto;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+  }
+
+  .app > .workspace > main {
+    min-height: 0;
+    height: 100%;
+    overflow: auto;
+    padding: 10px 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .canvas-head {
+    margin-bottom: 10px;
+  }
+
+  .map {
+    min-height: 0;
+  }
+}
