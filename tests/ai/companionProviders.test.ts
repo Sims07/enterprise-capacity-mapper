@@ -25,7 +25,9 @@ test('Ollama utilise /api/chat et extrait la réponse textuelle', async () => {
   assert.equal(answer, 'La capacité Comptabilité générale.');
   assert.equal(request.url, 'http://localhost:11434/api/chat');
   assert.equal(JSON.parse(request.options.body).stream, true);
-  assert.match(JSON.parse(request.options.body).messages[0].content, /TOGAF/);\n  assert.match(JSON.parse(request.options.body).messages[0].content, /Tu es Rico : curieux, concis et méthodique/);\n  assert.equal(JSON.parse(request.options.body).messages.at(-1).content, 'Quelles capacités sont couvertes ?');
+  assert.match(JSON.parse(request.options.body).messages[0].content, /TOGAF/);
+  assert.match(JSON.parse(request.options.body).messages[0].content, /Tu es Rico : curieux, concis et méthodique/);
+  assert.equal(JSON.parse(request.options.body).messages.at(-1).content, 'Quelles capacités sont couvertes ?');
   assert.doesNotMatch(JSON.parse(request.options.body).messages[0].content, /NE PAS TRANSMETTRE/);
 });
 
