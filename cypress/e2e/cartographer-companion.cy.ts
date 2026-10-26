@@ -280,6 +280,18 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-entity-id="l1-5"] [data-testid="map-cap-select"]').should('have.attr', 'aria-pressed', 'true');
   });
 
+
+  it('adapte la personnalité affichée au choix de mascotte', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('#companion-title').should('contain.text', 'Rico le raton');
+    cy.get('[data-testid="companion-personality-tagline"]').should('contain.text', 'Curieux, malicieux');
+    cy.get('[data-testid="companion-mascot-toggle"]').click();
+    cy.get('#companion-title').should('contain.text', 'Octave la pieuvre');
+    cy.get('[data-testid="companion-personality-tagline"]').should('contain.text', 'Calme, méthodique');
+    cy.get('[data-testid="companion-mascot-toggle"]').click();
+    cy.get('#companion-title').should('contain.text', 'Rico le raton');
+  });
+
 });
 
 export {};
