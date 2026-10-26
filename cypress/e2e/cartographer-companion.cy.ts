@@ -2,15 +2,15 @@ describe('Compagnon cartographe — interface locale', () => {
 
   it('permet de changer de mascotte et conserve le choix localement', () => {
     cy.get('[data-testid="companion-launcher"]').click();
-    cy.get('.companion-brand-mark svg[aria-label="Mascotte raton laveur"]').should('be.visible');
+    cy.get('.companion-brand-mark img[alt="Mascotte raton laveur"]').should('be.visible');
     cy.get('[data-testid="companion-mascot-toggle"]').click();
-    cy.get('.companion-brand-mark svg[aria-label="Mascotte pieuvre"]').should('be.visible');
+    cy.get('.companion-brand-mark img[alt="Mascotte pieuvre"]').should('be.visible');
     cy.window().its('localStorage').invoke('getItem', 'companion-mascot').should('eq', 'octopus');
     cy.reload();
     cy.get('[data-testid="companion-launcher"]').click();
-    cy.get('.companion-brand-mark svg[aria-label="Mascotte pieuvre"]').should('be.visible');
+    cy.get('.companion-brand-mark img[alt="Mascotte pieuvre"]').should('be.visible');
     cy.get('[data-testid="companion-mascot-toggle"]').click();
-    cy.get('.companion-brand-mark svg[aria-label="Mascotte raton laveur"]').should('be.visible');
+    cy.get('.companion-brand-mark img[alt="Mascotte raton laveur"]').should('be.visible');
   });
 
 
