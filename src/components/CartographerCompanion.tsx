@@ -183,13 +183,13 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const conversationRef = useRef(null);
+  const wasOpenRef = useRef(false);
 
   const navigateToEvidence = (item: EvidenceReference) => {
     onNavigateToEvidence?.(item);
     // On narrow screens the companion covers the map, so reveal the selected entity after navigation.
     if (window.matchMedia('(max-width: 600px)').matches) {
       setOpen(false);
-      triggerRef.current?.focus();
     }
   };
 
@@ -209,12 +209,18 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     const handleKeyDown = event => {
       if (event.key === 'Escape') {
         setOpen(false);
-        triggerRef.current?.focus();
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     panelRef.current?.focus();
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
+  useEffect(() => {
+    // Restore focus after React has committed the closed state, when the panel no longer
+    // owns focus. Calling focus in the click handler is too early and can be undone by unmount.
+    if (wasOpenRef.current && !open) triggerRef.current?.focus();
+    wasOpenRef.current = open;
   }, [open]);
 
   useEffect(() => {
