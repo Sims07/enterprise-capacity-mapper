@@ -1,0 +1,326 @@
+/* Mobile-first interaction pass.
+ * Desktop remains untouched: all rules are scoped to narrow viewports.
+ */
+@media (max-width: 900px) {
+  .experience-shell--mobile {
+    min-width: 0;
+    width: 100%;
+  }
+
+  header {
+    height: auto;
+    min-height: 0;
+    padding: 10px 12px;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  header > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  header .eyebrow {
+    font-size: 8px;
+    letter-spacing: .12em;
+  }
+
+  .toolbar {
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+  }
+
+  .primary-navigation {
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    justify-content: flex-start;
+    gap: 3px;
+    padding: 3px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .primary-navigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  .primary-navigation > button {
+    min-height: 42px;
+    padding: 8px 12px !important;
+    flex: 0 0 auto;
+    font-size: 12px;
+  }
+
+  .primary-navigation .toolbar-tools {
+    flex: 0 0 auto;
+  }
+
+  .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+    min-height: 42px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .primary-navigation .toolbar-tools-panel {
+    top: 116px;
+    right: 12px;
+    width: min(320px, calc(100vw - 24px));
+    max-height: calc(100dvh - 132px);
+    border-radius: 12px;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 7px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .toolbar-history {
+    display: flex;
+    gap: 6px;
+  }
+
+  .toolbar-history .history-button {
+    min-width: 42px;
+    min-height: 42px;
+    padding: 8px !important;
+  }
+
+  .toolbar-history .history-button-label {
+    display: none;
+  }
+
+  .toolbar-history .history-button-icon {
+    font-size: 17px;
+  }
+
+  .presentation-switch {
+    min-height: 42px;
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace > aside {
+    max-height: 190px;
+    padding: 12px;
+    border-bottom-color: var(--color-border);
+  }
+
+  .workspace > main {
+    padding: 14px 12px 28px;
+  }
+
+  .canvas-head {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .canvas-title h2 {
+    font-size: 20px;
+  }
+
+  .canvas-head p {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .map-controls-row {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .map-filter-bar {
+    min-width: 0;
+  }
+
+  .map-filter-control input,
+  .map-filter-control select,
+  .map-view-toggle button,
+  .canvas-actions button {
+    min-height: 42px;
+  }
+
+  .map-view-toggle {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .map-view-toggle::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map-view-toggle button {
+    flex: 0 0 auto;
+  }
+
+  .map {
+    max-width: 100%;
+    min-height: 420px;
+    padding: 8px;
+    overflow: visible;
+  }
+
+  .map-matrix {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .map-matrix .map-row {
+    width: max-content;
+  }
+
+  .map-matrix .map-row.map-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .map-matrix .map-cell {
+    min-height: 132px;
+  }
+
+  .map-matrix .domain-head {
+    padding: 9px 10px;
+  }
+
+  .map-matrix .domain-banner-title,
+  .map-matrix .domain-banner-title > * {
+    min-width: 0;
+  }
+
+  .stats {
+    gap: 6px;
+  }
+
+  .stats span {
+    min-height: 32px;
+    padding: 7px 9px;
+  }
+
+  .analysis-view-switch {
+    min-height: 48px;
+    gap: 3px;
+    padding: 5px 10px;
+  }
+
+  .analysis-view-switch > button {
+    min-height: 38px;
+    padding: 8px 11px;
+  }
+
+  .standalone-page {
+    width: calc(100% - 16px);
+    margin: 8px auto;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .library-page {
+    padding-bottom: 24px;
+  }
+
+  .library-page-heading h2 {
+    font-size: 20px;
+  }
+
+  .library-page-actions {
+    gap: 7px;
+  }
+
+  .library-page-actions > button {
+    min-height: 44px;
+  }
+
+  .dashboard-panel,
+  .coverage-tree,
+  .impact {
+    min-width: 0;
+  }
+
+  /* Tables/matrices are allowed to scroll inside their own surface,
+   * never by widening the document viewport. */
+  .dashboard-map-layout,
+  .dashboard-heatmap,
+  .relations-table,
+  .impact-grid {
+    max-width: 100%;
+  }
+
+  .dashboard-map-layout,
+  .dashboard-coverage-heatmap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  button,
+  .button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding-inline: 10px;
+  }
+
+  header > div:first-child {
+    gap: 8px;
+  }
+
+  .toolbar-actions {
+    min-height: 44px;
+  }
+
+  .workspace > aside {
+    max-height: 170px;
+  }
+
+  .workspace > main {
+    padding-inline: 10px;
+  }
+
+  .canvas-title h2 {
+    font-size: 19px;
+  }
+
+  .standalone-page {
+    width: calc(100% - 12px);
+    padding: 12px;
+  }
+}

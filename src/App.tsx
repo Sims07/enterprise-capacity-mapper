@@ -82,7 +82,7 @@ function Field({ label, required = false, error = undefined, ...p }) {
   );
 }
 
-function App() {
+function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mobile' } = {}) {
   const applicationRef = useRef(null);
   if (!applicationRef.current) {
     applicationRef.current = createFrontendApplication({ initialModel: DEMO_MODEL });
@@ -752,7 +752,7 @@ function App() {
   );
 
   return (
-    <div className={'app' + (presentation ? ' presentation-mode' : '') + (darkMode ? ' theme-dark' : '')}>
+    <div className={'app' + (presentation ? ' presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind}>
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">

@@ -165,7 +165,8 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="nav-analysis"]').click();
     const tabs = ['[data-testid="tab-relations"]', '[data-testid="tab-dashboard"]'];
     tabs.forEach(selector => {
-      cy.get(selector).click().should('have.class', 'active');
+      cy.get(selector).click();
+      cy.get(selector).should('have.class', 'active');
       cy.get('.analysis-view-switch > button.active').should('have.length', 1)
         .and('have.attr', 'data-testid').and('equal', selector.match(/tab-[a-z]+/)[0]);
     });
@@ -175,7 +176,8 @@ describe('Dashboard de couverture', () => {
     cy.get('[data-testid="tab-dashboard"]').then($button => expect($button.css('background-color')).not.to.equal('rgba(0, 0, 0, 0)'));
 
     cy.viewport(390, 844);
-    cy.get('[data-testid="tab-relations"]').click();
+    cy.get('[data-ui-experience="mobile"]').should('exist');
+    cy.get('[data-testid="tab-relations"]').should('be.visible').click();
     cy.get('.analysis-view-switch > button.active').should('have.length', 1).and('have.css', 'animation-name', 'none').and('have.css', 'transform', 'none');
     cy.get('.analysis-view-switch > button.active').then($button => expect($button[0].getBoundingClientRect().width).to.be.lessThan(200));
   });
@@ -188,7 +190,6 @@ describe('Dashboard de couverture', () => {
       expect($button.css('text-overflow')).not.to.equal('ellipsis');
     });
   });
-
 
   it('permet de revenir au dashboard avec le bouton Retour ou le bouton Précédent du navigateur', () => {
     cy.get('[data-testid="nav-analysis"]').click();
@@ -272,7 +273,6 @@ describe('Dashboard de couverture', () => {
     cy.go('back');
     cy.get('[data-testid="dashboard-view-impact"]').should('have.class', 'is-active');
   });
-
 
   it('utilise les tokens sémantiques pour le dashboard et ses états métier en thème sombre', () => {
     cy.window().then(win => {
