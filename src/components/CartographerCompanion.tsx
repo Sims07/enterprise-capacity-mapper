@@ -178,6 +178,55 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   }, [open]);
 
   useEffect(() => {
+    if (!open || !panelRef.current) return undefined;
+
+    const panel = panelRef.current;
+    const visualViewport = window.visualViewport;
+    const updateViewport = () => {
+      const isMobile = window.matchMedia('(max-width: 600px)').matches;
+      if (!isMobile) {
+        panel.style.removeProperty('height');
+        panel.style.removeProperty('max-height');
+        panel.style.removeProperty('top');
+        panel.style.removeProperty('bottom');
+        panel.style.removeProperty('--companion-visual-viewport-height');
+        panel.style.removeProperty('--companion-visual-viewport-offset-top');
+        return;
+      }
+
+      const height = Math.round(visualViewport?.height ?? window.innerHeight);
+      const offsetTop = Math.round(visualViewport?.offsetTop ?? 0);
+      panel.style.setProperty('--companion-visual-viewport-height', height + 'px');
+      panel.style.setProperty('--companion-visual-viewport-offset-top', offsetTop + 'px');
+      // Inline sizing wins over legacy responsive declarations and keeps the panel
+      // tied to the visible viewport even when the virtual keyboard is open.
+      panel.style.height = height + 'px';
+      panel.style.maxHeight = height + 'px';
+      panel.style.top = offsetTop + 'px';
+      panel.style.bottom = 'auto';
+    };
+
+    updateViewport();
+    visualViewport?.addEventListener('resize', updateViewport);
+    visualViewport?.addEventListener('scroll', updateViewport);
+    window.addEventListener('resize', updateViewport);
+    window.addEventListener('orientationchange', updateViewport);
+
+    return () => {
+      visualViewport?.removeEventListener('resize', updateViewport);
+      visualViewport?.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('resize', updateViewport);
+      window.removeEventListener('orientationchange', updateViewport);
+      panel.style.removeProperty('--companion-visual-viewport-height');
+      panel.style.removeProperty('--companion-visual-viewport-offset-top');
+      panel.style.removeProperty('height');
+      panel.style.removeProperty('max-height');
+      panel.style.removeProperty('top');
+      panel.style.removeProperty('bottom');
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (conversationRef.current) {
       conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
     }
