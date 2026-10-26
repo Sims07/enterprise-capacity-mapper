@@ -58,6 +58,8 @@ const domainTextColor = color => {
 const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified' };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
 
+const errorMessage = error => error instanceof Error ? error.message : String(error);
+
 function Modal({ title, children, onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -91,14 +93,14 @@ function App() {
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
-  const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
+  const [mode, setMode] = useState('editor');
   const [dashboardReturnAvailable, setDashboardReturnAvailable] = useState(false);
   const dashboardHistoryEntry = useRef(false);
   const [pickedApps, setPickedApps] = useState([]);
   const [link, setLink] = useState(null);
   const [linkChecked, setLinkChecked] = useState([]);
   const [linkQuery, setLinkQuery] = useState('');
-  const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
+  const [expandedCapId, setExpandedCapId] = useState(null);
   const [presentation, setPresentation] = useState(false);
   const [darkMode, setDarkMode] = useState(() => preferences.readTheme() === 'dark');
   const toolsMenuRef = useRef(null);
@@ -129,9 +131,7 @@ function App() {
   const relationIds = item => item.capabilityIds || [];
   const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
 
-  useEffect(() => {
-    preferences.writeTheme(darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+  useEffect(() => { preferences.writeTheme(darkMode ? 'dark' : 'light'); }, [darkMode]);
 
   useEffect(() => {
     navigation.initialize(mode);
@@ -144,9 +144,7 @@ function App() {
     });
   }, []);
 
-  useEffect(() => {
-    viewport.resetScrollPositions();
-  }, [mode]);
+  useEffect(() => { viewport.resetScrollPositions(); }, [mode]);
 
   const navigateToMode = nextMode => {
     if (nextMode === mode) return;
@@ -173,21 +171,15 @@ function App() {
     setMode('dashboard');
   };
 
-  const closeToolsMenu = () => {
-    setToolsMenuOpen(false);
-  };
+  const closeToolsMenu = () => { setToolsMenuOpen(false); };
 
   useEffect(() => {
     if (!toolsMenuOpen) return undefined;
-
     return browserInteractions.listenForDismissal({
       pointerEvent: 'pointerdown',
       getInsideNode: () => toolsMenuRef.current,
       onOutside: closeToolsMenu,
-      onEscape: () => {
-        closeToolsMenu();
-        toolsMenuToggleRef.current?.focus();
-      },
+      onEscape: () => { closeToolsMenu(); toolsMenuToggleRef.current?.focus(); },
     });
   }, [toolsMenuOpen]);
 
@@ -205,26 +197,18 @@ function App() {
   const visibleDomains = useMemo(() => model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), [model.domains, mapQuery]);
   const { touched, gaps, redundancy } = deriveCoverageOverview({ mappedItems, applications: apps, selectedIds: selected });
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
+
   const openLibrary = () => {
     const errors = [];
-    try {
-      setLocalMaps(repository.loadLocalMaps());
-    } catch {
-      setLocalMaps([]);
-      errors.push('bibliothèque locale');
-    }
-    try {
-      setRecentMaps(repository.loadRecentMaps());
-    } catch {
-      setRecentMaps([]);
-      errors.push('historique des récents');
-    }
+    try { setLocalMaps(repository.loadLocalMaps()); } catch { setLocalMaps([]); errors.push('bibliothèque locale'); }
+    try { setRecentMaps(repository.loadRecentMaps()); } catch { setRecentMaps([]); errors.push('historique des récents'); }
     errors.push(...(repository.consumeStorageRecoveryWarnings?.() ?? []));
     setPendingLocalMap(null);
     navigateToMode('library');
     setModal(null);
     if (errors.length) notify(`Certaines données locales sont invalides : ${errors.join(' et ')}. Les listes concernées sont affichées vides.`);
   };
+
   const saveCurrentLocalMap = () => {
     try {
       const entries = repository.loadLocalMaps();
@@ -238,9 +222,10 @@ function App() {
       setLocalMaps(entries.map(entry => entry.id === saved.id ? saved : entry));
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
     } catch (error) {
-      notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
+      notify(`Impossible d’enregistrer la cartographie : ${errorMessage(error)}`);
     }
   };
+
   const saveNamedLocalMap = () => {
     try {
       const currentModel = modelRef.current;
@@ -253,9 +238,10 @@ function App() {
       setModal(null);
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
     } catch (error) {
-      notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
+      notify(`Impossible d’enregistrer la cartographie : ${errorMessage(error)}`);
     }
   };
+
   const confirmLoadLocalMap = () => {
     if (!pendingLocalMap) return;
     const saved = pendingLocalMap;
@@ -263,8 +249,6 @@ function App() {
       if (!saved.model || !Array.isArray(saved.model.domains) || !Array.isArray(saved.model.capabilities)) {
         throw new Error('le modèle enregistré est incomplet ou invalide');
       }
-
-      // Le stockage de l’identifiant actif ne doit pas bloquer l’ouverture de la cartographie.
       replaceModel(saved.model);
       setSelected([]);
       setMapQuery('');
@@ -272,31 +256,23 @@ function App() {
       setModal(null);
       setPendingLocalMap(null);
       navigateToMode('editor');
-
       try {
         setActiveRecentMapId(saved.id);
         setLocalMapId(saved.id);
         preferences.writeActiveLocalMapId(saved.id);
-      } catch (storageError) {
+      } catch {
         notify(`Cartographie « ${saved.name} » ouverte, mais son identifiant actif n’a pas pu être mémorisé.`);
       }
-
-      try {
-        repository.recordRecentMap({ id: saved.id, name: saved.name, model: saved.model });
-      } catch (historyError) {
-        // L’ouverture reste prioritaire si l’historique local est indisponible.
-      }
+      try { repository.recordRecentMap({ id: saved.id, name: saved.name, model: saved.model }); } catch { /* ouverture prioritaire */ }
       notify(`Cartographie « ${saved.name} » chargée`);
     } catch (error) {
-      notify(`Impossible de charger la cartographie : ${error.message}`);
+      notify(`Impossible de charger la cartographie : ${errorMessage(error)}`);
     }
   };
+
   const syncHistoryState = snapshot => setHistoryState({ canUndo: snapshot.canUndo, canRedo: snapshot.canRedo });
   const applyModelSnapshot = snapshot => {
-    if (snapshot.current === modelRef.current) {
-      syncHistoryState(snapshot);
-      return;
-    }
+    if (snapshot.current === modelRef.current) { syncHistoryState(snapshot); return; }
     modelRef.current = snapshot.current;
     setModel(snapshot.current);
     syncHistoryState(snapshot);
@@ -304,9 +280,7 @@ function App() {
   const commitModel = nextModel => applyModelSnapshot(mapService.replace(nextModel));
   const replaceModel = nextModel => commitModel(nextModel);
   const update = patch => applyModelSnapshot(mapService.update(patch));
-  const updateCapabilityPriority = (capabilityId, priority) => applyModelSnapshot(
-    mapService.updateCapabilityPriority(capabilityId, priority)
-  );
+  const updateCapabilityPriority = (capabilityId, priority) => applyModelSnapshot(mapService.updateCapabilityPriority(capabilityId, priority));
   const undo = () => applyModelSnapshot(mapService.undo());
   const redo = () => applyModelSnapshot(mapService.redo());
 
@@ -315,79 +289,43 @@ function App() {
       if (!(event.ctrlKey || event.metaKey) || event.altKey || modal) return;
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
-
       const key = event.key.toLowerCase();
-      if (key === 'z' && event.shiftKey && historyState.canRedo) {
-        event.preventDefault();
-        redo();
-      } else if (key === 'z' && !event.shiftKey && historyState.canUndo) {
-        event.preventDefault();
-        undo();
-      } else if (key === 'y' && !event.shiftKey && historyState.canRedo) {
-        event.preventDefault();
-        redo();
-      }
+      if (key === 'z' && event.shiftKey && historyState.canRedo) { event.preventDefault(); redo(); }
+      else if (key === 'z' && !event.shiftKey && historyState.canUndo) { event.preventDefault(); undo(); }
+      else if (key === 'y' && !event.shiftKey && historyState.canRedo) { event.preventDefault(); redo(); }
     };
-
     return browserInteractions.listenForKeyDown(handleKeyDown);
   }, [historyState, modal]);
-  // L'adaptateur gère les détails DOM du glisser-déposer et son nettoyage.
   useEffect(() => viewport.installDragAutoScroll(), []);
 
   const openContextMenu = (event, menu) => {
-    event.preventDefault();
-    event.stopPropagation();
+    event.preventDefault(); event.stopPropagation();
     const menuWidth = 180;
     const menuHeight = menu.type === 'domain' ? 168 : 96;
-    const position = browserInteractions.clampMenuPosition({
-      x: event.clientX,
-      y: event.clientY,
-      width: menuWidth,
-      height: menuHeight,
-    });
+    const position = browserInteractions.clampMenuPosition({ x: event.clientX, y: event.clientY, width: menuWidth, height: menuHeight });
     setContextMenu({ ...menu, ...position });
   };
   const closeContextMenu = () => setContextMenu(null);
 
   useEffect(() => {
     if (!contextMenu) return undefined;
-
-    return browserInteractions.listenForDismissal({
-      pointerEvent: 'mousedown',
-      getInsideNode: () => browserInteractions.findElement('.context-menu'),
-      onOutside: closeContextMenu,
-      onEscape: closeContextMenu,
-    });
+    return browserInteractions.listenForDismissal({ pointerEvent: 'mousedown', getInsideNode: () => browserInteractions.findElement('.context-menu'), onOutside: closeContextMenu, onEscape: closeContextMenu });
   }, [contextMenu]);
 
   const layout = model.layout || { mode: 'matrix', columns: DEFAULT_LAYOUTS.columns, layers: DEFAULT_LAYOUTS.layers };
   const columns = layout.columns?.length ? layout.columns : DEFAULT_LAYOUTS.columns;
   const layers = layout.layers?.length ? layout.layers : DEFAULT_LAYOUTS.layers;
   const zones = columns.flatMap(column => layers.map(layer => layout.zones?.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
-
   const setLayoutView = m => { setLayoutMode(m); update({ layout: { ...layout, mode: m } }); };
-  const openLayoutEditor = () => {
-    setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })) });
-    setModal('layout');
-  };
-
+  const openLayoutEditor = () => { setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })) }); setModal('layout'); };
   const updateLayoutDraft = (kind, id, name) => setLayoutDraft(d => renameLayoutDraftItem(d, kind, id, name));
-
   const updateZoneDraft = (columnId, layerId, name) => setLayoutDraft(d => renameLayoutZone(d, columnId, layerId, name));
-
   const addLayoutItem = kind => setLayoutDraft(d => addLayoutDraftItem(d, kind, uid(kind === 'columns' ? 'column' : 'layer')));
-
   const removeLayoutItem = (kind, id) => setLayoutDraft(d => removeLayoutDraftItem(d, kind, id));
-
   const saveLayout = () => {
     const prepared = prepareLayoutForSave(layoutDraft, layout, model.domains);
-    if (!prepared) {
-      notify('Chaque colonne, layer et zone doit avoir un nom');
-      return;
-    }
-    update(prepared);
-    setModal(null);
-    notify('Structure enregistrée');
+    if (!prepared) { notify('Chaque colonne, layer et zone doit avoir un nom'); return; }
+    update(prepared); setModal(null); notify('Structure enregistrée');
   };
 
   const openWizard = () => setModal('wizard');
@@ -395,83 +333,29 @@ function App() {
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
     if (backup) repository.exportModel(model);
     applyModelSnapshot(mapService.createEmptyMap({ name, description, layout: nextLayout }));
-    setActiveRecentMapId(uid('recent'));
-    setLocalMapId('');
-    preferences.clearActiveLocalMapId();
-    setSelected([]);
-    setLayoutMode('matrix');
-    navigateToMode('editor');
-    setModal(null);
+    setActiveRecentMapId(uid('recent')); setLocalMapId(''); preferences.clearActiveLocalMapId(); setSelected([]); setLayoutMode('matrix'); navigateToMode('editor'); setModal(null);
     notify(backup ? 'Cartographie créée · sauvegarde JSON téléchargée' : 'Cartographie créée');
   };
 
-  const placementAvailable = (domainId, columnId, layerId, columnSpan) => isDomainPlacementAvailable({
-    domains: model.domains,
-    columns,
-    layers,
-    domainId,
-    columnId,
-    layerId,
-    columnSpan,
-  });
-
+  const placementAvailable = (domainId, columnId, layerId, columnSpan) => isDomainPlacementAvailable({ domains: model.domains, columns, layers, domainId, columnId, layerId, columnSpan });
   const placeDomain = (domainId, columnId, layerId) => {
-    const patch = prepareDomainPlacement({
-      domains: model.domains,
-      layout,
-      layoutMode,
-      columns,
-      layers,
-      domainId,
-      columnId,
-      layerId,
-    });
-    if (!patch) {
-      if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
-      return;
-    }
+    const patch = prepareDomainPlacement({ domains: model.domains, layout, layoutMode, columns, layers, domainId, columnId, layerId });
+    if (!patch) { if (domainId) notify('Déplacement impossible : chevauchement de domaine.'); return; }
     update(patch);
   };
 
   const openNew = (kind, parent = null, place = null) => {
-    setEditingDomainId(null);
-    setEditingCapabilityId(null);
-    setFormErrors({});
+    setEditingDomainId(null); setEditingCapabilityId(null); setFormErrors({});
     const defaultDomain = parent || (model.domains[0]?.id || '');
-    setForm({
-      ...emptyForm,
-      domainId: defaultDomain,
-      capabilityIds: parent ? [parent] : [],
-      columnId: place?.columnId || columns[0].id,
-      layerId: place?.layerId || layers[0].id,
-      columnSpan: '1'
-    });
+    setForm({ ...emptyForm, domainId: defaultDomain, capabilityIds: parent ? [parent] : [], columnId: place?.columnId || columns[0].id, layerId: place?.layerId || layers[0].id, columnSpan: '1' });
     setModal(kind);
   };
-
   const openEditDomain = d => {
-    setEditingDomainId(d.id);
-    setEditingCapabilityId(null);
-    setFormErrors({});
-    setForm({
-      ...emptyForm,
-      name: d.name,
-      code: d.code,
-      description: d.description || '',
-      color: resolveDomainColor(d.color),
-      columnId: d.layout?.columnId || columns[0].id,
-      layerId: d.layout?.layerId || layers[0].id,
-      columnSpan: String(d.layout?.columnSpan || 1)
-    });
+    setEditingDomainId(d.id); setEditingCapabilityId(null); setFormErrors({});
+    setForm({ ...emptyForm, name: d.name, code: d.code, description: d.description || '', color: resolveDomainColor(d.color), columnId: d.layout?.columnId || columns[0].id, layerId: d.layout?.layerId || layers[0].id, columnSpan: String(d.layout?.columnSpan || 1) });
     setModal('edit-domain');
   };
-
-  const openEditCapability = c => {
-    setEditingCapabilityId(c.id);
-    setFormErrors({});
-    setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '', priority: c.priority || 'unqualified' });
-    setModal('edit-capability');
-  };
+  const openEditCapability = c => { setEditingCapabilityId(c.id); setFormErrors({}); setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '', priority: c.priority || 'unqualified' }); setModal('edit-capability'); };
 
   const save = () => {
     const errors: Record<string, string> = {};
@@ -481,140 +365,55 @@ function App() {
     if (modal === 'app' && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
     if ((modal === 'domain' || modal === 'edit-domain') && !/^#[\da-f]{6}$/i.test(form.color)) errors.color = 'Saisissez une couleur hexadécimale au format #RRGGBB.';
     if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue chevauche un autre domaine.';
-
-    if (Object.keys(errors).length) {
-      setFormErrors(errors);
-      notify('Vérifiez les champs signalés.');
-      return;
-    }
-
+    if (Object.keys(errors).length) { setFormErrors(errors); notify('Vérifiez les champs signalés.'); return; }
     setFormErrors({});
-    if (modal === 'domain') {
-      update({ domains: createDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, form, id: uid('l0'), defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
-      setMapQuery('');
-      notify('Domaine N0 créé');
-    }
-    if (modal === 'edit-domain') {
-      update({ domains: updateDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
-      notify('Domaine N0 modifié');
-    }
-    if (modal === 'edit-capability') {
-      update({ capabilities: updateCapability({ domains: model.domains, capabilities: model.capabilities, capabilityId: editingCapabilityId, form }) });
-      notify('Capacité N1 modifiée');
-    }
-    if (modal === 'capability') {
-      update({ capabilities: createCapability({ domains: model.domains, capabilities: model.capabilities, form, id: uid('l1') }) });
-      notify('Capacité N1 créée');
-    }
-    if (modal === 'app') {
-      update({ applications: createApplication({ applications: apps, domains: model.domains, capabilities: model.capabilities, layout: model.layout, form, id: uid('app') }) });
-      notify('Application créée');
-    }
+    if (modal === 'domain') { update({ domains: createDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, form, id: uid('l0'), defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) }); setMapQuery(''); notify('Domaine N0 créé'); }
+    if (modal === 'edit-domain') { update({ domains: updateDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) }); notify('Domaine N0 modifié'); }
+    if (modal === 'edit-capability') { update({ capabilities: updateCapability({ domains: model.domains, capabilities: model.capabilities, capabilityId: editingCapabilityId, form }) }); notify('Capacité N1 modifiée'); }
+    if (modal === 'capability') { update({ capabilities: createCapability({ domains: model.domains, capabilities: model.capabilities, form, id: uid('l1') }) }); notify('Capacité N1 créée'); }
+    if (modal === 'app') { update({ applications: createApplication({ applications: apps, domains: model.domains, capabilities: model.capabilities, layout: model.layout, form, id: uid('app') }) }); notify('Application créée'); }
     setModal(null);
   };
 
-  const removeDomain = id => {
-    update(removeDomainAndDependents({ model, domainId: id, depth }));
-    notify('Domaine et dépendances supprimés');
-  };
-
+  const removeDomain = id => { update(removeDomainAndDependents({ model, domainId: id, depth })); notify('Domaine et dépendances supprimés'); };
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
   const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
   const hoverOn = e => { e.preventDefault(); e.currentTarget.classList.add('drop-over'); };
   const hoverOff = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-over'); };
   const onDrop = (e, capId) => { e.preventDefault(); e.currentTarget.classList.remove('drop-over'); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
-
   const togglePicked = id => setPickedApps(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
-  const linkPicked = targetId => {
-    if (!pickedValid.length) return;
-    update({ applications: linkPickedApplications(apps, pickedValid, targetId, model.domains, model.capabilities, depth) });
-    setPickedApps([]);
-    notify(`${pickedValid.length} application(s) reliée(s)`);
-  };
-  const openLinkForTarget = item => {
-    setLink({ kind: 'target', id: item.id, name: item.name });
-    setLinkChecked(apps.filter(a => relationIds(a).includes(item.id)).map(a => a.id));
-    setLinkQuery('');
-    setModal('link');
-  };
-  const openLinkForApp = app => {
-    setLink({ kind: 'app', id: app.id, name: app.name });
-    setLinkChecked(relationIds(app).filter(id => mappedItems.some(m => m.id === id)));
-    setLinkQuery('');
-    setModal('link');
-  };
+  const linkPicked = targetId => { if (!pickedValid.length) return; update({ applications: linkPickedApplications(apps, pickedValid, targetId, model.domains, model.capabilities, depth) }); setPickedApps([]); notify(`${pickedValid.length} application(s) reliée(s)`); };
+  const openLinkForTarget = item => { setLink({ kind: 'target', id: item.id, name: item.name }); setLinkChecked(apps.filter(a => relationIds(a).includes(item.id)).map(a => a.id)); setLinkQuery(''); setModal('link'); };
+  const openLinkForApp = app => { setLink({ kind: 'app', id: app.id, name: app.name }); setLinkChecked(relationIds(app).filter(id => mappedItems.some(m => m.id === id))); setLinkQuery(''); setModal('link'); };
   const closeLink = () => { setModal(null); setLink(null); };
   const toggleLinkChecked = id => setLinkChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
-  const saveLink = () => {
-    if (!link) return;
-    const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked, domains: model.domains, capabilities: model.capabilities, depth });
-    if (nextApps.some((a, i) => a !== apps[i])) update({ applications: nextApps });
-    notify('Relations mises à jour');
-    closeLink();
-  };
+  const saveLink = () => { if (!link) return; const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked, domains: model.domains, capabilities: model.capabilities, depth }); if (nextApps.some((a, i) => a !== apps[i])) update({ applications: nextApps }); notify('Relations mises à jour'); closeLink(); };
 
   const importJson = async e => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    try {
-      replaceModel(await repository.importModel(f));
-      setActiveRecentMapId(uid('recent'));
-      setLocalMapId('');
-      preferences.clearActiveLocalMapId();
-      notify('Cartographie importée');
-    } catch (err) {
-      notify(err.message);
-    }
+    const f = e.target.files?.[0]; if (!f) return;
+    try { replaceModel(await repository.importModel(f)); setActiveRecentMapId(uid('recent')); setLocalMapId(''); preferences.clearActiveLocalMapId(); notify('Cartographie importée'); }
+    catch (error) { notify(errorMessage(error)); }
     e.target.value = '';
   };
-
   const getCapCoverageState = capId => getCapabilityCoverageState(capId, apps);
 
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
     const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}`;
-
     return (
-      <section
-        className={domainClass}
-        style={{ '--domain-color': resolveDomainColor(d.color) } as React.CSSProperties}
-        draggable
-        onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
-        onDragStart={e => e.dataTransfer.setData('domain', d.id)}
-        onDragOver={e => { if (depth === 1) hoverOn(e); }}
-        onDragLeave={e => { if (depth === 1) hoverOff(e); }}
-        onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
-        key={d.id}
-      >
+      <section className={domainClass} style={{ '--domain-color': resolveDomainColor(d.color) } as React.CSSProperties} draggable onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })} onDragStart={e => e.dataTransfer.setData('domain', d.id)} onDragOver={e => { if (depth === 1) hoverOn(e); }} onDragLeave={e => { if (depth === 1) hoverOff(e); }} onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }} key={d.id}>
         <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color), "--n0-header-color": resolveDomainColor(d.color), "--n0-header-text-color": domainTextColor(d.color) } as React.CSSProperties}>
           <div className="domain-banner-title">
-            {depth === 1 ? (
-              <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button>
-            ) : <h3>{d.name}</h3>}
+            {depth === 1 ? <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button> : <h3>{d.name}</h3>}
             <span className="domain-meta">{d.code} · {caps.length} N1</span>
           </div>
-          <div className="domain-actions">
-            <button
-              type="button"
-              className="mini-action-trigger"
-              aria-label={`Actions pour ${d.name}`}
-              title="Actions du domaine"
-              onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}
-            >⋮</button>
-          </div>
+          <div className="domain-actions"><button type="button" className="mini-action-trigger" aria-label={`Actions pour ${d.name}`} title="Actions du domaine" onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}>⋮</button></div>
         </div>
-
         {d.description?.trim() && <p className="cap-desc domain-desc">{d.description.trim()}</p>}
-
         {depth === 1 ? (
           <div className="relations domain-relations">
-            {apps.filter(a => relationIds(a).includes(d.id)).map(a => (
-              <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData("app", a.id)}>
-                <span>◈</span>{a.name}
-                <button type="button" onClick={() => unassign(a.id, d.id)}>×</button>
-              </div>
-            ))}
+            {apps.filter(a => relationIds(a).includes(d.id)).map(a => <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData("app", a.id)}><span>◈</span>{a.name}<button type="button" onClick={() => unassign(a.id, d.id)}>×</button></div>)}
             <div className="drop">Déposer une application ici</div>
           </div>
         ) : (
@@ -622,40 +421,16 @@ function App() {
             {caps.map(c => {
               const coverage = getCapCoverageState(c.id);
               const capItemClass = `cap${selected.includes(c.id) ? ' impact-selected' : ''}`;
-
               return (
-                <div
-                  className={capItemClass}
-                  key={c.id}
-                  onContextMenu={e => openContextMenu(e, { type: 'capability', item: c })}
-                  onDragOver={hoverOn}
-                  onDragLeave={hoverOff}
-                  onDrop={e => onDrop(e, c.id)}
-                >
+                <div className={capItemClass} key={c.id} onContextMenu={e => openContextMenu(e, { type: 'capability', item: c })} onDragOver={hoverOn} onDragLeave={hoverOff} onDrop={e => onDrop(e, c.id)}>
                   <div className="cap-head">
                     <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>
-                    <button
-                      type="button"
-                      className="mini-action-trigger"
-                      aria-label={`Renommer ${c.name}`}
-                      title="Actions de la capacité"
-                      onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'capability', item: c }); }}
-                    >⋮</button>
+                    <button type="button" className="mini-action-trigger" aria-label={`Renommer ${c.name}`} title="Actions de la capacité" onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'capability', item: c }); }}>⋮</button>
                   </div>
-
-                  <div className="cap-meta">
-                    <span className="app-count">{coverage.count}</span>
-                  </div>
-
+                  <div className="cap-meta"><span className="app-count">{coverage.count}</span></div>
                   {c.description?.trim() && <p className="cap-desc">{c.description.trim()}</p>}
-
                   <div className="relations">
-                    {coverage.apps.map(a => (
-                      <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
-                        <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
-                        <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>
-                      </div>
-                    ))}
+                    {coverage.apps.map(a => <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}><span>◈</span><b>{a.name}</b> <small>({a.status})</small><button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button></div>)}
                     <div className="drop">Déposer une application ici</div>
                   </div>
                 </div>
@@ -668,594 +443,38 @@ function App() {
   };
 
   const linkMatch = text => text.toLowerCase().includes(linkQuery.trim().toLowerCase());
-  const linkOption = (id, title, sub) => (
-    <label className="link-option" key={id}>
-      <input type="checkbox" checked={linkChecked.includes(id)} onChange={() => toggleLinkChecked(id)} />
-      <span><b>{title}</b>{sub && <small>{sub}</small>}</span>
-    </label>
-  );
+  const linkOption = (id, title, sub) => <label className="link-option" key={id}><input type="checkbox" checked={linkChecked.includes(id)} onChange={() => toggleLinkChecked(id)} /><span><b>{title}</b>{sub && <small>{sub}</small>}</span></label>;
   let linkOptions = null;
   if (link?.kind === 'target') {
     const list = apps.filter(a => linkMatch(`${a.name} ${a.code} ${a.vendor || ''}`));
     linkOptions = list.length ? list.map(a => linkOption(a.id, a.name, `${a.code} · ${a.status}`)) : <p className="local-map-empty">Aucune application.</p>;
   } else if (link?.kind === 'app') {
-    const groups = (depth === 1 ? [{ d: null, items: model.domains }] : model.domains.map(d => ({ d, items: model.capabilities.filter(c => c.domainId === d.id) })))
-      .map(g => ({ ...g, items: g.items.filter(i => linkMatch(`${i.code} ${i.name}`)) }))
-      .filter(g => g.items.length);
-    linkOptions = groups.length ? groups.map(g => (
-      <div className="link-group" key={g.d?.id || 'flat'}>
-        {g.d && <h4>{g.d.code} — {g.d.name}</h4>}
-        {g.items.map(i => linkOption(i.id, i.name, i.code))}
-      </div>
-    )) : <p className="local-map-empty">Aucun élément.</p>;
+    const groups = (depth === 1 ? [{ d: null, items: model.domains }] : model.domains.map(d => ({ d, items: model.capabilities.filter(c => c.domainId === d.id) }))).map(g => ({ ...g, items: g.items.filter(i => linkMatch(`${i.code} ${i.name}`)) })).filter(g => g.items.length);
+    linkOptions = groups.length ? groups.map(g => <div className="link-group" key={g.d?.id || 'flat'}>{g.d && <h4>{g.d.code} — {g.d.name}</h4>}{g.items.map(i => linkOption(i.id, i.name, i.code))}</div>) : <p className="local-map-empty">Aucun élément.</p>;
   }
 
   const matrixView = (
     <div className="map map-matrix">
-      <div className="map-row map-head" style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
-        <div />
-        {columns.map(col => <div className="col-head" key={col.id}>{col.name}</div>)}
-      </div>
-      {layers.map(layer => (
-        <div className="map-row" key={layer.id} style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
-          <div className="axis-label">{layer.name}</div>
-          {columns.map((col, index) => {
-            const coveredByPrevious = model.domains.some(d => (d.layout?.layerId || layers[0].id) === layer.id && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) < index && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) + Math.max(1, Number(d.layout?.columnSpan) || 1) > index);
-            if (coveredByPrevious) return null;
-            const here = model.domains.filter(d => (d.layout?.columnId || columns[0].id) === col.id && (d.layout?.layerId || layers[0].id) === layer.id && (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase()));
-            const span = Math.max(1, Math.min(columns.length - index, Number(here[0]?.layout?.columnSpan) || 1));
-            const zone = zones.find(z => z.columnId === col.id && z.layerId === layer.id);
-            const zoneLabel = zone?.name && zone.name !== col.name ? zone.name : '';
-
-            return (
-              <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} style={{ gridColumn: span > 1 ? `span ${span}` : undefined }} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
-                <div className="cell-column-label">{col.name}</div>
-                {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
-                {here.map(d => <DomainCard d={d} key={d.id} />)}
-                <button type="button" className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>
-              </div>
-            );
-          })}
-        </div>
-      ))}
+      <div className="map-row map-head" style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}><div />{columns.map(col => <div className="col-head" key={col.id}>{col.name}</div>)}</div>
+      {layers.map(layer => <div className="map-row" key={layer.id} style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}><div className="axis-label">{layer.name}</div>{columns.map((col, index) => { const coveredByPrevious = model.domains.some(d => (d.layout?.layerId || layers[0].id) === layer.id && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) < index && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) + Math.max(1, Number(d.layout?.columnSpan) || 1) > index); if (coveredByPrevious) return null; const here = model.domains.filter(d => (d.layout?.columnId || columns[0].id) === col.id && (d.layout?.layerId || layers[0].id) === layer.id && (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())); const span = Math.max(1, Math.min(columns.length - index, Number(here[0]?.layout?.columnSpan) || 1)); const zone = zones.find(z => z.columnId === col.id && z.layerId === layer.id); const zoneLabel = zone?.name && zone.name !== col.name ? zone.name : ''; return <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} style={{ gridColumn: span > 1 ? `span ${span}` : undefined }} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}><div className="cell-column-label">{col.name}</div>{zoneLabel && <div className="cell-label">{zoneLabel}</div>}{here.map(d => <DomainCard d={d} key={d.id} />)}<button type="button" className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button></div>; })}</div>)}
     </div>
   );
 
   return (
     <div className={'app' + (presentation ? ' presentation-mode' : '') + (darkMode ? ' theme-dark' : '')}>
-      <header>
-        <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
-        <div className="toolbar">
-          <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
-            <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { navigateToMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
-            <button type="button" className={['dashboard', 'relations'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => navigateToMode('dashboard')}>▥ Analyse</button>
-            <button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={openLibrary}>▤ Bibliothèque</button>
-            <div
-              className={'toolbar-tools' + (toolsMenuOpen ? ' is-open' : '')}
-              data-testid="tools-menu"
-              ref={toolsMenuRef}
-            >
-              <button
-                type="button"
-                className="toolbar-tools-toggle"
-                data-testid="tools-menu-toggle"
-                ref={toolsMenuToggleRef}
-                aria-label="Ouvrir le menu Outils"
-                aria-haspopup="true"
-                aria-expanded={toolsMenuOpen}
-                onClick={() => setToolsMenuOpen(open => !open)}
-              >
-                <span>Outils</span><span aria-hidden="true">⌄</span>
-              </button>
-              {toolsMenuOpen && <div className="toolbar-tools-panel" aria-label="Outils et actions">
-                <section className="toolbar-menu-group" aria-labelledby="tools-group-maps">
-                  <h3 id="tools-group-maps" className="toolbar-menu-heading">Cartographie</h3>
-                  <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
-                    <span className="new-map-button-mark" aria-hidden="true">+</span>
-                    <span>Nouvelle cartographie</span>
-                  </button>
-                  <button type="button" className="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</button>
-                </section>
-                <div className="toolbar-menu-divider" role="separator" />
-                <section className="toolbar-menu-group" aria-labelledby="tools-group-data">
-                  <h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3>
-                  <button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>↓ Exporter en JSON</button>
-                  <label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} /></label>
-                </section>
-                <div className="toolbar-menu-divider" role="separator" />
-                <section className="toolbar-menu-group" aria-labelledby="tools-group-display">
-                  <h3 id="tools-group-display" className="toolbar-menu-heading">Affichage</h3>
-                  <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
-                </section>
-                <div className="toolbar-menu-divider" role="separator" />
-                <section className="toolbar-menu-group toolbar-menu-version" aria-labelledby="tools-group-version">
-                  <h3 id="tools-group-version" className="toolbar-menu-heading">Version</h3>
-                  <PwaUpdateNotice />
-                </section>
-              </div>}
-            </div>
-          </nav>
-          <div className="toolbar-actions">
-            <div className="toolbar-history" role="group" aria-label="Historique des modifications">
-              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
-              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
-            </div>
-            <label className="presentation-switch" data-testid="presentation-toggle">
-              <span>Présentation</span>
-              <input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
-              <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
-            </label>
-
-          </div>
-        </div>
-      </header>
-
-      {mode === 'library' ? (
-        <section className="standalone-page library-page" data-testid="library-page">
-          <div className="standalone-page-heading library-page-heading" data-testid="library-page-heading">
-            <div>
-              <div className="eyebrow">ESPACE DE TRAVAIL · STOCKAGE LOCAL</div>
-              <h2>Bibliothèque de cartographies</h2>
-              <p>Retrouvez vos modèles récents, gérez les sauvegardes de cet appareil et rouvrez une cartographie sans quitter cet espace.</p>
-            </div>
-            <div className="library-page-actions">
-              <button type="button" className="secondary" data-testid="back-to-cartography" onClick={() => navigateToMode('editor')}>Retour à la cartographie</button>
-              <button type="button" className="primary" data-testid="save-current-from-library" onClick={saveCurrentLocalMap}>＋ Sauvegarder la cartographie actuelle</button>
-            </div>
-          </div>
-
-          <div className="library-stats" aria-label="Résumé de la bibliothèque">
-            <article className="library-stat-card"><span>Cartographie active</span><strong>{model.metadata?.name || 'Sans nom'}</strong><small>{model.domains.length} domaines N0 · {model.capabilities.length} capacités N1</small></article>
-            <article className="library-stat-card"><span>Récemment ouvertes</span><strong data-testid="recent-maps-count">{recentMaps.length}</strong><small>Jusqu’à 10 cartographies conservées dans l’historique</small></article>
-            <article className="library-stat-card"><span>Sauvegardes locales</span><strong data-testid="saved-maps-count">{localMaps.length}</strong><small>Disponibles sur cet appareil</small></article>
-          </div>
-
-          <div className="library-content-grid" data-testid="library-content-grid">
-          <section className="library-section library-saved-section" aria-labelledby="saved-maps-heading">
-            <div className="library-section-heading"><div><h3 id="saved-maps-heading">Cartographies enregistrées</h3><p>Vos versions nommées, conservées sur cet appareil.</p></div><span className="library-section-count">{localMaps.length} sauvegarde(s)</span></div>
-            {localMaps.length ? (
-              <div className="library-card-grid" data-testid="saved-maps-list">
-                {localMaps.map(saved => (
-                  <article className="library-map-card" key={saved.id}>
-                    <div className="library-map-card-top"><span className="library-map-type saved">SAUVEGARDE</span><span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Enregistrée localement'}</span></div>
-                    <h4>{saved.name}</h4>
-                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
-                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
-                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button></div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="library-empty-state" data-testid="saved-maps-empty"><strong>Aucune sauvegarde nommée</strong><p>Enregistrez la cartographie active pour lui donner un nom et la retrouver ici, même après avoir travaillé sur un autre modèle.</p><button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button></div>
-            )}
-          </section>
-
-          <section className="library-section library-recent-section" aria-labelledby="recent-maps-heading">
-            <div className="library-section-heading"><div><h3 id="recent-maps-heading">Récemment ouvertes</h3><p>Retrouvez les cartographies utilisées dernièrement.</p></div></div>
-            {recentMaps.length ? (
-              <div className="library-card-grid" data-testid="recent-maps-list">
-                {recentMaps.map(saved => (
-                  <article className="library-map-card" key={saved.id}>
-                    <div className="library-map-card-top"><span className="library-map-type">RÉCENT</span><span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Historique sans date'}</span></div>
-                    <h4>{saved.name}</h4>
-                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
-                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
-                    <div className="library-map-card-actions">
-                      <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
-                      <button type="button" className="library-remove-recent" data-testid={`remove-recent-${saved.id}`} aria-label={`Retirer ${saved.name} des récents`} onClick={() => {
-                        try {
-                          repository.removeRecentMap(saved.id);
-                          setRecentMaps(repository.loadRecentMaps());
-                          if (saved.id === activeRecentMapId) {
-                            preferences.writeActiveRecentMapId('__dismissed__');
-                            setActiveRecentMapId('__dismissed__');
-                          }
-                          notify(`« ${saved.name} » retirée des récents`);
-                        } catch (error) {
-                          notify(`Impossible de retirer cette entrée : ${error.message}`);
-                        }
-                      }}>Retirer des récents</button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="library-empty-state" data-testid="recent-maps-empty"><strong>Aucune cartographie récente</strong><p>Les cartographies que vous ouvrez apparaîtront ici. Vous pouvez retirer une entrée sans supprimer sa sauvegarde locale.</p></div>
-            )}
-          </section>
-        </div>
-
-        </section>
-      ) : (
-      <div className="workspace">
-        <aside id="app-inventory">
-          <div className="panel-title">
-            <span>Inventaire SI <em>{apps.length}</em></span>
-            <button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button>
-          </div>
-          <input className="search" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} />
-          <div className="hint">Glissez une application vers une capacité, ou cochez-en plusieurs puis utilisez « Relier ici » dans l’onglet Relations. Le bouton « Relier à… » permet de relier sans glisser-déposer.</div>
-          {pickedValid.length > 0 && (
-            <div className="picked-bar" role="status" data-testid="picked-bar">
-              <span>{pickedValid.length} sélectionnée(s)</span>
-              <button type="button" onClick={() => setPickedApps([])}>Tout désélectionner</button>
-            </div>
-          )}
-          {filteredApps.map(a => (
-            <div key={a.id} className={'app-item' + (pickedValid.includes(a.id) ? ' picked' : '')} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
-              <input type="checkbox" className="app-pick" aria-label={`Sélectionner ${a.name}`} checked={pickedValid.includes(a.id)} onChange={() => togglePicked(a.id)} />
-              <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
-              <div className="app-side">
-                <span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}>{a.status}</span>
-                <button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button>
-              </div>
-            </div>
-          ))}
-        </aside>
-
-        <main>
-          {['dashboard', 'relations'].includes(mode) && (
-            <div className="analysis-view-switch" role="group" aria-label="Mode d'analyse" data-testid="analysis-view-switch">
-              <button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-pressed={mode === 'dashboard'} onClick={() => navigateToMode('dashboard')}>Vue d'ensemble</button>
-              <button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-pressed={mode === 'relations'} onClick={() => navigateToMode('relations')}>Gérer les relations</button>
-            </div>
-          )}
-          {mode === 'dashboard' ? (
-            <Dashboard
-              model={model}
-              depth={depth}
-              onExploreTarget={exploreDashboardTarget}
-              onLinkApp={openLinkForApp}
-              onUpdatePriority={updateCapabilityPriority}
-              selected={selected}
-              onToggleTarget={toggleCap}
-            />
-          ) : mode === 'relations' ? (
-            <>
-              {dashboardReturnAvailable && (
-                <div className="relations-return-row">
-                  <button type="button" className="secondary relations-return-button" data-testid="return-to-dashboard" onClick={returnToDashboard}>
-                    ← Retour au dashboard
-                  </button>
-                </div>
-              )}
-              <CoverageTree
-              domains={model.domains}
-              capabilities={model.capabilities}
-              apps={apps}
-              depth={depth}
-              colorOf={resolveDomainColor}
-              selected={selected}
-              pickedCount={pickedValid.length}
-              onAssign={assign}
-              onUnassign={unassign}
-              onLinkPicked={linkPicked}
-              onOpenLink={openLinkForTarget}
-              onToggleSelection={toggleCap}
-              />
-            </>
-          ) : (
-            <>
-              <div className="map-controls-row">
-                <div className="map-filter-bar">
-                  <label className="map-filter-control">
-                    <span>Filtrer les domaines</span>
-                    <input
-                      data-testid="map-filter"
-                      aria-label="Filtrer les domaines"
-                      value={mapQuery}
-                      onChange={e => setMapQuery(e.target.value)}
-                      placeholder="Nom, code ou description"
-                    />
-                  </label>
-                  <span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span>
-                </div>
-                <div className="canvas-actions">
-                  <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
-                  <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
-                </div>
-              </div>
-
-              {matrixView}
-            </>
-          )}
-        </main>
-      </div>
-      )}
-
-      {contextMenu && (
-        <div
-          className="context-menu"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={() => setContextMenu(null)}
-        >
-          {contextMenu.type === 'domain' && (
-            <>
-              {depth === 2 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('capability', contextMenu.item.id); }}>＋ Ajouter N1</button>}
-              {depth === 1 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>}
-              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditDomain(contextMenu.item); }}>Modifier</button>
-              <button type="button" className="danger" onClick={e => { e.stopPropagation(); closeContextMenu(); removeDomain(contextMenu.item.id); }}>Supprimer</button>
-            </>
-          )}
-          {contextMenu.type === 'capability' && (
-            <>
-              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>
-              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditCapability(contextMenu.item); }}>Renommer</button>
-            </>
-          )}
-        </div>
-      )}
-
+      <header><div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div><div className="toolbar"><nav className="toolbar-switch primary-navigation" aria-label="Navigation principale"><button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { navigateToMode('editor'); setMapQuery(''); }}>▦ Cartographie</button><button type="button" className={['dashboard', 'relations'].includes(mode) ? 'active' : ''} data-testid="nav-analysis" aria-current={['dashboard', 'relations', 'impact'].includes(mode) ? 'page' : undefined} onClick={() => navigateToMode('dashboard')}>▥ Analyse</button><button type="button" className={mode === 'library' ? 'active' : ''} data-testid="primary-library" aria-current={mode === 'library' ? 'page' : undefined} onClick={openLibrary}>▤ Bibliothèque</button><div className={'toolbar-tools' + (toolsMenuOpen ? ' is-open' : '')} data-testid="tools-menu" ref={toolsMenuRef}><button type="button" className="toolbar-tools-toggle" data-testid="tools-menu-toggle" ref={toolsMenuToggleRef} aria-label="Ouvrir le menu Outils" aria-haspopup="true" aria-expanded={toolsMenuOpen} onClick={() => setToolsMenuOpen(open => !open)}><span>Outils</span><span aria-hidden="true">⌄</span></button>{toolsMenuOpen && <div className="toolbar-tools-panel" aria-label="Outils et actions"><section className="toolbar-menu-group" aria-labelledby="tools-group-maps"><h3 id="tools-group-maps" className="toolbar-menu-heading">Cartographie</h3><button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}><span className="new-map-button-mark" aria-hidden="true">+</span><span>Nouvelle cartographie</span></button><button type="button" className="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</button></section><div className="toolbar-menu-divider" role="separator" /><section className="toolbar-menu-group" aria-labelledby="tools-group-data"><h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3><button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>↓ Exporter en JSON</button><label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} /></label></section><div className="toolbar-menu-divider" role="separator" /><section className="toolbar-menu-group" aria-labelledby="tools-group-display"><h3 id="tools-group-display" className="toolbar-menu-heading">Affichage</h3><button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button></section><div className="toolbar-menu-divider" role="separator" /><section className="toolbar-menu-group toolbar-menu-version" aria-labelledby="tools-group-version"><h3 id="tools-group-version" className="toolbar-menu-heading">Version</h3><PwaUpdateNotice /></section></div>}</div></nav><div className="toolbar-actions"><div className="toolbar-history" role="group" aria-label="Historique des modifications"><button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button><button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button></div><label className="presentation-switch" data-testid="presentation-toggle"><span>Présentation</span><input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} /><span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span></label></div></div></header>
+      {mode === 'library' ? <section className="standalone-page library-page" data-testid="library-page"><div className="standalone-page-heading library-page-heading" data-testid="library-page-heading"><div><div className="eyebrow">ESPACE DE TRAVAIL · STOCKAGE LOCAL</div><h2>Bibliothèque de cartographies</h2><p>Retrouvez vos modèles récents, gérez les sauvegardes de cet appareil et rouvrez une cartographie sans quitter cet espace.</p></div><div className="library-page-actions"><button type="button" className="secondary" data-testid="back-to-cartography" onClick={() => navigateToMode('editor')}>Retour à la cartographie</button><button type="button" className="primary" data-testid="save-current-from-library" onClick={saveCurrentLocalMap}>＋ Sauvegarder la cartographie actuelle</button></div></div><div className="library-stats" aria-label="Résumé de la bibliothèque"><article className="library-stat-card"><span>Cartographie active</span><strong>{model.metadata?.name || 'Sans nom'}</strong><small>{model.domains.length} domaines N0 · {model.capabilities.length} capacités N1</small></article><article className="library-stat-card"><span>Récemment ouvertes</span><strong data-testid="recent-maps-count">{recentMaps.length}</strong><small>Jusqu’à 10 cartographies conservées dans l’historique</small></article><article className="library-stat-card"><span>Sauvegardes locales</span><strong data-testid="saved-maps-count">{localMaps.length}</strong><small>Disponibles sur cet appareil</small></article></div><div className="library-content-grid" data-testid="library-content-grid"><section className="library-section library-saved-section" aria-labelledby="saved-maps-heading"><div className="library-section-heading"><div><h3 id="saved-maps-heading">Cartographies enregistrées</h3><p>Vos versions nommées, conservées sur cet appareil.</p></div><span className="library-section-count">{localMaps.length} sauvegarde(s)</span></div>{localMaps.length ? <div className="library-card-grid" data-testid="saved-maps-list">{localMaps.map(saved => <article className="library-map-card" key={saved.id}><div className="library-map-card-top"><span className="library-map-type saved">SAUVEGARDE</span><span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Enregistrée localement'}</span></div><h4>{saved.name}</h4><p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p><div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div><div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button></div></article>)}</div> : <div className="library-empty-state" data-testid="saved-maps-empty"><strong>Aucune sauvegarde nommée</strong><p>Enregistrez la cartographie active pour lui donner un nom et la retrouver ici, même après avoir travaillé sur un autre modèle.</p><button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button></div>}</section><section className="library-section library-recent-section" aria-labelledby="recent-maps-heading"><div className="library-section-heading"><div><h3 id="recent-maps-heading">Récemment ouvertes</h3><p>Retrouvez les cartographies utilisées dernièrement.</p></div></div>{recentMaps.length ? <div className="library-card-grid" data-testid="recent-maps-list">{recentMaps.map(saved => <article className="library-map-card" key={saved.id}><div className="library-map-card-top"><span className="library-map-type">RÉCENT</span><span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Historique sans date'}</span></div><h4>{saved.name}</h4><p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p><div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div><div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button><button type="button" className="library-remove-recent" data-testid={`remove-recent-${saved.id}`} aria-label={`Retirer ${saved.name} des récents`} onClick={() => { try { repository.removeRecentMap(saved.id); setRecentMaps(repository.loadRecentMaps()); if (saved.id === activeRecentMapId) { preferences.writeActiveRecentMapId('__dismissed__'); setActiveRecentMapId('__dismissed__'); } notify(`« ${saved.name} » retirée des récents`); } catch (error) { notify(`Impossible de retirer cette entrée : ${errorMessage(error)}`); } }}>Retirer des récents</button></div></article>)}</div> : <div className="library-empty-state" data-testid="recent-maps-empty"><strong>Aucune cartographie récente</strong><p>Les cartographies que vous ouvrez apparaîtront ici. Vous pouvez retirer une entrée sans supprimer sa sauvegarde locale.</p></div>}</section></div></section> : <div className="workspace"><aside id="app-inventory"><div className="panel-title"><span>Inventaire SI <em>{apps.length}</em></span><button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button></div><input className="search" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} /><div className="hint">Glissez une application vers une capacité, ou cochez-en plusieurs puis utilisez « Relier ici » dans l’onglet Relations. Le bouton « Relier à… » permet de relier sans glisser-déposer.</div>{pickedValid.length > 0 && <div className="picked-bar" role="status" data-testid="picked-bar"><span>{pickedValid.length} sélectionnée(s)</span><button type="button" onClick={() => setPickedApps([])}>Tout désélectionner</button></div>}{filteredApps.map(a => <div key={a.id} className={'app-item' + (pickedValid.includes(a.id) ? ' picked' : '')} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}><input type="checkbox" className="app-pick" aria-label={`Sélectionner ${a.name}`} checked={pickedValid.includes(a.id)} onChange={() => togglePicked(a.id)} /><div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div><div className="app-side"><span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}>{a.status}</span><button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button></div></div>)}</aside><main>{['dashboard', 'relations'].includes(mode) && <div className="analysis-view-switch" role="group" aria-label="Mode d'analyse" data-testid="analysis-view-switch"><button type="button" data-testid="tab-dashboard" className={mode === 'dashboard' ? 'active' : ''} aria-pressed={mode === 'dashboard'} onClick={() => navigateToMode('dashboard')}>Vue d'ensemble</button><button type="button" data-testid="tab-relations" className={mode === 'relations' ? 'active' : ''} aria-pressed={mode === 'relations'} onClick={() => navigateToMode('relations')}>Gérer les relations</button></div>}{mode === 'dashboard' ? <Dashboard model={model} depth={depth} onExploreTarget={exploreDashboardTarget} onLinkApp={openLinkForApp} onUpdatePriority={updateCapabilityPriority} selected={selected} onToggleTarget={toggleCap} /> : mode === 'relations' ? <>{dashboardReturnAvailable && <div className="relations-return-row"><button type="button" className="secondary relations-return-button" data-testid="return-to-dashboard" onClick={returnToDashboard}>← Retour au dashboard</button></div>}<CoverageTree domains={model.domains} capabilities={model.capabilities} apps={apps} depth={depth} colorOf={resolveDomainColor} selected={selected} pickedCount={pickedValid.length} onAssign={assign} onUnassign={unassign} onLinkPicked={linkPicked} onOpenLink={openLinkForTarget} onToggleSelection={toggleCap} /></> : <><div className="map-controls-row"><div className="map-filter-bar"><label className="map-filter-control"><span>Filtrer les domaines</span><input data-testid="map-filter" aria-label="Filtrer les domaines" value={mapQuery} onChange={e => setMapQuery(e.target.value)} placeholder="Nom, code ou description" /></label><span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span></div><div className="canvas-actions"><button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button><button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button></div></div>{matrixView}</>}</main></div>}
+      {contextMenu && <div className="context-menu" style={{ left: contextMenu.x, top: contextMenu.y }} onClick={() => setContextMenu(null)}>{contextMenu.type === 'domain' && <>{depth === 2 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('capability', contextMenu.item.id); }}>＋ Ajouter N1</button>}{depth === 1 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>}<button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditDomain(contextMenu.item); }}>Modifier</button><button type="button" className="danger" onClick={e => { e.stopPropagation(); closeContextMenu(); removeDomain(contextMenu.item.id); }}>Supprimer</button></>}{contextMenu.type === 'capability' && <><button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button><button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditCapability(contextMenu.item); }}>Renommer</button></>}</div>}
       {status && <div className="toast">{status}</div>}
       {modal === 'wizard' && <NewMapWizard model={model} onCancel={closeWizard} onCreate={createMap} />}
       {guideOpen && <TogafGuide onClose={() => setGuideOpen(false)} />}
-
-      {modal === 'save-local-map' && (
-        <Modal title="Enregistrer dans Mes cartographies" onClose={() => setModal(null)}>
-          <p className="structure-hint">Cette cartographie sera conservée dans le navigateur et pourra être ouverte depuis cette application.</p>
-          <Field
-            label="Nom de la cartographie"
-            required
-            data-testid="local-map-name"
-            value={localMapName}
-            onChange={event => setLocalMapName(event.target.value)}
-            onKeyDown={event => { if (event.key === 'Enter' && localMapName.trim()) saveNamedLocalMap(); }}
-          />
-          <div className="modal-actions">
-            <button type="button" onClick={() => setModal(null)}>Annuler</button>
-            <button type="button" className="primary" disabled={!localMapName.trim()} onClick={saveNamedLocalMap}>Enregistrer</button>
-          </div>
-        </Modal>
-      )}
-
-      {modal === 'local-maps' && (
-        <Modal title="Mes cartographies" onClose={() => setModal(null)}>
-          <h3 className="local-map-section-title">Récemment ouvertes</h3>
-          {recentMaps.length ? (
-            <div className="local-map-list" data-testid="recent-maps-list">
-              {recentMaps.map(saved => (
-                <div className="local-map-row" key={saved.id}>
-                  <div>
-                    <strong>{saved.name}</strong>
-                    <span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span>
-                  </div>
-                  <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir</button>
-                </div>
-              ))}
-            </div>
-          ) : <p className="local-map-empty">Aucune cartographie récente.</p>}
-          <h3 className="local-map-section-title">Cartographies enregistrées</h3>
-          {localMaps.length ? (
-            <div className="local-map-list" data-testid="saved-maps-list">
-              {localMaps.map(saved => (
-                <div className="local-map-row" key={saved.id}>
-                  <div>
-                    <strong>{saved.name}</strong>
-                    <span>{saved.model.domains.length} domaines N0 · {saved.model.capabilities.length} capacités N1 · {saved.model.applications.length} applications</span>
-                  </div>
-                  <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir</button>
-                </div>
-              ))}
-            </div>
-          ) : <p className="local-map-empty">Aucune sauvegarde nommée. Utilisez « Sauvegarder » pour en ajouter une.</p>}
-          <div className="modal-actions">
-            <button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button>
-          </div>
-        </Modal>
-      )}
-
-      {modal === 'confirm-local-map' && pendingLocalMap && (
-        <Modal title="Ouvrir une cartographie" onClose={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>
-          <p>Ouvrir « {pendingLocalMap.name} » remplacera la cartographie actuellement affichée. Enregistrez vos dernières modifications avant de continuer si nécessaire.</p>
-          <div className="modal-actions">
-            <button type="button" onClick={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>Annuler</button>
-            <button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button>
-          </div>
-        </Modal>
-      )}
-
-      {modal === 'link' && link && (
-        <Modal
-          title={link.kind === 'target' ? `Relier des applications à « ${link.name} »` : `Relier « ${link.name} » à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`}
-          onClose={closeLink}
-        >
-          <p className="structure-hint">Cochez les {link.kind === 'target' ? 'applications qui supportent' : depth === 1 ? 'domaines supportés par' : 'capacités supportées par'} {link.kind === 'target' ? `ce ${relationLabel}` : 'cette application'}. Décochez pour retirer une relation.</p>
-          <input className="search" aria-label="Rechercher dans la liste" placeholder="Rechercher…" value={linkQuery} onChange={e => setLinkQuery(e.target.value)} />
-          <div className="link-list" data-testid="link-list">
-            {linkOptions}
-          </div>
-          <div className="modal-actions">
-            <button type="button" onClick={closeLink}>Annuler</button>
-            <button type="button" className="primary" data-testid="link-save" onClick={saveLink}>Enregistrer</button>
-          </div>
-        </Modal>
-      )}
-
-      {modal === 'layout' && layoutDraft && (
-        <Modal title="Personnaliser la structure" onClose={() => setModal(null)}>
-          <p className="structure-hint">Renommez les colonnes et les layers.</p>
-          {[['columns', 'Colonnes'], ['layers', 'Layers']].map(([kind, title]) => (
-            <section className="structure-section" key={kind}>
-              <h3>{title}</h3>
-              {layoutDraft[kind].map((item, index) => (
-                <div className="structure-row" key={item.id}>
-                  <label className="field">
-                    <span>{title.slice(0, -1)} {index + 1}</span>
-                    <input value={item.name} onChange={e => updateLayoutDraft(kind, item.id, e.target.value)} />
-                  </label>
-                  <button type="button" className="structure-remove" disabled={layoutDraft[kind].length === 1} onClick={() => removeLayoutItem(kind, item.id)}>Supprimer</button>
-                </div>
-              ))}
-              <button type="button" className="structure-add" onClick={() => addLayoutItem(kind)}>＋ Ajouter {kind === 'columns' ? 'une colonne' : 'un layer'}</button>
-            </section>
-          ))}
-          <section className="structure-section zone-editor">
-            <h3>Zones de la matrice</h3>
-            {layoutDraft.zones.map(zone => {
-              const column = layoutDraft.columns.find(x => x.id === zone.columnId);
-              const layer = layoutDraft.layers.find(x => x.id === zone.layerId);
-              return (
-                <label className="field zone-row" key={`${zone.columnId}:${zone.layerId}`} data-zone-key={`${zone.columnId}:${zone.layerId}`}>
-                  <span>{column?.name} · {layer?.name}</span>
-                  <input value={zone.name} onChange={e => updateZoneDraft(zone.columnId, zone.layerId, e.target.value)} />
-                </label>
-              );
-            })}
-          </section>
-          <div className="modal-actions">
-            <button type="button" onClick={() => setModal(null)}>Annuler</button>
-            <button type="button" className="primary" onClick={saveLayout}>Enregistrer</button>
-          </div>
-        </Modal>
-      )}
-
-      {['domain', 'edit-domain', 'capability', 'edit-capability', 'app'].includes(modal) && (
-        <Modal
-          title={modal === 'edit-capability' ? 'Modifier la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
-          onClose={() => setModal(null)}
-        >
-          {(modal === 'domain' || modal === 'edit-domain') && <div className="field-guidance"><b>N0 — Domaine métier</b><span>Regroupe un ensemble large de capacités.</span></div>}
-          {(modal === 'capability' || modal === 'edit-capability') && <div className="field-guidance"><b>N1 — Capacité</b><span>Décrit ce que l’entreprise sait faire.</span></div>}
-
-          <Field label="Nom" required error={formErrors.name} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-
-          {modal !== 'edit-capability' && (
-            <>
-              <Field label="Code" required error={formErrors.code} value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} />
-              {modal === 'capability' && (
-                <label className={'field ' + (formErrors.domainId ? 'has-error' : '')}>
-                  <span>Domaine <b className="required" aria-hidden="true">*</b></span>
-                  <select value={form.domainId} onChange={e => setForm({ ...form, domainId: e.target.value })}>
-                    {model.domains.map(d => <option value={d.id} key={d.id}>{d.code} — {d.name}</option>)}
-                  </select>
-                  {formErrors.domainId && <small className="field-error">{formErrors.domainId}</small>}
-                </label>
-              )}
-              {(modal === 'domain' || modal === 'edit-domain') && (
-                <>
-                  <label className="field">
-                    <span>Colonne</span>
-                    <select value={form.columnId} onChange={e => setForm({ ...form, columnId: e.target.value })}>
-                      {columns.map(c => <option value={c.id} key={c.id}>{c.name}</option>)}
-                    </select>
-                  </label>
-                  <label className="field">
-                    <span>Ligne (layer)</span>
-                    <select value={form.layerId} onChange={e => setForm({ ...form, layerId: e.target.value })}>
-                      {layers.map(l => <option value={l.id} key={l.id}>{l.name}</option>)}
-                    </select>
-                  </label>
-                  <label className={'field ' + (formErrors.columnSpan ? 'has-error' : '')}>
-                    <span>Étendue sur les colonnes</span>
-                    <select value={form.columnSpan} onChange={e => setForm({ ...form, columnSpan: e.target.value })}>
-                      {columns.slice(Math.max(0, columns.findIndex(c => c.id === form.columnId))).map((c, i) => (
-                        <option key={c.id} value={i + 1}>{i + 1} colonne{i ? 's' : ''}</option>
-                      ))}
-                    </select>
-                    {formErrors.columnSpan && <small className="field-error">{formErrors.columnSpan}</small>}
-                  </label>
-                </>
-              )}
-              {modal === 'app' && (
-                <>
-                  <Field label="Éditeur / fournisseur" required error={formErrors.vendor} value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} />
-                  <label className="field">
-                    <span>Statut</span>
-                    <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                      <option>Actif</option>
-                      <option>Cible</option>
-                      <option>Obsolète</option>
-                    </select>
-                  </label>
-                  <label className="field">
-                    <span>Type</span>
-                    <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
-                      <option>SaaS</option>
-                      <option>ERP</option>
-                      <option>On-Premise</option>
-                      <option>Shadow IT</option>
-                    </select>
-                  </label>
-                </>
-              )}
-            </>
-          )}
-
-          {(modal === 'domain' || modal === 'edit-domain') ? (
-            <label className="field">
-              <span>Description</span>
-              <textarea data-testid="domain-description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Décrivez le périmètre du domaine (facultatif)" />
-            </label>
-          ) : (modal === 'capability' || modal === 'edit-capability') ? (
-            <label className="field">
-              <span>Description</span>
-              <textarea data-testid="capability-description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Décrivez la capacité (facultatif)" />
-            </label>
-          ) : modal === 'app' ? (
-            <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-          ) : null}
-
-          {(modal === 'capability' || modal === 'edit-capability') && (
-            <label className="field">
-              <span>Priorité métier</span>
-              <select data-testid="capability-priority" value={form.priority || 'unqualified'} onChange={e => setForm({ ...form, priority: e.target.value })}>
-                <option value="unqualified">À qualifier</option>
-                <option value="P1">P1 — Critique</option>
-                <option value="P2">P2 — Élevée</option>
-                <option value="P3">P3 — Normale</option>
-              </select>
-              <small>Qualifiez la criticité métier ; un gap n’est pas automatiquement un risque élevé.</small>
-            </label>
-          )}
-
-          {(modal === 'domain' || modal === 'edit-domain') && (
-            <label className={'field domain-color-field ' + (formErrors.color ? 'has-error' : '')}>
-              <span>Couleur du domaine N0</span>
-              <span className="domain-color-palette" role="group" aria-label="Couleurs prédéfinies">
-                {DOMAIN_COLOR_PALETTE.map(color => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    className="domain-color-swatch"
-                    data-testid="domain-color-option"
-                    data-color={color.value}
-                    aria-label={color.name}
-                    aria-pressed={resolveDomainColor(form.color) === color.value}
-                    title={color.name}
-                    style={{ '--swatch-color': color.value } as React.CSSProperties}
-                    onClick={() => setForm({ ...form, color: color.value })}
-                  />
-                ))}
-              </span>
-              <span className="domain-color-control">
-                <input
-                  type="color"
-                  data-testid="domain-color"
-                  aria-label="Couleur du domaine N0"
-                  value={resolveDomainColor(form.color)}
-                  onChange={e => setForm({ ...form, color: e.target.value })}
-                />
-                <input
-                  type="text"
-                  data-testid="domain-color-hex"
-                  aria-label="Code couleur hexadécimal"
-                  aria-invalid={!!formErrors.color}
-                  maxLength={7}
-                  value={form.color}
-                  onChange={e => setForm({ ...form, color: e.target.value })}
-                />
-              </span>
-              {formErrors.color && <small className="field-error">{formErrors.color}</small>}
-            </label>
-          )}
-
-          <div className="modal-actions">
-            <button type="button" onClick={() => setModal(null)}>Annuler</button>
-            <button type="button" className="primary" onClick={save}>{modal === 'edit-domain' || modal === 'edit-capability' ? 'Enregistrer' : 'Créer'}</button>
-          </div>
-        </Modal>
-      )}
-      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} companionPreferences={companionPreferences} />
+      {modal === 'save-local-map' && <Modal title="Enregistrer dans Mes cartographies" onClose={() => setModal(null)}><p className="structure-hint">Cette cartographie sera conservée dans le navigateur et pourra être ouverte depuis cette application.</p><Field label="Nom de la cartographie" required data-testid="local-map-name" value={localMapName} onChange={e => setLocalMapName(e.target.value)} /><div className="modal-actions"><button type="button" className="secondary" onClick={() => setModal(null)}>Annuler</button><button type="button" className="primary" onClick={saveNamedLocalMap}>Enregistrer</button></div></Modal>}
+      {modal === 'confirm-local-map' && pendingLocalMap && <Modal title={`Ouvrir « ${pendingLocalMap.name} » ?`} onClose={() => { setModal(null); setPendingLocalMap(null); }}><p>La cartographie active sera remplacée par la version sélectionnée.</p><div className="modal-actions"><button type="button" className="secondary" onClick={() => { setModal(null); setPendingLocalMap(null); }}>Annuler</button><button type="button" className="primary" onClick={confirmLoadLocalMap}>Ouvrir</button></div></Modal>}
+      {modal === 'layout' && <Modal title="Structure de la cartographie" onClose={() => setModal(null)}><div className="structure-editor"><div className="structure-hint">Renommez les colonnes, layers et zones pour adapter la matrice à votre contexte.</div>{['columns', 'layers'].map(kind => <section className="structure-section" key={kind}><div className="structure-section-head"><h3>{kind === 'columns' ? 'Colonnes' : 'Layers'}</h3><button type="button" className="secondary" onClick={() => addLayoutItem(kind)}>＋ Ajouter</button></div>{layoutDraft?.[kind]?.map(item => <div className="structure-item" key={item.id}><input value={item.name} onChange={e => updateLayoutDraft(kind, item.id, e.target.value)} /><button type="button" className="danger" onClick={() => removeLayoutItem(kind, item.id)}>Supprimer</button></div>)}</section>)}<section className="structure-section"><div className="structure-section-head"><h3>Zones</h3></div>{layoutDraft?.zones?.map(zone => <div className="structure-item" key={zone.id}><span>{columns.find(c => c.id === zone.columnId)?.name} · {layers.find(l => l.id === zone.layerId)?.name}</span><input value={zone.name} onChange={e => updateZoneDraft(zone.columnId, zone.layerId, e.target.value)} /></div>)}</section></div><div className="modal-actions"><button type="button" className="secondary" onClick={() => setModal(null)}>Annuler</button><button type="button" className="primary" onClick={saveLayout}>Enregistrer</button></div></Modal>}
+      {modal === 'link' && link && <Modal title={`Relations · ${link.name}`} onClose={closeLink}><div className="link-modal"><input className="search" placeholder="Filtrer…" value={linkQuery} onChange={e => setLinkQuery(e.target.value)} />{linkOptions}<div className="modal-actions"><button type="button" className="secondary" onClick={closeLink}>Annuler</button><button type="button" className="primary" onClick={saveLink}>Enregistrer</button></div></div></Modal>}
+      {modal === 'domain' || modal === 'edit-domain' || modal === 'capability' || modal === 'edit-capability' || modal === 'app' ? <Modal title={modal === 'app' ? 'Nouvelle application' : modal === 'capability' ? 'Nouvelle capacité N1' : modal === 'edit-capability' ? 'Modifier la capacité N1' : modal === 'edit-domain' ? 'Modifier le domaine N0' : 'Nouveau domaine N0'} onClose={() => setModal(null)}><div className="form-grid"><Field label="Nom" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} error={formErrors.name} /><Field label="Code" required={modal !== 'edit-capability'} value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value }))} error={formErrors.code} />{modal === 'app' && <Field label="Éditeur / fournisseur" required value={form.vendor} onChange={e => setForm(f => ({ ...f, vendor: e.target.value }))} error={formErrors.vendor} />}<Field label="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />{(modal === 'domain' || modal === 'edit-domain') && <><Field label="Couleur" required value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} error={formErrors.color} /><label className="field"><span>Colonne</span><select value={form.columnId} onChange={e => setForm(f => ({ ...f, columnId: e.target.value }))}>{columns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label className="field"><span>Layer</span><select value={form.layerId} onChange={e => setForm(f => ({ ...f, layerId: e.target.value }))}>{layers.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}</select></label><Field label="Étendue" value={form.columnSpan} onChange={e => setForm(f => ({ ...f, columnSpan: e.target.value }))} error={formErrors.columnSpan} /></>}{modal === 'capability' && <label className="field"><span>Domaine</span><select value={form.domainId} onChange={e => setForm(f => ({ ...f, domainId: e.target.value }))}>{model.domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}{(modal === 'capability' || modal === 'edit-capability') && <label className="field"><span>Priorité</span><select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}><option value="unqualified">Non qualifiée</option><option value="low">Faible</option><option value="medium">Moyenne</option><option value="high">Forte</option></select></label>}</div><div className="modal-actions"><button type="button" className="secondary" onClick={() => setModal(null)}>Annuler</button><button type="button" className="primary" onClick={save}>Enregistrer</button></div></Modal> : null}
+      {modal === 'guide' && <TogafGuide onClose={() => setModal(null)} />}
+      {modal === 'companion' && <CartographerCompanion model={model} provider={companionPreferences.readProvider()} providerSettings={companionPreferences.readProviderSettings()} onProviderChange={companionPreferences.writeProvider} onProviderSettingsChange={companionPreferences.writeProviderSettings} onClose={() => setModal(null)} />}
     </div>
   );
 }
