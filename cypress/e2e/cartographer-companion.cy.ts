@@ -180,7 +180,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-question"]').type('Évalue la couverture de cette cartographie');
     cy.get('[data-testid="companion-submit"]').click();
 
-    cy.get('[data-testid="companion-thinking"]').should('be.visible').and('contain.text', 'Le modèle prépare sa réponse');
+    cy.get('[data-testid="companion-thinking"]').should('be.visible').and('contain.text', 'Je fouille la cartographie');
     cy.wait('@ollamaChat').its('request.body.messages').should('have.length.at.least', 2);
     cy.get('[data-testid="companion-answer"]').should('contain.text', 'Réponse Ollama simulée');
     cy.get('[data-testid="companion-exchange"]').last().find('.companion-no-findings').should('not.exist');
