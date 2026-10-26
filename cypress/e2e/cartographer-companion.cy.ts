@@ -292,7 +292,21 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('#companion-title').should('contain.text', 'Rico le raton');
   });
 
-  it('identifie le locuteur dans l’historique et propose un mode dialogue à deux', () => {
+  it('fait dialoguer Rico et Octave et identifie clairement chaque réponse', () => {
+    cy.intercept('OPTIONS', 'http://localhost:11434/api/chat', {
+      statusCode: 204,
+      headers: {
+        'access-control-allow-origin': 'http://127.0.0.1:4173',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'content-type',
+      },
+    });
+    cy.intercept('POST', 'http://localhost:11434/api/chat', {
+      statusCode: 200,
+      headers: { 'access-control-allow-origin': 'http://127.0.0.1:4173' },
+      body: { message: { content: 'Je recommande de vérifier les liens entre capacités et applications.' } },
+    }).as('ollamaDuo');
+
     cy.get('[data-testid="companion-launcher"]').click();
     cy.get('[data-testid="companion-mode-conversation"]').click();
     cy.get('[data-testid="companion-duo-toggle"]').should('be.disabled');
@@ -300,6 +314,15 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-provider-enabled"]').check();
     cy.get('[data-testid="companion-duo-toggle"]').should('be.enabled').click().should('have.attr', 'aria-pressed', 'true');
     cy.get('[data-testid="companion-duo-control"]').should('be.visible').and('contain.text', 'Rico répond');
+    cy.get('[data-testid="companion-question"]').type('Analyse les liens entre capacités et applications');
+    cy.get('[data-testid="companion-submit"]').click();
+    cy.wait('@ollamaDuo');
+    cy.wait('@ollamaDuo');
+    cy.get('[data-testid="companion-answer"]').should('contain.text', 'vérifier les liens');
+    cy.get('[data-testid="companion-duo-turn"]').should('be.visible');
+    cy.get('[data-testid="companion-duo-answer"]').should('contain.text', 'vérifier les liens');
+    cy.get('[data-testid="companion-exchange"] .companion-assistant-heading').should('have.length', 1);
+    cy.get('[data-testid="companion-duo-turn"] .companion-assistant-heading .companion-message-role').should('contain.text', 'Octave la pieuvre');
   });
 
 });
