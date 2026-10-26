@@ -321,7 +321,7 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-answer"]').should('contain.text', 'vérifier les liens');
     cy.get('[data-testid="companion-duo-turn"]').should('be.visible');
     cy.get('[data-testid="companion-duo-answer"]').should('contain.text', 'vérifier les liens');
-    cy.get('[data-testid="companion-exchange"] .companion-assistant-heading').should('have.length', 1);
+    cy.get('[data-testid="companion-exchange"] .companion-assistant-message > .companion-assistant-heading').should('have.length', 1);
     cy.get('[data-testid="companion-duo-turn"] .companion-assistant-heading .companion-message-role').should('contain.text', 'Octave la pieuvre');
   });
 
