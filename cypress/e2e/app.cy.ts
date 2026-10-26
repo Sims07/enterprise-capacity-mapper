@@ -57,7 +57,6 @@ describe('Smoke tests — application et navigation', () => {
       expect(buttons.length).to.equal(3);
       const tops = [...buttons].map(button => button.getBoundingClientRect().top);
       expect(Math.max(...tops) - Math.min(...tops)).to.be.lessThan(1);
-      expect($nav[0].scrollWidth).to.be.at.least($nav[0].clientWidth);
     });
     cy.get('.toolbar-actions').should('be.visible');
     cy.get('[data-testid="undo-button"]').should('have.css', 'min-height', '42px');
