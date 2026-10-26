@@ -12,11 +12,12 @@ describe('Défilement mobile', () => {
     cy.get('main').then($main => {
       const element = $main[0];
       expect(element.scrollHeight).to.be.greaterThan(element.clientHeight);
-      const before = element.scrollTop;
+      element.scrollTop = 0;
       cy.wrap(element).scrollTo('bottom');
       cy.wrap(element).should($scroller => {
-        expect($scroller[0].scrollTop).to.be.greaterThan(before);
+        expect($scroller[0].scrollTop).to.be.greaterThan(0);
       });
+      cy.window().its('scrollY').should('equal', 0);
     });
   };
 
@@ -24,11 +25,7 @@ describe('Défilement mobile', () => {
     cy.get('[data-testid="nav-cartography"]').click();
     cy.get('main').should('be.visible');
     cy.window().its('scrollY').should('equal', 0);
-    cy.get('main').then($main => {
-      expect($main[0].scrollHeight).to.be.greaterThan($main[0].clientHeight);
-    });
     assertMainCanScroll();
-    cy.window().its('scrollY').should('equal', 0);
   });
 
   it('fait défiler le contenu de la page Analyse sans faire défiler le document', () => {
@@ -36,7 +33,24 @@ describe('Défilement mobile', () => {
     cy.get('main').should('be.visible');
     cy.window().its('scrollY').should('equal', 0);
     assertMainCanScroll();
+  });
+
+  it('préserve un espace utilisable et le scroll interne de Bibliothèque', () => {
+    cy.get('[data-testid="primary-library"]').click();
+    cy.get('[data-testid="library-page"]').should('be.visible');
+    cy.get('main').should('be.visible').then($main => {
+      const element = $main[0];
+      expect(element.clientHeight).to.be.greaterThan(300);
+      expect(element.scrollHeight).to.be.greaterThan(element.clientHeight);
+    });
+    cy.get('.library-page').should('be.visible').then($page => {
+      const rect = $page[0].getBoundingClientRect();
+      expect(rect.width).to.be.greaterThan(300);
+      expect(rect.height).to.be.greaterThan(300);
+    });
     cy.window().its('scrollY').should('equal', 0);
+    assertMainCanScroll();
+    cy.get('[data-testid="library-page"]').should('be.visible');
   });
 });
 
