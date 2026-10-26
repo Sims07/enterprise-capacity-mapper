@@ -112,6 +112,7 @@ function App() {
   const [localMapName, setLocalMapName] = useState('');
   const [pendingLocalMap, setPendingLocalMap] = useState(null);
   const [selected, setSelected] = useState([]);
+  const [pendingCompanionEvidence, setPendingCompanionEvidence] = useState(null);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
@@ -155,6 +156,31 @@ function App() {
     setDashboardReturnAvailable(false);
     setMode(nextMode);
   };
+
+  const navigateToCompanionEvidence = evidence => {
+    if (!evidence?.id) return;
+    setPendingCompanionEvidence({ id: evidence.id, type: evidence.type });
+    if (evidence.type === 'application') {
+      setSelected([]);
+      setQuery(String(evidence.name || ''));
+    } else {
+      setSelected([evidence.id]);
+    }
+    navigateToMode('editor');
+  };
+
+  useEffect(() => {
+    if (!pendingCompanionEvidence || mode !== 'editor') return;
+    const { id } = pendingCompanionEvidence;
+    const target = Array.from(document.querySelectorAll('[data-entity-id]'))
+      .find(element => element.getAttribute('data-entity-id') === id);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      const focusTarget = target.querySelector('button');
+      focusTarget?.focus({ preventScroll: true });
+    }
+    setPendingCompanionEvidence(null);
+  }, [mode, pendingCompanionEvidence, model]);
 
   const exploreDashboardTarget = id => {
     setSelected([id]);
@@ -578,6 +604,8 @@ function App() {
     return (
       <section
         className={domainClass}
+        data-entity-id={d.id}
+        data-entity-type="domain"
         style={{ '--domain-color': resolveDomainColor(d.color) } as React.CSSProperties}
         draggable
         onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
@@ -626,6 +654,8 @@ function App() {
               return (
                 <div
                   className={capItemClass}
+                  data-entity-id={c.id}
+                  data-entity-type="capability"
                   key={c.id}
                   onContextMenu={e => openContextMenu(e, { type: 'capability', item: c })}
                   onDragOver={hoverOn}
@@ -882,7 +912,7 @@ function App() {
             </div>
           )}
           {filteredApps.map(a => (
-            <div key={a.id} className={'app-item' + (pickedValid.includes(a.id) ? ' picked' : '')} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
+            <div key={a.id} className={'app-item' + (pickedValid.includes(a.id) ? ' picked' : '')} data-entity-id={a.id} data-entity-type="application" draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
               <input type="checkbox" className="app-pick" aria-label={`Sélectionner ${a.name}`} checked={pickedValid.includes(a.id)} onChange={() => togglePicked(a.id)} />
               <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
               <div className="app-side">
@@ -1255,7 +1285,7 @@ function App() {
           </div>
         </Modal>
       )}
-      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} companionPreferences={companionPreferences} />
+      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} companionPreferences={companionPreferences} onNavigateToEvidence={navigateToCompanionEvidence} />
     </div>
   );
 }

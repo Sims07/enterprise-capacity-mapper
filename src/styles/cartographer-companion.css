@@ -506,3 +506,195 @@
 .companion-ollama-cors-help pre {
   font-size: 9px;
 }
+
+/* P0 UX hardening: readable defaults and consistent keyboard focus. */
+.companion-root .companion-heading p,
+.companion-root .companion-mode-note,
+.companion-root .companion-welcome p,
+.companion-root .companion-result-summary,
+.companion-root .companion-observation p,
+.companion-root .companion-user-message p,
+.companion-root .companion-answer-text,
+.companion-root .companion-no-findings,
+.companion-root .companion-provider-settings-heading span,
+.companion-root .companion-provider-warning,
+.companion-root .companion-ollama-cors-help,
+.companion-root .companion-ollama-cors-help p {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.companion-root .companion-section-label,
+.companion-root .companion-message-role,
+.companion-root .companion-answer-meta,
+.companion-root .companion-category,
+.companion-root .companion-severity,
+.companion-root .companion-evidence > span:first-child,
+.companion-root .companion-evidence-chip,
+.companion-root .companion-disclaimer,
+.companion-root .companion-footer-note,
+.companion-root .companion-streaming-note,
+.companion-root .companion-guided-footer,
+.companion-root .companion-guided-heading p,
+.companion-root .companion-provider-field > span,
+.companion-root .companion-provider-enable,
+.companion-root .companion-provider-field input,
+.companion-root .companion-provider-field select,
+.companion-root .companion-provider-clear-key,
+.companion-root .companion-inline-confirm,
+.companion-root .companion-ollama-cors-help h4,
+.companion-root .companion-ollama-cors-help code,
+.companion-root .companion-ollama-cors-help pre {
+  font-size: 11px;
+}
+
+.companion-root .companion-prompt {
+  min-height: 48px;
+  font-size: 13px;
+}
+
+.companion-root .companion-prompt-label,
+.companion-root .companion-observation h4,
+.companion-root .companion-result-heading h3,
+.companion-root .companion-assistant-heading .companion-message-role {
+  font-size: 13px;
+}
+
+.companion-root .companion-prompt-description {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.companion-root .companion-composer input {
+  min-height: 42px;
+  height: auto;
+  font-size: 14px;
+}
+
+.companion-root .companion-composer button {
+  min-width: 42px;
+  min-height: 42px;
+  flex-basis: 42px;
+}
+
+.companion-root button:focus-visible,
+.companion-root input:focus-visible,
+.companion-root select:focus-visible,
+.companion-root textarea:focus-visible,
+.companion-root summary:focus-visible {
+  outline: 3px solid var(--companion-accent);
+  outline-offset: 3px;
+}
+
+.companion-root .companion-provider-field input,
+.companion-root .companion-provider-field select {
+  min-height: 40px;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  /* On a phone the companion becomes a focused workspace, not a tiny floating card. */
+  .companion-root .companion-panel {
+    inset: 8px;
+    width: auto;
+    max-height: none;
+    min-height: 0;
+    height: auto;
+    border-radius: 14px;
+  }
+
+  .companion-root .companion-launcher {
+    z-index: 61;
+  }
+
+  .companion-root .companion-guided-section .companion-prompt {
+    min-height: 58px;
+    padding: 9px;
+  }
+
+  .companion-root .companion-guided-section .companion-prompt-description {
+    font-size: 11px;
+  }
+
+  .companion-root .companion-conversation {
+    padding: 14px 12px 18px;
+  }
+
+  .companion-root .companion-composer {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+
+/* Lot 2: les preuves deviennent des actions de navigation explicites. */
+.companion-evidence-chip.is-navigable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.companion-evidence-chip.is-navigable:hover {
+  border-color: var(--companion-accent);
+  background: var(--companion-accent-soft);
+}
+.companion-evidence-chip.is-navigable:focus-visible,
+.companion-generated-references button:focus-visible,
+.companion-clarification button:focus-visible {
+  outline: 3px solid var(--companion-accent);
+  outline-offset: 2px;
+}
+.companion-generated-references,
+.companion-clarification {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--companion-border);
+  border-radius: 9px;
+  background: var(--companion-bg);
+}
+.companion-generated-references > strong,
+.companion-clarification > strong {
+  color: var(--companion-text);
+  font-size: 12px;
+}
+.companion-generated-references > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.companion-generated-references button,
+.companion-clarification button {
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid var(--companion-border);
+  border-radius: 7px;
+  background: var(--companion-panel);
+  color: var(--companion-text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.companion-generated-references button:hover,
+.companion-clarification button:hover {
+  border-color: var(--companion-accent);
+  background: var(--companion-accent-soft);
+}
+.companion-clarification button span {
+  color: var(--companion-muted);
+  font-size: 11px;
+}
+.companion-reference-warning {
+  margin: 10px 0 0;
+  padding: 9px;
+  border: 1px solid #d97706;
+  border-radius: 8px;
+  background: var(--companion-bg);
+  color: var(--companion-text);
+  font-size: 12px;
+  line-height: 1.5;
+}

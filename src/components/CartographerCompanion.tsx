@@ -59,11 +59,46 @@ type CompanionModel = Omit<CatalogModel, 'layout' | 'domains' | 'capabilities' |
   applications: Application[];
 };
 
-export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences }: {
+type EvidenceReference = { type: 'domain' | 'capability' | 'application'; id: string; name: string };
+
+function validateGeneratedReferences(answer: string, model: CompanionModel) {
+  const entities = {
+    domain: Array.isArray(model.domains) ? model.domains : [],
+    capability: Array.isArray(model.capabilities) ? model.capabilities : [],
+    application: Array.isArray(model.applications) ? model.applications : [],
+  };
+  const references: EvidenceReference[] = [];
+  let invalidReferences = 0;
+  const cleanedAnswer = String(answer ?? '').replace(/\[\[(domain|capability|application):([^\]]+)\]\]/g, (_marker, rawType: string, rawId: string) => {
+    const type = rawType as keyof typeof entities;
+    const id = rawId.trim();
+    const entity = entities[type].find(item => item.id === id);
+    if (!entity) {
+      invalidReferences += 1;
+      return '';
+    }
+    if (!references.some(reference => reference.type === type && reference.id === id)) {
+      references.push({ type, id, name: String(entity.name || '(sans nom)') });
+    }
+    return '';
+  }).replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  return { answer: cleanedAnswer, references, invalidReferences };
+}
+
+function evidenceExists(item: { type?: string; id?: string | null }, model: CompanionModel) {
+  if (!item.id) return false;
+  if (item.type === 'domain') return model.domains.some(entity => entity.id === item.id);
+  if (item.type === 'capability') return model.capabilities.some(entity => entity.id === item.id);
+  if (item.type === 'application') return model.applications.some(entity => entity.id === item.id);
+  return false;
+}
+
+export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences, onNavigateToEvidence }: {
   model: CompanionModel;
   darkMode?: boolean;
   aiCompanionFactory: (settings?: Record<string, unknown>) => AiCompanionPort;
   companionPreferences: CompanionPreferencesPort;
+  onNavigateToEvidence?: (item: EvidenceReference) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -142,7 +177,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
-  const runRelationshipLookup = question => {
+  const runRelationshipLookup = (question, preferredEntity: { type: 'application' | 'capability'; id: string } | null = null) => {
     const normalizedQuestion = normalizeText(question);
     const asksAboutRelations = /ou se trouve|ou est|a quoi.*(relie|rattach)|a quelle capacite|quelles? capacites?.*(lie|rattach|associe)|application.*(relie|rattach|associe|couvert)|dans la cartographie|rattachee? a quoi|relations? de/.test(normalizedQuestion);
     if (!asksAboutRelations) return false;
@@ -153,10 +188,19 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     const depth = model?.layout?.depth === 1 ? 1 : 2;
     const targets = depth === 1 ? domains : capabilities;
     const targetById = new Map<string, (typeof targets)[number]>(targets.map(item => [item.id, item] as const));
-    const matchedApplications = applications.filter(app => {
+    let matchedApplications = applications.filter(app => {
       const name = normalizeText(app?.name);
       return name.length > 0 && normalizedQuestion.includes(name);
     });
+    if (preferredEntity?.type === 'application') matchedApplications = matchedApplications.filter(app => app.id === preferredEntity.id);
+    else if (preferredEntity) matchedApplications = [];
+
+    const duplicateApplicationNames = matchedApplications.filter(app => matchedApplications.some(other => other.id !== app.id && normalizeText(other.name) === normalizeText(app.name)));
+    if (!preferredEntity && duplicateApplicationNames.length > 1) {
+      const options = [...new Map(duplicateApplicationNames.map(app => [app.id, { type: 'application' as const, id: app.id, name: app.name || '(sans nom)' }])).values()];
+      addDirectAnswer(question, 'Plusieurs applications portent le même nom dans la cartographie. Choisis celle que tu souhaites examiner pour éviter toute confusion.', [], 'local', options);
+      return true;
+    }
 
     if (matchedApplications.length > 0) {
       const observations = [];
@@ -210,10 +254,18 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       return true;
     }
 
-    const matchedCapabilities = capabilities.filter(item => {
+    let matchedCapabilities = capabilities.filter(item => {
       const name = normalizeText(item?.name);
       return name.length > 0 && normalizedQuestion.includes(name);
     });
+    if (preferredEntity?.type === 'capability') matchedCapabilities = matchedCapabilities.filter(item => item.id === preferredEntity.id);
+    else if (preferredEntity) matchedCapabilities = [];
+    const duplicateCapabilityNames = matchedCapabilities.filter(item => matchedCapabilities.some(other => other.id !== item.id && normalizeText(other.name) === normalizeText(item.name)));
+    if (!preferredEntity && duplicateCapabilityNames.length > 1) {
+      const options = [...new Map(duplicateCapabilityNames.map(item => [item.id, { type: 'capability' as const, id: item.id, name: item.name || '(sans nom)' }])).values()];
+      addDirectAnswer(question, 'Plusieurs capacités portent le même nom dans la cartographie. Choisis celle que tu souhaites examiner pour éviter toute confusion.', [], 'local', options);
+      return true;
+    }
     if (matchedCapabilities.length > 0 && /application|qui.*(utilise|couvre)|relie|rattach|associe/.test(normalizedQuestion)) {
       const observations = [];
       matchedCapabilities.forEach(capability => {
@@ -261,7 +313,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
     return true;
   };
 
-  const addDirectAnswer = (question, answer, observations, source = 'local') => {
+  const addDirectAnswer = (question, answer, observations, source = 'local', clarificationOptions: Array<{ type: 'application' | 'capability'; id: string; name: string }> = []) => {
     const counts = {
       total: observations.length,
       errors: observations.filter(item => item.severity === 'error').length,
@@ -277,6 +329,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       observations,
       counts,
       source,
+      clarificationOptions,
     }]);
   };
 
@@ -309,8 +362,15 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             ? { ...exchange, answer: exchange.answer + chunk }
             : exchange)),
         });
+        const validated = validateGeneratedReferences(answer || '', model);
         setHistory(previous => previous.map(exchange => exchange.id === exchangeId
-          ? { ...exchange, answer: answer || exchange.answer, status: null }
+          ? {
+              ...exchange,
+              answer: validated.answer || exchange.answer.replace(/\[\[(domain|capability|application):([^\]]+)\]\]/g, ''),
+              references: validated.references,
+              invalidReferences: validated.invalidReferences,
+              status: null,
+            }
           : exchange));
       } catch (error) {
         setHistory(previous => previous.map(exchange => exchange.id === exchangeId
@@ -393,6 +453,36 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             {exchange.status === 'streaming' && exchange.answer && (
               <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
             )}
+            {exchange.status !== 'streaming' && exchange.references?.length > 0 && (
+              <div className="companion-generated-references" data-testid="companion-generated-references">
+                <strong>Références vérifiées dans la carte</strong>
+                <div>
+                  {exchange.references.map(reference => (
+                    <button type="button" key={reference.type + ':' + reference.id} data-testid="companion-generated-reference" onClick={() => onNavigateToEvidence?.(reference)}>
+                      {reference.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {exchange.status !== 'streaming' && exchange.invalidReferences > 0 && (
+              <p className="companion-reference-warning" role="status" data-testid="companion-reference-warning">
+                {exchange.invalidReferences} référence(s) proposée(s) par le modèle ne correspondent pas à un élément de cette cartographie et ont été écartées.
+              </p>
+            )}
+            {exchange.clarificationOptions?.length > 0 && (
+              <div className="companion-clarification" data-testid="companion-clarification">
+                <strong>Quel élément souhaites-tu examiner ?</strong>
+                {exchange.clarificationOptions.map(option => (
+                  <button type="button" key={option.type + ':' + option.id} data-testid="companion-clarification-option" onClick={() => {
+                    setHistory(previous => previous.filter(item => item.id !== exchange.id));
+                    runRelationshipLookup(exchange.question, option);
+                  }}>
+                    {option.name} <span>({option.type === 'application' ? 'application' : 'capacité'})</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
               <details className="companion-details">
@@ -411,7 +501,11 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                         <div className="companion-evidence">
                           <span>Éléments concernés</span>
                           {observation.evidence.map((item, itemIndex) => (
-                            <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
+                            evidenceExists(item, model) ? (
+                              <button type="button" className="companion-evidence-chip is-navigable" key={(item.id || item.name) + ':' + itemIndex} data-testid="companion-evidence-link" data-evidence-id={item.id} onClick={() => onNavigateToEvidence?.({ type: item.type as EvidenceReference['type'], id: item.id as string, name: item.name })}>{item.name} ↗</button>
+                            ) : (
+                              <span className="companion-evidence-chip" key={(item.id || item.name) + ':' + itemIndex}>{item.name}</span>
+                            )
                           ))}
                         </div>
                       )}

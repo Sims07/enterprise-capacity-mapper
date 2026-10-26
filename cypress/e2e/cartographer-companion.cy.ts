@@ -187,6 +187,84 @@ describe('Compagnon cartographe — interface locale', () => {
     cy.get('[data-testid="companion-provider-clear-key"]').click();
     cy.get('[data-testid="companion-provider-key"]').should('have.value', '');
   });
+
+  it('garde les textes utiles lisibles et les contrôles confortables', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-prompt-coverage"]').should('be.visible').then(prompt => {
+      expect(parseFloat(getComputedStyle(prompt[0]).fontSize), 'taille du raccourci').to.be.at.least(13);
+      expect(parseFloat(getComputedStyle(prompt[0]).minHeight), 'hauteur minimale du raccourci').to.be.at.least(48);
+    });
+    cy.get('[data-testid="companion-prompt-coverage"]').click();
+    cy.get('[data-testid="companion-answer"]').should('be.visible').then(answer => {
+      expect(parseFloat(getComputedStyle(answer[0]).fontSize), 'taille de la réponse').to.be.at.least(12);
+    });
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').should('be.visible').then(input => {
+      expect(parseFloat(getComputedStyle(input[0]).fontSize), 'taille du champ de question').to.be.at.least(14);
+      expect(parseFloat(getComputedStyle(input[0]).height), 'hauteur du champ de question').to.be.at.least(42);
+    });
+  });
+
+  it('utilise presque tout l’écran sur mobile et conserve une zone de fermeture accessible', () => {
+    cy.viewport(390, 740);
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-panel"]').should('be.visible').then(panel => {
+      const rect = panel[0].getBoundingClientRect();
+      expect(rect.left, 'marge gauche').to.be.at.least(0);
+      expect(rect.top, 'marge haute').to.be.at.least(0);
+      expect(rect.right, 'bord droit').to.be.at.most(390);
+      expect(rect.bottom, 'bord bas').to.be.at.most(740);
+      expect(rect.height, 'hauteur de l’espace mobile').to.be.at.least(700);
+    });
+    cy.get('[data-testid="companion-close"]').should('be.visible').and('have.attr', 'aria-label', 'Fermer le compagnon').click();
+    cy.get('[data-testid="companion-panel"]').should('not.exist');
+    cy.get('[data-testid="companion-launcher"]').should('have.focus');
+  });
+
+
+  it('ouvre dans la carte un élément depuis la preuve d’un constat local', () => {
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-prompt-coverage"]').click();
+    cy.get('[data-testid="companion-exchange"]').last().find('details.companion-details summary').click();
+    cy.get('[data-testid="companion-evidence-link"]').first().invoke('attr', 'data-evidence-id').then(id => {
+      expect(id).to.be.a('string').and.not.be.empty;
+      cy.get('[data-testid="companion-evidence-link"]').first().click();
+      cy.get('[data-entity-id]').filter((_, element) => element.getAttribute('data-entity-id') === id).should('be.visible');
+      cy.get('[data-entity-id]').filter((_, element) => element.getAttribute('data-entity-id') === id)
+        .find('button[aria-pressed="true"]').should('exist');
+    });
+  });
+
+  it('valide les références du fournisseur contre la carte et permet de les ouvrir', () => {
+    cy.intercept('OPTIONS', 'http://localhost:11434/api/chat', {
+      statusCode: 204,
+      headers: {
+        'access-control-allow-origin': 'http://127.0.0.1:4173',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'content-type',
+      },
+    });
+    cy.intercept('POST', 'http://localhost:11434/api/chat', {
+      statusCode: 200,
+      headers: { 'access-control-allow-origin': 'http://127.0.0.1:4173' },
+      body: { message: { content: 'La capacité [[capability:l1-5]] soutient la facturation. Référence inventée [[capability:unknown-id]].' } },
+    }).as('ollamaReferences');
+
+    cy.get('[data-testid="companion-launcher"]').click();
+    cy.get('[data-testid="companion-settings-toggle"]').click();
+    cy.get('[data-testid="companion-provider-enabled"]').check();
+    cy.get('[data-testid="companion-mode-conversation"]').click();
+    cy.get('[data-testid="companion-question"]').type('Présente une capacité pertinente');
+    cy.get('[data-testid="companion-submit"]').click();
+    cy.wait('@ollamaReferences');
+
+    cy.get('[data-testid="companion-answer"]').should('contain.text', 'La capacité').and('not.contain.text', '[[capability:');
+    cy.get('[data-testid="companion-generated-reference"]').should('have.length', 1).and('contain.text', 'Facturation & Recouvrement');
+    cy.get('[data-testid="companion-reference-warning"]').should('contain.text', '1 référence');
+    cy.get('[data-testid="companion-generated-reference"]').click();
+    cy.get('[data-entity-id="l1-5"] [data-testid="map-cap-select"]').should('have.attr', 'aria-pressed', 'true');
+  });
+
 });
 
 export {};
