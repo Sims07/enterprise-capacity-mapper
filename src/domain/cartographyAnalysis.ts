@@ -50,7 +50,6 @@ export function analyzeCartography(model) {
   const applications = Array.isArray(model.applications) ? model.applications : [];
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const domainById = new Map(domains.map(domain => [domain.id, domain]));
-  const capabilityById = new Map(capabilities.map(capability => [capability.id, capability]));
   const relationTargets = depth === 1 ? domains : capabilities;
   const targetById = new Map(relationTargets.map(target => [target.id, target]));
   const linkedTargetIds = new Set();
@@ -78,12 +77,7 @@ export function analyzeCartography(model) {
 
   const duplicateGroups = [
     { type: 'domain', label: 'domaine N0', items: domains, scope: () => 'all' },
-    {
-      type: 'capability',
-      label: 'capacité N1',
-      items: capabilities,
-      scope: item => String(item?.domainId ?? '(sans domaine)'),
-    },
+    { type: 'capability', label: 'capacité N1', items: capabilities, scope: item => String(item?.domainId ?? '(sans domaine)') },
     { type: 'application', label: 'application', items: applications, scope: () => 'all' },
   ];
 
@@ -114,22 +108,16 @@ export function analyzeCartography(model) {
   for (const capability of capabilities) {
     if (!domainById.has(capability?.domainId)) {
       observations.push(makeObservation(
-        'relationship.capability-domain-missing',
-        'structure',
-        'error',
+        'relationship.capability-domain-missing', 'structure', 'error',
         'Capacité rattachée à un domaine absent',
         'La capacité référence un domaine N0 qui n’est pas présent dans la cartographie.',
         'Vérifier le rattachement ou restaurer le domaine attendu.',
         [itemEvidence('capability', capability)]
       ));
     }
-
     if (ACTION_VERB_PREFIX.test(String(capability?.name ?? '').trim())) {
       observations.push(makeObservation(
-        'naming.action-phrase',
-        'naming',
-        'suggestion',
-        'Intitulé à vérifier',
+        'naming.action-phrase', 'naming', 'suggestion', 'Intitulé à vérifier',
         'Le nom de cette capacité commence par une formulation verbale fréquente. Il peut décrire une action ou une étape de processus plutôt qu’un savoir-faire stable.',
         'Vérifier si un groupe nominal décrivant le savoir-faire serait plus durable. Ce contrôle linguistique est indicatif et peut produire des faux positifs.',
         [itemEvidence('capability', capability)]
@@ -140,10 +128,7 @@ export function analyzeCartography(model) {
   for (const domain of domains) {
     if (ACTION_VERB_PREFIX.test(String(domain?.name ?? '').trim())) {
       observations.push(makeObservation(
-        'naming.action-phrase',
-        'naming',
-        'suggestion',
-        'Intitulé de domaine à vérifier',
+        'naming.action-phrase', 'naming', 'suggestion', 'Intitulé de domaine à vérifier',
         'Le nom de ce domaine commence par une formulation verbale fréquente, ce qui peut rendre le regroupement moins stable.',
         'Vérifier si un nom métier court décrivant un domaine de capacités serait plus approprié.',
         [itemEvidence('domain', domain)]
@@ -157,13 +142,9 @@ export function analyzeCartography(model) {
       const target = targetById.get(id);
       if (!target) {
         observations.push(makeObservation(
-          'relationship.application-target-missing',
-          'structure',
-          'error',
+          'relationship.application-target-missing', 'structure', 'error',
           'Relation applicative vers une cible absente',
-          depth === 1
-            ? 'L’application référence un domaine N0 absent de la cartographie.'
-            : 'L’application référence une capacité N1 absente de la cartographie.',
+          depth === 1 ? 'L’application référence un domaine N0 absent de la cartographie.' : 'L’application référence une capacité N1 absente de la cartographie.',
           'Vérifier la relation et le niveau de détail de la cartographie.',
           [itemEvidence('application', application), { type: depth === 1 ? 'domain' : 'capability', id, name: '(cible absente)' }]
         ));
@@ -177,13 +158,9 @@ export function analyzeCartography(model) {
     if (!linkedTargetIds.has(target?.id)) {
       const isDomain = depth === 1;
       observations.push(makeObservation(
-        'coverage.target-uncovered',
-        'coverage',
-        'review',
+        'coverage.target-uncovered', 'coverage', 'review',
         isDomain ? 'Domaine sans application reliée' : 'Capacité sans application reliée',
-        isDomain
-          ? 'Aucune relation applicative valide vers ce domaine N0 n’a été trouvée dans le modèle reçu.'
-          : 'Aucune relation applicative valide vers cette capacité N1 n’a été trouvée dans le modèle reçu.',
+        isDomain ? 'Aucune relation applicative valide vers ce domaine N0 n’a été trouvée dans le modèle reçu.' : 'Aucune relation applicative valide vers cette capacité N1 n’a été trouvée dans le modèle reçu.',
         'Confirmer si l’absence de couverture est réelle, si la relation est manquante ou si le périmètre est volontairement hors du SI.',
         [itemEvidence(isDomain ? 'domain' : 'capability', target)]
       ));
@@ -194,10 +171,7 @@ export function analyzeCartography(model) {
     const ids = Array.isArray(application?.capabilityIds) ? application.capabilityIds : [];
     if (ids.length === 0) {
       observations.push(makeObservation(
-        'coverage.application-unlinked',
-        'coverage',
-        'review',
-        'Application sans relation déclarée',
+        'coverage.application-unlinked', 'coverage', 'review', 'Application sans relation déclarée',
         'Aucune cible de cartographie n’est reliée à cette application dans le modèle reçu.',
         'Vérifier si l’application est hors périmètre, non encore cartographiée ou si ses relations sont manquantes.',
         [itemEvidence('application', application)]
@@ -208,12 +182,49 @@ export function analyzeCartography(model) {
   return buildResult(observations, {
     mapName: String(model.metadata?.name ?? '').trim() || null,
     depth,
-    counts: {
-      domains: domains.length,
-      capabilities: capabilities.length,
-      applications: applications.length,
-    },
+    counts: { domains: domains.length, capabilities: capabilities.length, applications: applications.length },
   });
+}
+
+const SEVERITY_WEIGHT = { error: 4, warning: 3, review: 2, suggestion: 1 };
+const SEVERITY_BRIEF_LABEL = { error: 'À corriger', warning: 'À clarifier', review: 'À décider', suggestion: 'À améliorer' };
+
+/**
+ * Turns raw deterministic findings into an architecture decision brief.
+ * It deliberately stays descriptive: no business conclusion is inferred.
+ */
+export function buildDecisionBrief(result) {
+  const observations = Array.isArray(result?.observations) ? result.observations : [];
+  const priorities = [...observations]
+    .sort((left, right) => {
+      const weight = (SEVERITY_WEIGHT[right.severity] ?? 0) - (SEVERITY_WEIGHT[left.severity] ?? 0);
+      if (weight !== 0) return weight;
+      return String(left.title).localeCompare(String(right.title), 'fr');
+    })
+    .slice(0, 5)
+    .map(observation => ({
+      id: observation.id,
+      title: observation.title,
+      severity: observation.severity,
+      label: SEVERITY_BRIEF_LABEL[observation.severity] ?? 'À examiner',
+      category: observation.category,
+      recommendation: observation.recommendation,
+      evidence: observation.evidence ?? [],
+    }));
+
+  const categories = new Set(observations.map(item => item.category));
+  const questions = [];
+  if (categories.has('coverage')) questions.push('Les zones non couvertes sont-elles de vraies lacunes ou des données de cartographie incomplètes ?');
+  if (categories.has('structure')) questions.push('Les rattachements observés reflètent-ils bien le périmètre fonctionnel et le niveau de granularité attendus ?');
+  if (categories.has('naming')) questions.push('Les intitulés permettent-ils de distinguer durablement les capacités, domaines et applications sans ambiguïté ?');
+  if (questions.length === 0) questions.push('Quelles hypothèses métier souhaitez-vous challenger malgré l’absence de constat déterministe ?');
+
+  return {
+    priorities,
+    questions: questions.slice(0, 3),
+    hasFindings: observations.length > 0,
+    totalFindings: observations.length,
+  };
 }
 
 function buildResult(observations, context = {}) {
