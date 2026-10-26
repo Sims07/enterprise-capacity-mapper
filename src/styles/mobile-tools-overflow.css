@@ -1,7 +1,8 @@
-/* Keep the complete primary navigation inside the narrow mobile header.
- * Desktop and wider mobile layouts keep their existing horizontal behavior.
+/* Keep the complete primary navigation inside the narrow iPhone Pro header.
+ * The existing horizontal mobile navigation remains untouched below 400px.
+ * Desktop and wider mobile layouts are unchanged.
  */
-@media (max-width: 480px) {
+@media (min-width: 400px) and (max-width: 430px) {
   .primary-navigation {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
