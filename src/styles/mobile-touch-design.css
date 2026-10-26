@@ -1,0 +1,287 @@
+/* Mobile touch-design refinement.
+ * This layer is intentionally limited to narrow viewports so desktop remains unchanged.
+ */
+@media (max-width: 900px) {
+  /* Clear focus and pressed states are especially important on touch devices. */
+  .app button:focus-visible,
+  .app a:focus-visible,
+  .app input:focus-visible,
+  .app select:focus-visible,
+  .app textarea:focus-visible {
+    outline: 2px solid var(--color-focus, #6366f1);
+    outline-offset: 2px;
+  }
+
+  .primary-navigation > button,
+  .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+    border-radius: 10px;
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+
+  .primary-navigation > button.active,
+  .primary-navigation > button[aria-current="page"],
+  .primary-navigation > button[aria-pressed="true"] {
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
+  }
+
+  .primary-navigation > button:active,
+  .toolbar-actions button:active,
+  .canvas-actions button:active,
+  .analysis-view-switch > button:active {
+    transform: scale(.98);
+  }
+
+  /* Inventory items stay readable without making the whole page wider. */
+  .workspace > aside .panel-title {
+    align-items: center;
+    gap: 8px;
+  }
+
+  .workspace > aside .panel-title > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .workspace > aside .side-add {
+    flex: 0 0 auto;
+    min-height: 42px;
+  }
+
+  .workspace > aside .search {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .workspace > aside .app-item {
+    align-items: center;
+    gap: 8px;
+    padding: 10px 4px;
+  }
+
+  .workspace > aside .app-main {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .workspace > aside .app-main b {
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+
+  .workspace > aside .app-side {
+    flex: 0 0 auto;
+    align-items: flex-end;
+    gap: 5px;
+  }
+
+  .workspace > aside .app-link {
+    min-height: 36px;
+    padding: 7px 8px;
+  }
+
+  /* Prevent iOS from zooming the viewport when a form field receives focus. */
+  .app input,
+  .app select,
+  .app textarea {
+    font-size: 16px;
+  }
+
+  .app input[type="checkbox"],
+  .app input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+  }
+
+  .map-filter-control input,
+  .map-filter-control select,
+  .field input,
+  .field select,
+  .field textarea {
+    min-height: 44px;
+  }
+
+  .toolbar-tools-panel {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .context-menu {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Dialogs behave like native mobile sheets, with their own scroll area. */
+  .modal-backdrop {
+    display: flex;
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .modal-backdrop > .modal {
+    position: relative;
+    width: 100%;
+    max-width: none;
+    max-height: min(88dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
+    margin: 0;
+    padding: 20px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 -12px 36px rgb(15 23 42 / 18%);
+    animation: mobile-sheet-enter 160ms ease-out both;
+  }
+
+  .modal-backdrop > .modal::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: calc(50% - 18px);
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-border-strong, #cbd5e1);
+  }
+
+  .modal-backdrop > .modal .modal-head {
+    gap: 12px;
+    margin: 0 0 16px;
+    padding-top: 5px;
+  }
+
+  .modal-backdrop > .modal .modal-head h2 {
+    min-width: 0;
+    font-size: 20px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .modal-backdrop > .modal .modal-head > button {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 10px;
+    color: var(--color-text, #0f172a);
+    background: var(--color-surface-muted, #f8fafc);
+  }
+
+  .modal-backdrop > .modal .field {
+    margin: 14px 0;
+  }
+
+  .modal-backdrop > .modal .field input,
+  .modal-backdrop > .modal .field select,
+  .modal-backdrop > .modal .field textarea {
+    min-height: 46px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .modal-backdrop > .modal .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border, #e2e8f0);
+  }
+
+  .modal-backdrop > .modal .modal-actions > button {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+
+  .modal-backdrop > .modal .modal-actions > .primary {
+    order: 0;
+  }
+
+  .modal-backdrop > .modal .structure-section,
+  .modal-backdrop > .modal .axis-editor,
+  .modal-backdrop > .modal .recap {
+    min-width: 0;
+  }
+
+  /* The companion becomes a focused, nearly full-screen workspace on phones. */
+  .companion-panel {
+    inset: env(safe-area-inset-top, 0px) 0 0;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .companion-launcher {
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    min-height: 48px;
+  }
+
+  .companion-header {
+    padding: 12px 14px;
+  }
+
+  .companion-conversation {
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .companion-composer {
+    padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .companion-composer input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .companion-composer button {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .toast {
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    max-width: none;
+    text-align: center;
+  }
+}
+
+@keyframes mobile-sheet-enter {
+  from { opacity: .65; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop > .modal {
+    animation: none;
+  }
+
+  .primary-navigation > button,
+  .toolbar-actions button,
+  .canvas-actions button,
+  .analysis-view-switch > button {
+    transition: none;
+  }
+}
