@@ -53,7 +53,7 @@ describe('Smoke tests — application et navigation', () => {
       expect($header[0].getBoundingClientRect().height).to.be.lessThan(190);
     });
     cy.get('.primary-navigation').should('be.visible').then($nav => {
-      const buttons = $nav.find(':scope > button');
+      const buttons = $nav.find('button');
       expect(buttons.length).to.equal(3);
       const tops = [...buttons].map(button => button.getBoundingClientRect().top);
       expect(Math.max(...tops) - Math.min(...tops)).to.be.lessThan(1);
