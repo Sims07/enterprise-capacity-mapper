@@ -292,7 +292,7 @@ test.describe('Playwright regression — companion', () => {
     await expect(page.getByTestId('companion-user-question').last()).toContainText('Peux-tu revoir le nommage');
   });
 
-  test('supprime et réinitialise les échanges avec confirmation', async ({ page }) =>
+  test('supprime et réinitialise les échanges avec confirmation', async ({ page }) => {
     await page.getByTestId('companion-prompt-coverage').click();
     await page.getByTestId('companion-prompt-naming').click();
     await page.getByTestId('companion-delete-exchange').first().click();
