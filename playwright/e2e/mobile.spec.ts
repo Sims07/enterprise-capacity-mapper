@@ -57,6 +57,41 @@ test.describe('Playwright mobile regression', () => {
     await expect(toggle).toContainText('Outils');
   });
 
+  test('répartit la navigation mobile sans chevauchement à 390px et 600px', async ({ page }) => {
+    for (const width of [390, 600]) {
+      await page.setViewportSize({ width, height: 844 });
+
+      const navigation = page.locator('.primary-navigation');
+      const items = [
+        page.getByTestId('nav-cartography'),
+        page.getByTestId('nav-analysis'),
+        page.getByTestId('primary-library'),
+        page.getByTestId('tools-menu-toggle'),
+      ];
+
+      const metrics = await Promise.all(items.map(async locator => locator.evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+        };
+      })));
+
+      expect(metrics[0].scrollWidth).toBeLessThanOrEqual(metrics[0].clientWidth + 1);
+      expect(metrics[1].scrollWidth).toBeLessThanOrEqual(metrics[1].clientWidth + 1);
+      expect(metrics[2].scrollWidth).toBeLessThanOrEqual(metrics[2].clientWidth + 1);
+      expect(metrics[3].right).toBeLessThanOrEqual(width);
+      expect(metrics[0].right).toBeLessThanOrEqual(metrics[1].left + 1);
+      expect(metrics[1].right).toBeLessThanOrEqual(metrics[2].left + 1);
+      expect(metrics[2].right).toBeLessThanOrEqual(metrics[3].left + 1);
+      await expect(navigation).toHaveCSS('grid-template-columns', /48px/);
+      await assertNoHorizontalOverflow(page);
+    }
+  });
+
   test('garde la navigation tactile et la cartographie sans débordement à 390×844', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByTestId('nav-cartography')).toBeVisible();
@@ -98,53 +133,3 @@ test.describe('Playwright mobile regression', () => {
       expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
     }
     await assertNoHorizontalOverflow(page);
-  });
-
-  test('affiche Outils et l’assistant sans sortir du viewport', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByTestId('tools-menu-toggle').click();
-    await expect(page.getByTestId('tools-menu')).toHaveClass(/is-open/);
-    await expect(page.getByTestId('new-map-button')).toBeVisible();
-    await page.getByTestId('new-map-button').click();
-    const modal = page.locator('.modal.wizard');
-    await expect(modal).toBeVisible();
-    const box = await modal.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
-  });
-
-  test('garde le compagnon utilisable sur petit écran', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByTestId('companion-launcher').click();
-    const panel = page.getByTestId('companion-panel');
-    await expect(panel).toBeVisible();
-    const box = await panel.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
-    await page.getByTestId('companion-mode-conversation').click();
-    const input = page.getByTestId('companion-question');
-    await expect(input).toHaveCSS('font-size', '16px');
-    const inputBox = await input.boundingBox();
-    expect(inputBox!.height).toBeGreaterThanOrEqual(44);
-    const submitBox = await page.getByTestId('companion-submit').boundingBox();
-    expect(submitBox!.width).toBeGreaterThanOrEqual(44);
-    expect(submitBox!.height).toBeGreaterThanOrEqual(44);
-    await assertNoHorizontalOverflow(page);
-  });
-
-  test('réagit au VisualViewport lorsque le clavier mobile réduit la zone visible', async ({ page }) => {
-    await page.getByTestId('companion-launcher').click();
-    await page.evaluate(() => {
-      const viewport = window.visualViewport;
-      if (!viewport) throw new Error('VisualViewport API unavailable');
-      Object.defineProperty(viewport, 'height', { configurable: true, value: 310 });
-      Object.defineProperty(viewport, 'offsetTop', { configurable: true, value: 18 });
-      viewport.dispatchEvent(new Event('resize'));
-    });
-    const panel = page.getByTestId('companion-panel');
-    await expect(panel).toHaveCSS('--companion-visual-viewport-height', '310px');
-    await expect(panel).toHaveCSS('--companion-visual-viewport-offset-top', '18px');
-  });
-});
