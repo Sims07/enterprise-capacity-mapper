@@ -12,7 +12,7 @@
     "test:e2e:cypress": "cypress run",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage",
-    "test:unit:coverage:core": "vitest run --coverage --coverage.include='src/domain/**' --coverage.include='src/application/**'",
+    "test:unit:coverage:core": "vitest run --coverage --coverage.include='src/domain/**' --coverage.include='src/application/**' --coverage.reportsDirectory=coverage-unit-core",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.strict-core.json --noEmit"
   },
   "dependencies": {
