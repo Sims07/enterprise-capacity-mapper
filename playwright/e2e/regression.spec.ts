@@ -234,6 +234,43 @@ test.describe('Playwright regression — companion', () => {
     await page.getByTestId('companion-launcher').click();
   });
 
+  test('synchronise les surfaces du compagnon avec les tokens en thème clair et sombre', async ({ page }) => {
+    const root = page.locator('.companion-root');
+    const launcher = page.getByTestId('companion-launcher');
+    const panel = page.getByTestId('companion-panel');
+
+    const assertSemanticColors = async () => {
+      const expected = await root.evaluate((element) => {
+        const resolveToken = (token: string) => {
+          const probe = document.createElement('span');
+          probe.style.backgroundColor = `var(${token})`;
+          element.appendChild(probe);
+          const color = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+          return color;
+        };
+        return {
+          surface: resolveToken('--companion-bg'),
+          accent: resolveToken('--companion-accent'),
+        };
+      });
+      expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(expected.surface);
+      expect(await launcher.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(expected.accent);
+    };
+
+    await expect(panel).toBeVisible();
+    await assertSemanticColors();
+
+    await launcher.click();
+    await expect(panel).not.toBeVisible();
+    await openTools(page);
+    await page.getByTestId('theme-toggle').click();
+    await expect(page.locator('.app.theme-dark')).toBeVisible();
+    await launcher.click();
+    await expect(panel).toBeVisible();
+    await assertSemanticColors();
+  });
+
   test('ouvre le compagnon avec ses deux modes et ses questions guidées', async ({ page }) => {
     await expect(page.getByTestId('companion-panel')).toHaveAttribute('role', 'dialog');
     await expect(page.getByTestId('companion-mode-guided')).toHaveAttribute('aria-pressed', 'true');

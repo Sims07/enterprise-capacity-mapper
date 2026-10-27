@@ -113,3 +113,15 @@ Une évolution technique ne doit pas modifier implicitement :
 - les comportements critiques couverts par Playwright ;
 - les garanties de confidentialité du compagnon IA ;
 - la capacité à récupérer une cartographie existante.
+
+
+## 8. Design system CSS
+
+Le design system repose sur des tokens CSS sémantiques dans `src/styles/tokens.css`, chargés en premier par `src/styles/index.css`. Les thèmes clair et sombre redéfinissent les mêmes contrats `--color-*`, `--status-*` et les ombres partagées. Les composants spécialisés peuvent définir des alias locaux, mais leurs valeurs doivent dériver des tokens sémantiques plutôt que dupliquer les couleurs de la palette.
+
+Règles de contribution :
+- utiliser les tokens sémantiques pour les surfaces, textes, bordures, accents et états métier ;
+- réserver les couleurs littérales aux palettes et aux valeurs de secours nécessaires ;
+- éviter `!important` pour résoudre un conflit de thème ; corriger en priorité la règle source et la portée du sélecteur ;
+- conserver les styles propres à un composant dans sa feuille dédiée, sans recopier les décisions visuelles globales ;
+- vérifier les états clair/sombre, clavier, réduction des animations et les largeurs desktop/mobile avec Playwright.
