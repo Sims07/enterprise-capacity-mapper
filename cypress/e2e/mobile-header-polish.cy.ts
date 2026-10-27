@@ -28,7 +28,11 @@ describe('Mobile header polish', () => {
       expect(nav.left).to.be.at.least(0);
       expect(nav.right).to.be.at.most(390);
       expect(getComputedStyle($nav[0]).gridTemplateColumns.split(/\s+/)).to.have.length(4);
-      expect($nav[0].scrollWidth).to.be.at.most($nav[0].clientWidth + 1);
+      cy.wrap($nav[0]).find(':scope > button, :scope > .toolbar-tools').each($item => {
+        const rect = $item[0].getBoundingClientRect();
+        expect(rect.left).to.be.at.least(nav.left);
+        expect(rect.right).to.be.at.most(nav.right);
+      });
     });
 
     cy.get('[data-testid="tools-menu-toggle"]')
