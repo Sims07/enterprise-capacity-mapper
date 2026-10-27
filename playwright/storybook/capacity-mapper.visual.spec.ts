@@ -1,12 +1,18 @@
 import { expect, test } from '@playwright/test';
 
 const storyUrl = (theme: 'light' | 'dark') =>
-  `/iframe.html?id=application-capacity-mapper--desktop&viewMode=story&globals=theme:${theme}`;
+  `/iframe.html?id=application-capacity-mapper--desktop&viewMode=story&globals=theme:light`;
 
 async function openCapacityMapper(page: import('@playwright/test').Page, width: number, height: number, theme: 'light' | 'dark') {
   await page.setViewportSize({ width, height });
   await page.goto(storyUrl(theme));
   await expect(page.locator('.app').first()).toBeVisible();
+  if (theme === 'dark') {
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('theme-toggle').click();
+    await expect(page.locator('.app.theme-dark')).toBeVisible();
+    await page.keyboard.press('Escape');
+  }
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(150);
 }
