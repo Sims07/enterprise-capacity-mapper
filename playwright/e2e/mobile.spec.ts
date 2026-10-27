@@ -98,7 +98,7 @@ test.describe('Playwright mobile regression', () => {
       viewport.dispatchEvent(new Event('resize'));
     });
     const panel = page.getByTestId('companion-panel');
-    await expect(panel).toHaveStyle('--companion-visual-viewport-height: 310px');
-    await expect(panel).toHaveStyle('--companion-visual-viewport-offset-top: 18px');
+    await expect(panel).toHaveCSS('--companion-visual-viewport-height', '310px');
+    await expect(panel).toHaveCSS('--companion-visual-viewport-offset-top', '18px');
   });
 });
