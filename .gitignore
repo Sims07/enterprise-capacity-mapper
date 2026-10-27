@@ -7,3 +7,8 @@ cypress/screenshots/
 cypress/videos/
 cypress/downloads/
 cypress/reports/
+# Generated test coverage artifacts
+.nyc_output/
+coverage-e2e/
+coverage-combined/
+dist-coverage/
