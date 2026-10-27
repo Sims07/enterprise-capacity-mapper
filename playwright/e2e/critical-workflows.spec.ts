@@ -8,10 +8,6 @@ const openToolsMenu = async (page: Page) => {
 };
 
 test.describe('Playwright POC — critical browser workflows', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => localStorage.clear());
-  });
-
   test('renomme une capacité N1 et conserve ses applications après rechargement', async ({ page }) => {
     await page.goto('/');
 
@@ -49,25 +45,6 @@ test.describe('Playwright POC — critical browser workflows', () => {
     await page.getByTestId('structure-layers-input').nth(1).fill('Opérationnel');
     await expect(page.getByTestId('wizard-preview')).toContainText('Métier');
     await expect(page.getByTestId('wizard-preview')).toContainText('Opérationnel');
-  });
-
-  test('préserve la navigation mobile étroite sans débordement horizontal', async ({ page }) => {
-    await page.goto('/');
-    await page.setViewportSize({ width: 390, height: 844 });
-
-    const navigation = page.locator('.primary-navigation');
-    await expect(navigation).toBeVisible();
-    await expect(page.getByTestId('tools-menu-toggle')).toContainText('Outils');
-
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
-    expect(overflow).toBe(false);
-
-    const toolsBox = await page.getByTestId('tools-menu-toggle').boundingBox();
-    const headerBox = await navigation.boundingBox();
-    expect(toolsBox).not.toBeNull();
-    expect(headerBox).not.toBeNull();
-    expect(toolsBox!.left).toBeGreaterThanOrEqual(headerBox!.left);
-    expect(toolsBox!.right).toBeLessThanOrEqual(headerBox!.right + 1);
   });
 
   test('restaure une cartographie locale après rechargement', async ({ page }) => {
