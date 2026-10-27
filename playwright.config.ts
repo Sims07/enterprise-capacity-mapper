@@ -15,12 +15,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testMatch: /(?:critical-workflows|regression)\.spec\.ts/,
+      testMatch: /(?:critical-workflows|regression)\\.spec\\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile-chromium',
-      testMatch: /(?:mobile-navigation|mobile)\.spec\.ts/,
+      testMatch: /(?:mobile-navigation|mobile)\\.spec\\.ts/,
       use: {
         browserName: 'chromium',
         viewport: { width: 390, height: 844 },
@@ -30,7 +30,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.PLAYWRIGHT_COVERAGE === 'true'\n      ? 'npm run preview -- --host 127.0.0.1 --port 4173 --outDir dist-coverage'\n      : 'npm run preview -- --host 127.0.0.1 --port 4173',
+    command: process.env.PLAYWRIGHT_COVERAGE === 'true'
+      ? 'npm run preview -- --host 127.0.0.1 --port 4173 --outDir dist-coverage'
+      : 'npm run preview -- --host 127.0.0.1 --port 4173',
     url: 'http://127.0.0.1:4173/',
     reuseExistingServer: !process.env.CI,
   },
