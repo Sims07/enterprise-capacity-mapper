@@ -1,12 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-const resetApp = async (page: Parameters<typeof test>[1] extends never ? never : any) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-};
-
-const openToolsMenu = async (page: any) => {
+const openToolsMenu = async (page: Page) => {
   const menu = page.locator('[data-testid="tools-menu"]');
   if (!(await menu.getAttribute('class'))?.includes('is-open')) {
     await page.getByTestId('tools-menu-toggle').click();
