@@ -1,19 +1,19 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-const fresh = async (page: Parameters<typeof test>[0]['page']) => {
+const fresh = async (page: Page) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
 };
 
-const openTools = async (page: Parameters<typeof test>[0]['page']) => {
+const openTools = async (page: Page) => {
   const menu = page.getByTestId('tools-menu');
   if (!(await menu.getAttribute('class'))?.includes('is-open')) {
     await page.getByTestId('tools-menu-toggle').click();
   }
 };
 
-const assertNoHorizontalOverflow = async (page: Parameters<typeof test>[0]['page']) => {
+const assertNoHorizontalOverflow = async (page: Page) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 };
@@ -27,7 +27,6 @@ test.describe('Playwright regression — application and navigation', () => {
     await expect(page.getByText('Capacity Mapper')).toBeVisible();
     await expect(page.locator('.map-filter-bar')).toBeVisible();
     await assertNoHorizontalOverflow(page);
-
     await page.getByTestId('nav-analysis').click();
     await page.getByTestId('dashboard-view-overview').click();
     await page.getByTestId('dashboard-view-impact').click();
@@ -112,7 +111,6 @@ test.describe('Playwright regression — cartography wizard', () => {
     await expect(columns.nth(3)).toHaveValue('Canal');
     await page.getByLabel('Supprimer Canal').click();
     await expect(columns).toHaveCount(4);
-
     await columns.first().fill('Client modifié');
     await expect(page.getByTestId('wizard-preview')).toContainText('Client modifié');
   });
@@ -135,7 +133,6 @@ test.describe('Playwright regression — cartography wizard', () => {
     await expect(page.getByTestId('wizard-step-3')).toContainText('Cartographie sauvegardée');
     await expect(page.getByTestId('wizard-step-3')).toContainText('Description de test');
     await expect(page.getByTestId('wizard-create')).toBeVisible();
-
     await page.keyboard.press('Escape');
     await expect(page.locator('.modal.wizard')).not.toBeVisible();
   });
@@ -270,6 +267,7 @@ test.describe('Playwright regression — companion', () => {
     await expect(page.locator('.companion-brand-mark img[alt="Mascotte raton laveur"]')).toBeVisible();
     await page.getByTestId('companion-mascot-toggle').click();
     await expect(page.locator('.companion-brand-mark img[alt="Mascotte pieuvre"]')).toBeVisible();
-    await expect(page.evaluate(() => localStorage.getItem('companion-mascot'))).resolves.toBe('octopus');
+    const mascot = await page.evaluate(() => localStorage.getItem('companion-mascot'));
+    expect(mascot).toBe('octopus');
   });
 });
