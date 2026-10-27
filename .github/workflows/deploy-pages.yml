@@ -64,6 +64,107 @@ jobs:
           test -s coverage-unit/coverage-summary.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
+          const summary = JSON.parse(fs.readFileSync('coverage-unit/coverage-summary.json', 'utf8'));
+          const lines = summary.total?.lines;
+          if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
+            throw new Error('Unit coverage report has no valid source line coverage.');
+          }
+          console.log(`Unit-test line coverage: ${lines.covered}/${lines.total} (${lines.pct}%)`);
+          NODE
+
+      - name: Run domain and application coverage
+        run: npm run test:unit:coverage:core
+
+      - name: Verify core unit coverage report
+        run: |
+          test -s coverage-unit-core/coverage-summary.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const summary = JSON.parse(fs.readFileSync('coverage-unit-core/coverage-summary.json', 'utf8'));
+          const lines = summary.total?.lines;
+          if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
+            throw new Error('Core unit coverage report has no valid source line coverage.');
+          }
+          if (lines.pct < 95) {
+            throw new Error(`Domain/application unit coverage is ${lines.pct}%; the minimum is 95%.`);
+          }
+          console.log(`Domain/application unit-test line coverage: ${lines.covered}/${lines.total} (${lines.pct}%)`);
+          NODE
+
+      - name: Build production application
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build instrumented application for browser coverage
+        run: npm run build -- --outDir dist-coverage
+        env:
+          COVERAGE: 'true'
+
+      - name: Run Playwright E2E suite and collect browser coverage
+        run: npm run test:e2e:playwright
+        env:
+          PLAYWRIGHT_COVERAGE: 'true'
+
+      - name: Verify Playwright coverage data
+        if: success()
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const dir = '.nyc_output';
+          const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(file => file.endsWith('.json')) : [];
+          const populated = files.some(file => {
+            try {
+              const data = JSON.parse(fs.readFileSync(`${dir}/${file}`, 'utf8'));
+              return data && typeof data === 'object' && Object.keys(data).length > 0;
+            } catch {
+              return false;
+            }
+          });
+          if (!populated) {
+            throw new Error('Playwright passed, but no Istanbul coverage data was collected from the instrumented browser.');
+          }
+          console.log(`Collected browser coverage from ${files.length} coverage file(s).`);
+          NODE
+
+      - name: Generate Playwright coverage reports
+        if: success()
+        run: npx nyc report --temp-dir=.nyc_output --report-dir=coverage-e2e --reporter=text-summary --reporter=json --reporter=json-summary
+
+      - name: Consolidate Vitest and Playwright line coverage
+        if: success()
+        run: node scripts/merge-line-coverage.mjs
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-and-vitest-reports
+          path: |
+            coverage-unit/
+            coverage-unit-core/
+            coverage-e2e/
+            coverage-combined/
+            .nyc_output/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Pages artifact
+        if: success()
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist
+
+      - name: Publish unit coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
           const summary = JSON.parse(fs.readFileSync('coverage-combined/coverage-summary.json', 'utf8'));
           const lines = summary.total?.lines;
           if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
