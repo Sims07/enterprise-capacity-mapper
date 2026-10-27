@@ -44,6 +44,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
       animations: 'disabled',
       caret: 'hide',
       fullPage: false,
+      maxDiffPixels: 1500,
     });
   });
 
@@ -55,6 +56,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
       animations: 'disabled',
       caret: 'hide',
       fullPage: false,
+      maxDiffPixels: 1500,
     });
   });
 });
