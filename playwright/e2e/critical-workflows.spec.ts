@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from '../fixtures';
 
 const openToolsMenu = async (page: Page) => {
   const menu = page.locator('[data-testid="tools-menu"]');
