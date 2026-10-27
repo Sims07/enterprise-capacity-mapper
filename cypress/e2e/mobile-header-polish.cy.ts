@@ -4,26 +4,22 @@ describe('Mobile header polish', () => {
     cy.visit('/');
   });
 
-  it('affiche un chevron CSS propre pour le menu Outils sans le caractère flèche', () => {
+  it('affiche uniquement l’icône Outils sur mobile étroit', () => {
     cy.get('[data-testid="tools-menu-toggle"] > span[aria-hidden="true"]')
       .should('not.be.visible');
 
     cy.get('[data-testid="tools-menu-toggle"]')
       .should('be.visible')
+      .and('contain.text', 'Outils')
       .then($toggle => {
+        const before = window.getComputedStyle($toggle[0], '::before');
         const after = window.getComputedStyle($toggle[0], '::after');
-        expect(after.content).to.eq('""');
-        expect(after.width).to.eq('7px');
-        expect(after.height).to.eq('7px');
+        expect(before.content).to.eq('"🔧"');
+        expect(after.content).to.eq('none');
       });
 
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
-
-    cy.get('[data-testid="tools-menu-toggle"]').then($toggle => {
-      const after = window.getComputedStyle($toggle[0], '::after');
-      expect(after.transform).to.not.eq('none');
-    });
   });
 
   it('garde les quatre entrées de navigation dans le cadre et affiche Outils en icône à 390px', () => {
@@ -46,8 +42,13 @@ describe('Mobile header polish', () => {
         expect(before.content).to.eq('"🔧"');
       });
 
-    cy.get('[data-testid="tools-menu-toggle"] > span:first-child')
-      .should('not.be.visible');
+    cy.get('[data-testid="tools-menu-toggle"] > span:first-child').then($label => {
+      const style = window.getComputedStyle($label[0]);
+      expect(style.position).to.eq('absolute');
+      expect(style.width).to.eq('1px');
+      expect(style.height).to.eq('1px');
+      expect(style.clip).to.match(/^rect\(/);
+    });
   });
 
   it('déclare une barre de statut iOS opaque alignée sur le header', () => {
