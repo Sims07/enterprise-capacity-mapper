@@ -51,10 +51,13 @@ let unitCovered = 0;
 let e2eCovered = 0;
 let combinedCovered = 0;
 
-for (const filename of [...new Set([...unit.keys(), ...e2e.keys()])].sort()) {
+for (const filename of [...e2e.keys()].sort()) {
   const unitLines = lineHits(unit.get(filename));
   const e2eLines = lineHits(e2e.get(filename));
-  const executableLines = new Set([...unitLines.keys(), ...e2eLines.keys()]);
+  // Use the instrumented E2E source lines as the denominator, matching the
+  // historical Cypress badge scope. Unit coverage contributes only when it
+  // maps to the same executable source line in a file reached by Playwright.
+  const executableLines = new Set(e2eLines.keys());
   if (executableLines.size === 0) continue;
   let unitCoveredFile = 0;
   let e2eCoveredFile = 0;
@@ -86,13 +89,13 @@ const summary = {
     vitest: { lines: { total: totalLines, covered: unitCovered, pct: pct(unitCovered) } },
     playwright: { lines: { total: totalLines, covered: e2eCovered, pct: pct(e2eCovered) } },
   },
-  methodology: 'Executable source lines are the union of statement start lines reported for src/ by Vitest and Playwright. A line is covered when either suite executes a statement mapped to that source line. Percentages are computed on this common denominator; suite percentages are diagnostic and must not be added.',
+  methodology: 'The denominator is the executable source lines in the Playwright Istanbul report, matching the historical Cypress E2E coverage scope. A line is covered when either Playwright or Vitest executes a statement mapped to that line in a Playwright-instrumented source file. Unit-only source files are excluded from the badge denominator; unit coverage remains available in the Vitest report. Suite percentages overlap and must not be added.',
   files,
 };
 fs.mkdirSync('coverage-combined', { recursive: true });
 fs.writeFileSync('coverage-combined/coverage-summary.json', JSON.stringify(summary, null, 2) + '\n');
 fs.writeFileSync('coverage-combined/coverage-summary.txt', [
-  'Combined source line coverage (Vitest ∪ Playwright)',
+  'Combined source line coverage (Vitest ∪ Playwright; Playwright denominator)',
   `Vitest: ${unitCovered}/${totalLines} (${pct(unitCovered)}%)`,
   `Playwright: ${e2eCovered}/${totalLines} (${pct(e2eCovered)}%)`,
   `Combined union: ${combinedCovered}/${totalLines} (${pct(combinedCovered)}%)`,
