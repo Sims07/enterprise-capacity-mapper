@@ -1,4 +1,4 @@
-/* Compagnon cartographe — panneau local, sans dépendance à un fournisseur IA. */
+/* Compagnon cartographe — consomme les tokens sémantiques partagés. */
 .companion-root {
   --companion-bg: var(--color-surface, #fff);
   --companion-panel: var(--color-surface-muted, #f8fafc);
@@ -7,7 +7,7 @@
   --companion-border: var(--color-border, #e2e8f0);
   --companion-accent: var(--color-accent, #4f46e5);
   --companion-accent-soft: var(--color-accent-soft, #eef2ff);
-  --companion-shadow: 0 24px 72px rgb(15 23 42 / 22%);
+  --companion-shadow: var(--shadow-overlay, 0 24px 72px rgb(15 23 42 / 22%));
   position: relative;
   /* Keep the companion above the workspace, but below modal dialogs (z-index: 20). */
   z-index: 10;
@@ -22,7 +22,7 @@
   --companion-border: var(--color-border, #34465e);
   --companion-accent: var(--color-accent, #818cf8);
   --companion-accent-soft: var(--color-accent-soft, #27243f);
-  --companion-shadow: 0 24px 72px rgb(0 0 0 / 42%);
+  --companion-shadow: var(--shadow-overlay, 0 24px 72px rgb(0 0 0 / 42%));
 }
 .companion-launcher {
   position: fixed;
@@ -34,10 +34,10 @@
   gap: 9px;
   min-height: 48px;
   padding: 0 17px 0 12px;
-  border: 1px solid #4f46e5;
+  border: 1px solid var(--color-accent);
   border-radius: 999px;
-  background: #4f46e5;
-  color: #fff;
+  background: var(--color-accent);
+  color: var(--color-accent-on, #fff);
   box-shadow: 0 8px 26px rgb(49 46 129 / 28%);
   font: inherit;
   font-size: 13px;
@@ -45,7 +45,7 @@
   cursor: pointer;
   transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
-.companion-launcher:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgb(49 46 129 / 34%); background: #4338ca; }
+.companion-launcher:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgb(49 46 129 / 34%); background: var(--color-accent-hover); }
 .companion-launcher:focus-visible,
 .companion-root button:focus-visible,
 .companion-root input:focus-visible {
@@ -67,10 +67,10 @@
   height: 7px;
   margin-left: 1px;
   border-radius: 50%;
-  background: #a7f3d0;
+  background: var(--status-covered-text);
   box-shadow: 0 0 0 3px rgb(167 243 208 / 15%);
 }
-.companion-launcher.is-open { background: #3730a3; }
+.companion-launcher.is-open { background: var(--color-accent-hover); }
 .companion-panel {
   position: fixed;
   right: 24px;
@@ -139,7 +139,7 @@
   font-size: 10px;
 }
 .companion-mode-note strong { color: var(--companion-text); font-weight: 800; }
-.companion-status-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #16a34a; }
+.companion-status-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--status-covered-text); }
 .companion-conversation { min-height: 0; padding: 18px 16px 20px; overflow: auto; overscroll-behavior: contain; }
 .companion-welcome { display: flex; align-items: flex-start; gap: 10px; }
 .companion-avatar {
@@ -182,7 +182,7 @@
 .companion-prompt-arrow { margin-left: auto; color: var(--companion-muted); font-size: 15px; }
 .companion-result { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--companion-border); }
 .companion-result-heading { display: flex; align-items: center; gap: 9px; }
-.companion-result-icon { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border-radius: 9px; background: #dcfce7; color: #166534; font-size: 14px; font-weight: 900; }
+.companion-result-icon { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border-radius: 9px; background: var(--status-covered-bg); color: var(--status-covered-text); font-size: 14px; font-weight: 900; }
 .companion-result-heading h3 { margin: 0; color: var(--companion-text); font-size: 12px; }
 .companion-result-heading p { margin: 3px 0 0; color: var(--companion-muted); font-size: 10px; }
 .companion-result-summary { margin: 12px 0; color: var(--companion-text); font-size: 11px; line-height: 1.55; }
@@ -190,10 +190,10 @@
 .companion-observation { padding: 11px; border: 1px solid var(--companion-border); border-radius: 10px; background: var(--companion-panel); }
 .companion-observation-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
 .companion-severity { display: inline-flex; align-items: center; width: fit-content; padding: 3px 6px; border-radius: 5px; background: var(--companion-bg); color: var(--companion-muted); font-size: 9px; font-weight: 800; }
-.companion-severity.severity-error { background: #fee2e2; color: #991b1b; }
+.companion-severity.severity-error { background: var(--status-critical-bg); color: var(--status-critical-text); }
 .companion-severity.severity-warning,
-.companion-severity.severity-review { background: #fef3c7; color: #92400e; }
-.companion-severity.severity-suggestion { background: #e0e7ff; color: #3730a3; }
+.companion-severity.severity-review { background: var(--status-high-bg); color: var(--status-high-text); }
+.companion-severity.severity-suggestion { background: var(--status-redundant-bg); color: var(--status-redundant-text); }
 .companion-category { color: var(--companion-muted); font-size: 9px; font-weight: 750; }
 .companion-observation h4 { margin: 0 0 6px; color: var(--companion-text); font-size: 11px; line-height: 1.4; }
 .companion-observation p { margin: 5px 0; color: var(--companion-muted); font-size: 10px; line-height: 1.5; }
@@ -202,14 +202,14 @@
 .companion-evidence > span:first-child { width: 100%; color: var(--companion-muted); font-size: 9px; font-weight: 800; }
 .companion-evidence-chip { max-width: 100%; overflow-wrap: anywhere; padding: 3px 6px; border: 1px solid var(--companion-border); border-radius: 5px; background: var(--companion-bg); color: var(--companion-text); font-size: 9px; }
 .companion-empty-result { padding: 14px 10px; border: 1px solid var(--companion-border); border-radius: 9px; background: var(--companion-panel); text-align: center; }
-.companion-empty-result > span { color: #16a34a; font-size: 20px; font-weight: 900; }
+.companion-empty-result > span { color: var(--status-covered-text); font-size: 20px; font-weight: 900; }
 .companion-empty-result p { margin: 5px 0; color: var(--companion-text); font-size: 11px; font-weight: 750; }
 .companion-empty-result small { display: block; color: var(--companion-muted); font-size: 10px; line-height: 1.5; }
 .companion-disclaimer { margin: 12px 0 0; color: var(--companion-muted); font-size: 9px; line-height: 1.5; }
 .companion-composer { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; padding: 11px 13px; border-top: 1px solid var(--companion-border); background: var(--companion-bg); }
 .companion-composer input { width: 100%; min-width: 0; height: 38px; padding: 0 11px; border: 1px solid var(--companion-border); border-radius: 9px; background: var(--companion-panel); color: var(--companion-text); font: inherit; font-size: 11px; }
 .companion-composer input::placeholder { color: var(--companion-muted); opacity: 1; }
-.companion-composer button { display: grid; flex: 0 0 36px; width: 36px; height: 36px; place-items: center; border: 1px solid var(--companion-accent); border-radius: 9px; background: var(--companion-accent); color: #fff; font-size: 19px; font-weight: 800; cursor: pointer; }
+.companion-composer button { display: grid; flex: 0 0 36px; width: 36px; height: 36px; place-items: center; border: 1px solid var(--companion-accent); border-radius: 9px; background: var(--companion-accent); color: var(--color-accent-on, #fff); font-size: 19px; font-weight: 800; cursor: pointer; }
 .companion-composer button:disabled { opacity: .45; cursor: not-allowed; }
 .companion-footer-note { flex: 0 0 auto; margin: 0; padding: 0 13px 10px; background: var(--companion-bg); color: var(--companion-muted); text-align: center; font-size: 9px; }
 .companion-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -691,7 +691,7 @@
 .companion-reference-warning {
   margin: 10px 0 0;
   padding: 9px;
-  border: 1px solid #d97706;
+  border: 1px solid var(--status-high-text);
   border-radius: 8px;
   background: var(--companion-bg);
   color: var(--companion-text);

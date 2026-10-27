@@ -17,7 +17,7 @@ La cartographie suit le modèle :
 
 Une application peut couvrir plusieurs capacités et une capacité peut être couverte par plusieurs applications. Le modèle JSON actif utilise `schemaVersion: 3` et les migrations sont gérées par les services de persistance.
 
-Les références d'architecture sont dans [`docs/architecture/`](docs/architecture/), notamment [`current-state.md`](docs/architecture/current-state.md), les ADR et le playbook de migration.
+Les références d'architecture sont dans [`docs/architecture/`](docs/architecture/), notamment [`current-state.md`](docs/architecture/current-state.md), les ADR et le playbook de migration. Les conventions CSS et les tokens du design system sont décrits dans la section « Design system CSS » de [`current-state.md`](docs/architecture/current-state.md#8-design-system-css).
 
 ## Fonctionnalités
 

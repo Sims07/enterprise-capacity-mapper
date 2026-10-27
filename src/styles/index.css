@@ -1,6 +1,11 @@
 /* Point d'entrée unique des styles globaux.
- * Garder l'ordre explicite : la cascade historique en dépend.
+ * Garder l'ordre explicite : les quatre feuilles historiquement chargées par index.html
+ * restent en tête pour préserver leur priorité dans la cascade.
  */
+@import './dashboard-decision-signals.css';
+@import './analysis-navigation.css';
+@import './dark-tools-menu.css';
+@import './mobile-header-polish.css';
 @import './tokens.css';
 @import './base.css';
 @import './compact-ui.css';
