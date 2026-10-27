@@ -1,7 +1,7 @@
 # Enterprise Capacity Mapper
 
 [![Deploy PWA to GitHub Pages](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
-[![Combined line coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FSims07%2Fenterprise-capacity-mapper%2Fmain%2Fbadges%2Fcoverage.json)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
+[![Unit/integration line coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FSims07%2Fenterprise-capacity-mapper%2Fmain%2Fbadges%2Fcoverage.json)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
 [![Latest release](https://img.shields.io/github/v/release/Sims07/enterprise-capacity-mapper?display_name=tag&sort=semver)](https://github.com/Sims07/enterprise-capacity-mapper/releases)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
 
@@ -65,7 +65,7 @@ La suite privilégie les tests rapides et garde le navigateur pour les comportem
 2. **Tests de contrats / adaptateurs** — frontières de persistance, navigation, préférences et fournisseurs.
 3. **Playwright / E2E** — parcours utilisateur critiques, UI réelle, persistance navigateur, import/export, responsive et PWA.
 
-Le badge de couverture présente l’union des lignes exécutées par **Vitest et Playwright** (une ligne compte si l’une des deux suites l’exécute). La CI publie ce taux combiné après un pipeline réussi sur `main`. Le noyau domaine + application conserve séparément un seuil de **95 % de couverture ligne unitaire**, vérifié par Vitest.
+Le badge de couverture mesure les lignes exécutées par **Vitest dans le code non-UI** (domaine, application, services et adaptateurs). Les écrans React (`App.tsx`, composants et adaptateurs de composition React) sont exclus de ce dénominateur unitaire et restent validés par Playwright. La CI impose au moins **80 % de couverture ligne unitaire/intégration** sur ce périmètre et **95 %** sur le noyau domaine + application. La couverture navigateur Playwright est mesurée et publiée séparément comme indicateur de diagnostic ; les pourcentages unitaires et E2E ne sont pas additionnés.
 
 Playwright utilise Chromium desktop et une configuration mobile 390×844 avec touch. Les tests E2E sont parallélisables et conservent les traces en cas d'échec.
 
@@ -129,7 +129,7 @@ npx playwright show-report
 
 GitHub Actions vérifie successivement le typecheck, les tests Vitest, la couverture V8, le seuil domaine/application, le build puis la suite Playwright desktop/mobile. Le déploiement GitHub Pages n'est effectué que lorsque les validations nécessaires passent.
 
-Les rapports Vitest et Playwright sont conservés comme artefacts CI en cas de besoin de diagnostic. Le badge de couverture combinée s'appuie sur un endpoint Shields.io alimenté par `badges/coverage.json`. Les rapports Vitest et Playwright sont normalisés puis agrégés par `scripts/merge-line-coverage.mjs` ; le badge est actualisé automatiquement uniquement après le succès du pipeline sur `main`.
+Les rapports Vitest et Playwright sont conservés comme artefacts CI en cas de besoin de diagnostic. Le badge de couverture unitaire/intégration s'appuie sur un endpoint Shields.io alimenté par `badges/coverage.json`. Le rapport de couverture Playwright est conservé séparément dans les artefacts CI pour analyser les parcours navigateur. Le badge est actualisé automatiquement uniquement après le succès du pipeline sur `main`.
 
 ## Principes de contribution
 
