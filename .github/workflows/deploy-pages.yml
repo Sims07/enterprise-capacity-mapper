@@ -32,6 +32,8 @@ jobs:
           git pull --rebase origin main
           npm version patch --no-git-tag-version
           VERSION="$(node -p 'require("./package.json").version')"
+          # Keep the deployed UI version aligned with the release workflow's tag.
+          echo "VITE_APP_VERSION=v${VERSION}-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           export VERSION

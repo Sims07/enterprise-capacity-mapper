@@ -26,7 +26,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
         run: |
-          VERSION="$(node -p 'require(\"./package.json\").version')"
+          VERSION="$(node -p 'require("./package.json").version')"
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
             BUILD_NUMBER="$GITHUB_RUN_NUMBER"
           else
