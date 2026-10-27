@@ -11,6 +11,10 @@ const config: StorybookConfig = {
     return {
       ...viteConfig,
       base: process.env.STORYBOOK_BASE_PATH ?? '/',
+      resolve: {
+        ...viteConfig.resolve,
+        dedupe: [...(viteConfig.resolve?.dedupe ?? []), 'react', 'react-dom'],
+      },
     };
   },
 };

@@ -27,7 +27,7 @@ const preview: Preview = {
             background: 'var(--color-bg)',
             color: 'var(--color-text)',
             minHeight: '100vh',
-            padding: '1rem',
+            padding: context.parameters.layout === 'fullscreen' ? 0 : '1rem',
             boxSizing: 'border-box',
           }}
         >
