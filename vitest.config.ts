@@ -1,11 +1,17 @@
+import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
+
+const repositoryRoot = resolve(fileURLToPath(new URL('.', import.meta.url)));
 
 export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'test/**/*.test.ts', 'tests/**/*.test.ts'],
     exclude: ['cypress/**', 'playwright/**'],
+    alias: {
+      'node:test': resolve(repositoryRoot, 'test/vitest-node-test-compat.ts'),
+    },
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts', 'src/**/*.tsx'],
@@ -14,10 +20,5 @@ export default defineConfig({
       reportsDirectory: './coverage-unit',
     },
     passWithNoTests: false,
-  },
-  test: {
-    alias: {
-      'node:test': resolve(__dirname, 'test/vitest-node-test-compat.ts'),
-    },
   },
 });
