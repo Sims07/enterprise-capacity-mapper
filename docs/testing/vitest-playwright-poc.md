@@ -69,3 +69,5 @@ Pour diagnostiquer un E2E :
 npx playwright test --debug
 npx playwright show-report
 ```
+
+La commande CI équivalente à la suite navigateur est `npm run test:e2e:playwright`; elle doit rester la référence unique pour éviter de réintroduire un second runner E2E.
