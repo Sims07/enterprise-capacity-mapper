@@ -240,6 +240,7 @@ test.describe('Playwright regression — companion', () => {
     const panel = page.getByTestId('companion-panel');
 
     const assertSemanticColors = async () => {
+      await page.mouse.move(0, 0);
       const expected = await root.evaluate((element) => {
         const resolveToken = (token: string) => {
           const probe = document.createElement('span');

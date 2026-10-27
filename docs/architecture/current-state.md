@@ -117,7 +117,7 @@ Une évolution technique ne doit pas modifier implicitement :
 
 ## 8. Design system CSS
 
-Le design system repose sur des tokens CSS sémantiques dans `src/styles/tokens.css`, chargés en premier par `src/styles/index.css`. Les thèmes clair et sombre redéfinissent les mêmes contrats `--color-*`, `--status-*` et les ombres partagées. Les composants spécialisés peuvent définir des alias locaux, mais leurs valeurs doivent dériver des tokens sémantiques plutôt que dupliquer les couleurs de la palette.
+Le design system repose sur un point d'entrée CSS unique (`src/styles/index.css`) et des tokens sémantiques dans `src/styles/tokens.css`, chargés après les quatre feuilles historiques déplacées depuis `index.html` afin de préserver leur ordre de cascade. Les thèmes clair et sombre redéfinissent les mêmes contrats `--color-*`, `--status-*` et les ombres partagées. Les composants spécialisés peuvent définir des alias locaux, mais leurs valeurs doivent dériver des tokens sémantiques plutôt que dupliquer les couleurs de la palette.
 
 Règles de contribution :
 - utiliser les tokens sémantiques pour les surfaces, textes, bordures, accents et états métier ;
