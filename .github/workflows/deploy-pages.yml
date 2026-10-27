@@ -108,6 +108,29 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Initialize visual baselines for this PR only
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/storybook-visual-regression'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SNAPSHOTS="playwright/storybook/__screenshots__"
+          if [ -f "$SNAPSHOTS/capacity-mapper-desktop-light.png" ]; then
+            echo "Visual baselines already exist; refusing to update them automatically."
+            exit 0
+          fi
+          npx playwright test --config=playwright.storybook.config.ts --update-snapshots
+          mkdir -p "$RUNNER_TEMP/storybook-snapshots"
+          cp "$SNAPSHOTS"/*.png "$RUNNER_TEMP/storybook-snapshots/"
+          git fetch origin "$GITHUB_HEAD_REF"
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+          mkdir -p "$SNAPSHOTS"
+          cp "$RUNNER_TEMP/storybook-snapshots"/*.png "$SNAPSHOTS/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$SNAPSHOTS"/*.png
+          git commit -m "test: add initial Storybook visual baselines"
+          git push origin "HEAD:$GITHUB_HEAD_REF"
+
       - name: Run Storybook visual regression tests
         run: npx playwright test --config=playwright.storybook.config.ts
 
