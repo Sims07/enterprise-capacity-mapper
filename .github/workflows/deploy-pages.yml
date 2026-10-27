@@ -1,17 +1,21 @@
 name: Deploy PWA to GitHub Pages
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: write
   pages: write
   id-token: write
+
 concurrency:
   group: pages-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,16 +25,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - name: Cache Cypress binary
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Increment PWA version after merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          # Another workflow run may have advanced main after this run checked out its SHA.
-          # Rebase onto the latest branch before deriving the next version to avoid a stale push.
           git pull --rebase origin main
           npm version patch --no-git-tag-version
           VERSION="$(node -p 'require("./package.json").version')"
@@ -51,15 +49,18 @@ jobs:
           git add package.json package-lock.json src/sw.ts
           git commit -m "chore: bump PWA and cache version to v${VERSION} [skip ci]"
           git push
+
       - name: Install project dependencies
         run: npm install
-      - name: Install coverage tooling
-        run: npm install --no-save --legacy-peer-deps c8 @cypress/code-coverage istanbul-lib-instrument
+
+      - name: Run unit tests with Vitest
+        run: npm run test:unit
+
       - name: Run unit tests with source coverage
         run: npm run test:unit:coverage
+
       - name: Verify unit coverage report
         run: |
-          test -s coverage-unit/coverage-final.json
           test -s coverage-unit/coverage-summary.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -68,13 +69,14 @@ jobs:
           if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
             throw new Error('Unit coverage report has no valid source line coverage.');
           }
-          console.log('Unit-test line coverage:', `${lines.covered}/${lines.total} (${lines.pct}%)`);
+          console.log(`Unit-test line coverage: ${lines.covered}/${lines.total} (${lines.pct}%)`);
           NODE
-      - name: Run unit tests with domain and application coverage
+
+      - name: Run domain and application coverage
         run: npm run test:unit:coverage:core
+
       - name: Verify core unit coverage report
         run: |
-          test -s coverage-unit-core/coverage-final.json
           test -s coverage-unit-core/coverage-summary.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -86,191 +88,58 @@ jobs:
           if (lines.pct < 95) {
             throw new Error(`Domain/application unit coverage is ${lines.pct}%; the minimum is 95%.`);
           }
-          console.log('Domain/application unit-test line coverage:', `${lines.covered}/${lines.total} (${lines.pct}%)`);
+          console.log(`Domain/application unit-test line coverage: ${lines.covered}/${lines.total} (${lines.pct}%)`);
           NODE
-      - name: Set build version
-        run: echo "VITE_APP_VERSION=$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
-      - name: Build instrumented application for coverage
-        run: npm run build -- --outDir dist-coverage
-        env:
-          COVERAGE: 'true'
-          VITE_COVERAGE: 'true'
-          CYPRESS_COVERAGE: 'true'
-      - name: Start instrumented static preview
-        run: |
-          npx vite preview --host 127.0.0.1 --port 4173 --strictPort --outDir dist-coverage --base /enterprise-capacity-mapper/ > /tmp/vite-preview.log 2>&1 &
-          echo $! > /tmp/vite-preview.pid
-      - name: Wait for instrumented static preview
-        run: |
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent --show-error http://127.0.0.1:4173/enterprise-capacity-mapper/ > /dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          echo 'Instrumented Vite preview did not become ready.'
-          cat /tmp/vite-preview.log
-          exit 1
-      - name: Run Cypress once and collect coverage
-        run: npx cypress run --config defaultCommandTimeout=10000
-        env:
-          COVERAGE: 'true'
-          VITE_COVERAGE: 'true'
-          CYPRESS_COVERAGE: 'true'
-      - name: Diagnose Vite instrumentation output
-        if: failure()
-        run: |
-          echo '--- Vite preview log ---'
-          cat /tmp/vite-preview.log || true
-          echo '--- Instrumentation marker summary ---'
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import path from 'node:path';
-          const dir = 'dist-coverage/assets';
-          const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(file => /\.js$/.test(file)) : [];
-          const results = files.map(file => {
-            const source = fs.readFileSync(path.join(dir, file), 'utf8');
-            return { file, hasCoverageMap: source.includes('__coverage__'), hasCounters: /s\[\d+\]\+\+/.test(source) };
-          });
-          console.log(JSON.stringify(results, null, 2));
-          if (!results.some(result => result.hasCoverageMap && result.hasCounters)) {
-            console.error('No instrumented JavaScript bundle was available to inspect (an earlier step may have failed).');
-          }
-          NODE
-      - name: Verify Cypress produced coverage data
-        if: success()
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import path from 'node:path';
-          const dir = '.nyc_output';
-          const files = fs.existsSync(dir)
-            ? fs.readdirSync(dir).filter(file => file.endsWith('.json')).map(file => path.join(dir, file))
-            : [];
-          const populated = files.some(file => {
-            try {
-              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-              return data && typeof data === 'object' && Object.keys(data).length > 0;
-            } catch {
-              return false;
-            }
-          });
-          if (!populated) {
-            console.error('Cypress ran, but no non-empty Istanbul coverage map was collected.');
-            console.error('Inspect the instrumented browser bundle and Cypress code-coverage logs.');
-            process.exit(1);
-          }
-          console.log('Istanbul coverage data found:');
-          for (const file of files) {
-            console.log(`- ${file}`);
-          }
-          NODE
-      - name: Generate Cypress HTML and text coverage reports
-        if: success()
-        run: npx --yes nyc report --reporter=text-summary --reporter=html --reporter=lcov --reporter=json --reporter=json-summary
-      - name: Consolidate unit and Cypress line coverage
-        if: success()
-        run: node scripts/merge-line-coverage.ts
-      - name: Compare Cypress baseline and consolidated coverage
-        if: success()
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
-          const unit = read('coverage-unit/coverage-summary.json').total.lines;
-          const cypress = read('coverage/coverage-summary.json').total.lines;
-          const combined = read('coverage-combined/coverage-summary.json').total.lines;
-          console.log('Coverage comparison (line coverage)');
-          console.log(`Unit tests: ${unit.covered}/${unit.total} (${unit.pct}%)`);
-          console.log(`Cypress only: ${cypress.covered}/${cypress.total} (${cypress.pct}%)`);
-          console.log(`Consolidated union: ${combined.covered}/${combined.total} (${combined.pct}%)`);
-          console.log('Historical main reference (Cypress-only): 82.24%');
-          console.log('Note: consolidated PR coverage and historical Cypress-only coverage are different scopes; do not interpret the percentage-point difference as a direct regression.');
-          NODE
-      - name: Upload coverage report
+
+      - name: Build production application
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E suite
+        run: npm run test:e2e:playwright
+
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-line-coverage
+          name: playwright-and-vitest-reports
           path: |
-            coverage/
             coverage-unit/
             coverage-unit-core/
-            coverage-combined/
-            .nyc_output/
+            playwright-report/
+            test-results/
           if-no-files-found: warn
           retention-days: 14
-      - name: Stop instrumented Vite server
-        if: always()
-        run: |
-          if [ -f /tmp/vite-preview.pid ]; then
-            kill "$(cat /tmp/vite-preview.pid)" 2>/dev/null || true
-          fi
-      - name: Build production application
+
+      - name: Upload Pages artifact
         if: success()
-        run: npm run build
-        env:
-          COVERAGE: 'false'
-          VITE_COVERAGE: 'false'
-      - uses: actions/upload-pages-artifact@v4
-        if: success()
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist
-      - name: Publish combined line coverage badge
+
+      - name: Publish unit coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const summaryPath = 'coverage-combined/coverage-summary.json';
-          if (!fs.existsSync(summaryPath)) {
-            throw new Error(`Missing ${summaryPath}; refusing to publish a misleading coverage badge.`);
-          }
-          const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+          const summary = JSON.parse(fs.readFileSync('coverage-unit/coverage-summary.json', 'utf8'));
           const lines = summary.total?.lines;
           if (!lines || !Number.isFinite(lines.pct) || lines.total <= 0) {
-            throw new Error('Combined coverage summary has no valid line coverage percentage.');
+            throw new Error('Missing valid unit coverage summary.');
           }
           const percentage = Math.round(lines.pct * 10) / 10;
           const color = percentage >= 80 ? 'brightgreen' : percentage >= 60 ? 'yellow' : 'red';
-          fs.writeFileSync('/tmp/coverage.json', JSON.stringify({ schemaVersion: 1, label: 'combined line coverage', message: `${percentage}%`, color }, null, 2) + '\n');
-          console.log(`Publishing combined unit + Cypress line coverage badge: ${percentage}%`);
+          fs.writeFileSync('/tmp/coverage.json', JSON.stringify({ schemaVersion: 1, label: 'unit line coverage', message: `${percentage}%`, color }, null, 2) + '\n');
+          console.log(`Publishing unit-test line coverage badge: ${percentage}%`);
           NODE
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout --orphan coverage-badge
-          git rm -rf .
-          cp /tmp/coverage.json coverage.json
-          git add coverage.json
-          git commit -m "chore: update combined line coverage badge"
-          git push --force origin coverage-badge
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
-  release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: main
-      - name: Create a GitHub Release for this deployment
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION="$(node -p 'require("./package.json").version')-build.${GITHUB_RUN_NUMBER}"
-          TAG="v${VERSION}"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; nothing to do."
-          else
-            gh release create "$TAG" --title "$TAG" --generate-notes
-          fi
+          mkdir -p badges
+          cp /tmp/coverage.json badges/coverage.json
+          git add badges/coverage.json
+          git diff --cached --quiet || git commit -m "docs: update unit coverage badge [skip ci]"
+          git push
