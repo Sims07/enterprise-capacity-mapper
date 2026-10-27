@@ -15,10 +15,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testMatch: /critical-workflows\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile-chromium',
+      testMatch: /mobile-navigation\.spec\.ts/,
       use: { ...devices['iPhone 13'], browserName: 'chromium' },
     },
   ],
