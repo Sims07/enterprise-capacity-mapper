@@ -15,15 +15,17 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testMatch: /critical-workflows\.spec\.ts/,
+      testMatch: /(?:critical-workflows|regression)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile-chromium',
-      testMatch: /mobile-navigation\.spec\.ts/,
+      testMatch: /(?:mobile-navigation|mobile)\.spec\.ts/,
       use: {
         browserName: 'chromium',
         viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
       },
     },
   ],
