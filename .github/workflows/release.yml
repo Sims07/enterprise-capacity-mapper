@@ -1,0 +1,41 @@
+name: Create GitHub Release
+
+on:
+  workflow_run:
+    workflows: ["Deploy PWA to GitHub Pages"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Create a GitHub Release for this deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+        run: |
+          VERSION="$(node -p 'require(\"./package.json\").version')"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          else
+            BUILD_NUMBER="$DEPLOY_RUN_NUMBER"
+          fi
+          TAG="v${VERSION}-build.${BUILD_NUMBER}"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; nothing to do."
+          else
+            gh release create "$TAG" --target main --title "$TAG" --generate-notes
+          fi
