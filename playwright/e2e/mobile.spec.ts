@@ -133,3 +133,53 @@ test.describe('Playwright mobile regression', () => {
       expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
     }
     await assertNoHorizontalOverflow(page);
+  });
+
+  test('affiche Outils et l’assistant sans sortir du viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('tools-menu-toggle').click();
+    await expect(page.getByTestId('tools-menu')).toHaveClass(/is-open/);
+    await expect(page.getByTestId('new-map-button')).toBeVisible();
+    await page.getByTestId('new-map-button').click();
+    const modal = page.locator('.modal.wizard');
+    await expect(modal).toBeVisible();
+    const box = await modal.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  });
+
+  test('garde le compagnon utilisable sur petit écran', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('companion-launcher').click();
+    const panel = page.getByTestId('companion-panel');
+    await expect(panel).toBeVisible();
+    const box = await panel.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+    await page.getByTestId('companion-mode-conversation').click();
+    const input = page.getByTestId('companion-question');
+    await expect(input).toHaveCSS('font-size', '16px');
+    const inputBox = await input.boundingBox();
+    expect(inputBox!.height).toBeGreaterThanOrEqual(44);
+    const submitBox = await page.getByTestId('companion-submit').boundingBox();
+    expect(submitBox!.width).toBeGreaterThanOrEqual(44);
+    expect(submitBox!.height).toBeGreaterThanOrEqual(44);
+    await assertNoHorizontalOverflow(page);
+  });
+
+  test('réagit au VisualViewport lorsque le clavier mobile réduit la zone visible', async ({ page }) => {
+    await page.getByTestId('companion-launcher').click();
+    await page.evaluate(() => {
+      const viewport = window.visualViewport;
+      if (!viewport) throw new Error('VisualViewport API unavailable');
+      Object.defineProperty(viewport, 'height', { configurable: true, value: 310 });
+      Object.defineProperty(viewport, 'offsetTop', { configurable: true, value: 18 });
+      viewport.dispatchEvent(new Event('resize'));
+    });
+    const panel = page.getByTestId('companion-panel');
+    await expect(panel).toHaveCSS('--companion-visual-viewport-height', '310px');
+    await expect(panel).toHaveCSS('--companion-visual-viewport-offset-top', '18px');
+  });
+});
