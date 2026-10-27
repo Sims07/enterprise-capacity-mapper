@@ -3,29 +3,31 @@
  * placed in a horizontally scrolling strip. Desktop layouts stay unchanged.
  */
 @media (max-width: 600px) {
-  .primary-navigation {
+  .toolbar-switch.primary-navigation {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     overflow: visible !important;
     width: 100%;
+    max-width: 100%;
     min-width: 0;
+    box-sizing: border-box;
     gap: 3px;
     padding: 3px;
   }
 
-  .primary-navigation > button,
-  .primary-navigation .toolbar-tools {
+  .toolbar-switch.primary-navigation > button,
+  .toolbar-switch.primary-navigation .toolbar-tools {
     min-width: 0;
     width: 100%;
   }
 
-  .primary-navigation > button {
+  .toolbar-switch.primary-navigation > button {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+  .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle {
     position: relative;
     display: flex;
     align-items: center;
@@ -37,7 +39,7 @@
     overflow: hidden;
   }
 
-  .primary-navigation .toolbar-tools > .toolbar-tools-toggle > span:first-child {
+  .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle > span:first-child {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -49,11 +51,11 @@
     border: 0;
   }
 
-  .primary-navigation .toolbar-tools > .toolbar-tools-toggle > span[aria-hidden="true"] {
+  .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle > span[aria-hidden="true"] {
     display: none !important;
   }
 
-  .primary-navigation .toolbar-tools > .toolbar-tools-toggle::before {
+  .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle::before {
     content: '🔧';
     display: block;
     flex: 0 0 auto;
@@ -61,11 +63,11 @@
     line-height: 1;
   }
 
-  .primary-navigation .toolbar-tools > .toolbar-tools-toggle::after {
+  .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle::after {
     content: none !important;
   }
 
-  .primary-navigation .toolbar-tools-panel {
+  .toolbar-switch.primary-navigation .toolbar-tools-panel {
     right: 0;
     width: min(320px, calc(100vw - 20px));
   }
