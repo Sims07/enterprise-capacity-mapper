@@ -1,8 +1,9 @@
-/* Keep the complete primary navigation inside the narrow iPhone Pro header.
- * The existing horizontal mobile navigation remains untouched below 400px.
- * Desktop and wider mobile layouts are unchanged.
+/* Keep the complete primary navigation inside narrow mobile headers.
+ * The four primary destinations share the available width instead of being
+ * placed in a horizontally scrolling strip. Desktop and wider layouts stay
+ * unchanged.
  */
-@media (min-width: 400px) and (max-width: 430px) {
+@media (max-width: 430px) {
   .primary-navigation {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -16,18 +17,19 @@
   .primary-navigation > button,
   .primary-navigation .toolbar-tools {
     min-width: 0;
+    width: 100%;
   }
 
   .primary-navigation > button {
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .primary-navigation .toolbar-tools {
-    width: 100%;
+    white-space: nowrap;
   }
 
   .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     min-width: 0;
     padding-inline: 7px;
@@ -39,6 +41,7 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .primary-navigation .toolbar-tools-panel {
