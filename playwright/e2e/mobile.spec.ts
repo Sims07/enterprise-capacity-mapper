@@ -16,7 +16,49 @@ test.describe('Playwright mobile regression', () => {
     await fresh(page);
   });
 
+  test('affiche Outils sous forme d’icône et garde le bouton dans le viewport entre 390px et 600px', async ({ page }) => {
+    const toggle = page.getByTestId('tools-menu-toggle');
+
+    for (const width of [390, 430, 600]) {
+      await page.setViewportSize({ width, height: 844 });
+      await expect(toggle).toBeVisible();
+      await expect(toggle).toContainText('Outils');
+
+      const metrics = await toggle.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          before: getComputedStyle(element, '::before').content,
+          after: getComputedStyle(element, '::after').content,
+          left: rect.left,
+          right: rect.right,
+          labelWidth: element.querySelector('span')?.getBoundingClientRect().width ?? 0,
+        };
+      });
+
+      expect(metrics.before).toBe('"🔧"');
+      expect(metrics.after).toBe('none');
+      expect(metrics.left).toBeGreaterThanOrEqual(0);
+      expect(metrics.right).toBeLessThanOrEqual(width);
+      expect(metrics.labelWidth).toBeLessThanOrEqual(1);
+      await assertNoHorizontalOverflow(page);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await toggle.click();
+    await expect(page.getByTestId('tools-menu')).toHaveClass(/is-open/);
+  });
+
+  test('conserve la navigation texte sur desktop au-delà de 600px', async ({ page }) => {
+    await page.setViewportSize({ width: 601, height: 900 });
+    const toggle = page.getByTestId('tools-menu-toggle');
+    await expect(toggle).toBeVisible();
+    const pseudoContent = await toggle.evaluate((element) => getComputedStyle(element, '::before').content);
+    expect(pseudoContent).toBe('none');
+    await expect(toggle).toContainText('Outils');
+  });
+
   test('garde la navigation tactile et la cartographie sans débordement à 390×844', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByTestId('nav-cartography')).toBeVisible();
     await expect(page.getByTestId('nav-analysis')).toBeVisible();
     await expect(page.getByTestId('primary-library')).toBeVisible();
@@ -33,6 +75,7 @@ test.describe('Playwright mobile regression', () => {
   });
 
   test('garde la feuille Structure dans le viewport mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: 'Structure' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
@@ -46,6 +89,7 @@ test.describe('Playwright mobile regression', () => {
   });
 
   test('garde les actions Relations accessibles sans débordement', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByTestId('nav-analysis').click();
     await page.getByTestId('tab-relations').click();
     await expect(page.locator('.coverage-tree')).toBeVisible();
@@ -57,6 +101,7 @@ test.describe('Playwright mobile regression', () => {
   });
 
   test('affiche Outils et l’assistant sans sortir du viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByTestId('tools-menu-toggle').click();
     await expect(page.getByTestId('tools-menu')).toHaveClass(/is-open/);
     await expect(page.getByTestId('new-map-button')).toBeVisible();
@@ -70,6 +115,7 @@ test.describe('Playwright mobile regression', () => {
   });
 
   test('garde le compagnon utilisable sur petit écran', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByTestId('companion-launcher').click();
     const panel = page.getByTestId('companion-panel');
     await expect(panel).toBeVisible();
