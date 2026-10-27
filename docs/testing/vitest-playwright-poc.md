@@ -38,7 +38,7 @@ La couverture E2E n'est volontairement plus utilisée comme métrique source : s
 
 Le workflow de déploiement :
 
-1. installe les dépendances ;
+1. installe les dépendances avec `npm install` ;
 2. exécute les unitaires Vitest ;
 3. produit et vérifie les rapports de couverture V8 ;
 4. vérifie le seuil domaine/application ;
@@ -47,6 +47,8 @@ Le workflow de déploiement :
 7. exécute la suite E2E desktop/mobile ;
 8. publie les rapports de test ;
 9. publie l'application sur GitHub Pages lorsque toutes les validations passent.
+
+`package-lock.json` est régénéré par l'installation CI pour refléter les dépendances Vitest/Playwright ; la CI n'utilise volontairement pas `npm ci` pendant cette migration afin d'éviter de conserver un lockfile issu de l'ancienne chaîne Cypress.
 
 Cypress et son instrumentation Istanbul ont été retirés de la CI et du projet.
 
