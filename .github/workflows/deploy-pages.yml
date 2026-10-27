@@ -158,7 +158,7 @@ jobs:
         with:
           path: ./dist
 
-      - name: Publish unit coverage badge
+      - name: Publish combined coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -180,7 +180,7 @@ jobs:
           mkdir -p badges
           cp /tmp/coverage.json badges/coverage.json
           git add badges/coverage.json
-          git diff --cached --quiet || git commit -m "docs: update unit coverage badge [skip ci]"
+          git diff --cached --quiet || git commit -m "docs: update combined coverage badge [skip ci]"
           git push
 
   deploy:
