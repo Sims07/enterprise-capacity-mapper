@@ -21,7 +21,10 @@ export default defineConfig({
     {
       name: 'mobile-chromium',
       testMatch: /mobile-navigation\.spec\.ts/,
-      use: { ...devices['iPhone 13'], browserName: 'chromium' },
+      use: {
+        browserName: 'chromium',
+        viewport: { width: 390, height: 844 },
+      },
     },
   ],
   webServer: {
