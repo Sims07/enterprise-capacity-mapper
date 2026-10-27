@@ -27,6 +27,8 @@
     "@types/react-dom": "latest",
     "@vitest/coverage-v8": "latest",
     "typescript": "latest",
-    "vitest": "latest"
+    "vitest": "latest",
+    "istanbul-lib-instrument": "latest",
+    "nyc": "latest"
   }
 }
