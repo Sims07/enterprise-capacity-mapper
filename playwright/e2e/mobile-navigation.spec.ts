@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test('affiche l’assistant Nouvelle cartographie dans les limites du viewport mobile', async ({ page }) => {
   await page.goto('/');

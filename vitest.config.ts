@@ -15,7 +15,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['**/*.test.*', 'src/main.tsx', 'src/sw.ts'],
+      exclude: [
+        '**/*.test.*',
+        'src/main.tsx',
+        'src/sw.ts',
+        // UI composition is validated with Playwright rather than counted as unit coverage.
+        'src/App.tsx',
+        'src/components/**',
+        'src/adapters/react/*.tsx',
+        // Static demo fixtures are data, not executable business behavior.
+        'src/data/demoData.ts',
+      ],
       reporter: ['text-summary', 'json', 'json-summary', 'html'],
       reportsDirectory: './coverage-unit',
     },

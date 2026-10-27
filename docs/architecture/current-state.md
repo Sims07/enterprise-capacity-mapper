@@ -87,7 +87,9 @@ Playwright vérifie les comportements visibles et les frontières qui nécessite
 
 La suite est organisée autour de `critical-workflows.spec.ts`, `regression.spec.ts`, `mobile-navigation.spec.ts` et `mobile.spec.ts`. Elle utilise Chromium desktop et un projet Chromium mobile à 390×844 avec touch, des workers parallèles en CI, des traces en cas d'échec et des screenshots uniquement en cas d'échec.
 
-La couverture E2E n'est **pas** une métrique source : elle sert d'oracle comportemental. Cela évite d'instrumenter le build uniquement pour compter les lignes traversées par le navigateur.
+La couverture Vitest est mesurée sur le périmètre non-UI (domaine, application, services et adaptateurs) ; le seuil global est de 80 %, avec un seuil de 95 % sur domaine/application. Les vues React et les données statiques de démonstration sont exclues du dénominateur unitaire, car elles relèvent des tests navigateur ou ne contiennent pas de logique exécutable métier.
+
+La couverture Playwright est collectée à titre de diagnostic dans un build instrumenté distinct du build de production, puis conservée dans les artefacts CI. Elle mesure les lignes traversées par les parcours navigateur, sans remplacer les assertions comportementales. Les taux Vitest et Playwright ont des périmètres différents : ils sont publiés séparément et ne doivent pas être additionnés.
 
 ## 7. Principes de non-régression
 
