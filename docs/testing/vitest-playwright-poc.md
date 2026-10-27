@@ -15,7 +15,7 @@ Les scénarios sont volontairement peu nombreux :
 
 1. renommer une capacité N1 et vérifier la persistance après rechargement ;
 2. créer une cartographie vierge avec l'assistant ;
-3. vérifier la navigation mobile à 390×844 et l'absence de débordement horizontal ;
+3. vérifier sur un viewport Chromium de 390×844 que l'assistant de création reste dans les limites de l'écran ;
 4. enregistrer une cartographie locale et la retrouver après rechargement.
 
 Ces scénarios représentent le bon niveau pour l'E2E : navigateur réel, UI, navigation et frontière de persistance. Les règles métier détaillées restent couvertes en tests unitaires/contrats.
@@ -30,7 +30,7 @@ npm run test:e2e:playwright
 npm run test:e2e:cypress
 ```
 
-Le POC Playwright utilise Chromium desktop et l'émulation iPhone 13. Les traces sont conservées en cas d'échec.
+Le POC Playwright utilise Chromium desktop et un viewport mobile Chromium de 390×844. Les traces sont conservées en cas d'échec.
 
 ## Suite après le POC
 
