@@ -70,9 +70,9 @@ jobs:
             throw new Error('Unit coverage report has no valid source line coverage.');
           }
           if (lines.pct < 80) {
-  throw new Error(`Unit/integration line coverage is ${lines.pct}%; the minimum is 80%.`);
-}
-console.log(`Unit/integration line coverage (non-UI source): ${lines.covered}/${lines.total} (${lines.pct}%)`);
+            throw new Error(`Unit/integration line coverage is ${lines.pct}%; the minimum is 80%.`);
+          }
+          console.log(`Unit/integration line coverage (non-UI source): ${lines.covered}/${lines.total} (${lines.pct}%)`);
           NODE
 
       - name: Run domain and application coverage
