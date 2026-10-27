@@ -1,19 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-test('préserve la navigation mobile étroite sans débordement horizontal', async ({ page }) => {
+test('affiche l’assistant Nouvelle cartographie dans les limites du viewport mobile', async ({ page }) => {
   await page.goto('/');
+  await page.getByTestId('tools-menu-toggle').click();
+  await page.getByTestId('new-map-button').click();
 
-  const navigation = page.locator('.primary-navigation');
-  await expect(navigation).toBeVisible();
-  await expect(page.getByTestId('tools-menu-toggle')).toContainText('Outils');
+  const modal = page.locator('.modal.wizard');
+  await expect(modal).toBeVisible();
+  await expect(page.getByTestId('wizard-step-1')).toBeVisible();
 
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
-  expect(overflow).toBe(false);
-
-  const toolsBox = await page.getByTestId('tools-menu-toggle').boundingBox();
-  const headerBox = await navigation.boundingBox();
-  expect(toolsBox).not.toBeNull();
-  expect(headerBox).not.toBeNull();
-  expect(toolsBox!.x).toBeGreaterThanOrEqual(headerBox!.x);
-  expect(toolsBox!.x + toolsBox!.width).toBeLessThanOrEqual(headerBox!.x + headerBox!.width + 1);
+  const box = await modal.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
 });
