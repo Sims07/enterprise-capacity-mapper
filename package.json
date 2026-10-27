@@ -9,7 +9,6 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:playwright": "playwright test",
-    "test:e2e:cypress": "cypress run",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage",
     "test:unit:coverage:core": "vitest run --coverage --coverage.include='src/domain/**' --coverage.include='src/application/**' --coverage.reportsDirectory=coverage-unit-core",
@@ -27,9 +26,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitest/coverage-v8": "latest",
-    "cypress": "latest",
     "typescript": "latest",
-    "vitest": "latest",
-    "@cypress/code-coverage": "latest"
+    "vitest": "latest"
   }
 }
