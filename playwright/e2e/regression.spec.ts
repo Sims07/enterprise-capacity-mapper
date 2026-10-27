@@ -258,7 +258,7 @@ test.describe('Playwright regression — companion', () => {
       });
       expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(expected.surface);
       expect(await launcher.evaluate((element) => getComputedStyle(element).borderColor)).toBe(expected.accent);
-      expect(await launcher.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(expected.accentHover);
+      await expect(launcher).toHaveCSS('background-color', expected.accentHover);
     };
 
     await expect(panel).toBeVisible();
