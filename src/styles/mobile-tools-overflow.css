@@ -50,12 +50,20 @@
     border: 0;
   }
 
+  .primary-navigation .toolbar-tools > .toolbar-tools-toggle > span[aria-hidden="true"] {
+    display: none !important;
+  }
+
   .primary-navigation .toolbar-tools > .toolbar-tools-toggle::before {
     content: '🔧';
     display: block;
     flex: 0 0 auto;
     font-size: 1.05rem;
     line-height: 1;
+  }
+
+  .primary-navigation .toolbar-tools > .toolbar-tools-toggle::after {
+    content: none !important;
   }
 
   .primary-navigation .toolbar-tools-panel {
