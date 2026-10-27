@@ -3,16 +3,145 @@
   --companion-launcher-shadow: color-mix(in srgb, var(--color-accent) 28%, transparent);
   --companion-launcher-shadow-hover: color-mix(in srgb, var(--color-accent) 34%, transparent);
   --companion-status-ring: color-mix(in srgb, var(--status-covered-text) 15%, transparent);
+
+  /* Le compagnon ne définit plus sa propre géométrie : il consomme les tokens
+     partagés du design system comme les autres surfaces de l'application. */
+  --companion-control-radius: var(--radius-control);
+  --companion-card-radius: var(--radius-card);
+  --companion-panel-radius: var(--radius-panel);
+  --companion-panel-shadow: var(--shadow-overlay);
+  --companion-focus: var(--color-focus);
 }
 
 .companion-launcher {
   box-shadow: 0 8px 26px var(--companion-launcher-shadow);
+  border-radius: var(--companion-panel-radius);
 }
 
 .companion-launcher:hover {
   box-shadow: 0 12px 30px var(--companion-launcher-shadow-hover);
 }
 
+.companion-launcher:focus-visible,
+.companion-root button:focus-visible,
+.companion-root input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--companion-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .companion-launcher-status {
   box-shadow: 0 0 0 3px var(--companion-status-ring);
+}
+
+.companion-panel {
+  border-radius: var(--companion-panel-radius);
+  box-shadow: var(--companion-panel-shadow);
+}
+
+.companion-brand-mark,
+.companion-close,
+.companion-avatar,
+.companion-prompt,
+.companion-result-icon,
+.companion-observation,
+.companion-composer input,
+.companion-composer button {
+  border-radius: var(--companion-card-radius);
+}
+
+.companion-close,
+.companion-composer input,
+.companion-composer button {
+  border-radius: var(--companion-control-radius);
+}
+
+.companion-prompt-icon,
+.companion-severity,
+.companion-evidence-chip {
+  border-radius: var(--companion-control-radius);
+}
+
+/* Les variantes sombre/clair restent entièrement pilotées par tokens.css. */
+.companion-root,
+.companion-root .companion-panel,
+.companion-root .companion-header,
+.companion-root .companion-composer,
+.companion-root .companion-footer-note {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.companion-root .companion-mode-note,
+.companion-root .companion-observation,
+.companion-root .companion-empty-result,
+.companion-root .companion-prompt-icon,
+.companion-root .companion-composer input {
+  background-color: var(--color-surface-muted);
+}
+
+.companion-root .companion-prompt,
+.companion-root .companion-evidence-chip,
+.companion-root .companion-close {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.companion-root .companion-heading h2,
+.companion-root .companion-close,
+.companion-root .companion-prompt,
+.companion-root .companion-observation h4,
+.companion-root .companion-result-heading h3,
+.companion-root .companion-result-summary,
+.companion-root .companion-empty-result p,
+.companion-root .companion-answer-text,
+.companion-root .companion-user-message {
+  color: var(--color-text);
+}
+
+.companion-root .companion-heading p,
+.companion-root .companion-mode-note,
+.companion-root .companion-welcome p,
+.companion-root .companion-section-label,
+.companion-root .companion-result-heading p,
+.companion-root .companion-observation p,
+.companion-root .companion-category,
+.companion-root .companion-disclaimer,
+.companion-root .companion-footer-note,
+.companion-root .companion-composer input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.companion-root .companion-brand-mark,
+.companion-root .companion-avatar,
+.companion-root .companion-prompt:hover,
+.companion-root .companion-prompt.is-selected {
+  border-color: var(--color-accent-border);
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.companion-root .companion-composer input {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.companion-root .companion-launcher,
+.companion-root .companion-composer button {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-on);
+}
+
+.companion-root .companion-launcher:hover,
+.companion-root .companion-launcher.is-open {
+  background-color: var(--color-accent-hover);
+}
+
+.companion-root .companion-panel,
+.companion-root .companion-header,
+.companion-root .companion-mode-note,
+.companion-root .companion-result,
+.companion-root .companion-evidence,
+.companion-root .companion-composer {
+  border-color: var(--color-border);
 }

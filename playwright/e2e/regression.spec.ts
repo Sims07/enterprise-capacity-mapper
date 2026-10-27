@@ -310,4 +310,33 @@ test.describe('Playwright regression — companion', () => {
     const mascot = await page.evaluate(() => localStorage.getItem('companion-mascot'));
     expect(mascot).toBe('octopus');
   });
+
+  test('utilise la géométrie partagée du design system', async ({ page }) => {
+    const values = await page.evaluate(() => {
+      const root = document.querySelector('.companion-root');
+      const launcher = document.querySelector<HTMLElement>('[data-testid="companion-launcher"]');
+      const panel = document.querySelector<HTMLElement>('[data-testid="companion-panel"]');
+      const prompt = document.querySelector<HTMLElement>('.companion-prompt');
+      if (!root || !launcher || !panel || !prompt) throw new Error('companion surface missing');
+      const rootStyle = getComputedStyle(root);
+      const launcherStyle = getComputedStyle(launcher);
+      const panelStyle = getComputedStyle(panel);
+      const promptStyle = getComputedStyle(prompt);
+      return {
+        controlRadius: rootStyle.getPropertyValue('--radius-control').trim(),
+        cardRadius: rootStyle.getPropertyValue('--radius-card').trim(),
+        panelRadius: rootStyle.getPropertyValue('--radius-panel').trim(),
+        focusWidth: rootStyle.getPropertyValue('--focus-ring-width').trim(),
+        launcherRadius: launcherStyle.borderRadius,
+        panelRadiusComputed: panelStyle.borderRadius,
+        promptRadius: promptStyle.borderRadius,
+      };
+    });
+
+    expect(values.launcherRadius).toBe(values.panelRadius);
+    expect(values.panelRadiusComputed).toBe(values.panelRadius);
+    expect(values.promptRadius).toBe(values.cardRadius);
+    expect(values.controlRadius).toBe('7px');
+    expect(values.focusWidth).toBe('2px');
+  });
 });
