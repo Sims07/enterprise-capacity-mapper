@@ -143,3 +143,15 @@ jobs:
           git add badges/coverage.json
           git diff --cached --quiet || git commit -m "docs: update unit coverage badge [skip ci]"
           git push
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
