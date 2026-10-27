@@ -1,11 +1,12 @@
 /* Keep the complete primary navigation inside mobile headers.
- * The four primary destinations share the available width instead of being
- * placed in a horizontally scrolling strip. Desktop layouts stay unchanged.
+ * The three textual destinations share the flexible space; Outils keeps a
+ * compact fixed-width icon slot so it cannot steal room from Cartographie.
+ * Desktop layouts stay unchanged.
  */
 @media (max-width: 600px) {
   .toolbar-switch.primary-navigation {
     display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1fr) 48px;
     overflow: visible !important;
     overflow-x: visible !important;
     flex-wrap: initial !important;
@@ -26,9 +27,11 @@
 
   .toolbar-switch.primary-navigation > button {
     flex: initial !important;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    padding-inline: 7px !important;
   }
 
   .toolbar-switch.primary-navigation .toolbar-tools > .toolbar-tools-toggle {
@@ -74,5 +77,12 @@
   .toolbar-switch.primary-navigation .toolbar-tools-panel {
     right: 0;
     width: min(320px, calc(100vw - 20px));
+  }
+}
+
+@media (max-width: 400px) {
+  .toolbar-switch.primary-navigation > button {
+    font-size: 11px;
+    padding-inline: 5px !important;
   }
 }
