@@ -14,6 +14,6 @@ test('préserve la navigation mobile étroite sans débordement horizontal', asy
   const headerBox = await navigation.boundingBox();
   expect(toolsBox).not.toBeNull();
   expect(headerBox).not.toBeNull();
-  expect(toolsBox!.left).toBeGreaterThanOrEqual(headerBox!.left);
-  expect(toolsBox!.right).toBeLessThanOrEqual(headerBox!.right + 1);
+  expect(toolsBox!.x).toBeGreaterThanOrEqual(headerBox!.x);
+  expect(toolsBox!.x + toolsBox!.width).toBeLessThanOrEqual(headerBox!.x + headerBox!.width + 1);
 });
