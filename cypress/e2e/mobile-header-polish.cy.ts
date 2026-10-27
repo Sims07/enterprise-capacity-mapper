@@ -26,6 +26,25 @@ describe('Mobile header polish', () => {
     });
   });
 
+  it('garde les quatre entrées de navigation dans le cadre, y compris Outils, à 390px', () => {
+    cy.get('.primary-navigation').then($nav => {
+      const nav = $nav[0].getBoundingClientRect();
+      expect(nav.left).to.be.at.least(0);
+      expect(nav.right).to.be.at.most(390);
+      expect(getComputedStyle(nav && $nav[0]).gridTemplateColumns.split(/\s+/)).to.have.length(4);
+      expect($nav[0].scrollWidth).to.be.at.most($nav[0].clientWidth + 1);
+    });
+
+    cy.get('[data-testid="tools-menu-toggle"]')
+      .should('be.visible')
+      .and('contain.text', 'Outils')
+      .then($toggle => {
+        const rect = $toggle[0].getBoundingClientRect();
+        expect(rect.left).to.be.at.least(0);
+        expect(rect.right).to.be.at.most(390);
+      });
+  });
+
   it('déclare une barre de statut iOS opaque alignée sur le header', () => {
     cy.get('meta[name="apple-mobile-web-app-status-bar-style"]')
       .should('have.attr', 'content', 'black');
