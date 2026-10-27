@@ -8,6 +8,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
   reporter: [['list'], ['html', { outputFolder: 'playwright-storybook-report', open: 'never' }]],
+  outputDir: 'test-results-storybook',
   snapshotPathTemplate: '{testDir}/__screenshots__/{arg}{ext}',
   use: {
     baseURL: 'http://127.0.0.1:6006',
