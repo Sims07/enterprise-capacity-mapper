@@ -7,11 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:e2e": "cypress run",
-    "test:unit": "node --test $(find src test tests -type f -name '*.test.ts' -print)",
-    "test:unit:coverage": "c8 --all --include='src/**' --exclude='**/*.test.*' --reporter=text-summary --reporter=json --reporter=json-summary --reports-dir=coverage-unit node --test $(find src test tests -type f -name '*.test.ts' -print)",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.strict-core.json --noEmit",
-    "test:unit:coverage:core": "c8 --all --include='src/domain/**' --include='src/application/**' --exclude='**/*.test.*' --reporter=text-summary --reporter=json --reporter=json-summary --reports-dir=coverage-unit-core node --test $(find src test tests -type f -name '*.test.ts' -print)"
+    "test:e2e": "playwright test",
+    "test:e2e:playwright": "playwright test",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage",
+    "test:unit:coverage:core": "vitest run --coverage --coverage.include='src/domain/**' --coverage.include='src/application/**' --coverage.reportsDirectory=coverage-unit-core",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.strict-core.json --noEmit"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -20,11 +21,12 @@
     "react-dom": "latest"
   },
   "devDependencies": {
-    "cypress": "latest",
-    "typescript": "latest",
+    "@playwright/test": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@cypress/code-coverage": "latest"
+    "@vitest/coverage-v8": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
   }
 }

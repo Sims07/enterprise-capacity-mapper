@@ -10,26 +10,24 @@ Enterprise Capacity Mapper est une application de cartographie de capacités mé
 - utilisable hors ligne comme PWA ;
 - sans backend ni base de données pour le fonctionnement nominal ;
 - centrée sur un modèle de cartographie JSON versionné ;
-- testable par des tests Node déterministes, des tests de contrats/adaptateurs et Cypress E2E.
+- testable sans navigateur pour la majorité de la logique et avec Playwright pour les parcours navigateur.
 
-La stack actuelle est React + Vite + TypeScript, avec `react-dom`, Vite et Cypress. Le code applicatif et les spécifications Cypress sont désormais en TypeScript ; les fichiers JavaScript ne constituent plus le code source applicatif ou les tests E2E. Les commandes de référence sont `npm run typecheck`, `npm run test:unit`, `npm run test:e2e` et `npm run build`.
+La stack est React + Vite + TypeScript. Les commandes de référence sont `npm run typecheck`, `npm run test:unit`, `npm run test:e2e` et `npm run build`.
 
 ## 2. Cartographie des responsabilités
 
 | Responsabilité | Implémentation actuelle | Ce qui doit rester stable |
 |---|---|---|
-| Bootstrap navigateur | `src/main.tsx` | Point d'entrée et initialisation PWA doivent rester remplaçables |
+| Bootstrap navigateur | `src/main.tsx` | Point d'entrée et initialisation PWA |
 | Orchestration UI | `src/App.tsx` | Parcours et règles métier observables |
 | Composants d'interface | `src/components/*.tsx` | Contrats fonctionnels et accessibilité |
-| Modèle de démonstration | `src/data/demoData.ts` | Aucun rôle d'infrastructure |
 | Persistance / import / export | `src/services/storage.ts` + ports/adaptateurs | Contrat de stockage et migrations de schéma |
 | Analyse déterministe | `src/domain/cartographyAnalysis.ts` | Entrée/sortie JSON et absence de mutation |
 | Fournisseurs IA | `src/adapters/ai/` | Contrats d'adaptation, séparation local/cloud |
-| Présentation | `src/styles/` | Tokens sémantiques et comportement visuel |
-| Tests de domaine/application | `src/domain/*.test.ts`, `src/application/*.test.ts` | Règles métier et transitions pures |
-| Tests de ports/adaptateurs | `src/ports/*.test.ts`, `src/adapters/**/*.test.ts`, `tests/ai/*.test.ts` | Contrats et intégrations isolées |
-| Tests de comportement | `cypress/e2e/*.cy.ts` | Parcours utilisateur critiques |
-| Déploiement | `.github/workflows/` | Build statique, base path GitHub Pages, publication |
+| Tests domaine/application | `src/domain/*.test.ts`, `src/application/*.test.ts` | Règles métier et transitions pures |
+| Tests ports/adaptateurs | `src/ports/*.test.ts`, `src/adapters/**/*.test.ts`, `tests/ai/*.test.ts` | Contrats et intégrations isolées |
+| Tests navigateur | `playwright/e2e/*.spec.ts` | Parcours utilisateur critiques et frontières navigateur |
+| Déploiement | `.github/workflows/` | Build statique, GitHub Pages, publication |
 | PWA | `public/` + `src/sw.ts` | Manifest, service worker, cache/offline |
 
 ## 3. Modèle métier invariant
@@ -38,7 +36,7 @@ La sémantique métier est indépendante de React :
 
 `Domaine N0 → Capacité N1 → Application`
 
-Le code TypeScript introduit deux modèles de domaine riches : `Catalog` (`src/domain/catalog.ts`) pour les identités, références et relations du catalogue, et `MapLayout` (`src/domain/mapLayout.ts`) pour les règles de matrice et de placement. `CatalogModel` reste le DTO JSON à la frontière de persistance ; il ne doit pas être utilisé comme objet métier mutable. Les cas d’usage adaptent les formulaires puis délèguent les transitions au domaine.
+Le code TypeScript utilise `Catalog` pour les identités, références et relations du catalogue et `MapLayout` pour les règles de matrice et de placement. `CatalogModel` reste le DTO JSON à la frontière de persistance.
 
 Une cartographie peut également être configurée en profondeur 1 :
 
@@ -46,103 +44,72 @@ Une cartographie peut également être configurée en profondeur 1 :
 
 Les relations applicatives restent explicites. Une application peut couvrir plusieurs cibles et une cible peut être couverte par plusieurs applications.
 
-Les concepts Gap, Redundancy, Impact et Coverage sont des concepts fonctionnels ; ils ne doivent pas être déduits de la technologie de présentation.
-
 ## 4. Contrat de données
 
-Le modèle actif utilise actuellement `schemaVersion: 3`. `src/services/storage.ts` assure :
-
-- lecture de la clé LocalStorage du modèle actif ;
-- migration des modèles v2 et des anciennes clés `ea_canvas_*` ;
-- normalisation du modèle ;
-- validation des références entre domaines, capacités et applications ;
-- gestion de la bibliothèque locale et des cartes récentes ;
-- import/export JSON ;
-- chargement optionnel d'un JSON distant HTTPS ;
-- normalisation d'une URL GitHub `blob` vers son contenu `raw`.
+Le modèle actif utilise `schemaVersion: 3`. `src/services/storage.ts` assure notamment la lecture du modèle actif, les migrations des anciens formats, la normalisation, la validation des références, la bibliothèque locale et l'import/export JSON.
 
 Ce contrat de données est la principale frontière de migration. Une nouvelle technologie ne doit pas lire directement les détails de LocalStorage si elle peut consommer le port `ModelRepository` et son adaptateur.
 
 ## 5. État et persistance
 
-Les préférences et l'état applicatif local utilisent actuellement LocalStorage. Cela comprend notamment le modèle, la bibliothèque locale, les cartes récentes, le thème et la configuration de certaines fonctions.
+Les préférences et l'état applicatif local utilisent actuellement LocalStorage. Le dépôt autorise également une source JSON distante pour des données partagées/publiées.
 
-Le dépôt autorise une source JSON distante pour les données partagées/publiées. Cette source est volontairement distincte de la persistance locale.
+LocalStorage n'est pas le modèle métier : c'est une implémentation de persistance remplaçable derrière une frontière explicite.
 
-**Conséquence pour une migration :** LocalStorage n'est pas le modèle métier. C'est une implémentation d'un mécanisme de persistance. Electron, IndexedDB, un fichier local, une API ou une autre technologie pourront remplacer cet adaptateur sans redéfinir la sémantique du modèle.
+## 6. Pyramide de tests
 
-## 6. Tests et pyramide de tests
-
-La stratégie actuelle suit une pyramide volontairement déséquilibrée vers le bas :
+La pyramide est volontairement déséquilibrée vers les niveaux rapides :
 
 ```text
                  /\
                 /  \
-               / E2E\       Cypress — parcours utilisateur critiques
-              /------\      17 specs / 105 tests sur l'état de référence récent
+               / E2E\       Playwright — parcours utilisateur critiques
+              /------\      navigateur réel, UI, PWA et persistance
              / Contrats\    ports + adaptateurs + intégrations ciblées
             /------------\
-           / Unitaires     \ domaine + application + règles déterministes
+           / Unitaires     \ Vitest + V8 — domaine + application
           /----------------\
 ```
 
-Les responsabilités sont séparées ainsi :
+### Domaine / unitaires — Vitest
 
-- **Domaine / unitaires** : règles et invariants, calculs de couverture/impact, modèle riche `Catalog` et `MapLayout`, transitions et cas limites. Ces tests sont exécutés sans navigateur lorsque cela est possible.
-- **Application / contrats / adaptateurs** : cas d'usage, ports, persistance navigateur, navigation, préférences et fournisseurs IA avec dépendances injectées. Ils vérifient les frontières plutôt que l'implémentation privée.
-- **Cypress E2E** : comportement visible et intégration réelle de l'UI, persistance navigateur et intégration PWA/browser. Les scénarios critiques sont conservés ; les scénarios purement redondants ont été rationalisés.
+Les règles et invariants, calculs, migrations, modèles riches, transitions et cas limites sont exécutés sans navigateur. Vitest est le runner unique de cette couche et V8 fournit la couverture source.
 
-La CI impose en particulier une couverture ligne de **95 % minimum sur le noyau domaine + application**. La couverture consolidée combine la couverture des tests unitaires et Cypress sur leur périmètre commun ; le badge publié correspond à cette union consolidée. La couverture Cypress seule reste un indicateur complémentaire et n'est pas confondue avec la couverture consolidée.
+Le noyau domaine + application conserve un seuil CI de **95 % de couverture ligne**.
 
-La suite Cypress récente a été rationalisée sans retirer les parcours métier critiques : 17 specs et 105 tests, avec 79,27 % de couverture Cypress et 87,21 % de couverture consolidée sur la dernière CI documentée de la PR de rationalisation. Les tests unitaires domaine/application étaient à 96,8 %, au-dessus du seuil CI de 95 %.
+### Application / contrats / adaptateurs
 
-La suite E2E doit être considérée comme un **oracle comportemental** : lors d'une migration, on cherche à conserver les comportements attendus, pas les sélecteurs, composants ou détails d'implémentation React.
+Les cas d'usage, ports, persistance, navigation, préférences et fournisseurs IA sont testés sans navigateur lorsqu'une simulation de dépendance apporte la même confiance.
 
-Les assertions fragiles sur les valeurs RGB/RGBA ne font pas partie du contrat de migration. Les tests doivent privilégier les rôles, textes utiles, états accessibles et effets visibles.
+### E2E — Playwright
 
-## 7. Dépendances technologiques à isoler
+Playwright vérifie les comportements visibles et les frontières qui nécessitent réellement un navigateur : navigation, UI, LocalStorage, import/export, responsive, compagnon, PWA et parcours critiques.
 
-Les dépendances suivantes sont explicitement liées à la plateforme actuelle :
+La suite est organisée autour de `critical-workflows.spec.ts`, `regression.spec.ts`, `mobile-navigation.spec.ts` et `mobile.spec.ts`. Elle utilise Chromium desktop et un projet Chromium mobile à 390×844 avec touch, des workers parallèles en CI, des traces en cas d'échec et des screenshots uniquement en cas d'échec.
 
-- React / `react-dom` : rendu et cycle de vie UI ;
-- Vite : bundling et serveur de développement ;
-- Browser APIs : `localStorage`, `fetch`, `Blob`, `URL`, événements clavier/souris ;
-- service worker / manifest : installation et cache/offline ;
-- GitHub Pages : hébergement statique et base path ;
-- Cypress : exécution des scénarios E2E.
+La couverture E2E n'est **pas** une métrique source : elle sert d'oracle comportemental. Cela évite d'instrumenter le build uniquement pour compter les lignes traversées par le navigateur.
 
-Lors d'une migration, chacune doit être classée comme :
+## 7. Principes de non-régression
 
-1. **à conserver** parce qu'elle porte un besoin métier ou un contrat utilisateur ;
-2. **à adapter** parce qu'elle dépend du runtime ;
-3. **à remplacer** parce qu'elle appartient à la plateforme ;
-4. **à supprimer** parce qu'elle n'est plus nécessaire.
+Les tests E2E ne doivent pas recopier les tests métier. Ils doivent valider des parcours et des frontières. Les assertions privilégient les rôles, textes utiles, états accessibles et effets observables plutôt que les détails CSS fragiles.
 
-## 8. Zones de couplage actuelles à surveiller
+Lorsqu'un parcours change fonctionnellement, le test Playwright associé doit être adapté dans la même PR. Les tests unitaires et contrats doivent rester au niveau le plus bas qui apporte une confiance suffisante.
 
-### `src/App.tsx`
+## 8. Dépendances technologiques à isoler
 
-Le composant principal reste volumineux et concentre encore beaucoup d'orchestration, d'état, de formulaires et de comportements. C'est le principal point de couplage avec React. Les ports, cas d'usage et modèles riches réduisent déjà le couplage métier, mais une migration UI importante devra éviter de reproduire cette concentration.
+Les dépendances liées au runtime sont notamment React, Vite, les Browser APIs (`localStorage`, `fetch`, `Blob`, `URL`), le service worker/manifest et GitHub Pages. Elles doivent rester remplaçables derrière les ports et adaptateurs appropriés.
 
-### `src/services/storage.ts`
-
-La frontière existe et est maintenant consommée derrière `ModelRepository`, mais le service regroupe encore modèle, migration, validation, persistance et import/export. C'est une bonne frontière fonctionnelle ; elle pourra être découpée progressivement si un bénéfice concret apparaît.
-
-### Browser APIs
-
-Le code utilise directement plusieurs API navigateur dans les adaptateurs. Elles doivent rester derrière ces frontières dans toute migration vers Electron ou un autre runtime.
+Le runner E2E actuel est Playwright. Cypress et son instrumentation Istanbul ne font plus partie de la chaîne de validation.
 
 ## 9. Ce qui n'est pas un objectif de migration
 
-Une migration ne doit pas modifier implicitement :
+Une évolution technique ne doit pas modifier implicitement :
 
 - la sémantique TOGAF / capability mapping ;
 - la structure logique N0/N1/Application ;
 - les règles de couverture et de relations ;
 - le format d'import/export sans plan de compatibilité ;
 - les règles de validation ;
-- les comportements critiques couverts par Cypress ;
+- les comportements critiques couverts par Playwright ;
 - les garanties de confidentialité du compagnon IA ;
 - la capacité à récupérer une cartographie existante.
-
-Toute modification de ces éléments est une évolution fonctionnelle distincte et doit être traitée comme telle.

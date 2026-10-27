@@ -1,227 +1,138 @@
 # Enterprise Capacity Mapper
 
 [![Deploy PWA to GitHub Pages](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
-[![Combined line coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Sims07/enterprise-capacity-mapper/coverage-badge/coverage.json&cacheSeconds=300)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
 [![Latest release](https://img.shields.io/github/v/release/Sims07/enterprise-capacity-mapper?display_name=tag&sort=semver)](https://github.com/Sims07/enterprise-capacity-mapper/releases)
-[![GitHub issues](https://img.shields.io/github/issues/Sims07/enterprise-capacity-mapper)](https://github.com/Sims07/enterprise-capacity-mapper/issues)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
-[![React](https://img.shields.io/badge/React-Vite-646CFF?logo=vite&logoColor=white)](https://github.com/Sims07/enterprise-capacity-mapper)
 
 Application PWA de cartographie des capacités métier et de leur couverture applicative.
 
-## Cible d'architecture
+## Architecture
 
-L'application est volontairement conçue pour pouvoir évoluer de runtime sans perdre son modèle métier. Le modèle de cartographie, ses règles et ses contrats de données constituent la référence ; React, Vite, le navigateur, LocalStorage, PWA et GitHub Pages sont des choix d'implémentation actuels.
+L'application est conçue pour rester statique, déployable sur GitHub Pages et utilisable hors ligne comme PWA. Le modèle métier et les contrats de données sont indépendants du runtime React et de la persistance navigateur.
 
-La documentation de référence pour les futures migrations se trouve dans [`docs/architecture/`](docs/architecture/). Elle contient notamment l'état actuel, les frontières d'indépendance technologique, le playbook de migration, les ADR et la checklist de migration.
+La cartographie suit le modèle :
 
-**Point important :** une migration vers Electron ne signifie pas nécessairement remplacer React. Le scénario à plus faible risque est d'abord d'utiliser Electron comme shell installable autour du renderer React existant, puis de changer éventuellement le renderer ou le stockage dans des étapes séparées.
+`Domaine N0 → Capacité N1 → Application`
+
+Une application peut couvrir plusieurs capacités et une capacité peut être couverte par plusieurs applications. Le modèle JSON actif utilise `schemaVersion: 3` et les migrations sont gérées par les services de persistance.
+
+Les références d'architecture sont dans [`docs/architecture/`](docs/architecture/), notamment [`current-state.md`](docs/architecture/current-state.md), les ADR et le playbook de migration.
+
+## Fonctionnalités
+
+- cartographie TOGAF / capability mapping ;
+- capacités N1 et applications associées ;
+- analyse de couverture, gaps, redondances et impact ;
+- gestion des relations ;
+- création de cartographies avec assistant ;
+- import/export JSON versionné ;
+- bibliothèque locale et cartographies récentes ;
+- historique annuler/rétablir ;
+- compagnon IA local/configurable ;
+- thème clair/sombre ;
+- responsive mobile ;
+- PWA avec fonctionnement hors ligne après chargement préalable.
 
 ## Structure du dépôt
 
-Les fichiers sont regroupés par responsabilité, sans multiplier les couches inutiles :
-
 ```text
 .
-├── .github/workflows/   # Déploiement et contrôles GitHub Actions
-├── cypress/e2e/         # Scénarios de tests de bout en bout (*.cy.ts)
-├── docs/                # Documentation fonctionnelle, architecture et migration
-├── public/              # Manifest, icônes et service worker PWA
+├── .github/workflows/       # CI, contrôles et déploiement GitHub Pages
+├── docs/                    # Architecture, tests, décisions et documentation
+├── playwright/e2e/          # Parcours E2E navigateur Playwright
+├── public/                  # Manifest, icônes et service worker PWA
 ├── src/
-│   ├── App.tsx          # Orchestration UI
-│   ├── adapters/        # Adaptateurs de plateforme / fournisseurs
-│   ├── application/     # Cas d'usage
-│   ├── components/      # Composants React TSX
-│   ├── data/            # Modèle de démonstration
-│   ├── domain/          # Modèle métier et règles
-│   ├── ports/           # Contrats d'architecture
-│   ├── services/        # Services applicatifs, notamment stockage
-│   ├── styles/          # Styles CSS et tokens
-│   ├── main.tsx         # Point d'entrée React et enregistrement PWA
-│   └── sw.ts            # Service worker
-├── index.html
+│   ├── adapters/            # Adaptateurs plateforme / fournisseurs
+│   ├── application/         # Cas d'usage
+│   ├── components/          # Composants React
+│   ├── data/                # Modèle de démonstration
+│   ├── domain/              # Modèle métier et règles
+│   ├── ports/               # Contrats d'architecture
+│   ├── services/            # Persistance et services applicatifs
+│   └── styles/              # Styles et tokens
+├── playwright.config.ts
+├── vitest.config.ts
 ├── package.json
 └── vite.config.ts
 ```
 
-Le code applicatif et les tests Cypress sont en TypeScript. Les fichiers JavaScript ne font plus partie du code source applicatif ni des spécifications E2E ; les éventuels fichiers d'outillage restant hors périmètre ne sont pas assimilés au code métier.
+## Pyramide de tests
 
-## Documentation d'architecture et de migration
+La suite privilégie les tests rapides et garde le navigateur pour les comportements qui en ont réellement besoin :
 
-- [`docs/architecture/current-state.md`](docs/architecture/current-state.md) — photographie de l'architecture actuelle, de la pyramide de tests et des couplages à surveiller.
-- [`docs/architecture/target-independence.md`](docs/architecture/target-independence.md) — frontières recommandées entre métier, application, ports et adaptateurs.
-- [`docs/architecture/typescript-architecture-standard.md`](docs/architecture/typescript-architecture-standard.md) — référentiel officiel TypeScript : ports, adaptateurs, `satisfies`, injection, modèle métier et tests.
-- [`docs/architecture/typescript-migration-inventory.md`](docs/architecture/typescript-migration-inventory.md) — inventaire de migration et état de sortie du JavaScript applicatif.
-- [`docs/architecture/adr/0003-rich-domain-model.md`](docs/architecture/adr/0003-rich-domain-model.md) — décisions sur les invariants métier, l'agrégat `Catalog` et le modèle riche `MapLayout`.
-- [`docs/architecture/migration-playbook.md`](docs/architecture/migration-playbook.md) — procédure de migration étape par étape et stratégie de non-régression.
-- [`docs/architecture/migration-checklist.md`](docs/architecture/migration-checklist.md) — checklist prête à l'emploi pour une future PR de migration.
-- [`docs/architecture/adr/0001-technology-migration-principles.md`](docs/architecture/adr/0001-technology-migration-principles.md) — décision d'architecture sur les principes de migration.
-- [`docs/architecture/adr/0002-typescript-ports-adapters.md`](docs/architecture/adr/0002-typescript-ports-adapters.md) — décision officielle sur les ports et adaptateurs TypeScript.
-- [`AGENTS.md`](AGENTS.md) — règles de contribution et de travail des agents IA.
+1. **Vitest / unitaires** — domaine, application, règles métier, invariants, migrations et transitions pures.
+2. **Tests de contrats / adaptateurs** — frontières de persistance, navigation, préférences et fournisseurs.
+3. **Playwright / E2E** — parcours utilisateur critiques, UI réelle, persistance navigateur, import/export, responsive et PWA.
 
-## Principes de migration
+La couverture source de référence est fournie par **V8/Vitest**. Le noyau domaine + application doit conserver **au moins 95 % de couverture ligne**.
 
-1. Le modèle métier est la source de vérité, pas React ni LocalStorage.
-2. Les règles métier doivent pouvoir être testées sans navigateur lorsque cela apporte une valeur réelle.
-3. Les stockages et intégrations de plateforme sont remplaçables derrière des frontières explicites.
-4. Les tests E2E décrivent des comportements utilisateur et servent d'oracle de migration ; ils ne doivent pas dépendre de détails d'implémentation.
-5. Les changements de schéma sont versionnés et migrés explicitement.
-6. Les migrations sont progressives et réalisées dans une PR dédiée.
-7. Aucun big bang n'est nécessaire si une coexistence temporaire réduit le risque.
+Playwright utilise Chromium desktop et une configuration mobile 390×844 avec touch. Les tests E2E sont parallélisables et conservent les traces en cas d'échec.
 
-## Caractéristiques actuelles
+Cypress et son instrumentation Istanbul ont été retirés du projet : ils ne sont plus nécessaires pour la pyramide de tests et le pipeline CI.
 
-- **Frontend** : React + Vite + TypeScript, statique et compatible GitHub Pages.
-- **PWA** : manifest + service worker + cache offline.
-- **Données locales** : LocalStorage V3 par défaut, avec migration automatique des anciennes clés `ea_canvas_*`.
-- **Échange** : import/export JSON versionné (`schemaVersion: 3`).
-- **Modèle** : Domaines N0 → Capacités N1 → Applications, avec une relation application-capacité **N↔N**.
-- **Personnalisation** : édition des domaines N0 et renommage des capacités N1, couleurs N0 choisies dans une palette ou personnalisées, renommage/gestion des colonnes et layers, nom distinct pour chaque zone à leur croisement, et création d'une cartographie vierge.
-- **Étendue multi-colonnes** : un domaine N0 peut couvrir plusieurs colonnes adjacentes sur une même ligne de la matrice.
-- **Analyse d'impact** : capacités sollicitées, applications impactées, gaps et redondances.
-- **Historique** : annulation et rétablissement des modifications du modèle, avec raccourcis clavier.
-- **Bibliothèque locale** : enregistrement de plusieurs cartographies et accès aux cartographies récemment ouvertes dans le navigateur.
-- **Compagnon IA** : analyse déterministe locale et fournisseurs configurables, avec séparation des responsabilités et protections documentées.
-- **Déploiement** : GitHub Actions → GitHub Pages.
-- **Backend** : aucun backend requis pour le fonctionnement nominal.
+## Commandes de développement
 
-## Stratégie de tests
-
-La pyramide de tests est organisée pour mettre le maximum de confiance au niveau le moins coûteux :
-
-1. **Domaine / unitaires** — règles métier, invariants, calculs, migrations et transitions pures.
-2. **Application / contrats / adaptateurs** — cas d'usage et frontières avec LocalStorage, navigation, préférences et fournisseurs IA via injection de dépendances.
-3. **Cypress E2E** — parcours utilisateurs critiques, intégration UI/browser/PWA et quelques scénarios de bout en bout représentatifs.
-
-La CI impose **95 % minimum de couverture ligne sur le noyau domaine + application**. La couverture consolidée correspond à l'union des lignes couvertes par les tests unitaires et Cypress sur le périmètre commun ; c'est cette valeur consolidée qui alimente le badge. La couverture Cypress seule est publiée comme métrique technique complémentaire.
-
-La dernière rationalisation documentée de Cypress a ramené la suite à **17 specs / 105 tests**, sans suppression des parcours métier critiques, avec **79,27 % de couverture Cypress**, **87,21 % de couverture consolidée** et **96,8 % de couverture unitaire domaine/application**.
-
-## Utiliser l'application
-
-### Créer ou ouvrir une cartographie
-
-1. Ouvrez l'application depuis GitHub Pages ou lancez-la localement (voir [Développement local](#développement-local)).
-2. Utilisez l'assistant de création pour nommer la cartographie et définir ses colonnes et ses lignes (*layers*). Vous pouvez créer une cartographie vierge, puis ajouter les domaines au fur et à mesure.
-3. Dans la matrice, utilisez **Ajouter un domaine ici** dans la cellule souhaitée pour créer un domaine N0 à cet emplacement.
-4. Renseignez les champs obligatoires signalés dans le formulaire, puis enregistrez. Pour modifier un domaine par la suite, utilisez son action **Modifier**.
-
-### Faire couvrir plusieurs colonnes à un domaine N0
-
-Cette fonction sert à représenter visuellement un domaine transverse qui concerne plusieurs colonnes adjacentes de la cartographie. Elle modifie la présentation et le positionnement du **domaine N0** ; elle ne fusionne pas les capacités N1 ni les applications associées.
-
-1. Dans la matrice, ouvrez **Modifier** sur le domaine N0 concerné.
-2. Choisissez la **Colonne** de départ et la **Ligne (layer)** où le domaine doit apparaître.
-3. Dans **Étendue sur les colonnes**, choisissez le nombre de colonnes adjacentes que le domaine doit couvrir. La liste est limitée aux colonnes disponibles à partir de la colonne de départ.
-4. Cliquez sur **Enregistrer**. Le domaine s'étend visuellement sur le nombre de colonnes choisi ; les cellules couvertes ne sont pas affichées séparément sur cette ligne.
-5. Pour réduire ou augmenter cette étendue plus tard, revenez dans **Modifier** et choisissez une nouvelle valeur.
-
-**Règles de placement :**
-
-- L'étendue porte sur des colonnes adjacentes, à partir de la colonne de départ.
-- Un domaine ne peut pas dépasser la dernière colonne de la matrice.
-- Deux domaines ne peuvent pas se chevaucher sur la même ligne (*layer*). Si le placement ou l'étendue provoque un chevauchement, l'enregistrement est refusé et un message d'erreur est affiché.
-- Lors d'un déplacement par glisser-déposer, l'application vérifie également que la nouvelle position est disponible.
-- Les domaines existants qui ne définissent pas d'étendue utilisent une valeur de **1 colonne** par défaut : les cartographies JSON existantes restent donc compatibles.
-
-### Capacités et applications
-
-### Relier des applications aux capacités
-
-Trois façons complémentaires, sans changement du modèle de données :
-
-- **Glisser-déposer** : l'inventaire reste visible (sticky) pendant que la page défile, la page défile automatiquement près des bords pendant un glissement, et la cible survolée est surlignée.
-- **Sans glisser-déposer** : bouton **Relier à…** sur chaque application de l'inventaire, ou **Relier des applications…** dans le menu ⋮ d'une capacité N1 (d'un domaine N0 en cartographie à 1 niveau).
-- **Onglet Relations** : arbre repliable Domaine N0 → Capacité N1 → Applications. Chaque ligne N1 est une zone de dépôt pleine largeur ; cochez plusieurs applications dans l'inventaire puis cliquez sur **Relier ici**. Filtres *Gaps seulement* / *Redondances seulement*, navigation clavier (↑ ↓ ← → Début Fin). En cartographie à 1 niveau, l'arbre relie directement les domaines N0.
-
-- Les capacités N1 restent rattachées à leur domaine N0.
-- Une application peut être associée à plusieurs capacités, et une capacité peut être couverte par plusieurs applications.
-- L'étendue multi-colonnes ne change pas ces associations : elle concerne uniquement la représentation du domaine dans la matrice.
-
-### Annuler et rétablir des modifications
-
-- Utilisez **Annuler** ou **Rétablir** dans la barre d'outils pour parcourir l'historique de la cartographie.
-- Raccourcis : **Ctrl+Z** pour annuler, **Ctrl+Y** ou **Ctrl+Maj+Z** pour rétablir. Sur macOS, utilisez **Cmd** à la place de Ctrl.
-- L'historique porte sur les modifications enregistrées du modèle et conserve jusqu'à **50 étapes**. Une nouvelle modification après une annulation remplace la suite de rétablissement.
-- Dans un champ de formulaire, les raccourcis restent réservés à l'édition du texte.
-
-### Enregistrer et ouvrir plusieurs cartographies
-
-- Cliquez sur **Sauvegarder** pour enregistrer la cartographie actuelle dans la bibliothèque de ce navigateur. Lors du premier enregistrement, donnez-lui un nom ; ensuite, le même bouton met à jour cette sauvegarde.
-- Cliquez sur **Mes cartographies** pour ouvrir une cartographie récente ou une sauvegarde nommée. Les dix dernières cartographies actives sont gardées dans la liste **Récemment ouvertes**, même sans sauvegarde nommée.
-- L'application demande confirmation avant d'ouvrir une cartographie, car cela remplace celle qui est affichée.
-- Les changements apportés à une cartographie déjà enregistrée ne modifient pas sa sauvegarde tant que vous ne cliquez pas de nouveau sur **Sauvegarder**.
-- La bibliothèque est propre à chaque navigateur et appareil. Utilisez l'export JSON pour transférer ou partager une cartographie.
-
-### Sauvegarder et partager les données
-
-- Les modifications sont conservées dans le stockage local du navigateur.
-- Utilisez l'import/export JSON pour sauvegarder une cartographie, l'archiver ou la partager.
-- Pour transférer une cartographie vers un autre navigateur ou poste, exportez le JSON puis importez-le dans l'autre environnement.
-- La disponibilité hors ligne dépend du chargement préalable de l'application et du cache PWA du navigateur.
-
-## Développement local
+Installer les dépendances :
 
 ```bash
 npm install
+```
+
+Développement :
+
+```bash
 npm run dev
 ```
 
-Production :
+Build et prévisualisation :
 
 ```bash
 npm run build
 npm run preview
 ```
 
-Pour vérifier les parcours automatisés :
-
-```bash
-npm run test:e2e
-```
-
-Les règles déterministes peuvent également être vérifiées avec :
-
-```bash
-npm run test:unit
-```
-
-Pour reproduire les contrôles de typage :
+Typecheck :
 
 ```bash
 npm run typecheck
 ```
 
-La CI exécute également les couvertures unitaires, la couverture Cypress, leur consolidation, puis le build de production avant publication.
+Tests unitaires :
 
-## Données
+```bash
+npm run test:unit
+```
 
-Le modèle actif est stocké sous la clé `enterprise-capacity-mapper:model:v3`. La bibliothèque de cartographies nommées est stockée séparément dans le LocalStorage du navigateur.
+Couverture :
 
-L'étendue d'un domaine est enregistrée dans `layout.columnSpan` (nombre de colonnes, avec une valeur par défaut de `1`). Les informations de position sont conservées dans `layout.columnId` et `layout.layerId`.
+```bash
+npm run test:unit:coverage
+npm run test:unit:coverage:core
+```
 
-Le JSON exporté peut être versionné dans un dépôt GitHub ou partagé. L'application ne met volontairement **aucun token GitHub permanent dans le navigateur** : une écriture authentifiée dans un dépôt devra passer par un mécanisme d'authentification explicite ou un backend de confiance.
+E2E :
 
-## GitHub Pages
+```bash
+npm run test:e2e
+```
 
-Le workflow `.github/workflows/deploy-pages.yml` construit automatiquement l'application à chaque push sur `main`.
+Débogage Playwright :
 
-Dans GitHub : **Settings → Pages → Source: GitHub Actions**.
+```bash
+npx playwright test --debug
+npx playwright show-report
+```
 
-## Évolution et migrations
+## CI et déploiement
 
-Pour une évolution technologique structurante, commencer par [`docs/architecture/migration-playbook.md`](docs/architecture/migration-playbook.md) et la [`checklist de migration`](docs/architecture/migration-checklist.md). Les décisions qui modifient les principes d'architecture doivent être tracées par ADR.
+GitHub Actions vérifie successivement le typecheck, les tests Vitest, la couverture V8, le seuil domaine/application, le build puis la suite Playwright desktop/mobile. Le déploiement GitHub Pages n'est effectué que lorsque les validations nécessaires passent.
 
-Le scénario de migration à privilégier pour une application installable est généralement :
+Les rapports Vitest et Playwright sont conservés comme artefacts CI en cas de besoin de diagnostic.
 
-1. conserver le modèle métier et les tests ;
-2. isoler les accès plateforme ;
-3. ajouter Electron comme shell si nécessaire ;
-4. migrer le stockage vers un adaptateur local approprié ;
-5. ne remplacer le renderer React que si le bénéfice est démontré ;
-6. valider chaque tranche par les tests de non-régression ;
-7. supprimer l'ancien runtime/adaptateur uniquement après validation complète.
+## Principes de contribution
 
-## Licence
-
-MIT.
+- Une évolution fonctionnelle et ses tests évoluent dans la même PR.
+- Les tests doivent être placés au niveau le plus bas qui apporte suffisamment de confiance.
+- Un test E2E doit représenter un comportement utilisateur, pas un détail d'implémentation React.
+- Les changements de schéma JSON sont versionnés et migrés explicitement.
+- Toute migration technique se fait dans une PR dédiée et n'est jamais mergée sans autorisation explicite.
