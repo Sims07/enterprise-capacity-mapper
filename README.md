@@ -1,6 +1,7 @@
 # Enterprise Capacity Mapper
 
 [![Deploy PWA to GitHub Pages](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
+[![Unit line coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FSims07%2Fenterprise-capacity-mapper%2Fmain%2Fbadges%2Fcoverage.json)](https://github.com/Sims07/enterprise-capacity-mapper/actions/workflows/deploy-pages.yml)
 [![Latest release](https://img.shields.io/github/v/release/Sims07/enterprise-capacity-mapper?display_name=tag&sort=semver)](https://github.com/Sims07/enterprise-capacity-mapper/releases)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?logo=pwa)](https://github.com/Sims07/enterprise-capacity-mapper)
 
@@ -64,7 +65,7 @@ La suite privilégie les tests rapides et garde le navigateur pour les comportem
 2. **Tests de contrats / adaptateurs** — frontières de persistance, navigation, préférences et fournisseurs.
 3. **Playwright / E2E** — parcours utilisateur critiques, UI réelle, persistance navigateur, import/export, responsive et PWA.
 
-La couverture source de référence est fournie par **V8/Vitest**. Le noyau domaine + application doit conserver **au moins 95 % de couverture ligne**.
+La couverture source de référence est fournie par **V8/Vitest**. Le badge « Unit line coverage » présente la couverture ligne de l'ensemble des tests unitaires et est actualisé par GitHub Actions après une exécution réussie sur `main`. Le noyau domaine + application doit conserver **au moins 95 % de couverture ligne** ; ce seuil est vérifié séparément par la CI.
 
 Playwright utilise Chromium desktop et une configuration mobile 390×844 avec touch. Les tests E2E sont parallélisables et conservent les traces en cas d'échec.
 
@@ -127,7 +128,7 @@ npx playwright show-report
 
 GitHub Actions vérifie successivement le typecheck, les tests Vitest, la couverture V8, le seuil domaine/application, le build puis la suite Playwright desktop/mobile. Le déploiement GitHub Pages n'est effectué que lorsque les validations nécessaires passent.
 
-Les rapports Vitest et Playwright sont conservés comme artefacts CI en cas de besoin de diagnostic.
+Les rapports Vitest et Playwright sont conservés comme artefacts CI en cas de besoin de diagnostic. Le badge de couverture s'appuie sur un endpoint Shields.io alimenté par `badges/coverage.json`, versionné dans le dépôt et mis à jour automatiquement uniquement après le succès du pipeline sur `main`.
 
 ## Principes de contribution
 
