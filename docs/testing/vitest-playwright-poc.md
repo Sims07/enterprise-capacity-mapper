@@ -1,43 +1,69 @@
-# POC Vitest + Playwright
+# Vitest + Playwright — stratégie de tests
 
-## Objectif
+La migration de la pyramide de tests est maintenant terminée sur cette branche.
 
-Cette PR teste une évolution de la pyramide de tests sans changer le comportement métier :
+## Principes
 
-- **Vitest** devient le runner des tests unitaires existants, en conservant temporairement leur API `node:test` via un alias de compatibilité afin d'éviter une réécriture mécanique de la suite.
-- **V8 coverage** remplace l'instrumentation Istanbul nécessaire à la couverture unitaire. Vitest collecte la couverture directement à l'exécution, sans build instrumenté dédié.
-- **Playwright** devient le runner E2E cible. Le POC couvre quelques parcours à forte valeur métier et une validation mobile.
-- **Cypress est conservé pendant le POC** avec `npm run test:e2e:cypress` et la CI historique. Il n'est donc pas supprimé avant d'avoir comparé les résultats et la stabilité.
+- **Vitest** est le runner des tests unitaires. Les tests existants utilisant l'API `node:test` sont exécutés via un petit adaptateur de compatibilité afin d'éviter une réécriture mécanique.
+- **V8 coverage** collecte la couverture directement pendant les tests unitaires. Il n'y a plus de build instrumenté Istanbul dédié à l'E2E.
+- **Playwright** est le runner E2E. Les tests décrivent des comportements utilisateur, la persistance et les frontières navigateur/PWA.
+- Les règles métier restent au niveau domaine/application et les contrats/adaptateurs restent testés sans navigateur lorsque c'est suffisant.
 
-## Périmètre Playwright du POC
+## E2E Playwright
 
-Les scénarios sont volontairement peu nombreux :
+La suite est organisée par valeur fonctionnelle :
 
-1. renommer une capacité N1 et vérifier la persistance après rechargement ;
-2. créer une cartographie vierge avec l'assistant ;
-3. vérifier sur un viewport Chromium de 390×844 que l'assistant de création reste dans les limites de l'écran ;
-4. enregistrer une cartographie locale et la retrouver après rechargement.
+- `critical-workflows.spec.ts` : parcours critiques de renommage, assistant et bibliothèque locale ;
+- `regression.spec.ts` : navigation, wizard, analyse/relations, import/export, migration locale et compagnon ;
+- `mobile-navigation.spec.ts` et `mobile.spec.ts` : validations responsive à 390×844, débordement horizontal, contrôles tactiles, structure et compagnon.
 
-Ces scénarios représentent le bon niveau pour l'E2E : navigateur réel, UI, navigation et frontière de persistance. Les règles métier détaillées restent couvertes en tests unitaires/contrats.
+Les scénarios sont exécutés avec Chromium desktop et un projet Chromium mobile simulant un viewport 390×844 avec touch.
 
-## Commandes
+Playwright utilise des attentes et assertions orientées utilisateur, des workers parallèles en CI, des traces conservées en cas d'échec et des screenshots uniquement en cas d'échec.
+
+## Couverture
+
+La couverture source de référence est désormais celle de Vitest/V8 :
+
+```bash
+npm run test:unit:coverage
+npm run test:unit:coverage:core
+```
+
+Le noyau domaine + application conserve son seuil minimal de **95 % de couverture ligne**.
+
+La couverture E2E n'est volontairement plus utilisée comme métrique source : son rôle est de valider des parcours et des frontières navigateur. Cela évite d'instrumenter le build de production uniquement pour mesurer le passage des tests E2E.
+
+## CI
+
+Le workflow de déploiement :
+
+1. installe les dépendances ;
+2. exécute les unitaires Vitest ;
+3. produit et vérifie les rapports de couverture V8 ;
+4. vérifie le seuil domaine/application ;
+5. construit l'application ;
+6. installe Chromium Playwright ;
+7. exécute la suite E2E desktop/mobile ;
+8. publie les rapports de test ;
+9. publie l'application sur GitHub Pages lorsque toutes les validations passent.
+
+Cypress et son instrumentation Istanbul ont été retirés de la CI et du projet.
+
+## Commandes locales
 
 ```bash
 npm run test:unit
 npm run test:unit:coverage
 npm run test:unit:coverage:core
 npm run test:e2e:playwright
-npm run test:e2e:cypress
+npm run build
+npm run typecheck
 ```
 
-Le POC Playwright utilise Chromium desktop et un viewport mobile Chromium de 390×844. Les traces sont conservées en cas d'échec.
+Pour diagnostiquer un E2E :
 
-## Suite après le POC
-
-Si les résultats CI confirment la stabilité et le gain de temps, la migration pourra être faite progressivement :
-
-1. transférer les autres parcours Cypress utiles vers Playwright ;
-2. supprimer les doublons Cypress ;
-3. décider si la couverture E2E reste une métrique séparée ou si la couverture source unitaire devient la métrique principale ;
-4. retirer l'instrumentation Cypress et le build instrumenté de la CI ;
-5. supprimer Cypress seulement lorsque la couverture comportementale équivalente est démontrée.
+```bash
+npx playwright test --debug
+npx playwright show-report
+```
