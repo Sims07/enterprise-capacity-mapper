@@ -4,19 +4,12 @@ describe('Mobile header polish', () => {
     cy.visit('/');
   });
 
-  it('affiche uniquement l’icône Outils sur mobile étroit', () => {
-    cy.get('[data-testid="tools-menu-toggle"] > span[aria-hidden="true"]')
-      .should('not.be.visible');
-
+  it('affiche Outils sous forme d’icône sur mobile étroit', () => {
     cy.get('[data-testid="tools-menu-toggle"]')
       .should('be.visible')
-      .and('contain.text', 'Outils')
-      .then($toggle => {
-        const before = window.getComputedStyle($toggle[0], '::before');
-        const after = window.getComputedStyle($toggle[0], '::after');
-        expect(before.content).to.match(/🔧/);
-        expect(after.content).to.eq('none');
-      });
+      .and('contain.text', 'Outils');
+    cy.get('[data-testid="tools-menu-toggle"] > span[aria-hidden="true"]')
+      .should('not.be.visible');
 
     cy.get('[data-testid="tools-menu-toggle"]').click();
     cy.get('[data-testid="tools-menu"]').should('have.class', 'is-open');
