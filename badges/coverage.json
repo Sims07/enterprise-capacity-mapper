@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "label": "unit line coverage",
-  "message": "32.8%",
-  "color": "red"
+  "label": "unit/integration line coverage",
+  "message": "95.7%",
+  "color": "brightgreen"
 }
