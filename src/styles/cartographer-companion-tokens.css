@@ -1,0 +1,18 @@
+/* Pont visuel du compagnon vers la palette sémantique officielle. */
+.companion-root {
+  --companion-launcher-shadow: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  --companion-launcher-shadow-hover: color-mix(in srgb, var(--color-accent) 34%, transparent);
+  --companion-status-ring: color-mix(in srgb, var(--status-covered-text) 15%, transparent);
+}
+
+.companion-launcher {
+  box-shadow: 0 8px 26px var(--companion-launcher-shadow);
+}
+
+.companion-launcher:hover {
+  box-shadow: 0 12px 30px var(--companion-launcher-shadow-hover);
+}
+
+.companion-launcher-status {
+  box-shadow: 0 0 0 3px var(--companion-status-ring);
+}
