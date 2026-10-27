@@ -1,9 +1,8 @@
-/* Keep the complete primary navigation inside narrow mobile headers.
+/* Keep the complete primary navigation inside mobile headers.
  * The four primary destinations share the available width instead of being
- * placed in a horizontally scrolling strip. Desktop and wider layouts stay
- * unchanged.
+ * placed in a horizontally scrolling strip. Desktop layouts stay unchanged.
  */
-@media (max-width: 430px) {
+@media (max-width: 600px) {
   .primary-navigation {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
