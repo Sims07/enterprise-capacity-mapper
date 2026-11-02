@@ -6,7 +6,7 @@ const cartography = {
   name: 'Cartographie de test',
   secretInternalNote: 'NE PAS TRANSMETTRE',
   domains: [{ id: 'd1', name: 'Finance', code: 'FIN' }],
-  capabilities: [{ id: 'c1', name: 'Comptabilité générale', domainId: 'd1' }],
+  capabilities: [{ id: 'c1', name: 'Comptabilité générale', domainId: 'd1', businessOwner: 'Direction financière' }],
   applications: [{ id: 'a1', name: 'ERP Finance', capabilityIds: ['c1'] }],
 };
 
@@ -27,8 +27,15 @@ test('Ollama utilise /api/chat et extrait la réponse textuelle', async () => {
   assert.equal(JSON.parse(request.options.body).stream, true);
   assert.match(JSON.parse(request.options.body).messages[0].content, /TOGAF/);
   assert.match(JSON.parse(request.options.body).messages[0].content, /Tu es Rico : curieux, concis et méthodique/);
-  assert.equal(JSON.parse(request.options.body).messages.at(-1).content, 'Quelles capacités sont couvertes ?');
-  assert.doesNotMatch(JSON.parse(request.options.body).messages[0].content, /NE PAS TRANSMETTRE/);
+  const messages = JSON.parse(request.options.body).messages;
+  const contextMessage = messages.at(-1).content;
+  assert.match(contextMessage, /Quelles capacités sont couvertes/);
+  assert.match(contextMessage, /Cartographie de test/);
+  assert.match(contextMessage, /Comptabilité générale/);
+  assert.match(contextMessage, /ERP Finance/);
+  assert.match(contextMessage, /Direction financière/);
+  assert.doesNotMatch(contextMessage, /NE PAS TRANSMETTRE/);
+  assert.doesNotMatch(messages[0].content, /Comptabilité générale/);
 });
 
 test('Ollama diffuse les fragments reçus et les expose au fil de la lecture', async () => {
@@ -116,7 +123,10 @@ test('Gemini utilise le modèle configuré et extrait les parties de texte', asy
   assert.equal(request.options.headers['x-goog-api-key'], 'test-secret');
   assert.doesNotMatch(request.url, /test-secret/);
   assert.match(JSON.parse(request.options.body).systemInstruction.parts[0].text, /TOGAF/);
-  assert.equal(JSON.parse(request.options.body).contents.at(-1).parts[0].text, 'Explique la couverture');
+  const userMessage = JSON.parse(request.options.body).contents.at(-1).parts[0].text;
+  assert.match(userMessage, /Explique la couverture/);
+  assert.match(userMessage, /ERP Finance/);
+  assert.match(userMessage, /Comptabilité générale/);
 });
 
 test('refuse les appels cloud sans clé API', async () => {
