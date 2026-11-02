@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { analyzeCartography, buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
+import { buildOctaveFollowUpPrompt } from '../application/buildOctaveFollowUpPrompt.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
 import type { AiCompanionPort } from '../ports/aiCompanion.ts';
 import type { CompanionPreferencesPort } from '../ports/companionPreferences.ts';
@@ -520,14 +521,9 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           : exchange));
         if (duoMode) {
           const octopusAnswer = await aiCompanion.ask({
-            question: `Question initiale : ${question}
-
-Réponse de Rico à examiner :
-${primaryAnswer || answer || '(pas de réponse exploitable)'}
-
-Fournis un second regard indépendant : relève les points solides, nuance les incertitudes et ajoute au maximum deux angles complémentaires. Ne répète pas la première réponse et n’invente aucun fait absent des données.`,
+            question: buildOctaveFollowUpPrompt(question, primaryAnswer || answer || ''),
             cartography: model,
-            history: [...history, { role: 'assistant', content: primaryAnswer || answer || '' }],
+            history,
             personaInstructions: MASCOT_PERSONALITIES.octopus.style,
             onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
               ? { ...exchange, duoAnswer: exchange.duoAnswer + chunk }
@@ -632,11 +628,11 @@ Fournis un second regard indépendant : relève les points solides, nuance les i
                   <MascotIcon kind="octopus" className="companion-avatar companion-mascot-svg" />
                   <div>
                     <p className="companion-message-role">{MASCOT_PERSONALITIES.octopus.name}</p>
-                    <p className="companion-answer-meta">{exchange.duoStatus === 'streaming' ? 'Second regard en cours…' : 'Analyse complémentaire'}</p>
+                    <p className="companion-answer-meta">{exchange.duoStatus === 'streaming' ? 'Réaction à Rico en cours…' : 'Réaction complémentaire'}</p>
                   </div>
                 </div>
                 {exchange.duoStatus === 'streaming' && !exchange.duoAnswer
-                  ? <p className="companion-thinking" role="status">Octave examine la réponse de Rico…</p>
+                  ? <p className="companion-thinking" role="status">Octave réagit à la réponse de Rico…</p>
                   : <FormattedAnswer text={exchange.duoAnswer} testId="companion-duo-answer" />}
                 {exchange.duoReferences?.length > 0 && (
                   <div className="companion-generated-references" data-testid="companion-duo-references">
