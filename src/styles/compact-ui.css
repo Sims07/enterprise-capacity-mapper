@@ -539,3 +539,22 @@
 @media (max-width: 760px) {
   .library-content-grid .library-card-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* Action directe pour enrichir un domaine en capacités N1. */
+.domain-actions .domain-add-capability {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  border: 1px solid rgba(255,255,255,.48);
+  border-radius: 6px;
+  background: rgba(255,255,255,.16);
+  color: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.domain-actions .domain-add-capability:hover { background: rgba(255,255,255,.28); }
