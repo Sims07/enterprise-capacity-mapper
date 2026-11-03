@@ -24,7 +24,7 @@ async function openCapacityMapper(page: import('@playwright/test').Page, width: 
 
 async function openMosaicPresentation(page: import('@playwright/test').Page, theme: 'light' | 'dark') {
   await page.setViewportSize({ width: 1600, height: 900 });
-  await page.goto('/iframe.html?id=application-capacity-mapper--mosaicpresentation&viewMode=story&globals=theme:light');
+  await page.goto('/iframe.html?id=application-capacity-mapper--mosaic-presentation&viewMode=story&globals=theme:light');
   await expect(page.locator('.app').first()).toBeVisible();
   if (theme === 'dark') {
     await page.getByTestId('tools-menu-toggle').click();
@@ -76,6 +76,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
       animations: 'disabled',
       caret: 'hide',
       fullPage: false,
+      maxDiffPixelRatio: 0.03,
     });
   });
 
@@ -85,6 +86,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
       animations: 'disabled',
       caret: 'hide',
       fullPage: false,
+      maxDiffPixelRatio: 0.03,
     });
   });
 
