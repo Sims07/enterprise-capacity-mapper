@@ -2714,23 +2714,3 @@ body::-webkit-scrollbar,
 .structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:#334155;font-size:12px;font-weight:650}
 .structure-visibility-option input{width:16px;height:16px;accent-color:#4f46e5}
 @media(max-width:760px){.map-matrix .map-row{gap:4px}.map-matrix .map-cell{padding:5px}.workspace.mosaic-workspace>main{padding:10px}}
-
-
-/* Audience-ready mosaic presentation: hide the placement grid and use domain colors as full panels. */
-.presentation-mode .map-mosaic { gap: 0; padding: 0; background: transparent; }
-.presentation-mode .map-mosaic .mosaic-zone, .presentation-mode .map-mosaic .mosaic-corner, .presentation-mode .map-mosaic .mosaic-column-heading, .presentation-mode .map-mosaic .mosaic-row-heading { display: none; }
-.presentation-mode .map-mosaic .mosaic-domain { min-height: 190px; padding: 0; border-radius: 0; overflow: hidden; }
-.presentation-mode .map-mosaic .mosaic-domain .domain { height: 100%; min-height: 190px; margin: 0; border: 0; border-radius: 0; background: var(--domain-color); color: var(--domain-text-color); box-shadow: none; }
-.presentation-mode .map-mosaic .mosaic-domain .domain-banner, .presentation-mode .map-mosaic .mosaic-domain .caps-list { background: transparent !important; color: inherit; }
-.presentation-mode .map-mosaic .mosaic-domain .domain-banner { padding: 18px 20px 12px; }
-.presentation-mode .map-mosaic .mosaic-domain .domain-banner h3, .presentation-mode .map-mosaic .mosaic-domain .map-domain-select { color: var(--domain-text-color); font-size: clamp(16px, 1.5vw, 24px); font-weight: 800; line-height: 1.2; }
-.presentation-mode .map-mosaic .mosaic-domain .domain-meta { color: var(--domain-text-color); opacity: .78; }
-.presentation-mode .map-mosaic .mosaic-domain .caps-list { gap: 8px; padding: 0 20px 18px; }
-.presentation-mode .map-mosaic .mosaic-domain .cap { border-color: color-mix(in srgb, var(--domain-text-color) 22%, transparent); background: color-mix(in srgb, var(--domain-text-color) 9%, transparent); color: var(--domain-text-color); }
-.presentation-mode .map-mosaic .mosaic-domain .cap-head b, .presentation-mode .map-mosaic .mosaic-domain .cap .app-count { color: var(--domain-text-color); }
-.presentation-mode .map-mosaic .mosaic-domain .domain.mosaic-presentation-empty { display: flex; flex-direction: column; justify-content: center; }
-.presentation-mode .map-mosaic .mosaic-domain .mosaic-presentation-empty .domain-banner { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 28px; }
-.presentation-mode .map-mosaic .mosaic-domain .mosaic-presentation-empty .domain-banner-title { align-items: center; }
-.presentation-mode .map-mosaic .mosaic-domain .mosaic-presentation-empty .domain-banner h3 { font-size: clamp(22px, 2.2vw, 36px); letter-spacing: -.025em; }
-.presentation-mode .map-mosaic .mosaic-domain .mosaic-presentation-empty .domain-meta { margin-top: 8px; font-size: 12px; }
-.presentation-mode .map-mosaic .mosaic-domain .mosaic-presentation-empty .domain-desc { margin: 0; padding: 0 24px 24px; color: var(--domain-text-color); opacity: .86; text-align: center; }

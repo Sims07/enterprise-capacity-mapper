@@ -17,6 +17,7 @@ Ouvrir `http://localhost:6006`. Les contrôles Storybook proposent les thèmes c
 ## Catalogue actuel
 
 - **Application / Capacity Mapper** : l'application réelle via `ResponsiveApp`, avec ses données de démonstration, pour examiner la cartographie, la navigation, les relations, la barre d'outils et les états d'interface.
+- **Application / Capacity Mapper — Mosaic Presentation** : même application réelle, avec une composition paysage 16:9 dédiée ; les tests capturent les thèmes clair et sombre.
 - **Application / Guide TOGAF** : le vrai composant modal d'aide, avec variantes bureau et mobile.
 - **Design system / Tokens sémantiques** : aperçu des variables CSS définies dans `src/styles/tokens.css`.
 
@@ -31,7 +32,7 @@ npx playwright install chromium
 npx playwright test --config=playwright.storybook.config.ts
 ```
 
-Les tests capturent quatre références de la cartographie réelle : bureau clair/sombre et mobile 390×844 clair/sombre. Ils contrôlent aussi l'absence de débordement horizontal sur mobile. Une différence de pixels doit être examinée comme une possible régression CSS, pas acceptée automatiquement.
+Les tests capturent quatre références de la cartographie réelle : bureau clair/sombre et mobile 390×844 clair/sombre. Ils contrôlent aussi l'absence de débordement horizontal sur mobile. Deux captures supplémentaires examinent la mosaïque en présentation au format paysage 1600×900, en thèmes clair et sombre ; les PNG sont conservés dans l'artefact `playwright-and-vitest-reports` pour revue du rendu. Une différence de pixels doit être examinée comme une possible régression CSS, pas acceptée automatiquement.
 
 ### Première création ou mise à jour des références
 
