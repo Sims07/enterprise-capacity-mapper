@@ -24,6 +24,9 @@ test.describe('Rendu mosaïque', () => {
     await expect(mosaic.locator('.mosaic-column-heading, .mosaic-row-heading, .mosaic-corner')).toHaveCount(0);
     const firstDomain = mosaic.locator('.mosaic-domain').first();
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', /rgb/);
+    await expect(firstDomain).toHaveCSS('border-style', 'solid');
+    await expect(mosaic).toHaveCSS('column-gap', '14px');
+    await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(firstDomain.locator('.mosaic-resize-controls')).toHaveCount(0);
   });
 
@@ -41,6 +44,11 @@ test.describe('Rendu mosaïque', () => {
     await expect(page.locator('.companion-root')).toBeHidden();
     await expect(page.locator('.map-controls-row')).toBeHidden();
 
+    const compactTracks = await mosaic.evaluate(element => ({
+      columns: getComputedStyle(element).gridTemplateColumns.split(' ').length,
+      rows: getComputedStyle(element).gridTemplateRows.split(' ').length,
+    }));
+    expect(compactTracks).toEqual({ columns: 3, rows: 2 });
     const dimensions = await page.evaluate(() => ({
       viewportWidth: document.documentElement.clientWidth,
       viewportHeight: document.documentElement.clientHeight,
@@ -79,6 +87,7 @@ test.describe('Rendu mosaïque', () => {
     const emptyDomain = page.getByTestId('mosaic-map').locator('.mosaic-presentation-empty').filter({ hasText: 'Domaine sans capacité' });
     await expect(emptyDomain).toBeVisible();
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
+    await expect(emptyDomain.locator('.domain-banner h3')).toBeVisible();
     const titleSize = await emptyDomain.locator('.domain-banner h3').evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
     expect(titleSize).toBeGreaterThan(22);
   });
