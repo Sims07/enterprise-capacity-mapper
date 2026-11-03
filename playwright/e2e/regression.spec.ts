@@ -193,9 +193,10 @@ test.describe('Playwright regression — import, library and persistence', () =>
   });
 
   test('importe un modèle JSON et conserve sa structure après rechargement', async ({ page }) => {
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
     const model = await page.evaluate(() => {
       const raw = localStorage.getItem('enterprise-capacity-mapper:model:v3');
-      if (!raw) throw new Error('demo model missing');
+      if (!raw) throw new Error('demo model missing after initialization');
       const value = JSON.parse(raw);
       value.capabilities.find((item: { name: string }) => item.name === 'Gestion des Prospects & Leads').name = 'Gestion des Prospects & Leads — import vérifié';
       const domain = value.domains.find((item: { name: string }) => item.name === 'Relation & Engagement Client');
