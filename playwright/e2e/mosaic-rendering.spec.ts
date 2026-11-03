@@ -82,6 +82,7 @@ test.describe('Rendu mosaïque', () => {
     const emptyDomain = page.getByTestId('mosaic-map').locator('.mosaic-presentation-empty').filter({ hasText: 'Domaine sans capacité' });
     await expect(emptyDomain).toBeVisible();
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
+    await expect(emptyDomain.locator('.domain-banner h3')).toBeVisible();
     const titleSize = await emptyDomain.locator('.domain-banner h3').evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
     expect(titleSize).toBeGreaterThan(22);
   });
