@@ -92,3 +92,17 @@ Le premier lot technique généralise le placement des domaines N0 sans modifier
 - La validation avant sauvegarde refuse les spans invalides ou dépassant les limites de la grille et les dimensions d'axe nulles/négatives ; elle ne tronque pas silencieusement les blocs.
 
 Le périmètre reste limité au moteur domaine/application et à sa documentation. Le rendu mosaïque et l'éditeur visuel sont traités dans les lots suivants. Aucun poids, compteur ou indicateur numérique n'est ajouté aux domaines.
+
+
+## Évolution mosaïque — PR 2 : rendu bidimensionnel
+
+Le deuxième lot introduit un mode de représentation « Mosaïque » distinct du rendu matriciel historique :
+
+- Les domaines N0 sont rendus une seule fois dans une grille CSS bidimensionnelle.
+- Leur position est calculée à partir de `columnId` et `layerId`, et leur emprise à partir de `columnSpan` et `rowSpan`.
+- Les proportions des axes peuvent exploiter `size` ; en son absence, chaque axe conserve une proportion uniforme.
+- Les zones de la grille restent des cibles de dépôt pour déplacer un domaine.
+- Le mode de représentation est persisté dans `layout.mode` et peut être changé depuis la barre de commandes.
+- Le mode mosaïque applique la règle de placement stricte : deux domaines ne peuvent pas occuper le même rectangle.
+
+Le mode matrice reste le rendu par défaut et conserve sa présentation existante. Ce lot ne fournit pas encore l'éditeur de redimensionnement ; les spans sont exploités par le rendu et seront manipulables dans le lot 3. Aucun poids, compteur ou métrique issue des chiffres de la maquette n'est modélisé.

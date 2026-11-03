@@ -451,6 +451,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       domainId,
       columnId,
       layerId,
+      allowExactOverlap: layoutMode !== 'mosaic',
     });
     if (!patch) {
       if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
@@ -720,6 +721,36 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     )) : <p className="local-map-empty">Aucun élément.</p>;
   }
 
+  const mosaicColumns = `110px ${columns.map(column => `${Math.max(0.1, Number(column.size) || 1)}fr`).join(' ')}`;
+  const mosaicRows = `44px ${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+  const mosaicView = (
+    <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
+      <div className="mosaic-corner" />
+      {columns.map(column => <div className="mosaic-column-heading" key={column.id}>{column.name}</div>)}
+      {layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + 2 }}>{layer.name}</div>)}
+      {layers.flatMap((layer, rowIndex) => columns.map((column, columnIndex) => {
+        const zone = zones.find(item => item.columnId === column.id && item.layerId === layer.id);
+        return <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`}
+          style={{ gridColumn: columnIndex + 2, gridRow: rowIndex + 2 }}
+          onDragOver={event => event.preventDefault()}
+          onDrop={event => { event.preventDefault(); placeDomain(event.dataTransfer.getData('domain'), column.id, layer.id); }}>
+          {zone?.name && zone.name !== column.name && <span className="mosaic-zone-label">{zone.name}</span>}
+        </div>;
+      }))}
+      {model.domains.filter(domain => (domain.name + ' ' + domain.code + ' ' + (domain.description || '')).toLowerCase().includes(mapQuery.toLowerCase())).map(domain => {
+        const columnIndex = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
+        const rowIndex = layers.findIndex(layer => layer.id === (domain.layout?.layerId || layers[0].id));
+        if (columnIndex < 0 || rowIndex < 0) return null;
+        const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
+        const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
+        return <div className="mosaic-domain" key={domain.id}
+          style={{ gridColumn: `${columnIndex + 2} / span ${columnSpan}`, gridRow: `${rowIndex + 2} / span ${rowSpan}` }}>
+          <DomainCard d={domain} />
+        </div>;
+      })}
+    </div>
+  );
+
   const matrixView = (
     <div className="map map-matrix">
       <div className="map-row map-head" style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
@@ -981,12 +1012,16 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   <span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span>
                 </div>
                 <div className="canvas-actions">
+                  <div className="map-view-toggle" role="group" aria-label="Mode de représentation">
+                    <button type="button" data-testid="matrix-view" className={layoutMode === 'matrix' ? 'active' : ''} aria-pressed={layoutMode === 'matrix'} onClick={() => setLayoutView('matrix')}>Matrice</button>
+                    <button type="button" data-testid="mosaic-view" className={layoutMode === 'mosaic' ? 'active' : ''} aria-pressed={layoutMode === 'mosaic'} onClick={() => setLayoutView('mosaic')}>Mosaïque</button>
+                  </div>
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
               </div>
 
-              {matrixView}
+              {layoutMode === 'mosaic' ? mosaicView : matrixView}
             </>
           )}
         </main>
