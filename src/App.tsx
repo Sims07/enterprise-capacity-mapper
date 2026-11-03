@@ -136,6 +136,15 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   }, [darkMode]);
 
   useEffect(() => {
+    if (!presentation || layoutMode !== 'mosaic') return undefined;
+    const exitPresentation = event => {
+      if (event.key === 'Escape') setPresentation(false);
+    };
+    window.addEventListener('keydown', exitPresentation);
+    return () => window.removeEventListener('keydown', exitPresentation);
+  }, [presentation, layoutMode]);
+
+  useEffect(() => {
     navigation.initialize(mode);
     return navigation.subscribePopState(state => {
       const nextMode = state?.capacityMapperMode;
@@ -748,7 +757,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicColumnOffset = !presentation && showRowHeadings ? 2 : 1;
   const mosaicRowOffset = !presentation && showColumnHeadings ? 2 : 1;
   const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
-  const mosaicRows = `${!presentation && showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+  const mosaicRows = presentation
+    ? layers.map(layer => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')
+    : `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
@@ -824,7 +835,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   );
 
   return (
-    <div className={'app' + (presentation ? ' presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind}>
+    <div className={'app' + (presentation ? ' presentation-mode' : '') + (presentation && layoutMode === 'mosaic' ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind}>
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
