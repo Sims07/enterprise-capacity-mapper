@@ -154,3 +154,18 @@ test('MapLayout can resize a domain while preserving its other layout metadata',
     columnSpan: 4, rowSpan: 2, allowExactOverlap: false,
   }), null);
 });
+
+
+test('MapLayout validates persisted rectangle collisions and keeps legacy exact-cell sharing', () => {
+  const source = draft();
+  const sameCell = [
+    { id: 'd1', layout: { columnId: 'c1', layerId: 'l1' } },
+    { id: 'd2', layout: { columnId: 'c1', layerId: 'l1' } },
+  ];
+  assert.notEqual(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, sameCell), null);
+  assert.equal(MapLayout.fromDraft(source).prepareForSave({ mode: 'mosaic' }, sameCell), null);
+  assert.equal(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, [
+    { id: 'd1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
+    { id: 'd2', layout: { columnId: 'c2', layerId: 'l1' } },
+  ]), null, 'partial overlaps are rejected even for legacy matrix data');
+});
