@@ -49,28 +49,39 @@ test.describe('Rendu mosaïque', () => {
 
   test('permet de masquer indépendamment les intitulés des axes dans Structure', async ({ page }) => {
     await page.goto('/');
+    const matrix = page.getByTestId('matrix-map');
+
     await page.getByRole('button', { name: /Structure/ }).click();
-    const options = page.getByTestId('axis-heading-options');
+    let options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').uncheck();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
-
-    await page.getByTestId('mosaic-view').click();
-    let mosaic = page.getByTestId('mosaic-map');
-    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(0);
-    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(3);
+    await expect(matrix.locator('.map-head .col-head')).toHaveCount(0);
+    await expect(matrix.locator('.axis-label')).toHaveCount(3);
 
     await page.getByRole('button', { name: /Structure/ }).click();
-    await page.getByTestId('axis-heading-options').getByLabel('Afficher les titres des lignes').uncheck();
+    options = page.getByTestId('axis-heading-options');
+    await options.getByLabel('Afficher les titres des colonnes').check();
+    await options.getByLabel('Afficher les titres des lignes').uncheck();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
-    await page.getByTestId('matrix-view').click();
-    await expect(page.locator('[data-testid="matrix-map"] .map-head .col-head')).toHaveCount(0);
-    await expect(page.locator('.map-matrix .axis-label')).toHaveCount(0);
+    await expect(matrix.locator('.map-head .col-head')).toHaveCount(4);
+    await expect(matrix.locator('.axis-label')).toHaveCount(0);
+
+    await page.getByRole('button', { name: /Structure/ }).click();
+    options = page.getByTestId('axis-heading-options');
+    await options.getByLabel('Afficher les titres des colonnes').uncheck();
+    await page.getByRole('button', { name: 'Enregistrer' }).last().click();
+    await expect(matrix.locator('.map-head .col-head')).toHaveCount(0);
+    await expect(matrix.locator('.axis-label')).toHaveCount(0);
+
+    await page.getByTestId('mosaic-view').click();
+    const mosaic = page.getByTestId('mosaic-map');
+    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(0);
+    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(0);
 
     await page.reload();
     await page.getByTestId('mosaic-view').click();
-    mosaic = page.getByTestId('mosaic-map');
-    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(0);
-    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(0);
+    await expect(page.getByTestId('mosaic-map').locator('.mosaic-column-heading')).toHaveCount(0);
+    await expect(page.getByTestId('mosaic-map').locator('.mosaic-row-heading')).toHaveCount(0);
   });
 
   test('utilise toute la largeur en mosaïque sans inventaire applicatif latéral', async ({ page }) => {
