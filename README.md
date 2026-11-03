@@ -25,6 +25,8 @@ Les références d'architecture sont dans [`docs/architecture/`](docs/architectu
 
 ## Fonctionnalités
 
+- mode présentation de la mosaïque, sans repères de grille et avec les couleurs des domaines en plein panneau;
+
 - cartographie TOGAF / capability mapping ;
 - capacités N1 et applications associées ;
 - analyse de couverture, gaps, redondances et impact ;
