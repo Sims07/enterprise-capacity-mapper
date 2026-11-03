@@ -2660,3 +2660,17 @@ body::-webkit-scrollbar,
     min-height: 0;
   }
 }
+
+/* Two-dimensional capability mosaic (PR 2). */
+.map-mosaic{display:grid;gap:8px;min-width:760px;align-items:stretch;overflow:visible}
+.mosaic-corner,.mosaic-column-heading,.mosaic-row-heading{display:flex;align-items:center;padding:9px 12px;font-size:11px;font-weight:850;color:#475569}
+.mosaic-column-heading{justify-content:center;background:#e2e8f0;border:1px solid #d7e0ea;border-radius:8px;text-align:center}
+.mosaic-row-heading{background:#e2e8f0;border:1px solid #d7e0ea;border-radius:8px}
+.mosaic-zone{position:relative;min-width:0;min-height:0;border:1px dashed #cbd5e1;border-radius:9px;background:rgba(248,250,252,.72);padding:7px}
+.mosaic-zone-label{position:absolute;left:9px;top:7px;color:#64748b;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;pointer-events:none}
+.mosaic-domain{z-index:1;min-width:0;min-height:0;padding:7px}
+.mosaic-domain .domain{height:100%;min-height:0;margin:0;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(15,23,42,.07)}
+.mosaic-domain .domain-desc,.mosaic-domain .domain-relations,.mosaic-domain .caps-list{overflow:auto;min-height:0}
+.mosaic-domain .domain-banner-title{min-width:0}
+.mosaic-domain .domain-banner-title h3,.mosaic-domain .map-domain-select{overflow-wrap:anywhere}
+@media(max-width:760px){.map-mosaic{min-width:680px}.mosaic-domain{padding:4px}.mosaic-domain .domain-banner{padding:8px}}
