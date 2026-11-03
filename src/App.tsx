@@ -751,9 +751,24 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const mosaicColumnOffset = !presentation && showRowHeadings ? 2 : 1;
   const mosaicRowOffset = !presentation && showColumnHeadings ? 2 : 1;
-  const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
+  const usedPresentationColumnIndexes = new Set<number>();
+  const usedPresentationLayerIndexes = new Set<number>();
+  if (presentation) {
+    model.domains.forEach(domain => {
+      const columnStart = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0]?.id));
+      const layerStart = layers.findIndex(layer => layer.id === (domain.layout?.layerId || layers[0]?.id));
+      if (columnStart < 0 || layerStart < 0) return;
+      const columnSpan = Math.max(1, Math.min(columns.length - columnStart, Number(domain.layout?.columnSpan) || 1));
+      const layerSpan = Math.max(1, Math.min(layers.length - layerStart, Number(domain.layout?.rowSpan) || 1));
+      for (let index = columnStart; index < columnStart + columnSpan; index += 1) usedPresentationColumnIndexes.add(index);
+      for (let index = layerStart; index < layerStart + layerSpan; index += 1) usedPresentationLayerIndexes.add(index);
+    });
+  }
+  const mosaicColumnsLayout = presentation ? columns.filter((_, index) => usedPresentationColumnIndexes.has(index)) : columns;
+  const mosaicLayersLayout = presentation ? layers.filter((_, index) => usedPresentationLayerIndexes.has(index)) : layers;
+  const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${mosaicColumnsLayout.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
   const mosaicRows = presentation
-    ? layers.map(layer => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')
+    ? mosaicLayersLayout.map(() => 'minmax(112px, max-content)').join(' ')
     : `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
@@ -770,13 +785,22 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </div>;
       }))}
       {model.domains.filter(domain => (domain.name + ' ' + domain.code + ' ' + (domain.description || '')).toLowerCase().includes(mapQuery.toLowerCase())).map(domain => {
-        const columnIndex = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
-        const rowIndex = layers.findIndex(layer => layer.id === (domain.layout?.layerId || layers[0].id));
+        const sourceColumnIndex = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
+        const sourceRowIndex = layers.findIndex(layer => layer.id === (domain.layout?.layerId || layers[0].id));
+        if (sourceColumnIndex < 0 || sourceRowIndex < 0) return null;
+        const sourceColumnSpan = Math.max(1, Math.min(columns.length - sourceColumnIndex, Number(domain.layout?.columnSpan) || 1));
+        const sourceRowSpan = Math.max(1, Math.min(layers.length - sourceRowIndex, Number(domain.layout?.rowSpan) || 1));
+        const columnIndex = mosaicColumnsLayout.findIndex(column => column.id === columns[sourceColumnIndex].id);
+        const rowIndex = mosaicLayersLayout.findIndex(layer => layer.id === layers[sourceRowIndex].id);
         if (columnIndex < 0 || rowIndex < 0) return null;
-        const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
-        const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
+        const columnSpan = presentation
+          ? mosaicColumnsLayout.filter(column => { const index = columns.findIndex(item => item.id === column.id); return index >= sourceColumnIndex && index < sourceColumnIndex + sourceColumnSpan; }).length
+          : sourceColumnSpan;
+        const rowSpan = presentation
+          ? mosaicLayersLayout.filter(layer => { const index = layers.findIndex(item => item.id === layer.id); return index >= sourceRowIndex && index < sourceRowIndex + sourceRowSpan; }).length
+          : sourceRowSpan;
         return <div className="mosaic-domain" key={domain.id}
-          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}`, ...(presentation ? { backgroundColor: resolveDomainColor(domain.color) } : {}) }}>
+          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}`,  }}>
           <DomainCard d={domain} />
           {!presentation && <button type="button" className="mosaic-resize-handle" data-testid="mosaic-resize-handle"
             aria-label={`Redimensionner ${domain.name}`} title="Glisser pour redimensionner · Flèches pour ajuster"
