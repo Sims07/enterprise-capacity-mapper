@@ -792,7 +792,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   );
 
   const matrixView = (
-    <div className="map map-matrix" data-testid="matrix-map">
+    <div className={`map map-matrix${columns.length > 4 ? " map-matrix-wide" : ""}`} data-testid="matrix-map">
       <div className="map-row map-head" style={{ gridTemplateColumns: `${showRowHeadings ? (presentation ? '100px ' : '120px ') : ''}repeat(${columns.length}, minmax(0, 1fr))` }}>
         {showRowHeadings && <div />}
         {showColumnHeadings && columns.map(col => <div className="col-head" key={col.id}>{col.name}</div>)}
