@@ -624,14 +624,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
-    const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}`;
+    const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}${presentation && layoutMode === 'mosaic' && caps.length === 0 ? ' mosaic-presentation-empty' : ''}`;
 
     return (
       <section
         className={domainClass}
         data-entity-id={d.id}
         data-entity-type="domain"
-        style={{ '--domain-color': resolveDomainColor(d.color) } as React.CSSProperties}
+        style={{ '--domain-color': resolveDomainColor(d.color), '--domain-text-color': domainTextColor(d.color) } as React.CSSProperties}
         draggable
         onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
         onDragStart={e => e.dataTransfer.setData('domain', d.id)}
@@ -745,18 +745,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     )) : <p className="local-map-empty">Aucun élément.</p>;
   }
 
-  const mosaicColumnOffset = showRowHeadings ? 2 : 1;
-  const mosaicRowOffset = showColumnHeadings ? 2 : 1;
-  const mosaicColumns = `${showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
-  const mosaicRows = `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+  const mosaicColumnOffset = !presentation && showRowHeadings ? 2 : 1;
+  const mosaicRowOffset = !presentation && showColumnHeadings ? 2 : 1;
+  const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
+  const mosaicRows = `${!presentation && showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
-      {showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
-      {showColumnHeadings && columns.map(column => <div className="mosaic-column-heading" key={column.id} style={{ gridColumn: columns.indexOf(column) + mosaicColumnOffset, gridRow: 1 }}>{column.name}</div>)}
-      {showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + mosaicRowOffset }}>{layer.name}</div>)}
+      {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
+      {!presentation && showColumnHeadings && columns.map(column => <div className="mosaic-column-heading" key={column.id} style={{ gridColumn: columns.indexOf(column) + mosaicColumnOffset, gridRow: 1 }}>{column.name}</div>)}
+      {!presentation && showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + mosaicRowOffset }}>{layer.name}</div>)}
       {layers.flatMap((layer, rowIndex) => columns.map((column, columnIndex) => {
         const zone = zones.find(item => item.columnId === column.id && item.layerId === layer.id);
-        return <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`}
+        return presentation ? null : <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`}
           style={{ gridColumn: columnIndex + mosaicColumnOffset, gridRow: rowIndex + mosaicRowOffset }}
           onDragOver={event => event.preventDefault()}
           onDrop={event => { event.preventDefault(); placeDomain(event.dataTransfer.getData('domain'), column.id, layer.id); }}>
@@ -770,7 +770,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
         const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
         return <div className="mosaic-domain" key={domain.id}
-          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}>
+          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}`, ...(presentation ? { backgroundColor: resolveDomainColor(domain.color) } : {}) }}>
           <DomainCard d={domain} />
           {!presentation && <div className="mosaic-resize-controls" role="group" aria-label={`Redimensionner ${domain.name}`}>
             <span>Étendue</span>
