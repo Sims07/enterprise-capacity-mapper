@@ -745,10 +745,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     )) : <p className="local-map-empty">Aucun élément.</p>;
   }
 
-  const mosaicColumnOffset = showRowHeadings ? 2 : 1;
-  const mosaicRowOffset = showColumnHeadings ? 2 : 1;
-  const mosaicColumns = `${showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
-  const mosaicRows = `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+  const mosaicColumnOffset = !presentation && showRowHeadings ? 2 : 1;
+  const mosaicRowOffset = !presentation && showColumnHeadings ? 2 : 1;
+  const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
+  const mosaicRows = `${!presentation && showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
