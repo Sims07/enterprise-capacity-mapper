@@ -1022,8 +1022,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               }
               const url = new URL(window.location.href);
               url.searchParams.set('view', 'presentation');
-              const presentationWindow = window.open(url.toString(), '_blank', 'noopener,noreferrer');
-              if (!presentationWindow) setPresentation(true);
+              const presentationWindow = window.open(url.toString(), '_blank');
+              if (presentationWindow) presentationWindow.opener = null;
+              else setPresentation(true);
             }}>{experienceKind === 'mobile' || (typeof window !== 'undefined' && window.matchMedia('(max-width: 700px)').matches) ? 'Passer en présentation' : '↗ Ouvrir la présentation'}</button>}
 
           </div>
