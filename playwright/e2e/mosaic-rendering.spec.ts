@@ -24,6 +24,9 @@ test.describe('Rendu mosaïque', () => {
     await expect(mosaic.locator('.mosaic-column-heading, .mosaic-row-heading, .mosaic-corner')).toHaveCount(0);
     const firstDomain = mosaic.locator('.mosaic-domain').first();
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', /rgb/);
+    await expect(firstDomain).toHaveCSS('border-style', 'solid');
+    await expect(mosaic).toHaveCSS('column-gap', '12px');
+    await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(firstDomain.locator('.mosaic-resize-controls')).toHaveCount(0);
   });
 
