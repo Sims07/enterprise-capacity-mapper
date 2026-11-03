@@ -18,7 +18,8 @@ test.describe('Rendu mosaïque', () => {
   test('présente la mosaïque sans repères de grille et avec les panneaux colorés', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('presentation-switch-input').check();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('open-presentation-window').click();
     const mosaic = page.getByTestId('mosaic-map');
     await expect(mosaic.locator('.mosaic-zone')).toHaveCount(0);
     await expect(mosaic.locator('.mosaic-column-heading, .mosaic-row-heading, .mosaic-corner')).toHaveCount(0);
