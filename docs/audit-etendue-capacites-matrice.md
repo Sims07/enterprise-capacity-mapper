@@ -106,3 +106,16 @@ Le deuxième lot introduit un mode de représentation « Mosaïque » distinct d
 - Le mode mosaïque applique la règle de placement stricte : deux domaines ne peuvent pas occuper le même rectangle.
 
 Le mode matrice reste le rendu par défaut et conserve sa présentation existante. Ce lot ne fournit pas encore l'éditeur de redimensionnement ; les spans sont exploités par le rendu et seront manipulables dans le lot 3. Aucun poids, compteur ou métrique issue des chiffres de la maquette n'est modélisé.
+
+
+## Évolution mosaïque — PR 3 : édition des étendues
+
+Le troisième lot rend les portées des domaines N0 configurables directement depuis la mosaïque :
+
+- Chaque domaine dispose de commandes accessibles pour augmenter/réduire sa largeur (`columnSpan`) et sa hauteur (`rowSpan`).
+- Les commandes de réduction sont désactivées à la portée minimale de 1 ; les commandes d'agrandissement sont désactivées aux limites de la grille.
+- Chaque modification passe par le cas d'usage métier `prepareDomainPlacement` en mode mosaïque strict : une collision ou un dépassement de grille est refusé sans altérer la cartographie.
+- Les données de placement personnalisées sont conservées et les modifications sont persistées via le mécanisme de sauvegarde existant.
+- Les commandes sont masquées en mode présentation ; leur disposition est adaptée aux petits écrans et aux thèmes clair/sombre.
+
+Le déplacement reste possible par glisser-déposer vers une zone de la grille. Cette PR ajoute l'édition explicite des dimensions ; elle ne modifie ni le modèle des capacités N1, ni les axes, ni les relations métier. Les commandes accessibles constituent l'interaction de redimensionnement de référence, sans dépendre d'un geste de souris seul.
