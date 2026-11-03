@@ -97,6 +97,10 @@ test.describe('Rendu mosaïque', () => {
     const firstDomain = page.locator('.mosaic-domain').first();
     const handle = firstDomain.getByTestId('mosaic-resize-handle');
     await expect(handle).toBeVisible();
+    // La carte est dans la ligne Core, parfois hors du viewport initial :
+    // les coordonnées souris doivent être calculées après défilement réel.
+    await handle.scrollIntoViewIfNeeded();
+    await expect(handle).toBeInViewport();
     const placement = await firstDomain.evaluate(element => {
       const style = getComputedStyle(element);
       return { column: style.gridColumnStart, row: style.gridRowStart };
@@ -118,6 +122,8 @@ test.describe('Rendu mosaïque', () => {
     await page.mouse.up();
 
     await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+    await handle.scrollIntoViewIfNeeded();
+    await expect(handle).toBeInViewport();
     const resizedHandleBounds = await handle.boundingBox();
     const resizedCellBounds = await zone.boundingBox();
     expect(resizedHandleBounds).not.toBeNull();
