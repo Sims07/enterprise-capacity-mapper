@@ -82,6 +82,15 @@ test.describe('Rendu mosaïque', () => {
     expect(workspace).not.toBeNull();
     expect(mosaic).not.toBeNull();
     expect(mosaic!.width).toBeGreaterThan(workspace!.width * 0.85);
+
+    const inventoryToggle = page.getByTestId('mosaic-inventory-toggle');
+    await expect(inventoryToggle).toHaveAttribute('aria-expanded', 'false');
+    await inventoryToggle.click();
+    await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeVisible();
+    await expect(page.locator('#app-inventory')).toContainText('Inventaire SI');
+    await expect(inventoryToggle).toHaveAttribute('aria-expanded', 'true');
+    await inventoryToggle.click();
+    await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeHidden();
   });
 
   test('conserve une matrice de huit colonnes dans la largeur de la zone de travail', async ({ page }) => {
