@@ -22,4 +22,23 @@ test.describe('Rendu mosaïque', () => {
     await expect(page.locator('.map-matrix')).toBeVisible();
     await expect(page.getByTestId('mosaic-map')).toHaveCount(0);
   });
+
+  test('redimensionne un domaine et conserve son étendue après rechargement', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+
+    const firstDomain = page.locator('.mosaic-domain').first();
+    const increaseWidth = firstDomain.getByRole('button', { name: /Augmenter la largeur/ });
+    await expect(increaseWidth).toBeEnabled();
+    await increaseWidth.click();
+    await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+
+    await page.reload();
+    await page.getByTestId('mosaic-view').click();
+    const persistedDomain = page.locator('.mosaic-domain').first();
+    await expect(persistedDomain).toHaveCSS('grid-column', /span 2/);
+    await persistedDomain.getByRole('button', { name: /Réduire la largeur/ }).click();
+    await expect(persistedDomain).toHaveCSS('grid-column', /span 1/);
+  });
+
 });
