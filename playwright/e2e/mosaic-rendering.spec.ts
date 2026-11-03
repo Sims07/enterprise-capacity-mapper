@@ -7,7 +7,7 @@ test.describe('Rendu mosaïque', () => {
 
     const mosaic = page.getByTestId('mosaic-map');
     await expect(mosaic).toBeVisible();
-    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(3);
+    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(4);
     await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(3);
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
 
