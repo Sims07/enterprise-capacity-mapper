@@ -44,6 +44,8 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     const mosaic = page.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
     await expect(mosaic.locator('.mosaic-zone, .mosaic-column-heading, .mosaic-row-heading')).toHaveCount(0);
+    await expect(mosaic).toHaveCSS('align-content', 'center');
+    await expect(mosaic).toHaveCSS('grid-template-columns', /px.*px.*px/);
     const first = mosaic.locator('.mosaic-domain').first();
     await expect(first).toHaveCSS('border-style', 'solid');
     await expect(first.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
