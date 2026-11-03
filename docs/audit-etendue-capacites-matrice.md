@@ -79,3 +79,16 @@ La PR dédiée `feat/multi-column-capabilities` met en œuvre une première vers
 - **Validation** : les tests E2E de la PR ont révélé deux attentes de test à corriger. La correction est poussée dans la PR #12 ; le succès de la nouvelle exécution CI doit être confirmé avant de considérer la fonctionnalité comme validée.
 
 L'audit décrit donc le besoin et les critères généraux ; la PR #12 fournit une première implémentation partielle et explicite, sans prétendre couvrir tous les cas de robustesse listés ci-dessus.
+
+
+## Évolution mosaïque — PR 1 : fondations du moteur bidimensionnel
+
+Le premier lot technique généralise le placement des domaines N0 sans modifier le rendu de la matrice existante :
+
+- Le placement ajoute rowSpan à columnSpan ; une valeur absente équivaut à 1 pour les cartographies historiques.
+- Les dimensions proportionnelles des axes sont portées par size (nombre strictement positif), sans unité CSS ni dépendance à l'interface.
+- La disponibilité d'un placement est évaluée sur le rectangle complet : intersection horizontale et verticale.
+- Le moteur expose un mode strict (allowExactOverlap: false) pour interdire également deux domaines occupant exactement le même rectangle. Le comportement historique reste le défaut des parcours matrice.
+- La validation avant sauvegarde refuse les spans invalides ou dépassant les limites de la grille et les dimensions d'axe nulles/négatives ; elle ne tronque pas silencieusement les blocs.
+
+Le périmètre reste limité au moteur domaine/application et à sa documentation. Le rendu mosaïque et l'éditeur visuel sont traités dans les lots suivants. Aucun poids, compteur ou indicateur numérique n'est ajouté aux domaines.
