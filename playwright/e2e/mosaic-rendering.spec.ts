@@ -90,28 +90,51 @@ test.describe('Rendu mosaïque', () => {
     await expect(page.getByTestId('mosaic-map')).toHaveCount(0);
   });
 
-  test('redimensionne un domaine et conserve son étendue après rechargement', async ({ page }) => {
+  test('redimensionne une carte par glisser-déposer et conserve ses dimensions après rechargement', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
 
     const firstDomain = page.locator('.mosaic-domain').first();
-    const increaseWidth = firstDomain.getByRole('button', { name: /Augmenter la largeur/ });
-    await expect(increaseWidth).toBeEnabled();
-    await increaseWidth.click();
+    const handle = firstDomain.getByTestId('mosaic-resize-handle');
+    await expect(handle).toBeVisible();
+    const zone = page.getByTestId('mosaic-map').locator('.mosaic-zone').first();
+    const cellBounds = await zone.boundingBox();
+    const handleBounds = await handle.boundingBox();
+    expect(cellBounds).not.toBeNull();
+    expect(handleBounds).not.toBeNull();
+    await page.mouse.move(handleBounds!.x + handleBounds!.width / 2, handleBounds!.y + handleBounds!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(handleBounds!.x + handleBounds!.width / 2 + cellBounds!.width * 1.1, handleBounds!.y + handleBounds!.height / 2);
+    await page.mouse.up();
+
     await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+    const resizedHandleBounds = await handle.boundingBox();
+    const resizedCellBounds = await zone.boundingBox();
+    expect(resizedHandleBounds).not.toBeNull();
+    expect(resizedCellBounds).not.toBeNull();
+    await page.mouse.move(resizedHandleBounds!.x + resizedHandleBounds!.width / 2, resizedHandleBounds!.y + resizedHandleBounds!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(resizedHandleBounds!.x + resizedHandleBounds!.width / 2, resizedHandleBounds!.y + resizedHandleBounds!.height / 2 + resizedCellBounds!.height * 1.1);
+    await page.mouse.up();
+    await expect(firstDomain).toHaveCSS('grid-row', /span 2/);
+
     const mosaicBounds = await page.getByTestId('mosaic-map').boundingBox();
     const expandedBounds = await firstDomain.boundingBox();
     expect(mosaicBounds).not.toBeNull();
     expect(expandedBounds).not.toBeNull();
-    // A two-column span must be visible, not merely stored in grid-column.
     expect(expandedBounds!.width).toBeGreaterThan(mosaicBounds!.width * 0.35);
 
     await page.reload();
     await page.getByTestId('mosaic-view').click();
     const persistedDomain = page.locator('.mosaic-domain').first();
     await expect(persistedDomain).toHaveCSS('grid-column', /span 2/);
-    await persistedDomain.getByRole('button', { name: /Réduire la largeur/ }).click();
+    await expect(persistedDomain).toHaveCSS('grid-row', /span 2/);
+    const keyboardHandle = persistedDomain.getByTestId('mosaic-resize-handle');
+    await keyboardHandle.focus();
+    await page.keyboard.press('ArrowLeft');
     await expect(persistedDomain).toHaveCSS('grid-column', /span 1/);
+    await page.keyboard.press('ArrowUp');
+    await expect(persistedDomain).toHaveCSS('grid-row', /span 1/);
   });
 
   test('permet de masquer indépendamment les intitulés des axes dans Structure', async ({ page }) => {

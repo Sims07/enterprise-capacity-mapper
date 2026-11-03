@@ -783,21 +783,45 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         return <div className="mosaic-domain" key={domain.id}
           style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}`, ...(presentation ? { backgroundColor: resolveDomainColor(domain.color) } : {}) }}>
           <DomainCard d={domain} />
-          {!presentation && <div className="mosaic-resize-controls" role="group" aria-label={`Redimensionner ${domain.name}`}>
-            <span>Étendue</span>
-            <button type="button" data-testid="mosaic-resize-column-decrease" aria-label={`Réduire la largeur de ${domain.name}`}
-              disabled={columnSpan <= 1}
-              onClick={() => resizeMosaicDomain(domain, columnSpan - 1, rowSpan)}>− largeur</button>
-            <button type="button" data-testid="mosaic-resize-column-increase" aria-label={`Augmenter la largeur de ${domain.name}`}
-              disabled={columnSpan >= columns.length - columnIndex}
-              onClick={() => resizeMosaicDomain(domain, columnSpan + 1, rowSpan)}>+ largeur</button>
-            <button type="button" data-testid="mosaic-resize-row-decrease" aria-label={`Réduire la hauteur de ${domain.name}`}
-              disabled={rowSpan <= 1}
-              onClick={() => resizeMosaicDomain(domain, columnSpan, rowSpan - 1)}>− hauteur</button>
-            <button type="button" data-testid="mosaic-resize-row-increase" aria-label={`Augmenter la hauteur de ${domain.name}`}
-              disabled={rowSpan >= layers.length - rowIndex}
-              onClick={() => resizeMosaicDomain(domain, columnSpan, rowSpan + 1)}>+ hauteur</button>
-          </div>}
+          {!presentation && <button type="button" className="mosaic-resize-handle" data-testid="mosaic-resize-handle"
+            aria-label={`Redimensionner ${domain.name}`} title="Glisser pour redimensionner · Flèches pour ajuster"
+            onPointerDown={event => {
+              const map = event.currentTarget.closest('.map-mosaic');
+              const cell = map?.querySelector(`[data-zone-key="${domain.layout?.columnId || columns[0].id}:${domain.layout?.layerId || layers[0].id}"]`);
+              const bounds = cell?.getBoundingClientRect();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              event.currentTarget.dataset.resizeStartX = String(event.clientX);
+              event.currentTarget.dataset.resizeStartY = String(event.clientY);
+              event.currentTarget.dataset.resizeCellWidth = String(bounds?.width || 0);
+              event.currentTarget.dataset.resizeCellHeight = String(bounds?.height || 0);
+            }}
+            onPointerUp={event => {
+              const startX = Number(event.currentTarget.dataset.resizeStartX ?? event.clientX);
+              const startY = Number(event.currentTarget.dataset.resizeStartY ?? event.clientY);
+              const cellWidth = Number(event.currentTarget.dataset.resizeCellWidth || 0);
+              const cellHeight = Number(event.currentTarget.dataset.resizeCellHeight || 0);
+              const columnDelta = cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
+              const rowDelta = cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
+              if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
+              delete event.currentTarget.dataset.resizeStartX;
+              delete event.currentTarget.dataset.resizeStartY;
+            }}
+            onPointerCancel={event => {
+              delete event.currentTarget.dataset.resizeStartX;
+              delete event.currentTarget.dataset.resizeStartY;
+            }}
+            onKeyDown={event => {
+              const changes = {
+                ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+                ArrowUp: [0, -1], ArrowDown: [0, 1],
+              };
+              const change = changes[event.key];
+              if (!change) return;
+              event.preventDefault();
+              resizeMosaicDomain(domain, columnSpan + change[0], rowSpan + change[1]);
+            }}>
+            <span className="sr-only">Ajuster la taille de {domain.name}</span>
+          </button>}
         </div>;
       })}
     </div>

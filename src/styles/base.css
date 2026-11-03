@@ -2676,69 +2676,28 @@ body::-webkit-scrollbar,
 @media(max-width:760px){.map-mosaic{min-width:680px}.mosaic-domain{padding:4px}.mosaic-domain .domain-banner{padding:8px}}
 
 
-/* Éditeur de portée des domaines dans la mosaïque (PR 3). */
-.map-mosaic .mosaic-domain { position: relative; padding-bottom: 42px; }
-.mosaic-resize-controls {
-  position: absolute;
-  right: 8px;
-  bottom: 6px;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px;
-  max-width: calc(100% - 16px);
-  padding: 4px 6px;
-  border: 1px solid #dbe2ea;
-  border-radius: 8px;
-  background: rgba(255,255,255,.96);
-  box-shadow: 0 2px 8px rgba(15,23,42,.08);
+/* Redimensionnement direct des cartes de la mosaïque. */
+.map-mosaic .mosaic-domain { position: relative; padding: 7px 7px 34px; }
+.mosaic-resize-handle {
+  position: absolute; right: 7px; bottom: 6px; z-index: 3;
+  display: grid; place-items: center; width: 25px; height: 25px; padding: 0;
+  border: 1px solid #cbd5e1; border-radius: 7px;
+  background: rgba(255,255,255,.96); color: #475569;
+  cursor: nwse-resize; touch-action: none;
+  box-shadow: 0 1px 4px rgba(15,23,42,.1);
 }
-.mosaic-resize-controls > span {
-  margin: 0 3px;
-  color: #64748b;
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .04em;
+.mosaic-resize-handle::before {
+  content: ""; width: 9px; height: 9px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
 }
-.mosaic-resize-controls button {
-  min-height: 25px;
-  padding: 3px 7px;
-  border: 1px solid #dbe2ea;
-  border-radius: 6px;
-  background: #fff;
-  color: #334155;
-  font-size: 10px;
-  font-weight: 750;
-  cursor: pointer;
-}
-.mosaic-resize-controls button:hover:not(:disabled) {
-  border-color: #a5b4fc;
-  background: #eef2ff;
-  color: #3730a3;
-}
-.mosaic-resize-controls button:focus-visible {
-  outline: 2px solid #818cf8;
-  outline-offset: 2px;
-}
-.mosaic-resize-controls button:disabled { opacity: .38; cursor: not-allowed; }
-.app.theme-dark .mosaic-resize-controls {
-  background: rgba(32,34,40,.97);
-  border-color: #454a56;
-}
-.app.theme-dark .mosaic-resize-controls > span { color: #c3c7d1; }
-.app.theme-dark .mosaic-resize-controls button {
-  background: #272a32;
-  border-color: #454a56;
-  color: #e5e7eb;
-}
+.mosaic-resize-handle:hover { background: #eef2ff; border-color: #818cf8; color: #3730a3; }
+.mosaic-resize-handle:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.mosaic-resize-handle:active { cursor: grabbing; background: #e0e7ff; }
+.app.theme-dark .mosaic-resize-handle { background: #272a32; border-color: #596273; color: #d1d5db; }
+.app.theme-dark .mosaic-resize-handle:hover { background: #37334f; border-color: #818cf8; color: #e0e7ff; }
 @media (max-width: 760px) {
-  .mosaic-resize-controls { right: 4px; bottom: 4px; gap: 3px; }
-  .mosaic-resize-controls button { min-height: 28px; padding: 4px 6px; }
+  .mosaic-resize-handle { width: 30px; height: 30px; right: 5px; bottom: 5px; }
 }
-
 
 /* Les matrices larges utilisent toute la largeur disponible sans modifier la grille standard. */
 .map-matrix-wide{width:100%;min-width:0;overflow-x:auto}
