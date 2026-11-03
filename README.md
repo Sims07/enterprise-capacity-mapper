@@ -7,6 +7,10 @@
 
 Application PWA de cartographie des capacités métier et de leur couverture applicative.
 
+## Storybook
+
+Consultez le catalogue des composants UI et du design system dans le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/).
+
 ## Architecture
 
 L'application est conçue pour rester statique, déployable sur GitHub Pages et utilisable hors ligne comme PWA. Le modèle métier et les contrats de données sont indépendants du runtime React et de la persistance navigateur.
