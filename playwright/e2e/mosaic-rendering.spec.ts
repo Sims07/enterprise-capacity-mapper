@@ -26,6 +26,20 @@ test.describe('Rendu mosaïque', () => {
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', /rgb/);
     await expect(firstDomain.locator('.mosaic-resize-controls')).toHaveCount(0);
   });
+  test('met en valeur le titre d’un domaine sans N1 dans un panneau dédié', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('.cell-add').first().click();
+    const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+    await dialog.getByLabel('Nom').fill('Domaine sans capacité');
+    await dialog.getByLabel('Code').fill('DOM-EMPTY');
+    await dialog.getByRole('button', { name: 'Créer' }).click();
+    await page.getByTestId('mosaic-view').click();
+    await page.getByTestId('presentation-switch-input').check();
+    const emptyDomain = page.getByTestId('mosaic-map').locator('.mosaic-presentation-empty').filter({ hasText: 'Domaine sans capacité' });
+    await expect(emptyDomain).toBeVisible();
+    await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
+    await expect(emptyDomain.locator('.domain-banner h3')).toHaveCSS('font-size', /px/);
+  });
   test('permet de revenir au rendu matrice', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
