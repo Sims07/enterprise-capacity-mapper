@@ -15,6 +15,17 @@ test.describe('Rendu mosaïque', () => {
     await expect(page.getByTestId('mosaic-map')).toBeVisible();
   });
 
+  test('présente la mosaïque sans repères de grille et avec les panneaux colorés', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+    await page.getByTestId('presentation-switch-input').check();
+    const mosaic = page.getByTestId('mosaic-map');
+    await expect(mosaic.locator('.mosaic-zone')).toHaveCount(0);
+    await expect(mosaic.locator('.mosaic-column-heading, .mosaic-row-heading, .mosaic-corner')).toHaveCount(0);
+    const firstDomain = mosaic.locator('.mosaic-domain').first();
+    await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', /rgb/);
+    await expect(firstDomain.locator('.mosaic-resize-controls')).toHaveCount(0);
+  });
   test('permet de revenir au rendu matrice', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
