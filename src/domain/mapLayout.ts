@@ -154,6 +154,21 @@ export class MapLayout {
       }));
     }
 
+    for (const [index, domain] of preparedDomains.entries()) {
+      const placement = domain.layout || {};
+      if (!this.isPlacementAvailable({
+        domains: preparedDomains.slice(0, index),
+        columns,
+        layers,
+        domainId: domain.id,
+        columnId: placement.columnId as string,
+        layerId: placement.layerId as string,
+        columnSpan: placement.columnSpan as string | number | undefined ?? 1,
+        rowSpan: placement.rowSpan as string | number | undefined ?? 1,
+        allowExactOverlap: layout.mode !== 'mosaic',
+      })) return null;
+    }
+
     return {
       layout: cloneValue({ ...layout, columns, layers, zones }),
       domains: preparedDomains,
