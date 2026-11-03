@@ -2741,7 +2741,7 @@ body::-webkit-scrollbar,
 
 
 /* Les matrices larges utilisent toute la largeur disponible sans modifier la grille standard. */
-.map-matrix{width:100%;min-width:0;overflow-x:auto}
+.map-matrix-wide{width:100%;min-width:0;overflow-x:auto}
 .map-matrix-wide .map-row{width:100%;min-width:0}
 .map-matrix-wide .map-cell{min-width:0;overflow-wrap:anywhere}
 .map-matrix-wide .domain{min-width:0;max-width:100%}
