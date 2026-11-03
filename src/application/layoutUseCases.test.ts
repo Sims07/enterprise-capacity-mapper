@@ -150,6 +150,6 @@ test('resizes a domain through the application use case and preserves custom pla
   assert.equal(resized.domains[0].layout.custom, true);
   assert.equal(prepareDomainPlacement({
     domains, layout: { mode: 'mosaic' }, layoutMode: 'mosaic', columns, layers,
-    domainId: 'd1', columnSpan: 3, rowSpan: 2, allowExactOverlap: false,
+    domainId: 'd1', columnSpan: 4, rowSpan: 2, allowExactOverlap: false,
   }), null);
 });
