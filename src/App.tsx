@@ -808,6 +808,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               // The parent domain is draggable too: stop its native drag so the resize handle keeps pointer capture.
               event.preventDefault();
               event.stopPropagation();
+              const draggableDomain = event.currentTarget.closest('.domain-card') as HTMLElement | null;
+              if (draggableDomain) {
+                draggableDomain.dataset.resizeWasDraggable = draggableDomain.getAttribute('draggable') || 'false';
+                draggableDomain.setAttribute('draggable', 'false');
+              }
               const map = event.currentTarget.closest('.map-mosaic');
               const cell = map?.querySelector(`[data-zone-key="${domain.layout?.columnId || columns[0].id}:${domain.layout?.layerId || layers[0].id}"]`);
               const bounds = cell?.getBoundingClientRect();
@@ -838,12 +843,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               delete event.currentTarget.dataset.resizeStartY;
               delete event.currentTarget.dataset.resizeLastX;
               delete event.currentTarget.dataset.resizeLastY;
+              const draggableDomain = event.currentTarget.closest('.domain-card') as HTMLElement | null;
+              if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
+              if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
             }}
             onPointerCancel={event => {
               delete event.currentTarget.dataset.resizeStartX;
               delete event.currentTarget.dataset.resizeStartY;
               delete event.currentTarget.dataset.resizeLastX;
               delete event.currentTarget.dataset.resizeLastY;
+              const draggableDomain = event.currentTarget.closest('.domain-card') as HTMLElement | null;
+              if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
+              if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
             }}
             onKeyDown={event => {
               const changes = {
