@@ -100,3 +100,57 @@ test('MapLayout deeply isolates nested DTO values from its input and snapshots',
   (snapshot.columns[0].metadata as any).owner.team = 'changed snapshot';
   assert.equal((layout.toDraft().columns[0] as any).metadata.owner.team, 'Architecture');
 });
+
+
+test('MapLayout validates two-dimensional spans and detects rectangle intersections', () => {
+  const columns = [...draft().columns, { id: 'c3', name: 'Operations', order: 2 }];
+  const layers = [...draft().layers, { id: 'l3', name: 'Strategic', order: 2 }];
+  const mapLayout = MapLayout.fromDraft(draft());
+  const domains = [
+    { id: 'existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2 } },
+  ];
+  const available = (columnId: string, layerId: string, columnSpan = 1, rowSpan = 1, allowExactOverlap = true) =>
+    mapLayout.isPlacementAvailable({ domains, columns, layers, columnId, layerId, columnSpan, rowSpan, allowExactOverlap });
+
+  assert.equal(available('c2', 'l2'), false, 'a rectangle intersection on both axes is rejected');
+  assert.equal(available('c3', 'l1'), false, 'horizontal intersection is rejected');
+  assert.equal(available('c1', 'l3'), false, 'vertical intersection is rejected');
+  assert.equal(available('c3', 'l3'), true, 'a disjoint rectangle remains available');
+  assert.equal(available('c1', 'l1', 2, 2), true, 'legacy exact placements remain compatible by default');
+  assert.equal(available('c1', 'l1', 2, 2, false), false, 'strict mosaic placement rejects identical rectangles');
+  assert.equal(available('c2', 'l2', 2, 1), false, 'a span extending beyond the grid is rejected');
+  assert.equal(available('c3', 'l3', 1, 0), false, 'zero row spans are rejected');
+});
+
+test('MapLayout validates axis proportions and domain spans before saving', () => {
+  const source = draft() as ReturnType<typeof draft> & { columns: Array<{ id: string; name: string; order: number; size?: number }> };
+  source.columns[0].size = 1.5;
+  const domains = [{ id: 'd1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2 } }];
+  const saved = MapLayout.fromDraft(source).prepareForSave({ mode: 'mosaic' }, domains);
+  assert.equal(saved?.layout.columns?.[0].size, 1.5);
+  assert.equal(saved?.domains[0].layout?.rowSpan, 2);
+  assert.equal(MapLayout.fromDraft({ ...source, columns: [{ ...source.columns[0], size: 0 }, source.columns[1]] }).prepareForSave({}, domains), null);
+  assert.equal(MapLayout.fromDraft(source).prepareForSave({}, [{ id: 'd1', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 2 } }]), null);
+  assert.equal(MapLayout.fromDraft(source).prepareForSave({}, [{ id: 'd1', layout: { columnId: 'c1', layerId: 'l2', rowSpan: 2 } }]), null);
+  assert.equal(MapLayout.fromDraft(source).prepareForSave({}, [{ id: 'd1', layout: { columnId: 'c1', layerId: 'l1', rowSpan: 1.5 } }]), null);
+});
+
+test('MapLayout can resize a domain while preserving its other layout metadata', () => {
+  const columns = [...draft().columns, { id: 'c3', name: 'Operations', order: 2 }];
+  const layers = [...draft().layers, { id: 'l3', name: 'Strategic', order: 2 }];
+  const domains = [
+    { id: 'd1', layout: { columnId: 'c1', layerId: 'l1', custom: 'preserved' } },
+    { id: 'd2', layout: { columnId: 'c3', layerId: 'l3' } },
+  ];
+  const resized = MapLayout.fromDraft(draft()).prepareDomainPlacement({
+    domains, layout: {}, layoutMode: 'mosaic', columns, layers, domainId: 'd1',
+    columnSpan: 2, rowSpan: 2, allowExactOverlap: false,
+  });
+  assert.deepEqual(resized?.domains[0].layout, {
+    columnId: 'c1', layerId: 'l1', custom: 'preserved', columnSpan: 2, rowSpan: 2,
+  });
+  assert.equal(MapLayout.fromDraft(draft()).prepareDomainPlacement({
+    domains, layout: {}, layoutMode: 'mosaic', columns, layers, domainId: 'd1',
+    columnSpan: 3, rowSpan: 2, allowExactOverlap: false,
+  }), null);
+});

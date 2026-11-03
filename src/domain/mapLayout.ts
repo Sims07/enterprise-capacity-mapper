@@ -1,12 +1,12 @@
 /** Domain rules for the TOGAF capability-map matrix layout. */
 
-export type LayoutAxis = { id: string; name: string; order?: number; [key: string]: unknown };
+export type LayoutAxis = { id: string; name: string; order?: number; size?: number; [key: string]: unknown };
 export type LayoutZone = { id: string; columnId: string; layerId: string; name: string; [key: string]: unknown };
 export type LayoutDraft = { columns: LayoutAxis[]; layers: LayoutAxis[]; zones: LayoutZone[]; [key: string]: unknown };
 export type MapLayoutData = { mode?: string; columns?: LayoutAxis[]; layers?: LayoutAxis[]; zones?: LayoutZone[]; [key: string]: unknown };
 export type DomainPlacement = {
   id: string;
-  layout?: { columnId?: string; layerId?: string; columnSpan?: string | number; [key: string]: unknown };
+  layout?: { columnId?: string; layerId?: string; columnSpan?: string | number; rowSpan?: string | number; [key: string]: unknown };
   [key: string]: unknown;
 };
 export type PreparedLayout = { layout: MapLayoutData; domains: DomainPlacement[] };
@@ -26,6 +26,11 @@ const cloneValue = <T>(value: T): T => {
 };
 
 const cloneDraft = (draft: LayoutDraft): LayoutDraft => cloneValue(draft);
+
+const normalizedSpan = (value: string | number | undefined): number | null => {
+  const span = value === undefined ? 1 : Number(value);
+  return Number.isInteger(span) && span >= 1 ? span : null;
+};
 
 /** Immutable domain object: every transition returns a new layout value. */
 export class MapLayout {
@@ -99,7 +104,8 @@ export class MapLayout {
       !uniqueIds(draft.columns) ||
       !uniqueIds(draft.layers) ||
       !uniqueIds(draft.zones) ||
-      [...draft.columns, ...draft.layers, ...draft.zones].some(item => !item.name.trim())
+      [...draft.columns, ...draft.layers, ...draft.zones].some(item => !item.name.trim()) ||
+      [...draft.columns, ...draft.layers].some(item => item.size !== undefined && (!Number.isFinite(item.size) || item.size <= 0))
     ) return null;
 
     const columnIds = new Set(draft.columns.map(item => item.id));
@@ -124,21 +130,38 @@ export class MapLayout {
       }
     }));
 
+    const preparedDomains: DomainPlacement[] = [];
+    for (const [index, domain] of domains.entries()) {
+      const columnId = columnIds.has(domain.layout?.columnId as string)
+        ? domain.layout?.columnId as string
+        : columns[index % columns.length].id;
+      const layerId = layerIds.has(domain.layout?.layerId as string)
+        ? domain.layout?.layerId as string
+        : layers[0].id;
+      const columnSpan = normalizedSpan(domain.layout?.columnSpan);
+      const rowSpan = normalizedSpan(domain.layout?.rowSpan);
+      const columnStart = columns.findIndex(column => column.id === columnId);
+      const layerStart = layers.findIndex(layer => layer.id === layerId);
+      if (
+        columnSpan === null || rowSpan === null ||
+        columnStart < 0 || layerStart < 0 ||
+        columnStart + columnSpan > columns.length ||
+        layerStart + rowSpan > layers.length
+      ) return null;
+      preparedDomains.push(cloneValue({
+        ...domain,
+        layout: { ...(domain.layout || {}), columnId, layerId },
+      }));
+    }
+
     return {
       layout: cloneValue({ ...layout, columns, layers, zones }),
-      domains: domains.map((domain, index) => cloneValue({
-        ...domain,
-        layout: {
-          ...(domain.layout || {}),
-          columnId: columnIds.has(domain.layout?.columnId as string) ? domain.layout?.columnId : columns[index % columns.length].id,
-          layerId: layerIds.has(domain.layout?.layerId as string) ? domain.layout?.layerId : layers[0].id,
-        },
-      })),
+      domains: preparedDomains,
     };
   }
 
   isPlacementAvailable({
-    domains, columns, layers, domainId, columnId, layerId, columnSpan,
+    domains, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true,
   }: {
     domains: DomainPlacement[];
     columns: LayoutAxis[];
@@ -147,24 +170,42 @@ export class MapLayout {
     columnId: string;
     layerId: string;
     columnSpan: string | number;
+    rowSpan?: string | number;
+    allowExactOverlap?: boolean;
   }): boolean {
-    const start = columns.findIndex(column => column.id === columnId);
-    const span = Number(columnSpan);
-    if (start < 0 || !Number.isInteger(span) || span < 1 || start + span > columns.length || !layers.some(layer => layer.id === layerId)) return false;
+    const columnStart = columns.findIndex(column => column.id === columnId);
+    const layerStart = layers.findIndex(layer => layer.id === layerId);
+    const columnSize = normalizedSpan(columnSpan);
+    const layerSize = normalizedSpan(rowSpan);
+    if (
+      columnStart < 0 || layerStart < 0 || columnSize === null || layerSize === null ||
+      columnStart + columnSize > columns.length || layerStart + layerSize > layers.length
+    ) return false;
 
     return !domains.some(domain => {
-      if (domain.id === domainId || (domain.layout?.layerId || layers[0].id) !== layerId) return false;
-      const otherStart = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
-      const otherSpan = Math.max(1, Number(domain.layout?.columnSpan) || 1);
-      if (otherStart < 0) return false;
-      // Several domains may intentionally share the exact same matrix cell.
-      if (otherStart === start && otherSpan === span) return false;
-      return start < otherStart + otherSpan && otherStart < start + span;
+      if (domain.id === domainId) return false;
+      const otherColumnStart = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
+      const otherLayerStart = layers.findIndex(layer => layer.id === (domain.layout?.layerId || layers[0].id));
+      if (otherColumnStart < 0 || otherLayerStart < 0) return false;
+      const otherColumnSize = normalizedSpan(domain.layout?.columnSpan);
+      const otherLayerSize = normalizedSpan(domain.layout?.rowSpan);
+      if (otherColumnSize === null || otherLayerSize === null) return true;
+
+      const sameRectangle = otherColumnStart === columnStart && otherLayerStart === layerStart
+        && otherColumnSize === columnSize && otherLayerSize === layerSize;
+      // Legacy matrix layouts may intentionally share an identical placement.
+      if (allowExactOverlap && sameRectangle) return false;
+
+      const columnsOverlap = columnStart < otherColumnStart + otherColumnSize
+        && otherColumnStart < columnStart + columnSize;
+      const layersOverlap = layerStart < otherLayerStart + otherLayerSize
+        && otherLayerStart < layerStart + layerSize;
+      return columnsOverlap && layersOverlap;
     });
   }
 
   prepareDomainPlacement({
-    domains, layout, layoutMode, columns, layers, domainId, columnId, layerId,
+    domains, layout, layoutMode, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true,
   }: {
     domains: DomainPlacement[];
     layout: MapLayoutData;
@@ -174,6 +215,9 @@ export class MapLayout {
     domainId?: string;
     columnId?: string;
     layerId?: string;
+    columnSpan?: string | number;
+    rowSpan?: string | number;
+    allowExactOverlap?: boolean;
   }): PreparedLayout | null {
     if (!domainId) return null;
     const moving = domains.find(domain => domain.id === domainId);
@@ -182,15 +226,20 @@ export class MapLayout {
     const targetColumn = columnId || moving.layout?.columnId as string || columns[0].id;
     const targetLayer = layerId || moving.layout?.layerId as string || layers[0].id;
 
+    const targetColumnSpan = columnSpan ?? moving.layout?.columnSpan ?? 1;
+    const targetRowSpan = rowSpan ?? moving.layout?.rowSpan ?? 1;
     if (!this.isPlacementAvailable({
       domains, columns, layers, domainId, columnId: targetColumn, layerId: targetLayer,
-      columnSpan: moving.layout?.columnSpan || 1,
+      columnSpan: targetColumnSpan, rowSpan: targetRowSpan, allowExactOverlap,
     })) return null;
 
     return {
       layout: cloneValue({ ...layout, mode: layoutMode, columns, layers }),
       domains: domains.map(domain => cloneValue(domain.id === domainId
-        ? { ...domain, layout: { ...(domain.layout || {}), columnId: targetColumn, layerId: targetLayer } }
+        ? { ...domain, layout: { ...(domain.layout || {}), columnId: targetColumn, layerId: targetLayer,
+          ...(columnSpan === undefined ? {} : { columnSpan: targetColumnSpan }),
+          ...(rowSpan === undefined ? {} : { rowSpan: targetRowSpan }),
+        } }
         : domain)),
     };
   }

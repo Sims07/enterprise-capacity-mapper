@@ -117,3 +117,39 @@ test('prepares domain placement patches and rejects overlapping moves', () => {
   assert.equal(prepare('', 'c1', 'l1'), null);
 });
 
+
+
+test('checks vertical spans and exposes strict no-overlap placement for mosaic layouts', () => {
+  const columns = [...draft().columns, { id: 'c3', name: 'Operations', order: 2 }];
+  const layers = [...draft().layers, { id: 'l3', name: 'Strategic', order: 2 }];
+  const domains = [
+    { id: 'existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2 } },
+  ];
+  const available = args => isDomainPlacementAvailable({ domains, columns, layers, ...args });
+
+  assert.equal(available({ columnId: 'c2', layerId: 'l2', columnSpan: 1, rowSpan: 1 }), false);
+  assert.equal(available({ columnId: 'c3', layerId: 'l3', columnSpan: 1, rowSpan: 1 }), true);
+  assert.equal(available({ columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2 }), true);
+  assert.equal(available({ columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2, allowExactOverlap: false }), false);
+  assert.equal(available({ columnId: 'c3', layerId: 'l3', columnSpan: 1, rowSpan: 2 }), false);
+});
+
+test('resizes a domain through the application use case and preserves custom placement data', () => {
+  const columns = [...draft().columns, { id: 'c3', name: 'Operations', order: 2 }];
+  const layers = [...draft().layers, { id: 'l3', name: 'Strategic', order: 2 }];
+  const domains = [
+    { id: 'd1', layout: { columnId: 'c1', layerId: 'l1', custom: true } },
+    { id: 'd2', layout: { columnId: 'c3', layerId: 'l3' } },
+  ];
+  const resized = prepareDomainPlacement({
+    domains, layout: { mode: 'mosaic' }, layoutMode: 'mosaic', columns, layers,
+    domainId: 'd1', columnSpan: 2, rowSpan: 2, allowExactOverlap: false,
+  });
+  assert.equal(resized.domains[0].layout.rowSpan, 2);
+  assert.equal(resized.domains[0].layout.columnSpan, 2);
+  assert.equal(resized.domains[0].layout.custom, true);
+  assert.equal(prepareDomainPlacement({
+    domains, layout: { mode: 'mosaic' }, layoutMode: 'mosaic', columns, layers,
+    domainId: 'd1', columnSpan: 3, rowSpan: 2, allowExactOverlap: false,
+  }), null);
+});

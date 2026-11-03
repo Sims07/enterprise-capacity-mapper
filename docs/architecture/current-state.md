@@ -127,3 +127,10 @@ Règles de contribution :
 - éviter `!important` pour résoudre un conflit de thème ; corriger en priorité la règle source et la portée du sélecteur ;
 - conserver les styles propres à un composant dans sa feuille dédiée, sans recopier les décisions visuelles globales ;
 - vérifier les états clair/sombre, clavier, réduction des animations et les largeurs desktop/mobile avec Playwright.
+
+
+## 10. Placement bidimensionnel des domaines N0
+
+Le contrat de placement conserve des coordonnées stables par identifiants d'axes (columnId, layerId) et exprime les dimensions par columnSpan et rowSpan. Une portée absente vaut une cellule, ce qui préserve la lecture des modèles JSON historiques. Les axes peuvent porter une propriété size strictement positive, interprétée comme une proportion relative et non comme une dimension en pixels.
+
+MapLayout valide les rectangles sur les deux axes, leurs limites et les collisions. Le paramètre allowExactOverlap permet au futur mode mosaïque d'interdire également les placements strictement identiques, sans changer par défaut le comportement historique de la matrice. La validation avant sauvegarde refuse les placements devenus hors limites plutôt que de réduire silencieusement leur portée.
