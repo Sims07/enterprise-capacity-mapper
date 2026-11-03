@@ -27,7 +27,7 @@ Les références d'architecture sont dans [`docs/architecture/`](docs/architectu
 
 En mode mosaïque, chaque carte dispose d’une poignée de redimensionnement directe : faites-la glisser pour ajuster simultanément largeur et hauteur par pas de grille, ou utilisez les flèches du clavier. Les dimensions sont enregistrées dans la cartographie ; les chevauchements et dépassements de la grille restent refusés.
 
-- mode présentation de la mosaïque, sans repères de grille et avec les couleurs des domaines en plein panneau;
+- mode présentation de la mosaïque, avec des cartes compactes, des contours colorés et une composition paysage sans pistes vides;
 
 - cartographie TOGAF / capability mapping ;
 - intitulés des axes de matrice affichables ou masquables indépendamment ;
