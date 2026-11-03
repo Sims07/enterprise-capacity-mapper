@@ -2714,3 +2714,45 @@ body::-webkit-scrollbar,
 .structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:#334155;font-size:12px;font-weight:650}
 .structure-visibility-option input{width:16px;height:16px;accent-color:#4f46e5}
 @media(max-width:760px){.map-matrix .map-row{gap:4px}.map-matrix .map-cell{padding:5px}.workspace.mosaic-workspace>main{padding:10px}}
+
+
+/* Matrix shares the mosaic two-dimensional placement model on desktop. */
+.map-matrix {
+  display: grid;
+  min-width: 1078px;
+  grid-auto-flow: row;
+  grid-auto-rows: minmax(160px, auto);
+  align-items: stretch;
+}
+.map-matrix > .map-row { display: contents; min-width: 0; }
+.map-matrix .map-cell { min-width: 0; min-height: 160px; }
+.map-matrix .matrix-domain {
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  z-index: 1;
+}
+.map-matrix .matrix-domain > .domain {
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+.map-matrix .matrix-domain .caps { grid-template-columns: 1fr; }
+.map-matrix .matrix-mobile-domain { display: none; }
+
+@media (max-width: 600px) {
+  .map-matrix {
+    display: block;
+    min-width: 0;
+  }
+  .map-matrix > .map-row {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    width: 100%;
+  }
+  .map-matrix > .map-row.map-head { display: none; }
+  .map-matrix .matrix-domain { display: none; }
+  .map-matrix .matrix-mobile-domain { display: block; }
+  .map-matrix .matrix-mobile-domain .domain { margin: 0; }
+}
