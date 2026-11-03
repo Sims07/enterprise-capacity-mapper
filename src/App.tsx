@@ -451,6 +451,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       domainId,
       columnId,
       layerId,
+      allowExactOverlap: layoutMode !== 'mosaic',
     });
     if (!patch) {
       if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
