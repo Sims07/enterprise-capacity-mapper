@@ -97,7 +97,17 @@ test.describe('Rendu mosaïque', () => {
     const firstDomain = page.locator('.mosaic-domain').first();
     const handle = firstDomain.getByTestId('mosaic-resize-handle');
     await expect(handle).toBeVisible();
-    const zone = page.getByTestId('mosaic-map').locator('.mosaic-zone').first();
+    const placement = await firstDomain.evaluate(element => {
+      const style = getComputedStyle(element);
+      return { column: style.gridColumnStart, row: style.gridRowStart };
+    });
+    const zones = page.getByTestId('mosaic-map').locator('.mosaic-zone');
+    const matchingZoneIndex = await zones.evaluateAll((elements, target) => elements.findIndex(element => {
+      const style = getComputedStyle(element);
+      return style.gridColumnStart === target.column && style.gridRowStart === target.row;
+    }), placement);
+    expect(matchingZoneIndex).toBeGreaterThanOrEqual(0);
+    const zone = zones.nth(matchingZoneIndex);
     const cellBounds = await zone.boundingBox();
     const handleBounds = await handle.boundingBox();
     expect(cellBounds).not.toBeNull();
