@@ -31,7 +31,7 @@ test.describe('Rendu mosaïque', () => {
     await page.locator('.cell-add').first().click();
     const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
     await dialog.getByLabel('Nom').fill('Domaine sans capacité');
-    await dialog.getByLabel('Code').fill('DOM-EMPTY');
+    await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-EMPTY');
     await dialog.getByRole('button', { name: 'Créer' }).click();
     await page.getByTestId('mosaic-view').click();
     await page.getByTestId('presentation-switch-input').check();
