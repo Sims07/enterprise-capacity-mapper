@@ -1,6 +1,9 @@
 import { ACTIVE_MODEL_STORAGE_KEY } from '../../services/storage.ts';
 
 export const PRESENTATION_CHANNEL_NAME = 'enterprise-capacity-mapper:presentation:v1';
+const publisherChannel: ChannelLike | null = typeof BroadcastChannel === 'undefined'
+  ? null
+  : new BroadcastChannel(PRESENTATION_CHANNEL_NAME);
 
 type PresentationMessage = { type: 'model-updated'; sourceId: string; timestamp: number };
 type ChannelLike = Pick<BroadcastChannel, 'postMessage' | 'addEventListener' | 'removeEventListener' | 'close'>;
@@ -10,7 +13,7 @@ type WindowLike = Pick<Window, 'addEventListener' | 'removeEventListener'>;
 export const publishPresentationUpdate = ({ channel, sourceId, now = Date.now() }: {
   channel?: ChannelLike | null; sourceId: string; now?: number;
 }): void => {
-  channel?.postMessage({ type: 'model-updated', sourceId, timestamp: now } satisfies PresentationMessage);
+  (channel ?? publisherChannel)?.postMessage({ type: 'model-updated', sourceId, timestamp: now } satisfies PresentationMessage);
 };
 
 /** Subscribes to cross-window updates, with the native storage event as a fallback. */
