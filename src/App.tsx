@@ -402,6 +402,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const showColumnHeadings = layout.showColumnHeadings !== false;
   const showRowHeadings = layout.showRowHeadings !== false;
   const zones = columns.flatMap(column => layers.map(layer => layout.zones?.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
+  const nextMosaicDomainPlacement = columns.flatMap(column => layers.map(layer => ({
+    columnId: column.id,
+    layerId: layer.id,
+  }))).find(placement => isDomainPlacementAvailable({
+    domains: model.domains,
+    columns,
+    layers,
+    ...placement,
+    columnSpan: 1,
+    rowSpan: 1,
+    allowExactOverlap: false,
+  })) || null;
 
   const setLayoutView = m => { setLayoutMode(m); update({ layout: { ...layout, mode: m } }); };
   const openLayoutEditor = () => {
@@ -1087,6 +1099,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     <button type="button" data-testid="matrix-view" className={layoutMode === 'matrix' ? 'active' : ''} aria-pressed={layoutMode === 'matrix'} onClick={() => setLayoutView('matrix')}>Matrice</button>
                     <button type="button" data-testid="mosaic-view" className={layoutMode === 'mosaic' ? 'active' : ''} aria-pressed={layoutMode === 'mosaic'} onClick={() => setLayoutView('mosaic')}>Mosaïque</button>
                   </div>
+                  {layoutMode === 'mosaic' && <button type="button" className="secondary" data-testid="mosaic-add-domain" disabled={!nextMosaicDomainPlacement} title={nextMosaicDomainPlacement ? 'Créer un domaine N0 dans la première zone libre' : 'Ajoutez une ligne ou une colonne dans Structure pour libérer une zone'} onClick={() => openNew('domain', null, nextMosaicDomainPlacement)}>＋ Domaine N0</button>}
                   {layoutMode === 'mosaic' && <button type="button" className="secondary" data-testid="mosaic-inventory-toggle" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer les applications' : `Applications (${apps.length})`}</button>}
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
