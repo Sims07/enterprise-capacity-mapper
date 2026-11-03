@@ -106,6 +106,7 @@ test.describe('Rendu mosaïque', () => {
     const firstDomain = page.locator('.mosaic-domain').first();
     const handle = firstDomain.getByTestId('mosaic-resize-handle');
     await expect(handle).toBeVisible();
+    await handle.scrollIntoViewIfNeeded();
     const placement = await firstDomain.evaluate(element => {
       const style = getComputedStyle(element);
       return { column: style.gridColumnStart, row: style.gridRowStart };
