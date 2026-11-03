@@ -895,7 +895,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
                 {showColumnHeadings && <div className="cell-column-label">{col.name}</div>}
                 {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
-                {here.map(domain => <div className="matrix-mobile-domain" key={domain.id}><DomainCard d={domain} /></div>)}
                 {!here.length && <button type="button" className="cell-add empty" onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>}
               </div>
             );
@@ -911,8 +910,27 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         return <div className="matrix-domain" key={domain.id} data-domain-id={domain.id}
           style={{ gridColumn: `${columnIndex + matrixColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + 2} / span ${rowSpan}` }}>
           <DomainCard d={domain} />
+          <button type="button" className="cell-add" onClick={() => openNew('domain', null, { columnId: domain.layout?.columnId || columns[0].id, layerId: domain.layout?.layerId || layers[0].id })}>＋ Ajouter un domaine ici</button>
         </div>;
       })}
+      <div className="matrix-mobile-layout">
+        {layers.map(layer => (
+          <section className="matrix-mobile-row" key={layer.id}>
+            {showRowHeadings && <div className="axis-label">{layer.name}</div>}
+            {columns.map(col => {
+              const here = model.domains.filter(domain => (domain.layout?.columnId || columns[0].id) === col.id && (domain.layout?.layerId || layers[0].id) === layer.id && (domain.name + ' ' + domain.code + ' ' + (domain.description || '')).toLowerCase().includes(mapQuery.toLowerCase()));
+              const zone = zones.find(item => item.columnId === col.id && item.layerId === layer.id);
+              const zoneLabel = zone?.name && zone.name !== col.name ? zone.name : '';
+              return <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`}>
+                {showColumnHeadings && <div className="cell-column-label">{col.name}</div>}
+                {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
+                {here.map(domain => <DomainCard d={domain} key={domain.id} />)}
+                <button type="button" className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>
+              </div>;
+            })}
+          </section>
+        ))}
+      </div>
     </div>
   );
 
