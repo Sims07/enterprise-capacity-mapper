@@ -748,7 +748,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicColumnOffset = !presentation && showRowHeadings ? 2 : 1;
   const mosaicRowOffset = !presentation && showColumnHeadings ? 2 : 1;
   const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
-  const mosaicRows = `${!presentation && showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+  const mosaicRows = `${!presentation && showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(${presentation ? 112 : 180}px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
@@ -770,7 +770,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
         const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
         return <div className="mosaic-domain" key={domain.id}
-          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}`, ...(presentation ? { backgroundColor: resolveDomainColor(domain.color) } : {}) }}>
+          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}`,  }}>
           <DomainCard d={domain} />
           {!presentation && <div className="mosaic-resize-controls" role="group" aria-label={`Redimensionner ${domain.name}`}>
             <span>Étendue</span>
