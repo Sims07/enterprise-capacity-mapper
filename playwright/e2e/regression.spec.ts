@@ -165,7 +165,7 @@ test.describe('Playwright regression — analysis and relations', () => {
     await page.getByTestId('tab-relations').click();
     await expect(page.locator('.tree-row.impact-highlight')).toContainText('Gestion des Prospects & Leads');
     await page.getByTestId('nav-cartography').click();
-    await expect(page.locator('.cap.impact-selected')).toContainText('Gestion des Prospects & Leads');
+    await expect(page.locator('.cap.impact-selected:visible')).toContainText('Gestion des Prospects & Leads');
   });
 
   test('navigue de la couverture vers Relations et cible la capacité', async ({ page }) => {
@@ -209,10 +209,10 @@ test.describe('Playwright regression — import, library and persistence', () =>
       mimeType: 'application/json',
       buffer: Buffer.from(model),
     });
-    await expect(page.locator('.cap').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
     await page.reload();
-    await expect(page.locator('.cap').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
-    await expect(page.locator('.map-cell').filter({ hasText: 'Relation & Engagement Client' })).toHaveAttribute('style', /grid-column: span 2/);
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
+    await expect(page.locator('.map-cell:visible').filter({ hasText: 'Relation & Engagement Client' })).toHaveAttribute('style', /grid-column: span 2/);
   });
 
   test('migre un ancien modèle local vers le schéma actuel', async ({ page }) => {
@@ -223,8 +223,8 @@ test.describe('Playwright regression — import, library and persistence', () =>
       localStorage.setItem('ea_canvas_apps', JSON.stringify([{ id: 'legacy-app', name: 'Application historique', code: 'LEG-APP', type: 'SaaS', status: 'Actif', vendor: 'Legacy', description: 'Application migrée', l1Id: 'legacy-cap' }]));
     });
     await page.reload();
-    await expect(page.locator('.domain h3')).toContainText('Domaine historique');
-    await expect(page.locator('.cap .map-cap-select')).toContainText('Capacité historique');
+    await expect(page.locator('.domain h3:visible')).toContainText('Domaine historique');
+    await expect(page.locator('.cap:visible .map-cap-select')).toContainText('Capacité historique');
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') ?? 'null').schemaVersion)).toBe(3);
   });
 });
