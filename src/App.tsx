@@ -1014,12 +1014,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
             </div>
-            {layoutMode === 'mosaic' && !presentation && <button type="button" className="secondary presentation-open-window" data-testid="open-presentation-window" onClick={() => { const url = new URL(window.location.href); url.searchParams.set('view', 'presentation'); window.open(url.toString(), '_blank', 'noopener,noreferrer'); }}>↗ Ouvrir la présentation</button>}
-            <label className="presentation-switch" data-testid="presentation-toggle">
-              <span>Présentation</span>
-              <input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
-              <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
-            </label>
+            {layoutMode === 'mosaic' && !presentation && <button type="button" className="secondary presentation-open-window" data-testid="open-presentation-window" onClick={() => {
+              const isMobileViewport = experienceKind === 'mobile' || window.matchMedia('(max-width: 700px)').matches;
+              if (isMobileViewport) {
+                setPresentation(true);
+                return;
+              }
+              const url = new URL(window.location.href);
+              url.searchParams.set('view', 'presentation');
+              const presentationWindow = window.open(url.toString(), '_blank');
+              if (presentationWindow) presentationWindow.opener = null;
+              else setPresentation(true);
+            }}>{experienceKind === 'mobile' || window.matchMedia('(max-width: 700px)').matches ? 'Passer en présentation' : '↗ Ouvrir la présentation'}</button>}
 
           </div>
         </div>
