@@ -16,7 +16,7 @@ async function openCapacityMapper(page: import('@playwright/test').Page, width: 
   // Keep the shared Storybook visual baseline focused on the map layout.
   // The new matrix/mosaic selector has dedicated functional coverage in E2E;
   // hiding it here avoids treating an intentional toolbar addition as a layout regression.
-  await page.addStyleTag({ content: '.map-view-toggle { visibility: hidden !important; }' });
+  await page.addStyleTag({ content: '.map-view-toggle { display: none !important; }' });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(150);
 }
