@@ -33,7 +33,7 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
     await page.keyboard.press('Escape');
   }
   await page.getByTestId('mosaic-view').click();
-  await page.getByTestId('presentation-switch-input').check();
+  await page.goto('/?view=presentation');
   await expect(page.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
