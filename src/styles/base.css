@@ -2745,6 +2745,7 @@ body::-webkit-scrollbar,
 .map-matrix .matrix-domain .caps { grid-template-columns: 1fr; padding: 8px; }
 .map-matrix .matrix-domain .cap { min-height: 110px; }
 .map-matrix .matrix-domain .cell-add { display: block; flex: 0 0 auto; margin-top: 10px; }
+.map-matrix .matrix-domain > .cell-add:not(.empty) { display: block; }
 .map-matrix .matrix-mobile-domain { display: none; }
 
 @media (max-width: 600px) {
