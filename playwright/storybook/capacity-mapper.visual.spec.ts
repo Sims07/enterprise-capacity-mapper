@@ -34,14 +34,14 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
   }
   await page.getByTestId('mosaic-view').click();
   await page.getByTestId('presentation-switch-input').check();
-  await expect(page.locator('.app.presentation-mode .map-mosaic')).toBeVisible();
+  await expect(page.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
 }
 test.describe('Storybook visual regression — Capacity Mapper', () => {
   test('mosaïque présentation — paysage 16:9, thème clair', async ({ page }) => {
     await openMosaicPresentation(page, 'light');
-    const mosaic = page.locator('.presentation-mode .map-mosaic');
+    const mosaic = page.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
     await expect(mosaic.locator('.mosaic-zone, .mosaic-column-heading, .mosaic-row-heading')).toHaveCount(0);
     const first = mosaic.locator('.mosaic-domain').first();
@@ -53,7 +53,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
 
   test('mosaïque présentation — paysage 16:9, thème sombre', async ({ page }) => {
     await openMosaicPresentation(page, 'dark');
-    const mosaic = page.locator('.presentation-mode .map-mosaic');
+    const mosaic = page.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
     await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', 'rgb(32, 35, 43)');
     await mkdir('test-results-storybook', { recursive: true });
