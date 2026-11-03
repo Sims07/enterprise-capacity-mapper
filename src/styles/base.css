@@ -2729,7 +2729,8 @@ body::-webkit-scrollbar,
 .map-matrix .matrix-domain {
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  position: relative;
+  padding: 8px 8px 42px;
   min-width: 0;
   min-height: 0;
   align-self: stretch;
@@ -2744,8 +2745,14 @@ body::-webkit-scrollbar,
 .map-matrix .matrix-domain .domain-head { padding: 10px; }
 .map-matrix .matrix-domain .caps { grid-template-columns: 1fr; padding: 8px; }
 .map-matrix .matrix-domain .cap { min-height: 110px; }
-.map-matrix .matrix-domain .cell-add { display: block; flex: 0 0 auto; margin-top: 10px; }
-.map-matrix .matrix-domain > .cell-add:not(.empty) { display: block; }
+.map-matrix .matrix-domain > .cell-add {
+  display: block !important;
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  width: calc(100% - 16px);
+  margin: 0;
+}
 .map-matrix .matrix-mobile-domain { display: none; }
 
 @media (max-width: 600px) {
