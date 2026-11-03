@@ -119,3 +119,10 @@ Le troisième lot rend les portées des domaines N0 configurables directement de
 - Les commandes sont masquées en mode présentation ; leur disposition est adaptée aux petits écrans et aux thèmes clair/sombre.
 
 Le déplacement reste possible par glisser-déposer vers une zone de la grille. Cette PR ajoute l'édition explicite des dimensions ; elle ne modifie ni le modèle des capacités N1, ni les axes, ni les relations métier. Les commandes accessibles constituent l'interaction de redimensionnement de référence, sans dépendre d'un geste de souris seul.
+
+## Évolutions de présentation — PR #180
+
+- Les options `showColumnHeadings` et `showRowHeadings` du layout permettent de masquer indépendamment les intitulés des colonnes et des lignes. Leur valeur par défaut reste visible pour préserver les cartographies existantes.
+- La matrice répartit les colonnes sur la largeur disponible, y compris au-delà de six colonnes, au lieu d'imposer une largeur minimale fixe par colonne.
+- En mode mosaïque, l'inventaire applicatif latéral est replié par défaut pour réserver toute la zone de travail à la cartographie ; un bouton **Applications** permet de le rouvrir ponctuellement pour conserver le glisser-déposer et le rattachement des applications.
+- Les offsets de grille sont calculés en fonction des axes visibles : les placements N0 et leurs portées multi-colonnes / multi-lignes restent alignés lorsque les intitulés sont masqués.

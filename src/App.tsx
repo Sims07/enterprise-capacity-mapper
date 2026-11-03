@@ -124,6 +124,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
   const [layoutMode, setLayoutMode] = useState(model.layout?.mode || 'matrix');
+  const [showMosaicInventory, setShowMosaicInventory] = useState(false);
 
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
@@ -389,11 +390,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const layout = model.layout || { mode: 'matrix', columns: DEFAULT_LAYOUTS.columns, layers: DEFAULT_LAYOUTS.layers };
   const columns = layout.columns?.length ? layout.columns : DEFAULT_LAYOUTS.columns;
   const layers = layout.layers?.length ? layout.layers : DEFAULT_LAYOUTS.layers;
+  const showColumnHeadings = layout.showColumnHeadings !== false;
+  const showRowHeadings = layout.showRowHeadings !== false;
   const zones = columns.flatMap(column => layers.map(layer => layout.zones?.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
 
   const setLayoutView = m => { setLayoutMode(m); update({ layout: { ...layout, mode: m } }); };
   const openLayoutEditor = () => {
-    setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })) });
+    setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })), showColumnHeadings, showRowHeadings });
     setModal('layout');
   };
 
@@ -411,7 +414,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       notify('Chaque colonne, layer et zone doit avoir un nom');
       return;
     }
-    update(prepared);
+    update({ ...prepared, layout: { ...prepared.layout, showColumnHeadings: layoutDraft.showColumnHeadings !== false, showRowHeadings: layoutDraft.showRowHeadings !== false } });
     setModal(null);
     notify('Structure enregistrée');
   };
@@ -742,17 +745,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     )) : <p className="local-map-empty">Aucun élément.</p>;
   }
 
-  const mosaicColumns = `110px ${columns.map(column => `${Math.max(0.1, Number(column.size) || 1)}fr`).join(' ')}`;
-  const mosaicRows = `44px ${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+  const mosaicColumnOffset = showRowHeadings ? 2 : 1;
+  const mosaicRowOffset = showColumnHeadings ? 2 : 1;
+  const mosaicColumns = `${showRowHeadings ? '110px ' : ''}${columns.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
+  const mosaicRows = `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
-      <div className="mosaic-corner" />
-      {columns.map(column => <div className="mosaic-column-heading" key={column.id}>{column.name}</div>)}
-      {layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + 2 }}>{layer.name}</div>)}
+      {showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
+      {showColumnHeadings && columns.map(column => <div className="mosaic-column-heading" key={column.id} style={{ gridColumn: columns.indexOf(column) + mosaicColumnOffset, gridRow: 1 }}>{column.name}</div>)}
+      {showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + mosaicRowOffset }}>{layer.name}</div>)}
       {layers.flatMap((layer, rowIndex) => columns.map((column, columnIndex) => {
         const zone = zones.find(item => item.columnId === column.id && item.layerId === layer.id);
         return <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`}
-          style={{ gridColumn: columnIndex + 2, gridRow: rowIndex + 2 }}
+          style={{ gridColumn: columnIndex + mosaicColumnOffset, gridRow: rowIndex + mosaicRowOffset }}
           onDragOver={event => event.preventDefault()}
           onDrop={event => { event.preventDefault(); placeDomain(event.dataTransfer.getData('domain'), column.id, layer.id); }}>
           {zone?.name && zone.name !== column.name && <span className="mosaic-zone-label">{zone.name}</span>}
@@ -765,7 +770,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
         const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
         return <div className="mosaic-domain" key={domain.id}
-          style={{ gridColumn: `${columnIndex + 2} / span ${columnSpan}`, gridRow: `${rowIndex + 2} / span ${rowSpan}` }}>
+          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}>
           <DomainCard d={domain} />
           {!presentation && <div className="mosaic-resize-controls" role="group" aria-label={`Redimensionner ${domain.name}`}>
             <span>Étendue</span>
@@ -788,14 +793,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   );
 
   const matrixView = (
-    <div className="map map-matrix">
-      <div className="map-row map-head" style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
-        <div />
-        {columns.map(col => <div className="col-head" key={col.id}>{col.name}</div>)}
+    <div className={`map map-matrix${columns.length > 4 ? " map-matrix-wide" : ""}`} data-testid="matrix-map">
+      <div className="map-row map-head" style={{ gridTemplateColumns: `${showRowHeadings ? (presentation ? '100px ' : '120px ') : ''}repeat(${columns.length}, minmax(0, 1fr))` }}>
+        {showRowHeadings && <div />}
+        {showColumnHeadings && columns.map(col => <div className="col-head" key={col.id}>{col.name}</div>)}
       </div>
       {layers.map(layer => (
-        <div className="map-row" key={layer.id} style={{ gridTemplateColumns: presentation ? `100px repeat(${columns.length}, minmax(0, 1fr))` : `120px repeat(${columns.length}, minmax(220px, 1fr))` }}>
-          <div className="axis-label">{layer.name}</div>
+        <div className="map-row" key={layer.id} style={{ gridTemplateColumns: `${showRowHeadings ? (presentation ? '100px ' : '120px ') : ''}repeat(${columns.length}, minmax(0, 1fr))` }}>
+          {showRowHeadings && <div className="axis-label">{layer.name}</div>}
           {columns.map((col, index) => {
             const coveredByPrevious = model.domains.some(d => (d.layout?.layerId || layers[0].id) === layer.id && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) < index && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) + Math.max(1, Number(d.layout?.columnSpan) || 1) > index);
             if (coveredByPrevious) return null;
@@ -806,7 +811,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
             return (
               <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} style={{ gridColumn: span > 1 ? `span ${span}` : undefined }} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
-                <div className="cell-column-label">{col.name}</div>
+                {showColumnHeadings && <div className="cell-column-label">{col.name}</div>}
                 {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
                 {here.map(d => <DomainCard d={d} key={d.id} />)}
                 <button type="button" className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>
@@ -964,7 +969,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
         </section>
       ) : (
-      <div className="workspace">
+      <div className={'workspace' + (layoutMode === 'mosaic' ? ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}` : '')}>
         <aside id="app-inventory">
           <div className="panel-title">
             <span>Inventaire SI <em>{apps.length}</em></span>
@@ -1052,6 +1057,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     <button type="button" data-testid="matrix-view" className={layoutMode === 'matrix' ? 'active' : ''} aria-pressed={layoutMode === 'matrix'} onClick={() => setLayoutView('matrix')}>Matrice</button>
                     <button type="button" data-testid="mosaic-view" className={layoutMode === 'mosaic' ? 'active' : ''} aria-pressed={layoutMode === 'mosaic'} onClick={() => setLayoutView('mosaic')}>Mosaïque</button>
                   </div>
+                  {layoutMode === 'mosaic' && <button type="button" className="secondary" data-testid="mosaic-inventory-toggle" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer les applications' : `Applications (${apps.length})`}</button>}
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
@@ -1174,7 +1180,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
       {modal === 'layout' && layoutDraft && (
         <Modal title="Personnaliser la structure" onClose={() => setModal(null)}>
-          <p className="structure-hint">Renommez les colonnes et les layers.</p>
+          <p className="structure-hint">Renommez les colonnes et les lignes, et choisissez les intitulés visibles sur la cartographie.</p>
+          <section className="structure-section" data-testid="axis-heading-options">
+            <h3>Intitulés des axes</h3>
+            <label className="structure-visibility-option"><input type="checkbox" checked={layoutDraft.showColumnHeadings !== false} onChange={event => setLayoutDraft(draft => ({ ...draft, showColumnHeadings: event.target.checked }))} /> Afficher les titres des colonnes</label>
+            <label className="structure-visibility-option"><input type="checkbox" checked={layoutDraft.showRowHeadings !== false} onChange={event => setLayoutDraft(draft => ({ ...draft, showRowHeadings: event.target.checked }))} /> Afficher les titres des lignes</label>
+          </section>
           {[['columns', 'Colonnes'], ['layers', 'Layers']].map(([kind, title]) => (
             <section className="structure-section" key={kind}>
               <h3>{title}</h3>

@@ -26,6 +26,8 @@ Les références d'architecture sont dans [`docs/architecture/`](docs/architectu
 ## Fonctionnalités
 
 - cartographie TOGAF / capability mapping ;
+- intitulés des axes de matrice affichables ou masquables indépendamment ;
+- matrices larges et mosaïques optimisées pour les cartographies multi-colonnes ;
 - capacités N1 et applications associées ;
 - analyse de couverture, gaps, redondances et impact ;
 - gestion des relations ;

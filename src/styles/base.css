@@ -2738,3 +2738,20 @@ body::-webkit-scrollbar,
   .mosaic-resize-controls { right: 4px; bottom: 4px; gap: 3px; }
   .mosaic-resize-controls button { min-height: 28px; padding: 4px 6px; }
 }
+
+
+/* Les matrices larges utilisent toute la largeur disponible sans modifier la grille standard. */
+.map-matrix-wide{width:100%;min-width:0;overflow-x:auto}
+.map-matrix-wide .map-row{width:100%;min-width:0}
+.map-matrix-wide .map-cell{min-width:0;overflow-wrap:anywhere}
+.map-matrix-wide .domain{min-width:0;max-width:100%}
+.map-matrix-wide .domain-banner-title h3{overflow-wrap:anywhere}
+.workspace.mosaic-workspace{grid-template-columns:minmax(0,1fr)}
+.workspace.mosaic-workspace>aside{display:none}
+.workspace.mosaic-workspace>main{min-width:0}
+.workspace.mosaic-workspace.mosaic-inventory-open{grid-template-columns:280px minmax(0,1fr)}
+.workspace.mosaic-workspace.mosaic-inventory-open>aside{display:block}
+.map-mosaic{width:100%;min-width:0;grid-auto-flow:row;grid-auto-columns:minmax(0,1fr)}
+.structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:#334155;font-size:12px;font-weight:650}
+.structure-visibility-option input{width:16px;height:16px;accent-color:#4f46e5}
+@media(max-width:760px){.map-matrix .map-row{gap:4px}.map-matrix .map-cell{padding:5px}.workspace.mosaic-workspace>main{padding:10px}}
