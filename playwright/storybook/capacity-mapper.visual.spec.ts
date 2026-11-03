@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 const storyUrl = (theme: 'light' | 'dark') =>
@@ -21,7 +22,43 @@ async function openCapacityMapper(page: import('@playwright/test').Page, width: 
   await page.waitForTimeout(150);
 }
 
+async function openMosaicPresentation(page: import('@playwright/test').Page, theme: 'light' | 'dark') {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto('/iframe.html?id=application-capacity-mapper--mosaic-presentation&viewMode=story&globals=theme:light');
+  await expect(page.locator('.app').first()).toBeVisible();
+  if (theme === 'dark') {
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('theme-toggle').click();
+    await expect(page.locator('.app.theme-dark')).toBeVisible();
+    await page.keyboard.press('Escape');
+  }
+  await page.getByTestId('mosaic-view').click();
+  await page.getByTestId('presentation-switch-input').check();
+  await expect(page.locator('.app.presentation-mode .map-mosaic')).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(200);
+}
 test.describe('Storybook visual regression — Capacity Mapper', () => {
+  test('mosaïque présentation — paysage 16:9, thème clair', async ({ page }) => {
+    await openMosaicPresentation(page, 'light');
+    const mosaic = page.locator('.presentation-mode .map-mosaic');
+    await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
+    await expect(mosaic.locator('.mosaic-zone, .mosaic-column-heading, .mosaic-row-heading')).toHaveCount(0);
+    const first = mosaic.locator('.mosaic-domain').first();
+    await expect(first).toHaveCSS('border-style', 'solid');
+    await expect(first.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await mkdir('test-results-storybook', { recursive: true });
+    await page.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-light.png', animations: 'disabled' });
+  });
+
+  test('mosaïque présentation — paysage 16:9, thème sombre', async ({ page }) => {
+    await openMosaicPresentation(page, 'dark');
+    const mosaic = page.locator('.presentation-mode .map-mosaic');
+    await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
+    await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', 'rgb(32, 35, 43)');
+    await mkdir('test-results-storybook', { recursive: true });
+    await page.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-dark.png', animations: 'disabled' });
+  });
   test('desktop — thème clair', async ({ page }) => {
     await openCapacityMapper(page, 1440, 900, 'light');
     await expect(page).toHaveScreenshot('capacity-mapper-desktop-light.png', {
