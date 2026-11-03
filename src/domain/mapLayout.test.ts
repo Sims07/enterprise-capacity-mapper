@@ -151,6 +151,6 @@ test('MapLayout can resize a domain while preserving its other layout metadata',
   });
   assert.equal(MapLayout.fromDraft(draft()).prepareDomainPlacement({
     domains, layout: {}, layoutMode: 'mosaic', columns, layers, domainId: 'd1',
-    columnSpan: 3, rowSpan: 2, allowExactOverlap: false,
+    columnSpan: 4, rowSpan: 2, allowExactOverlap: false,
   }), null);
 });
