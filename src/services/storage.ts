@@ -1,6 +1,7 @@
 import type { CatalogModel } from '../domain/catalogModel.ts';
 
-const KEY = 'enterprise-capacity-mapper:model:v3';
+export const ACTIVE_MODEL_STORAGE_KEY = 'enterprise-capacity-mapper:model:v3';
+const KEY = ACTIVE_MODEL_STORAGE_KEY;
 const LOCAL_MAPS_KEY = 'enterprise-capacity-mapper:local-maps:v1';
 const RECENT_MAPS_KEY = 'enterprise-capacity-mapper:recent-maps:v1';
 const LEGACY = ['ea_canvas_l0', 'ea_canvas_l1', 'ea_canvas_apps'];
