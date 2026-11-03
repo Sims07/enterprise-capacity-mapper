@@ -460,6 +460,27 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     update(patch);
   };
 
+  const resizeMosaicDomain = (domain, columnSpan, rowSpan) => {
+    const patch = prepareDomainPlacement({
+      domains: model.domains,
+      layout,
+      layoutMode: 'mosaic',
+      columns,
+      layers,
+      domainId: domain.id,
+      columnId: domain.layout?.columnId || columns[0].id,
+      layerId: domain.layout?.layerId || layers[0].id,
+      columnSpan,
+      rowSpan,
+      allowExactOverlap: false,
+    });
+    if (!patch) {
+      notify('Redimensionnement impossible : la zone est occupée ou dépasse la grille.');
+      return;
+    }
+    update(patch);
+  };
+
   const openNew = (kind, parent = null, place = null) => {
     setEditingDomainId(null);
     setEditingCapabilityId(null);
@@ -746,6 +767,21 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         return <div className="mosaic-domain" key={domain.id}
           style={{ gridColumn: `${columnIndex + 2} / span ${columnSpan}`, gridRow: `${rowIndex + 2} / span ${rowSpan}` }}>
           <DomainCard d={domain} />
+          {!presentation && <div className="mosaic-resize-controls" role="group" aria-label={`Redimensionner ${domain.name}`}>
+            <span>Étendue</span>
+            <button type="button" data-testid="mosaic-resize-column-decrease" aria-label={`Réduire la largeur de ${domain.name}`}
+              disabled={columnSpan <= 1}
+              onClick={() => resizeMosaicDomain(domain, columnSpan - 1, rowSpan)}>− largeur</button>
+            <button type="button" data-testid="mosaic-resize-column-increase" aria-label={`Augmenter la largeur de ${domain.name}`}
+              disabled={columnSpan >= columns.length - columnIndex}
+              onClick={() => resizeMosaicDomain(domain, columnSpan + 1, rowSpan)}>+ largeur</button>
+            <button type="button" data-testid="mosaic-resize-row-decrease" aria-label={`Réduire la hauteur de ${domain.name}`}
+              disabled={rowSpan <= 1}
+              onClick={() => resizeMosaicDomain(domain, columnSpan, rowSpan - 1)}>− hauteur</button>
+            <button type="button" data-testid="mosaic-resize-row-increase" aria-label={`Augmenter la hauteur de ${domain.name}`}
+              disabled={rowSpan >= layers.length - rowIndex}
+              onClick={() => resizeMosaicDomain(domain, columnSpan, rowSpan + 1)}>+ hauteur</button>
+          </div>}
         </div>;
       })}
     </div>
