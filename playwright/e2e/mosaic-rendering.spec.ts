@@ -18,7 +18,7 @@ test.describe('Rendu mosaïque', () => {
   test('présente la mosaïque sans repères de grille et avec les panneaux colorés', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('presentation-switch-input').check();
+    await page.goto('/?view=presentation');
     const mosaic = page.getByTestId('mosaic-map');
     await expect(mosaic.locator('.mosaic-zone')).toHaveCount(0);
     await expect(mosaic.locator('.mosaic-column-heading, .mosaic-row-heading, .mosaic-corner')).toHaveCount(0);
@@ -35,7 +35,7 @@ test.describe('Rendu mosaïque', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('presentation-switch-input').check();
+    await page.goto('/?view=presentation');
 
     const presentation = page.locator('.app.mosaic-presentation-mode');
     const mosaic = page.getByTestId('mosaic-map');
@@ -112,7 +112,7 @@ test.describe('Rendu mosaïque', () => {
     await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-EMPTY');
     await dialog.getByRole('button', { name: 'Créer' }).click();
     await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('presentation-switch-input').check();
+    await page.goto('/?view=presentation');
     const emptyDomain = page.getByTestId('mosaic-map').locator('.mosaic-presentation-empty').filter({ hasText: 'Domaine sans capacité' });
     await expect(emptyDomain).toBeVisible();
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
