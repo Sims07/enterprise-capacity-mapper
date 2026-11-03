@@ -18,7 +18,7 @@ test.describe('Rendu mosaïque', () => {
   test('présente la mosaïque sans repères de grille et avec les panneaux colorés', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('presentation-switch-input').check();
+    await page.goto('/?view=presentation');
     const mosaic = page.getByTestId('mosaic-map');
     await expect(mosaic.locator('.mosaic-zone')).toHaveCount(0);
     await expect(mosaic.locator('.mosaic-column-heading, .mosaic-row-heading, .mosaic-corner')).toHaveCount(0);
@@ -35,7 +35,7 @@ test.describe('Rendu mosaïque', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('presentation-switch-input').check();
+    await page.goto('/?view=presentation');
 
     const presentation = page.locator('.app.mosaic-presentation-mode');
     const mosaic = page.getByTestId('mosaic-map');
@@ -75,33 +75,22 @@ test.describe('Rendu mosaïque', () => {
     await expect(page.locator('.app > header')).toBeVisible();
   });
 
-  test('synchronise les changements de la cartographie dans une fenêtre de présentation dédiée', async ({ page }) => {
+  test('active et désactive la présentation depuis le switch unique', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    await page.locator('.cell-add').first().click();
-    const initialDialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
-    await initialDialog.getByLabel('Nom').fill('Domaine initial');
-    await initialDialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-INITIAL');
-    await initialDialog.getByRole('button', { name: 'Créer' }).click();
     await page.getByTestId('mosaic-view').click();
 
-    const presentationPagePromise = page.waitForEvent('popup');
-    await page.getByTestId('open-presentation-window').click();
-    const presentationPage = await presentationPagePromise;
-    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(presentationPage.getByTestId('mosaic-map')).toBeVisible();
-    await expect(presentationPage.getByTestId('mosaic-map')).toContainText('Domaine initial');
+    const presentationSwitch = page.getByTestId('presentation-switch-input');
+    await expect(presentationSwitch).toBeVisible();
+    await expect(presentationSwitch).not.toBeChecked();
+    await presentationSwitch.check();
+    await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await expect(page.getByTestId('mosaic-map')).toBeVisible();
+    await expect(page.getByTestId('presentation-return')).toBeVisible();
 
-    await page.getByTestId('mosaic-add-domain').click();
-    const updateDialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
-    await updateDialog.getByLabel('Nom').fill('Domaine ajouté après ouverture');
-    await updateDialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-LIVE');
-    await updateDialog.getByRole('button', { name: 'Créer' }).click();
-    await expect(presentationPage.getByTestId('mosaic-map')).toContainText('Domaine ajouté après ouverture');
-
-    await expect(presentationPage.getByTestId('presentation-return')).toBeVisible();
-    await presentationPage.getByTestId('presentation-return').click();
-    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
+    await page.getByTestId('presentation-return').click();
+    await expect(page.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
+    await expect(presentationSwitch).not.toBeChecked();
   });
 
   test('met en valeur le titre d’un domaine sans N1 dans un panneau dédié', async ({ page }) => {
@@ -112,7 +101,7 @@ test.describe('Rendu mosaïque', () => {
     await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-EMPTY');
     await dialog.getByRole('button', { name: 'Créer' }).click();
     await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('presentation-switch-input').check();
+    await page.goto('/?view=presentation');
     const emptyDomain = page.getByTestId('mosaic-map').locator('.mosaic-presentation-empty').filter({ hasText: 'Domaine sans capacité' });
     await expect(emptyDomain).toBeVisible();
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
