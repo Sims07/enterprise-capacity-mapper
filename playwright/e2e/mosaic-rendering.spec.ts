@@ -165,4 +165,22 @@ test.describe('Rendu mosaïque', () => {
   });
 
 
+  test('permet de créer une capacité N1 directement depuis un domaine en mosaïque', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+
+    const domain = page.getByTestId('mosaic-map').locator('.mosaic-domain')
+      .filter({ hasText: 'Relation & Engagement Client' });
+    await domain.getByRole('button', { name: 'Ajouter une capacité N1 à Relation & Engagement Client' }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Nouvelle capacité N1' });
+    await dialog.getByLabel('Nom').fill('Gestion des contrats clients');
+    await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('CRM-04');
+    await dialog.getByRole('button', { name: 'Créer' }).click();
+
+    await expect(domain.locator('.caps-list')).toContainText('Gestion des contrats clients');
+    await expect(domain.locator('.domain-meta')).toContainText('4 N1');
+  });
+
+
 });
