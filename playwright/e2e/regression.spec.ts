@@ -212,7 +212,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
     await page.reload();
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
-    await expect(page.locator('.map-cell:visible').filter({ hasText: 'Relation & Engagement Client' })).toHaveAttribute('style', /grid-column: span 2/);
+    await expect(page.locator('.matrix-domain:visible').filter({ hasText: 'Relation & Engagement Client' })).toHaveAttribute('style', /grid-column:\\s*\\d+\\s*\\/\\s*span 2/);
   });
 
   test('migre un ancien modèle local vers le schéma actuel', async ({ page }) => {
