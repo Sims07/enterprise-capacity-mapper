@@ -621,14 +621,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
-    const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}`;
+    const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}${presentation && layoutMode === 'mosaic' && caps.length === 0 ? ' mosaic-presentation-empty' : ''}`;
 
     return (
       <section
         className={domainClass}
         data-entity-id={d.id}
         data-entity-type="domain"
-        style={{ '--domain-color': resolveDomainColor(d.color) } as React.CSSProperties}
+        style={{ '--domain-color': resolveDomainColor(d.color), '--domain-text-color': domainTextColor(d.color) } as React.CSSProperties}
         draggable
         onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
         onDragStart={e => e.dataTransfer.setData('domain', d.id)}
@@ -742,16 +742,16 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     )) : <p className="local-map-empty">Aucun élément.</p>;
   }
 
-  const mosaicColumns = `110px ${columns.map(column => `${Math.max(0.1, Number(column.size) || 1)}fr`).join(' ')}`;
-  const mosaicRows = `44px ${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+  const mosaicColumns = `${presentation ? '' : '110px '}${columns.map(column => `${Math.max(0.1, Number(column.size) || 1)}fr`).join(' ')}`;
+  const mosaicRows = `${presentation ? '' : '44px '}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
-      <div className="mosaic-corner" />
-      {columns.map(column => <div className="mosaic-column-heading" key={column.id}>{column.name}</div>)}
-      {layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + 2 }}>{layer.name}</div>)}
+      {!presentation && <div className="mosaic-corner" />}
+      {!presentation && columns.map(column => <div className="mosaic-column-heading" key={column.id}>{column.name}</div>)}
+      {!presentation && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + 2 }}>{layer.name}</div>)}
       {layers.flatMap((layer, rowIndex) => columns.map((column, columnIndex) => {
         const zone = zones.find(item => item.columnId === column.id && item.layerId === layer.id);
-        return <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`}
+        return presentation ? null : <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`}
           style={{ gridColumn: columnIndex + 2, gridRow: rowIndex + 2 }}
           onDragOver={event => event.preventDefault()}
           onDrop={event => { event.preventDefault(); placeDomain(event.dataTransfer.getData('domain'), column.id, layer.id); }}>
@@ -765,7 +765,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
         const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
         return <div className="mosaic-domain" key={domain.id}
-          style={{ gridColumn: `${columnIndex + 2} / span ${columnSpan}`, gridRow: `${rowIndex + 2} / span ${rowSpan}` }}>
+          style={{ gridColumn: `${columnIndex + (presentation ? 1 : 2)} / span ${columnSpan}`, gridRow: `${rowIndex + (presentation ? 1 : 2)} / span ${rowSpan}`, ...(presentation ? { backgroundColor: resolveDomainColor(domain.color) } : {}) }}>
           <DomainCard d={domain} />
           {!presentation && <div className="mosaic-resize-controls" role="group" aria-label={`Redimensionner ${domain.name}`}>
             <span>Étendue</span>
