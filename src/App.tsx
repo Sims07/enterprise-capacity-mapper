@@ -648,7 +648,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             <span className="domain-meta">{d.code} · {caps.length} N1</span>
           </div>
           <div className="domain-actions">
-            {depth === 2 && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
+            {depth === 2 && layoutMode === 'mosaic' && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
             <button type="button" className="mini-action-trigger" aria-label={`Actions pour ${d.name}`} title="Actions du domaine" onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}>⋮</button>
           </div>
         </div>
