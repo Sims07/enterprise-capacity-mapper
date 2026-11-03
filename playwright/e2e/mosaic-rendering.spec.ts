@@ -70,4 +70,20 @@ test.describe('Rendu mosaïque', () => {
     expect(mosaic!.width).toBeGreaterThan(workspace!.width * 0.85);
   });
 
+  test('conserve une matrice de huit colonnes dans la largeur de la zone de travail', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Structure/ }).click();
+    const addColumn = page.getByRole('button', { name: /Ajouter une colonne/ });
+    for (let index = 0; index < 4; index += 1) await addColumn.click();
+    await page.getByRole('button', { name: 'Enregistrer' }).last().click();
+
+    const matrix = page.getByTestId('matrix-map');
+    await expect(matrix.locator('.map-row').first().locator('.col-head')).toHaveCount(8);
+    const dimensions = await matrix.evaluate(element => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+  });
+
 });
