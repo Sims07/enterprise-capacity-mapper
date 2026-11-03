@@ -2749,6 +2749,8 @@ body::-webkit-scrollbar,
 .workspace.mosaic-workspace{grid-template-columns:minmax(0,1fr)}
 .workspace.mosaic-workspace>aside{display:none}
 .workspace.mosaic-workspace>main{min-width:0}
+.workspace.mosaic-workspace.mosaic-inventory-open{grid-template-columns:280px minmax(0,1fr)}
+.workspace.mosaic-workspace.mosaic-inventory-open>aside{display:block}
 .map-mosaic{width:100%;min-width:0;grid-auto-flow:row;grid-auto-columns:minmax(0,1fr)}
 .structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:#334155;font-size:12px;font-weight:650}
 .structure-visibility-option input{width:16px;height:16px;accent-color:#4f46e5}
