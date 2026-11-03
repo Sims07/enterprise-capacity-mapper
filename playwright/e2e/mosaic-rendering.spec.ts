@@ -75,6 +75,20 @@ test.describe('Rendu mosaïque', () => {
     await expect(page.locator('.app > header')).toBeVisible();
   });
 
+  test('ouvre une fenêtre de présentation synchronisée et permet de revenir à la cartographie', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+    const presentationPagePromise = page.waitForEvent('popup');
+    await page.getByTestId('open-presentation-window').click();
+    const presentationPage = await presentationPagePromise;
+    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await expect(presentationPage.getByTestId('mosaic-map')).toBeVisible();
+    await expect(presentationPage.getByTestId('presentation-return')).toBeVisible();
+    await presentationPage.getByTestId('presentation-return').click();
+    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
+  });
+
   test('met en valeur le titre d’un domaine sans N1 dans un panneau dédié', async ({ page }) => {
     await page.goto('/');
     await page.locator('.cell-add').first().click();
