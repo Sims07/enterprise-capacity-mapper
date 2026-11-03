@@ -45,8 +45,9 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
-  gap: 12px;
-  padding: 14px;
+  gap: 14px;
+  padding: 16px;
+  align-content: center;
   overflow: auto;
   border: 0;
   border-radius: 0;
@@ -169,11 +170,11 @@
 .app.mosaic-presentation-mode .mosaic-domain .relations,
 .app.mosaic-presentation-mode .mosaic-domain .mini-action-trigger { display: none !important; }
 .app.mosaic-presentation-mode .mosaic-domain .cap .app-count { color: #64748b !important; font-size: 9px; }
-.app.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty > .domain {
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty {
   justify-content: center;
   background: color-mix(in srgb, var(--domain-color, #64748b) 8%, white) !important;
 }
-.app.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty .domain-banner {
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner {
   flex: 1 1 auto;
   justify-content: center;
   align-items: center;
@@ -183,21 +184,21 @@
   background: transparent !important;
   text-align: center;
 }
-.app.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty .domain-banner-title {
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner-title {
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 5px;
   text-align: center;
 }
-.app.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty .domain-banner h3 {
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner h3 {
   color: #1f2937 !important;
   font-size: clamp(17px, 1.65vw, 24px);
   font-weight: 800;
   letter-spacing: -.02em;
   text-align: center;
 }
-.app.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty .domain-meta { font-size: 10px; }
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-meta { font-size: 10px; }
 .app.theme-dark.mosaic-presentation-mode .map-mosaic {
   --mosaic-card-surface: #20232b;
   --mosaic-card-text: #e7eaf0;
@@ -226,11 +227,11 @@
   color: #e7eaf0;
 }
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap .app-count { color: #b8bfcc !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty > .domain {
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty {
   background: color-mix(in srgb, var(--domain-color, #64748b) 15%, #20232b) !important;
 }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty .domain-banner { background: transparent !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain.mosaic-presentation-empty .domain-banner h3 { color: #f3f4f6 !important; }
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner { background: transparent !important; }
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner h3 { color: #f3f4f6 !important; }
 @media (max-width: 900px) and (orientation: landscape) {
   .app.mosaic-presentation-mode .map-mosaic { gap: 8px; padding: 8px; }
   .app.mosaic-presentation-mode .mosaic-domain .caps-list { gap: 4px; padding: 6px; }
