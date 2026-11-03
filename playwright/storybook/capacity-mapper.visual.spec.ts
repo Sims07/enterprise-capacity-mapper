@@ -8,10 +8,12 @@ async function openCapacityMapper(page: import('@playwright/test').Page, width: 
   await page.setViewportSize({ width, height });
   await page.goto(storyUrl(theme));
   await expect(page.locator('.app').first()).toBeVisible();
-  if (theme === 'dark') {
+  const app = page.locator('.app').first();
+  const isDark = await app.evaluate(element => element.classList.contains('theme-dark'));
+  if (isDark !== (theme === 'dark')) {
     await page.getByTestId('tools-menu-toggle').click();
     await page.getByTestId('theme-toggle').click();
-    await expect(page.locator('.app.theme-dark')).toBeVisible();
+    await expect(app).toHaveClass(theme === 'dark' ? /theme-dark/ : /(?!.*theme-dark).*/);
     await page.keyboard.press('Escape');
   }
   // Keep the shared Storybook visual baseline focused on the map layout.
