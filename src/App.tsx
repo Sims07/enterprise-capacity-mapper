@@ -886,34 +886,48 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     </div>
   );
 
+  const matrixColumnOffset = showRowHeadings ? 2 : 1;
+  const matrixColumns = `${showRowHeadings ? (presentation ? '100px ' : '120px ') : ''}repeat(${columns.length}, minmax(0, 1fr))`;
   const matrixView = (
-    <div className={`map map-matrix${columns.length > 4 ? " map-matrix-wide" : ""}`} data-testid="matrix-map">
-      <div className="map-row map-head" style={{ gridTemplateColumns: `${showRowHeadings ? (presentation ? '100px ' : '120px ') : ''}repeat(${columns.length}, minmax(0, 1fr))` }}>
-        {showRowHeadings && <div />}
-        {showColumnHeadings && columns.map(col => <div className="col-head" key={col.id}>{col.name}</div>)}
+    <div className={`map map-matrix${columns.length > 4 ? " map-matrix-wide" : ""}`} data-testid="matrix-map"
+      style={{ gridTemplateColumns: matrixColumns, gridTemplateRows: `34px repeat(${layers.length}, minmax(160px, auto))` }}>
+      <div className="map-row map-head">
+        {showRowHeadings && <div className="matrix-corner" style={{ gridColumn: 1, gridRow: 1 }} />}
+        {showColumnHeadings && columns.map((col, index) => <div className="col-head" key={col.id} style={{ gridColumn: index + matrixColumnOffset, gridRow: 1 }}>{col.name}</div>)}
       </div>
-      {layers.map(layer => (
-        <div className="map-row" key={layer.id} style={{ gridTemplateColumns: `${showRowHeadings ? (presentation ? '100px ' : '120px ') : ''}repeat(${columns.length}, minmax(0, 1fr))` }}>
-          {showRowHeadings && <div className="axis-label">{layer.name}</div>}
-          {columns.map((col, index) => {
-            const coveredByPrevious = model.domains.some(d => (d.layout?.layerId || layers[0].id) === layer.id && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) < index && columns.findIndex(c => c.id === (d.layout?.columnId || columns[0].id)) + Math.max(1, Number(d.layout?.columnSpan) || 1) > index);
-            if (coveredByPrevious) return null;
+      {layers.map((layer, rowIndex) => (
+        <div className="map-row" key={layer.id}>
+          {showRowHeadings && <div className="axis-label" style={{ gridColumn: 1, gridRow: rowIndex + 2 }}>{layer.name}</div>}
+          {columns.map((col, columnIndex) => {
             const here = model.domains.filter(d => (d.layout?.columnId || columns[0].id) === col.id && (d.layout?.layerId || layers[0].id) === layer.id && (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase()));
-            const span = Math.max(1, Math.min(columns.length - index, Number(here[0]?.layout?.columnSpan) || 1));
             const zone = zones.find(z => z.columnId === col.id && z.layerId === layer.id);
             const zoneLabel = zone?.name && zone.name !== col.name ? zone.name : '';
-
             return (
-              <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`} style={{ gridColumn: span > 1 ? `span ${span}` : undefined }} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
+              <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`}
+                style={{ gridColumn: columnIndex + matrixColumnOffset, gridRow: rowIndex + 2 }}
+                onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
                 {showColumnHeadings && <div className="cell-column-label">{col.name}</div>}
                 {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
-                {here.map(d => <DomainCard d={d} key={d.id} />)}
-                <button type="button" className={'cell-add' + (here.length ? '' : ' empty')} onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>
+                {here.map(domain => <div className="matrix-mobile-domain" key={domain.id}><DomainCard d={domain} /></div>)}
+                {!here.length && <button type="button" className="cell-add empty" onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>}
               </div>
             );
           })}
         </div>
       ))}
+      {model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())).map(domain => {
+        const columnIndex = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
+        const rowIndex = layers.findIndex(layer => layer.id === (domain.layout?.layerId || layers[0].id));
+        if (columnIndex < 0 || rowIndex < 0) return null;
+        const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
+        const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
+        return <div className="matrix-domain" key={domain.id} data-domain-id={domain.id}
+          style={{ gridColumn: `${columnIndex + matrixColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + 2} / span ${rowSpan}` }}>
+          <DomainCard d={domain} />
+          <button type="button" className="cell-add" onClick={() => openNew('domain', null, { columnId: domain.layout?.columnId || columns[0].id, layerId: domain.layout?.layerId || layers[0].id })}>＋ Ajouter un domaine ici</button>
+        </div>;
+      })}
+
     </div>
   );
 

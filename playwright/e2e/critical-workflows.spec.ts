@@ -11,19 +11,19 @@ test.describe('Playwright POC — critical browser workflows', () => {
   test('renomme une capacité N1 et conserve ses applications après rechargement', async ({ page }) => {
     await page.goto('/');
 
-    const capability = page.locator('.cap').filter({ hasText: 'Gestion des Prospects & Leads' });
+    const capability = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
     await expect(capability).toHaveCount(1);
     await capability.getByRole('button', { name: 'Renommer Gestion des Prospects & Leads' }).click();
     await page.locator('.context-menu').getByRole('button', { name: 'Renommer' }).click();
     await page.locator('.modal .field input').fill('Qualification des prospects');
     await page.locator('.modal').getByRole('button', { name: 'Enregistrer' }).click();
 
-    const renamed = page.locator('.cap').filter({ hasText: 'Qualification des prospects' });
+    const renamed = page.locator('.cap:visible').filter({ hasText: 'Qualification des prospects' });
     await expect(renamed).toContainText('Salesforce CRM');
 
     await page.reload();
-    await expect(page.locator('.cap').filter({ hasText: 'Qualification des prospects' })).toContainText('Salesforce CRM');
-    await expect(page.locator('.cap').filter({ hasText: 'Gestion des Prospects & Leads' })).toHaveCount(0);
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Qualification des prospects' })).toContainText('Salesforce CRM');
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toHaveCount(0);
   });
 
   test('ouvre le menu Outils et crée une cartographie vierge avec l’assistant', async ({ page }) => {
