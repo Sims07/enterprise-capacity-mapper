@@ -1,0 +1,205 @@
+/* Présentation mosaïque : composition plein écran, ajustée à une page paysage. */
+.app.mosaic-presentation-mode {
+  overflow: hidden;
+  background: #f1f3f6;
+}
+
+.app.mosaic-presentation-mode > header,
+.app.mosaic-presentation-mode .companion-root,
+.app.mosaic-presentation-mode .map-controls-row,
+.app.mosaic-presentation-mode .toast {
+  display: none !important;
+}
+
+.app.mosaic-presentation-mode > .workspace.mosaic-workspace {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: #f1f3f6;
+}
+
+.app.mosaic-presentation-mode > .workspace.mosaic-workspace > main {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #f1f3f6;
+}
+
+.app.mosaic-presentation-mode .map-mosaic {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #e7eaf0;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0;
+  background: var(--domain-color, #e7eaf0);
+}
+
+.app.mosaic-presentation-mode .mosaic-domain > .domain {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--domain-color) !important;
+  color: var(--domain-text-color);
+  box-shadow: none;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .domain-banner {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: clamp(8px, 1.5vw, 28px);
+  background: transparent !important;
+  color: var(--domain-text-color) !important;
+  text-align: center;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .domain-banner-title {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .domain-banner h3,
+.app.mosaic-presentation-mode .mosaic-domain .map-domain-select {
+  max-width: 100%;
+  margin: 0;
+  color: var(--domain-text-color) !important;
+  font-size: clamp(12px, min(1.65vw, 2.8vh), 30px);
+  font-weight: 850;
+  line-height: 1.12;
+  letter-spacing: -.025em;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .domain-meta {
+  margin-top: 7px;
+  color: var(--domain-text-color) !important;
+  font-size: clamp(8px, .75vw, 11px);
+  opacity: .78;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .domain-actions,
+.app.mosaic-presentation-mode .mosaic-domain .domain-desc,
+.app.mosaic-presentation-mode .mosaic-domain .domain-relations,
+.app.mosaic-presentation-mode .mosaic-domain .drop,
+.app.mosaic-presentation-mode .mosaic-domain .mini-action-trigger {
+  display: none !important;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .caps-list {
+  display: grid;
+  flex: 0 1 auto;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  align-content: center;
+  gap: clamp(4px, .65vw, 10px);
+  min-width: 0;
+  max-height: 62%;
+  padding: 0 clamp(8px, 1.5vw, 24px) clamp(8px, 1.5vw, 22px);
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .cap {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(5px, .8vw, 12px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--domain-text-color) 24%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--domain-text-color) 9%, transparent);
+  color: var(--domain-text-color);
+  text-align: center;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .cap-head {
+  min-width: 0;
+  justify-content: center;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .cap-head b,
+.app.mosaic-presentation-mode .mosaic-domain .map-cap-select {
+  color: var(--domain-text-color) !important;
+  font-size: clamp(9px, min(1vw, 1.8vh), 16px);
+  font-weight: 750;
+  line-height: 1.15;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .cap-meta,
+.app.mosaic-presentation-mode .mosaic-domain .cap-desc,
+.app.mosaic-presentation-mode .mosaic-domain .relations,
+.app.mosaic-presentation-mode .mosaic-domain .mini-action-trigger {
+  display: none !important;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .mosaic-presentation-empty .domain-banner {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 700px) {
+  .app.mosaic-presentation-mode .mosaic-domain .domain-banner h3,
+  .app.mosaic-presentation-mode .mosaic-domain .map-domain-select {
+    font-size: clamp(10px, 2.2vw, 18px);
+  }
+
+  .app.mosaic-presentation-mode .mosaic-domain .caps-list {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app.mosaic-presentation-mode *,
+  .app.mosaic-presentation-mode *::before,
+  .app.mosaic-presentation-mode *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

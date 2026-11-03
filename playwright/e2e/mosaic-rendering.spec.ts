@@ -27,6 +27,46 @@ test.describe('Rendu mosaïque', () => {
     await expect(firstDomain.locator('.mosaic-resize-controls')).toHaveCount(0);
   });
 
+
+  test('fait tenir toute la mosaïque sur une seule page en mode présentation', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+    await page.getByTestId('presentation-switch-input').check();
+
+    const presentation = page.locator('.app.mosaic-presentation-mode');
+    const mosaic = page.getByTestId('mosaic-map');
+    await expect(presentation).toBeVisible();
+    await expect(page.locator('.app > header')).toBeHidden();
+    await expect(page.locator('.companion-root')).toBeHidden();
+    await expect(page.locator('.map-controls-row')).toBeHidden();
+
+    const dimensions = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      viewportHeight: document.documentElement.clientHeight,
+      scrollWidth: document.documentElement.scrollWidth,
+      scrollHeight: document.documentElement.scrollHeight,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+    expect(dimensions.scrollHeight).toBeLessThanOrEqual(dimensions.viewportHeight);
+
+    const mapBounds = await mosaic.boundingBox();
+    expect(mapBounds).not.toBeNull();
+    expect(mapBounds!.x).toBeLessThanOrEqual(1);
+    expect(mapBounds!.y).toBeLessThanOrEqual(1);
+    expect(mapBounds!.width).toBeGreaterThanOrEqual(dimensions.viewportWidth - 2);
+    expect(mapBounds!.height).toBeGreaterThanOrEqual(dimensions.viewportHeight - 2);
+
+    const overflowingTitles = await mosaic.locator('.domain-banner h3').evaluateAll(elements =>
+      elements.filter(element => element.scrollWidth > element.clientWidth + 1).map(element => element.textContent)
+    );
+    expect(overflowingTitles).toEqual([]);
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
+    await expect(page.locator('.app > header')).toBeVisible();
+  });
+
   test('met en valeur le titre d’un domaine sans N1 dans un panneau dédié', async ({ page }) => {
     await page.goto('/');
     await page.locator('.cell-add').first().click();
