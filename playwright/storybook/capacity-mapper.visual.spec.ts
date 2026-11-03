@@ -52,6 +52,12 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     const first = mosaic.locator('.mosaic-domain').first();
     await expect(first).toHaveCSS('border-style', 'solid');
     await expect(first.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    const cardBounds = await first.boundingBox();
+    expect(cardBounds?.height ?? 0).toBeGreaterThan(180);
+    const headingSize = await first.locator('.domain-banner h3').evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(headingSize).toBeGreaterThan(16);
+    const capabilitySize = await first.locator('.map-cap-select').first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(capabilitySize).toBeGreaterThan(12);
     await mkdir('test-results-storybook', { recursive: true });
     await page.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-light.png', animations: 'disabled' });
   });
