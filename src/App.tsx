@@ -124,6 +124,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
   const [layoutMode, setLayoutMode] = useState(model.layout?.mode || 'matrix');
+  const [showMosaicInventory, setShowMosaicInventory] = useState(false);
 
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
@@ -968,7 +969,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
         </section>
       ) : (
-      <div className={'workspace' + (layoutMode === 'mosaic' ? ' mosaic-workspace' : '')}>
+      <div className={'workspace' + (layoutMode === 'mosaic' ? ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}` : '')}>
         <aside id="app-inventory">
           <div className="panel-title">
             <span>Inventaire SI <em>{apps.length}</em></span>
@@ -1056,6 +1057,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     <button type="button" data-testid="matrix-view" className={layoutMode === 'matrix' ? 'active' : ''} aria-pressed={layoutMode === 'matrix'} onClick={() => setLayoutView('matrix')}>Matrice</button>
                     <button type="button" data-testid="mosaic-view" className={layoutMode === 'mosaic' ? 'active' : ''} aria-pressed={layoutMode === 'mosaic'} onClick={() => setLayoutView('mosaic')}>Mosaïque</button>
                   </div>
+                  {layoutMode === 'mosaic' && <button type="button" className="secondary" data-testid="mosaic-inventory-toggle" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer les applications' : `Applications (${apps.length})`}</button>}
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
