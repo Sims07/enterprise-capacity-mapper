@@ -181,3 +181,26 @@
 @media (max-width: 900px) and (orientation: landscape) { .app.mosaic-presentation-mode .map-mosaic { gap: 8px; padding: 8px; } .app.mosaic-presentation-mode .mosaic-domain .caps-list { gap: 4px; padding: 6px; } }
 @media (max-width: 700px) { .app.mosaic-presentation-mode .map-mosaic { overflow: auto; } .app.mosaic-presentation-mode .mosaic-domain .domain-banner h3, .app.mosaic-presentation-mode .mosaic-domain .map-domain-select { font-size: clamp(11px, 2vw, 16px); } }
 @media (prefers-reduced-motion: reduce) { .app.mosaic-presentation-mode *, .app.mosaic-presentation-mode *::before, .app.mosaic-presentation-mode *::after { animation: none !important; transition: none !important; } }
+
+
+/* Contrôle de sortie discret, toujours accessible dans la fenêtre de présentation. */
+.app.mosaic-presentation-mode .presentation-exit-bar {
+  position: fixed;
+  z-index: 80;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--border-subtle, #d8dee8);
+  border-radius: 999px;
+  background: var(--surface-elevated, #fff);
+  color: var(--text-primary, #1f2937);
+  box-shadow: 0 8px 28px rgb(15 23 42 / 18%);
+  font-size: 12px;
+}
+.app.mosaic-presentation-mode .presentation-exit-bar button { min-height: 36px; }
+@media (max-width: 700px) {
+  .app.mosaic-presentation-mode .presentation-exit-bar { right: 10px; bottom: 10px; left: 10px; justify-content: space-between; }
+}

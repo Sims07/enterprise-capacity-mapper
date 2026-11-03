@@ -134,3 +134,10 @@ Règles de contribution :
 Le contrat de placement conserve des coordonnées stables par identifiants d'axes (columnId, layerId) et exprime les dimensions par columnSpan et rowSpan. Une portée absente vaut une cellule, ce qui préserve la lecture des modèles JSON historiques. Les axes peuvent porter une propriété size strictement positive, interprétée comme une proportion relative et non comme une dimension en pixels.
 
 MapLayout valide les rectangles sur les deux axes, leurs limites et les collisions. Le paramètre allowExactOverlap permet au futur mode mosaïque d'interdire également les placements strictement identiques, sans changer par défaut le comportement historique de la matrice. La validation avant sauvegarde refuse les placements devenus hors limites plutôt que de réduire silencieusement leur portée.
+
+
+## 11. Présentation multi-fenêtre
+
+Le mode présentation de la mosaïque peut être ouvert dans une fenêtre dédiée via le paramètre d'URL `?view=presentation`, compatible avec le déploiement statique GitHub Pages. La fenêtre d'édition reste indépendante et conserve ses commandes. La fenêtre de présentation est en lecture seule et recharge le modèle actif depuis le dépôt LocalStorage lorsqu'une mise à jour est signalée.
+
+La synchronisation utilise `BroadcastChannel` pour les notifications inter-contextes et l'événement navigateur `storage` comme mécanisme de secours. Les messages ne transportent pas la cartographie : ils invalident simplement la vue, la donnée persistée restant l'unique source de vérité. La fenêtre de présentation ne persiste jamais son état, afin d'éviter qu'une vue ancienne écrase les modifications de l'éditeur. Sur mobile, le même mode fonctionne dans l'onglet courant et expose une action permanente de retour à la cartographie.
