@@ -138,10 +138,14 @@ test.describe('Rendu mosaïque', () => {
     await page.mouse.up();
     await expect(firstDomain).toHaveCSS('grid-row', /span 2/);
 
+    // Capture the identity before switching views: the Mosaic card is unmounted
+    // when Matrix becomes active.
+    const firstDomainName = await firstDomain.locator('.domain-banner h3').innerText();
+
     // Matrix must preserve the vertical span persisted by Mosaic.
     await page.getByTestId('matrix-view').click();
     const matrixDomain = page.locator('.matrix-domain').filter({
-      has: page.locator('.domain').filter({ hasText: await firstDomain.locator('.domain-banner h3').innerText() }),
+      has: page.locator('.domain').filter({ hasText: firstDomainName }),
     }).first();
     await expect(matrixDomain).toBeVisible();
     await expect(matrixDomain).toHaveCSS('grid-row', /span 2/);
