@@ -163,8 +163,8 @@ export class MapLayout {
         domainId: domain.id,
         columnId: placement.columnId as string,
         layerId: placement.layerId as string,
-        columnSpan: placement.columnSpan as string | number | undefined ?? 1,
-        rowSpan: placement.rowSpan as string | number | undefined ?? 1,
+        columnSpan: (placement.columnSpan as string | number | undefined) ?? 1,
+        rowSpan: (placement.rowSpan as string | number | undefined) ?? 1,
         allowExactOverlap: layout.mode !== 'mosaic',
       })) return null;
     }
