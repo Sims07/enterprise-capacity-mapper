@@ -18,3 +18,11 @@ export const Desktop: Story = {
 export const Mobile: Story = {
   parameters: { viewport: { defaultViewport: 'phone' } },
 };
+
+/** Vue de référence dédiée au rendu mosaïque en mode présentation. */
+export const MosaicPresentation: Story = {
+  parameters: {
+    viewport: { defaultViewport: 'desktop' },
+    docs: { description: { story: 'Basculer vers Mosaïque puis activer Présentation pour examiner une cartographie paysage, en thème clair ou sombre.' } },
+  },
+};
