@@ -31,6 +31,7 @@ import CoverageTree from './components/CoverageTree.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
+import { publishPresentationUpdate, subscribeToPresentationUpdates } from './adapters/browser/presentationSync.ts';
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
@@ -99,7 +100,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [linkChecked, setLinkChecked] = useState([]);
   const [linkQuery, setLinkQuery] = useState('');
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
-  const [presentation, setPresentation] = useState(false);
+  const isPresentationWindow = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('view') === 'presentation';
+  const [presentation, setPresentation] = useState(isPresentationWindow);
   const [darkMode, setDarkMode] = useState(() => preferences.readTheme() === 'dark');
   const toolsMenuRef = useRef(null);
   const toolsMenuToggleRef = useRef(null);
@@ -134,6 +136,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   useEffect(() => {
     preferences.writeTheme(darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  useEffect(() => {
+    if (isPresentationWindow && layoutMode !== 'mosaic') setLayoutMode('mosaic');
+  }, [isPresentationWindow, layoutMode]);
 
   useEffect(() => {
     if (!presentation || layoutMode !== 'mosaic') return undefined;
@@ -227,9 +233,27 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     });
   }, [toolsMenuOpen]);
 
+  const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
   useEffect(() => {
-    mapService.persist();
-    if (activeRecentMapId && activeRecentMapId !== '__dismissed__') {
+    if (isPresentationWindow) {
+      return subscribeToPresentationUpdates({
+        sourceId: presentationSourceId.current,
+        onUpdate: () => {
+          const latest = mapService.load(modelRef.current);
+          modelRef.current = latest;
+          setModel(latest);
+          syncHistoryState(mapService.snapshot());
+        },
+      });
+    }
+    return undefined;
+  }, [isPresentationWindow]);
+
+  useEffect(() => {
+    if (!isPresentationWindow) mapService.persist();
+    if (!isPresentationWindow) publishPresentationUpdate({ sourceId: presentationSourceId.current });
+    if (!isPresentationWindow && activeRecentMapId && activeRecentMapId !== '__dismissed__') {
       repository.updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
       preferences.writeActiveRecentMapId(activeRecentMapId);
     }
@@ -990,6 +1014,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
             </div>
+            {layoutMode === 'mosaic' && !presentation && <button type="button" className="secondary presentation-open-window" data-testid="open-presentation-window" onClick={() => { const url = new URL(window.location.href); url.searchParams.set('view', 'presentation'); window.open(url.toString(), '_blank', 'noopener,noreferrer'); }}>↗ Ouvrir la présentation</button>}
             <label className="presentation-switch" data-testid="presentation-toggle">
               <span>Présentation</span>
               <input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
@@ -1178,6 +1203,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </main>
       </div>
       )}
+
+      {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar"><span>Présentation synchronisée</span><button type="button" className="secondary" data-testid="presentation-return" onClick={() => { if (isPresentationWindow) { const url = new URL(window.location.href); url.searchParams.delete('view'); window.location.assign(url.toString()); } else setPresentation(false); }}>← Retour à la cartographie</button></div>}
 
       {contextMenu && (
         <div
