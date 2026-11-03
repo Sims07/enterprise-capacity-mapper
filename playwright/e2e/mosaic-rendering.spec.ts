@@ -41,4 +41,33 @@ test.describe('Rendu mosaïque', () => {
     await expect(persistedDomain).toHaveCSS('grid-column', /span 1/);
   });
 
+  test('permet de masquer indépendamment les intitulés des axes dans Structure', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Structure/ }).click();
+    const options = page.getByTestId('axis-heading-options');
+    await options.getByLabel('Afficher les titres des colonnes').uncheck();
+    await options.getByLabel('Afficher les titres des lignes').uncheck();
+    await page.getByRole('button', { name: 'Enregistrer' }).last().click();
+
+    await page.getByTestId('mosaic-view').click();
+    const mosaic = page.getByTestId('mosaic-map');
+    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(0);
+    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(0);
+
+    await page.getByTestId('matrix-view').click();
+    await expect(page.locator('[data-testid="matrix-map"] .map-head .col-head')).toHaveCount(0);
+    await expect(page.locator('.map-matrix .axis-label')).toHaveCount(0);
+  });
+
+  test('utilise toute la largeur en mosaïque sans inventaire applicatif latéral', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+    await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeHidden();
+    const workspace = await page.locator('.workspace').boundingBox();
+    const mosaic = await page.getByTestId('mosaic-map').boundingBox();
+    expect(workspace).not.toBeNull();
+    expect(mosaic).not.toBeNull();
+    expect(mosaic!.width).toBeGreaterThan(workspace!.width * 0.85);
+  });
+
 });
