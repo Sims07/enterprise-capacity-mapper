@@ -106,7 +106,10 @@ test.describe('Rendu mosaïque', () => {
     const firstDomain = page.locator('.mosaic-domain').first();
     const handle = firstDomain.getByTestId('mosaic-resize-handle');
     await expect(handle).toBeVisible();
+    // La carte est dans la ligne Core, parfois hors du viewport initial :
+    // les coordonnées souris doivent être calculées après défilement réel.
     await handle.scrollIntoViewIfNeeded();
+    await expect(handle).toBeInViewport();
     const placement = await firstDomain.evaluate(element => {
       const style = getComputedStyle(element);
       return { column: style.gridColumnStart, row: style.gridRowStart };
@@ -128,6 +131,8 @@ test.describe('Rendu mosaïque', () => {
     await page.mouse.up();
 
     await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+    await handle.scrollIntoViewIfNeeded();
+    await expect(handle).toBeInViewport();
     const resizedHandleBounds = await handle.boundingBox();
     const resizedCellBounds = await zone.boundingBox();
     expect(resizedHandleBounds).not.toBeNull();
@@ -228,6 +233,28 @@ test.describe('Rendu mosaïque', () => {
       scrollWidth: element.scrollWidth,
     }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+  });
+
+  test('permet de créer un domaine N0 depuis la mosaïque dans la première zone libre', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+
+    const addDomain = page.getByTestId('mosaic-add-domain');
+    await expect(addDomain).toBeEnabled();
+    await addDomain.click();
+
+    const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+    await dialog.getByLabel('Nom').fill('Pilotage des données');
+    await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DATA-GOV');
+    await dialog.getByRole('button', { name: 'Créer' }).click();
+
+    const createdDomain = page.getByTestId('mosaic-map').locator('.mosaic-domain').filter({ hasText: 'Pilotage des données' });
+    await expect(createdDomain).toBeVisible();
+    await expect(createdDomain.locator('.domain-meta')).toContainText('0 N1');
+
+    await page.reload();
+    await expect(page.getByTestId('mosaic-map')).toBeVisible();
+    await expect(page.getByTestId('mosaic-map').locator('.mosaic-domain').filter({ hasText: 'Pilotage des données' })).toBeVisible();
   });
 
   test('permet de créer une capacité N1 directement depuis un domaine en mosaïque', async ({ page }) => {
