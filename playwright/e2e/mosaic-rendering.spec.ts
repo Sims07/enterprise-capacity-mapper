@@ -32,6 +32,12 @@ test.describe('Rendu mosaïque', () => {
     await expect(increaseWidth).toBeEnabled();
     await increaseWidth.click();
     await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+    const mosaicBounds = await page.getByTestId('mosaic-map').boundingBox();
+    const expandedBounds = await firstDomain.boundingBox();
+    expect(mosaicBounds).not.toBeNull();
+    expect(expandedBounds).not.toBeNull();
+    // A two-column span must be visible, not merely stored in grid-column.
+    expect(expandedBounds!.width).toBeGreaterThan(mosaicBounds!.width * 0.35);
 
     await page.reload();
     await page.getByTestId('mosaic-view').click();
@@ -46,17 +52,25 @@ test.describe('Rendu mosaïque', () => {
     await page.getByRole('button', { name: /Structure/ }).click();
     const options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').uncheck();
-    await options.getByLabel('Afficher les titres des lignes').uncheck();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
 
     await page.getByTestId('mosaic-view').click();
-    const mosaic = page.getByTestId('mosaic-map');
+    let mosaic = page.getByTestId('mosaic-map');
     await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(0);
-    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(0);
+    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(3);
 
+    await page.getByRole('button', { name: /Structure/ }).click();
+    await page.getByTestId('axis-heading-options').getByLabel('Afficher les titres des lignes').uncheck();
+    await page.getByRole('button', { name: 'Enregistrer' }).last().click();
     await page.getByTestId('matrix-view').click();
     await expect(page.locator('[data-testid="matrix-map"] .map-head .col-head')).toHaveCount(0);
     await expect(page.locator('.map-matrix .axis-label')).toHaveCount(0);
+
+    await page.reload();
+    await page.getByTestId('mosaic-view').click();
+    mosaic = page.getByTestId('mosaic-map');
+    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(0);
+    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(0);
   });
 
   test('utilise toute la largeur en mosaïque sans inventaire applicatif latéral', async ({ page }) => {
