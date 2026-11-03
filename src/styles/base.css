@@ -2743,33 +2743,16 @@ body::-webkit-scrollbar,
 .map-matrix .matrix-domain .domain-head { padding: 10px; }
 .map-matrix .matrix-domain .caps { grid-template-columns: 1fr; padding: 8px; }
 .map-matrix .matrix-domain .cap { min-height: 110px; }
-.map-matrix .matrix-domain .cell-add { flex: 0 0 auto; margin-top: 10px; }
-.map-matrix .matrix-mobile-layout { display: none; }
+.map-matrix .matrix-domain .cell-add { display: block; flex: 0 0 auto; margin-top: 10px; }
+.map-matrix .matrix-mobile-domain { display: none; }
 
 @media (max-width: 600px) {
   .map-matrix {
     display: block;
     min-width: 0;
   }
-  .map-matrix > .map-row,
+  .map-matrix > .map-row { display: grid; }
+  .map-matrix > .map-row.map-head { display: none; }
   .map-matrix .matrix-domain { display: none; }
-  .map-matrix .matrix-mobile-layout { display: block; }
-  .map-matrix .matrix-mobile-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    min-width: 0;
-    width: 100%;
-  }
-  .map-matrix .matrix-mobile-row > .axis-label {
-    width: 100%;
-    padding: 8px 4px 2px;
-  }
-  .map-matrix .matrix-mobile-row > .map-cell {
-    width: 100%;
-    min-width: 0;
-    min-height: 130px;
-    padding: 7px;
-  }
-  .map-matrix .matrix-mobile-row .cell-column-label { display: block; }
+  .map-matrix .matrix-mobile-domain { display: block; }
 }
