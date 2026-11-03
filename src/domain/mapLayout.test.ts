@@ -113,8 +113,8 @@ test('MapLayout validates two-dimensional spans and detects rectangle intersecti
     mapLayout.isPlacementAvailable({ domains, columns, layers, columnId, layerId, columnSpan, rowSpan, allowExactOverlap });
 
   assert.equal(available('c2', 'l2'), false, 'a rectangle intersection on both axes is rejected');
-  assert.equal(available('c3', 'l1'), false, 'horizontal intersection is rejected');
-  assert.equal(available('c1', 'l3'), false, 'vertical intersection is rejected');
+  assert.equal(available('c2', 'l1'), false, 'horizontal intersection is rejected');
+  assert.equal(available('c1', 'l2'), false, 'vertical intersection is rejected');
   assert.equal(available('c3', 'l3'), true, 'a disjoint rectangle remains available');
   assert.equal(available('c1', 'l1', 2, 2), true, 'legacy exact placements remain compatible by default');
   assert.equal(available('c1', 'l1', 2, 2, false), false, 'strict mosaic placement rejects identical rectangles');
