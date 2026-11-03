@@ -768,7 +768,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicLayersLayout = presentation ? layers.filter((_, index) => usedPresentationLayerIndexes.has(index)) : layers;
   const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${mosaicColumnsLayout.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
   const mosaicRows = presentation
-    ? mosaicLayersLayout.map(() => 'minmax(112px, max-content)').join(' ')
+    ? mosaicLayersLayout.map(() => 'minmax(clamp(180px, 23vh, 220px), max-content)').join(' ')
     : `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
@@ -805,29 +805,45 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           {!presentation && <button type="button" className="mosaic-resize-handle" data-testid="mosaic-resize-handle"
             aria-label={`Redimensionner ${domain.name}`} title="Glisser pour redimensionner · Flèches pour ajuster"
             onPointerDown={event => {
+              // The parent domain is draggable too: stop its native drag so the resize handle keeps pointer capture.
+              event.preventDefault();
+              event.stopPropagation();
               const map = event.currentTarget.closest('.map-mosaic');
               const cell = map?.querySelector(`[data-zone-key="${domain.layout?.columnId || columns[0].id}:${domain.layout?.layerId || layers[0].id}"]`);
               const bounds = cell?.getBoundingClientRect();
               event.currentTarget.setPointerCapture(event.pointerId);
               event.currentTarget.dataset.resizeStartX = String(event.clientX);
               event.currentTarget.dataset.resizeStartY = String(event.clientY);
+              event.currentTarget.dataset.resizeLastX = String(event.clientX);
+              event.currentTarget.dataset.resizeLastY = String(event.clientY);
               event.currentTarget.dataset.resizeCellWidth = String(bounds?.width || 0);
               event.currentTarget.dataset.resizeCellHeight = String(bounds?.height || 0);
+            }}
+            onPointerMove={event => {
+              if (event.currentTarget.dataset.resizeStartX === undefined) return;
+              event.currentTarget.dataset.resizeLastX = String(event.clientX);
+              event.currentTarget.dataset.resizeLastY = String(event.clientY);
             }}
             onPointerUp={event => {
               const startX = Number(event.currentTarget.dataset.resizeStartX ?? event.clientX);
               const startY = Number(event.currentTarget.dataset.resizeStartY ?? event.clientY);
+              const endX = Number(event.currentTarget.dataset.resizeLastX ?? event.clientX);
+              const endY = Number(event.currentTarget.dataset.resizeLastY ?? event.clientY);
               const cellWidth = Number(event.currentTarget.dataset.resizeCellWidth || 0);
               const cellHeight = Number(event.currentTarget.dataset.resizeCellHeight || 0);
-              const columnDelta = cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
-              const rowDelta = cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
+              const columnDelta = cellWidth > 0 ? Math.round((endX - startX) / cellWidth) : 0;
+              const rowDelta = cellHeight > 0 ? Math.round((endY - startY) / cellHeight) : 0;
               if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
               delete event.currentTarget.dataset.resizeStartX;
               delete event.currentTarget.dataset.resizeStartY;
+              delete event.currentTarget.dataset.resizeLastX;
+              delete event.currentTarget.dataset.resizeLastY;
             }}
             onPointerCancel={event => {
               delete event.currentTarget.dataset.resizeStartX;
               delete event.currentTarget.dataset.resizeStartY;
+              delete event.currentTarget.dataset.resizeLastX;
+              delete event.currentTarget.dataset.resizeLastY;
             }}
             onKeyDown={event => {
               const changes = {
