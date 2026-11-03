@@ -2740,13 +2740,12 @@ body::-webkit-scrollbar,
 }
 
 
-/* Cartographies larges : les colonnes se partagent la largeur disponible. */
+/* Les matrices larges utilisent toute la largeur disponible sans modifier la grille standard. */
 .map-matrix{width:100%;min-width:0;overflow-x:auto}
-.map-matrix .map-row{width:100%;min-width:0;grid-template-columns:repeat(4,minmax(0,1fr))}
-.map-matrix .map-row.map-head{grid-template-columns:repeat(4,minmax(0,1fr))}
-.map-matrix .map-cell{min-width:0;overflow-wrap:anywhere}
-.map-matrix .domain{min-width:0;max-width:100%}
-.map-matrix .domain-banner-title h3{overflow-wrap:anywhere}
+.map-matrix-wide .map-row{width:100%;min-width:0}
+.map-matrix-wide .map-cell{min-width:0;overflow-wrap:anywhere}
+.map-matrix-wide .domain{min-width:0;max-width:100%}
+.map-matrix-wide .domain-banner-title h3{overflow-wrap:anywhere}
 .workspace.mosaic-workspace{grid-template-columns:minmax(0,1fr)}
 .workspace.mosaic-workspace>aside{display:none}
 .workspace.mosaic-workspace>main{min-width:0}
