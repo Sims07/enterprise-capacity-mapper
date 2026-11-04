@@ -248,7 +248,10 @@ test.describe('Cartographie unifiée', () => {
     await expect(presentationPage).toHaveURL(/view=presentation/);
     await expect(presentationSwitch).not.toBeChecked();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(presentationPage.getByTestId('capability-map')).toBeVisible();
+    const presentationMap = presentationPage.getByTestId('capability-map');
+    await expect(presentationMap).toBeVisible();
+    await expect(presentationMap.locator('.mosaic-domain')).not.toHaveCount(0);
+    await expect(presentationMap.locator('.domain-banner h3').first()).toBeVisible();
 
     const presentationExitSwitch = presentationPage.getByTestId('presentation-switch-exit');
     await expect(presentationExitSwitch).toBeChecked();
@@ -266,6 +269,7 @@ test.describe('Cartographie unifiée', () => {
     const presentationPage = await presentationPagePromise;
     await presentationPage.waitForLoadState();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await expect(presentationPage.getByTestId('capability-map').locator('.mosaic-domain')).not.toHaveCount(0);
     const closed = presentationPage.waitForEvent('close');
     await presentationPage.keyboard.press('Escape').catch(() => undefined);
     await closed;
@@ -281,6 +285,7 @@ test.describe('Cartographie unifiée', () => {
     await presentationPage.waitForLoadState();
     await expect(presentationPage).toHaveURL(/view=presentation/);
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await expect(presentationPage.getByTestId('capability-map').locator('.mosaic-domain')).not.toHaveCount(0);
     await presentationPage.close();
   });
 
