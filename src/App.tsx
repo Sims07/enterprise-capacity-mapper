@@ -235,6 +235,25 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
+  const openPresentation = () => {
+    const isMobile = experienceKind === 'mobile' || window.matchMedia('(max-width: 767px)').matches;
+    if (isMobile) {
+      setPresentation(true);
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', 'presentation');
+    const presentationWindow = window.open(url.toString(), '_blank');
+    if (presentationWindow) {
+      presentationWindow.opener = null;
+      return;
+    }
+
+    // Repli explicite lorsque le navigateur bloque les fenêtres contextuelles.
+    setPresentation(true);
+  };
+
   useEffect(() => {
     if (isPresentationWindow) {
       return subscribeToPresentationUpdates({
@@ -1014,11 +1033,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
             </div>
-            {layoutMode === 'mosaic' && <label className="presentation-switch" data-testid="presentation-toggle">
-              <span>Présentation</span>
-              <input type="checkbox" role="switch" data-testid="presentation-switch-input" aria-label="Mode présentation" checked={presentation} onChange={event => setPresentation(event.target.checked)} />
-              <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
-            </label>}
+            {layoutMode === 'mosaic' && !presentation && <button type="button" className="secondary presentation-open-window" data-testid="open-presentation-window" onClick={openPresentation}>↗ Ouvrir la présentation</button>}
 
           </div>
         </div>
@@ -1203,7 +1218,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       </div>
       )}
 
-      {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar"><span>Présentation synchronisée</span><button type="button" className="secondary" data-testid="presentation-return" onClick={() => { if (isPresentationWindow) { const url = new URL(window.location.href); url.searchParams.delete('view'); window.location.assign(url.toString()); } else setPresentation(false); }}>← Retour à la cartographie</button></div>}
+      {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar"><span>Présentation synchronisée</span><button type="button" className="secondary" data-testid="presentation-return" onClick={() => { if (isPresentationWindow) { window.close(); if (!window.closed) { const url = new URL(window.location.href); url.searchParams.delete('view'); window.location.assign(url.toString()); } } else setPresentation(false); }}>← Retour à la cartographie</button></div>}
 
       {contextMenu && (
         <div
