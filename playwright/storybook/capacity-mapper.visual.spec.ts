@@ -78,7 +78,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     const contrastRatios = await mosaic.locator('.domain-banner').evaluateAll(elements => elements.map(element => {
       const heading = element.querySelector('h3')!;
       const luminance = (color: string) => {
-        const channels = color.match(/[\\d.]+/g)!.slice(0, 3).map(Number).map(value => {
+        const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map(value => {
           const channel = value / 255;
           return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
         });
