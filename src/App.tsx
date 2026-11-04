@@ -18,6 +18,7 @@ import {
 } from './application/relationshipUseCases.ts';
 import {
   createApplication,
+  updateApplication,
   createCapability,
   createDomain,
   removeDomainAndDependents,
@@ -136,6 +137,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [editingDomainId, setEditingDomainId] = useState(null);
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
+  const [editingApplicationId, setEditingApplicationId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
 
@@ -617,12 +619,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     setModal('edit-capability');
   };
 
+  const openEditApplication = application => {
+    setEditingApplicationId(application.id);
+    setFormErrors({});
+    setForm({ ...emptyForm, name: application.name || '', code: application.code || '', description: application.description || '', vendor: application.vendor || '', status: application.status || 'Actif', type: application.type || 'SaaS', capabilityIds: application.capabilityIds || [] });
+    setModal('edit-app');
+  };
+
   const save = () => {
     const errors: Record<string, string> = {};
     if (!form.name.trim()) errors.name = 'Le nom est obligatoire.';
     if (modal !== 'edit-capability' && !form.code.trim()) errors.code = 'Le code est obligatoire.';
     if (modal === 'capability' && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
-    if (modal === 'app' && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
+    if (['app', 'edit-app'].includes(modal) && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
     if ((modal === 'domain' || modal === 'edit-domain') && !/^#[\da-f]{6}$/i.test(form.color)) errors.color = 'Saisissez une couleur hexadécimale au format #RRGGBB.';
     if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue chevauche un autre domaine.';
 
@@ -653,6 +662,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     if (modal === 'app') {
       update({ applications: createApplication({ applications: apps, domains: model.domains, capabilities: model.capabilities, layout: model.layout, form, id: uid('app') }) });
       notify('Application créée');
+    }
+    if (modal === 'edit-app') {
+      update({ applications: updateApplication({ applications: apps, applicationId: editingApplicationId, domains: model.domains, capabilities: model.capabilities, layout: model.layout, form }) });
+      notify('Application modifiée');
     }
     setModal(null);
   };
@@ -1157,6 +1170,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
               <div className="app-side">
                 <span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}>{a.status}</span>
+                <button type="button" className="app-edit" aria-label={`Modifier ${a.name}`} title={`Modifier ${a.name}`} onClick={() => openEditApplication(a)}><svg aria-hidden="true" viewBox="0 0 16 16" focusable="false"><path d="M11.8 2.2a1.4 1.4 0 0 1 2 2L6 12l-3 .8.8-3zM10.8 3.2l2 2" /></svg></button>
                 <button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button>
               </div>
             </div>
@@ -1396,9 +1410,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </Modal>
       )}
 
-      {['domain', 'edit-domain', 'capability', 'edit-capability', 'app'].includes(modal) && (
+      {['domain', 'edit-domain', 'capability', 'edit-capability', 'app', 'edit-app'].includes(modal) && (
         <Modal
-          title={modal === 'edit-capability' ? 'Modifier la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
+          title={modal === 'edit-app' ? 'Modifier l’application' : modal === 'edit-capability' ? 'Modifier la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
           onClose={() => setModal(null)}
         >
           {(modal === 'domain' || modal === 'edit-domain') && <div className="field-guidance"><b>N0 — Domaine métier</b><span>Regroupe un ensemble large de capacités.</span></div>}
@@ -1443,7 +1457,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </label>
                 </>
               )}
-              {modal === 'app' && (
+              {['app', 'edit-app'].includes(modal) && (
                 <>
                   <Field label="Éditeur / fournisseur" required error={formErrors.vendor} value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} />
                   <label className="field">
@@ -1478,7 +1492,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <span>Description</span>
               <textarea data-testid="capability-description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Décrivez la capacité (facultatif)" />
             </label>
-          ) : modal === 'app' ? (
+          ) : ['app', 'edit-app'].includes(modal) ? (
             <Field label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
           ) : null}
 
@@ -1538,7 +1552,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
           <div className="modal-actions">
             <button type="button" onClick={() => setModal(null)}>Annuler</button>
-            <button type="button" className="primary" onClick={save}>{modal === 'edit-domain' || modal === 'edit-capability' ? 'Enregistrer' : 'Créer'}</button>
+            <button type="button" className="primary" onClick={save}>{['edit-domain', 'edit-capability', 'edit-app'].includes(modal) ? 'Enregistrer' : 'Créer'}</button>
           </div>
         </Modal>
       )}
