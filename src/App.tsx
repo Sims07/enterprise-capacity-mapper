@@ -771,7 +771,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         {depth === 1 ? (
           <div className="relations domain-relations">
             {apps.filter(a => relationIds(a).includes(d.id)).map(a => (
-              <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData("app", a.id)}>
+              <div className="rel" key={a.id} draggable={!presentation} onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData("app", a.id); }}>
                 <span>◈</span>{a.name}
                 <button type="button" onClick={() => unassign(a.id, d.id)}>×</button>
               </div>
@@ -814,7 +814,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
                   <div className="relations">
                     {coverage.apps.map(a => (
-                      <div className="rel" key={a.id} draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
+                      <div className="rel" key={a.id} draggable={!presentation} onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData('app', a.id); }}>
                         <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
                         <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>
                       </div>
