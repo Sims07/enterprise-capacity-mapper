@@ -35,11 +35,9 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
     await page.keyboard.press('Escape');
   }
   await page.getByTestId('mosaic-view').click();
-  const presentationPagePromise = page.waitForEvent('popup');
-  await page.getByTestId('open-presentation-window').click();
-  const presentationPage = await presentationPagePromise;
-  await presentationPage.setViewportSize({ width: 1600, height: 900 });
-  await expect(presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
+  await page.getByTestId('presentation-switch').check();
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await expect(page.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
   await presentationPage.evaluate(() => document.fonts.ready);
   await presentationPage.waitForTimeout(200);
   return presentationPage;
