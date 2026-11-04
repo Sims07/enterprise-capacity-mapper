@@ -229,6 +229,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
   });
   test('redimensionne le panneau, persiste le format et garde le dock dans le viewport', async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 900 });
+    await page.getByTestId('companion-launcher').click();
     const panel = page.getByTestId('companion-panel');
     const normal = await panel.boundingBox();
     await page.getByTestId('companion-size-toggle').click();
@@ -250,6 +251,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
 
   test('préserve au moins 240px de conversation à 1366×768', async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 768 });
+    await page.getByTestId('companion-launcher').click();
     await page.getByTestId('companion-mode-conversation').click();
     const conversation = page.getByTestId('companion-conversation');
     const box = await conversation.boundingBox();
@@ -258,6 +260,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
   });
 
   test('accepte une saisie multiligne avec Maj+Entrée', async ({ page }) => {
+    await page.getByTestId('companion-launcher').click();
     await page.getByTestId('companion-mode-conversation').click();
     const question = page.getByTestId('companion-question');
     await expect(question).toHaveJSProperty('tagName', 'TEXTAREA');
