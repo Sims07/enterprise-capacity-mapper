@@ -1,5 +1,9 @@
-/* Présentation mosaïque : composition plein écran, ajustée à une page paysage. */
+/* Présentation mosaïque : une composition paysage qui tient dans le viewport. */
 .app.mosaic-presentation-mode {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   overflow: hidden;
   background: #f1f3f6;
 }
@@ -35,26 +39,31 @@
   background: #f1f3f6;
 }
 
-/* Cartes de présentation compactes : la couleur identifie le domaine, elle ne remplit pas tout le panneau. */
+/* La grille remplit exactement l'espace disponible ; les poids de lignes/colonnes
+   proviennent des tailles de structure, sans minimum vertical artificiel. */
 .app.mosaic-presentation-mode .map-mosaic {
   --mosaic-card-surface: #ffffff;
   --mosaic-card-text: #1f2937;
+  box-sizing: border-box;
   display: grid;
   flex: 1 1 auto;
   width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 0;
-  gap: 14px;
-  padding: 16px;
-  align-content: center;
-  overflow: auto;
+  gap: clamp(8px, 1vw, 14px);
+  padding: clamp(10px, 1.1vw, 18px);
+  align-content: stretch;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   box-shadow: none;
   background: #f1f3f6;
 }
+
 .app.mosaic-presentation-mode .mosaic-domain {
+  container-type: inline-size;
+  container-name: mosaic-card;
   min-width: 0;
   min-height: 0;
   padding: 0;
@@ -64,8 +73,10 @@
   background: var(--mosaic-card-surface);
   box-shadow: 0 2px 7px rgb(15 23 42 / 7%);
 }
+
 .app.mosaic-presentation-mode .mosaic-domain > .domain {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   width: 100%;
   height: 100%;
@@ -79,69 +90,98 @@
   color: var(--mosaic-card-text);
   box-shadow: none;
 }
-.app.mosaic-presentation-mode .mosaic-domain .domain-banner {
+
+/* Les sélecteurs ciblent uniquement la présentation mosaïque et sont chargés
+   après compact-ui.css pour neutraliser ses fonds globaux !important. */
+.app.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
   justify-content: flex-start;
+  min-width: 0;
   min-height: 0;
-  padding: 10px 14px;
+  padding: clamp(8px, 1.4cqi, 16px) clamp(10px, 2cqi, 20px);
   border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--domain-color, #64748b) 38%, #d8dee8);
+  border-bottom: 1px solid color-mix(in srgb, var(--presentation-domain-text-color, #1f2937) 24%, transparent);
   border-radius: 0;
-  background: color-mix(in srgb, var(--domain-color, #64748b) 14%, white) !important;
-  color: #1f2937 !important;
+  background: var(--presentation-domain-color, #e5e7eb) !important;
+  background-color: var(--presentation-domain-color, #e5e7eb) !important;
+  color: var(--presentation-domain-text-color, #1f2937) !important;
   text-align: left;
 }
+
 .app.mosaic-presentation-mode .mosaic-domain .domain-banner-title {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: row;
   flex-wrap: wrap;
   min-width: 0;
   max-width: 100%;
   align-items: baseline;
   justify-content: flex-start;
-  gap: 5px 10px;
+  gap: 4px 10px;
   text-align: left;
 }
-.app.mosaic-presentation-mode .mosaic-domain .domain-banner h3,
-.app.mosaic-presentation-mode .mosaic-domain .map-domain-select {
+
+.app.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner h3,
+.app.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner .map-domain-select {
   max-width: 100%;
+  min-width: 0;
   margin: 0;
-  color: #1f2937 !important;
-  font-size: clamp(16px, 1.15vw, 19px);
+  color: var(--presentation-domain-text-color, #1f2937) !important;
+  font-size: clamp(15px, 4.2cqi, 30px);
   font-weight: 750;
-  line-height: 1.25;
+  line-height: 1.2;
   letter-spacing: -.01em;
   text-align: left;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
   text-wrap: balance;
 }
-.app.mosaic-presentation-mode .mosaic-domain .domain-meta { margin: 0; color: #475569 !important; font-size: 11px; font-weight: 650; opacity: 1; }
+
+.app.mosaic-presentation-mode .mosaic-domain .domain-meta {
+  margin: 0;
+  color: var(--presentation-domain-text-color, #1f2937) !important;
+  font-size: clamp(9px, 1.8cqi, 12px);
+  font-weight: 650;
+  line-height: 1.25;
+  opacity: .86;
+  overflow-wrap: normal;
+}
+
 .app.mosaic-presentation-mode .mosaic-domain .domain-actions,
 .app.mosaic-presentation-mode .mosaic-domain .domain-add-capability,
 .app.mosaic-presentation-mode .mosaic-domain .domain-desc,
 .app.mosaic-presentation-mode .mosaic-domain .domain-relations,
 .app.mosaic-presentation-mode .mosaic-domain .drop,
-.app.mosaic-presentation-mode .mosaic-domain .mini-action-trigger { display: none !important; }
+.app.mosaic-presentation-mode .mosaic-domain .mini-action-trigger {
+  display: none !important;
+}
+
+/* Les capacités occupent toute la hauteur restante, sans scroll interne. */
 .app.mosaic-presentation-mode .mosaic-domain .caps-list {
   display: grid;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
-  align-content: center;
-  gap: 8px;
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  align-items: stretch;
+  gap: clamp(5px, .8cqi, 9px);
   min-width: 0;
   min-height: 0;
   max-height: none;
-  padding: 12px;
-  overflow: auto;
+  padding: clamp(7px, 1.6cqi, 14px);
+  overflow: hidden;
   background: var(--mosaic-card-surface) !important;
 }
+
 .app.mosaic-presentation-mode .mosaic-domain .cap {
   display: flex;
   min-width: 0;
   min-height: 0;
   align-items: center;
-  padding: 9px 11px;
+  padding: clamp(5px, 1.4cqi, 11px);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--domain-color, #64748b) 30%, #d8dee8);
   border-radius: 8px;
@@ -149,58 +189,198 @@
   color: #334155;
   text-align: left;
 }
-.app.mosaic-presentation-mode .mosaic-domain .cap-head { min-width: 0; flex: 1; align-items: center; justify-content: flex-start; }
+
+.app.mosaic-presentation-mode .mosaic-domain .cap-head {
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .app.mosaic-presentation-mode .mosaic-domain .cap-head b,
-.app.mosaic-presentation-mode .mosaic-domain .map-cap-select { color: #334155 !important; font-size: clamp(13px, .95vw, 15px); font-weight: 650; line-height: 1.3; text-align: left; }
+.app.mosaic-presentation-mode .mosaic-domain .map-cap-select {
+  color: #334155 !important;
+  font-size: clamp(11px, 2.8cqi, 17px);
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
+}
+
 .app.mosaic-presentation-mode .mosaic-domain .cap-meta,
 .app.mosaic-presentation-mode .mosaic-domain .cap-desc,
 .app.mosaic-presentation-mode .mosaic-domain .relations,
-.app.mosaic-presentation-mode .mosaic-domain .mini-action-trigger { display: none !important; }
-.app.mosaic-presentation-mode .mosaic-domain .cap .app-count { color: #64748b !important; font-size: 9px; }
-.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty { justify-content: center; background: color-mix(in srgb, var(--domain-color, #64748b) 8%, white) !important; }
-.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner { flex: 1 1 auto; justify-content: center; align-items: center; min-height: 0; padding: 18px; border: 0; background: transparent !important; text-align: center; }
-.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner-title { flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; }
-.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner h3 { color: #1f2937 !important; font-size: clamp(22px, 1.8vw, 30px); font-weight: 800; letter-spacing: -.02em; text-align: center; }
-.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-meta { color: #475569 !important; font-size: 11px; }
-.app.theme-dark.mosaic-presentation-mode .map-mosaic { --mosaic-card-surface: #20232b; --mosaic-card-text: #e7eaf0; background: #111318; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain { border-color: color-mix(in srgb, var(--domain-color, #64748b) 68%, #e2e8f0); background: var(--mosaic-card-surface); box-shadow: 0 2px 9px rgb(0 0 0 / 22%); }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain { background: var(--mosaic-card-surface) !important; color: #e7eaf0; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .domain-banner { border-bottom-color: color-mix(in srgb, var(--domain-color, #64748b) 44%, #454b59); background: color-mix(in srgb, var(--domain-color, #64748b) 22%, #20232b) !important; color: #f3f4f6 !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .domain-banner h3,
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .map-domain-select,
+.app.mosaic-presentation-mode .mosaic-domain .mini-action-trigger {
+  display: none !important;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .cap .app-count {
+  color: #64748b !important;
+  font-size: 9px;
+}
+
+/* Un domaine sans N1 est une carte pleine : aucune grille vide ne réserve
+   de hauteur au détriment du bandeau. */
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty {
+  justify-content: stretch;
+  background: var(--presentation-domain-color, #e5e7eb) !important;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .caps-list {
+  display: none !important;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty > .domain-banner {
+  flex: 1 1 auto;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  padding: clamp(12px, 2.5cqi, 28px);
+  border: 0;
+  background: var(--presentation-domain-color, #e5e7eb) !important;
+  background-color: var(--presentation-domain-color, #e5e7eb) !important;
+  text-align: center;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner-title {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner h3 {
+  color: var(--presentation-domain-text-color, #1f2937) !important;
+  text-align: center;
+}
+
+/* Thème sombre : teinte de domaine saturée sur le graphite et texte choisi
+   par domainTextColor sur la couleur réellement affichée. */
+.app.theme-dark.mosaic-presentation-mode .map-mosaic {
+  --mosaic-card-surface: #20232b;
+  --mosaic-card-text: #e7eaf0;
+  background: #111318;
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain {
+  border-color: color-mix(in srgb, var(--domain-color, #64748b) 68%, #e2e8f0);
+  background: var(--mosaic-card-surface);
+  box-shadow: 0 2px 9px rgb(0 0 0 / 22%);
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain {
+  background: var(--mosaic-card-surface) !important;
+  color: #e7eaf0;
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner {
+  border-bottom-color: color-mix(in srgb, var(--presentation-domain-text-color, #fff) 24%, transparent);
+  background: var(--presentation-domain-color, #343842) !important;
+  background-color: var(--presentation-domain-color, #343842) !important;
+  color: var(--presentation-domain-text-color, #fff) !important;
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner h3,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner .map-domain-select,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner .domain-meta {
+  color: var(--presentation-domain-text-color, #fff) !important;
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .caps-list {
+  background: var(--mosaic-card-surface) !important;
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap {
+  border-color: color-mix(in srgb, var(--domain-color, #64748b) 38%, #454b59);
+  background: color-mix(in srgb, var(--domain-color, #64748b) 12%, #171a20) !important;
+  color: #e7eaf0;
+}
+
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap-head b,
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .map-cap-select { color: #f3f4f6 !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .domain-meta { color: #c5cad5 !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .caps-list { background: var(--mosaic-card-surface) !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap { border-color: color-mix(in srgb, var(--domain-color, #64748b) 38%, #454b59); background: color-mix(in srgb, var(--domain-color, #64748b) 12%, #171a20) !important; color: #e7eaf0; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap .app-count { color: #b8bfcc !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty { background: color-mix(in srgb, var(--domain-color, #64748b) 15%, #20232b) !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner { background: transparent !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner h3 { color: #f3f4f6 !important; }
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-meta { color: #c5cad5 !important; }
-@media (max-width: 900px) and (orientation: landscape) { .app.mosaic-presentation-mode .map-mosaic { gap: 8px; padding: 8px; } .app.mosaic-presentation-mode .mosaic-domain .caps-list { gap: 4px; padding: 6px; } }
-@media (max-width: 700px) { .app.mosaic-presentation-mode .map-mosaic { overflow: auto; } .app.mosaic-presentation-mode .mosaic-domain .domain-banner h3, .app.mosaic-presentation-mode .mosaic-domain .map-domain-select { font-size: clamp(11px, 2vw, 16px); } }
-@media (prefers-reduced-motion: reduce) { .app.mosaic-presentation-mode *, .app.mosaic-presentation-mode *::before, .app.mosaic-presentation-mode *::after { animation: none !important; transition: none !important; } }
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .map-cap-select {
+  color: #f3f4f6 !important;
+}
 
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap .app-count {
+  color: #b8bfcc !important;
+  font-size: 9px;
+}
 
-/* Contrôle de sortie discret, toujours accessible dans la fenêtre de présentation. */
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty > .domain-banner {
+  background: var(--presentation-domain-color, #343842) !important;
+  background-color: var(--presentation-domain-color, #343842) !important;
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner h3,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-meta {
+  color: var(--presentation-domain-text-color, #fff) !important;
+}
+
+/* Barre de sortie compacte, temporaire et accessible au clavier. */
 .app.mosaic-presentation-mode .presentation-exit-bar {
   position: fixed;
   z-index: 80;
-  right: 16px;
-  bottom: 16px;
+  left: 50%;
+  right: auto;
+  bottom: 12px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  padding: 8px 10px 8px 14px;
+  justify-content: center;
+  gap: 6px 10px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 7px 9px 7px 12px;
   border: 1px solid var(--border-subtle, #d8dee8);
-  border-radius: 999px;
+  border-radius: 14px;
   background: var(--surface-elevated, #fff);
   color: var(--text-primary, #1f2937);
   box-shadow: 0 8px 28px rgb(15 23 42 / 18%);
   font-size: 12px;
+  transform: translateX(-50%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .18s ease, visibility .18s ease;
 }
-.app.mosaic-presentation-mode .presentation-exit-bar button { min-height: 36px; }
+
+.app.mosaic-presentation-mode .presentation-exit-bar[data-visible="true"],
+.app.mosaic-presentation-mode .presentation-exit-bar:focus-within {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.app.mosaic-presentation-mode .presentation-exit-bar button {
+  min-height: 34px;
+  white-space: nowrap;
+}
+
 @media (max-width: 700px) {
-  .app.mosaic-presentation-mode .presentation-exit-bar { right: 10px; bottom: 10px; left: 10px; justify-content: space-between; }
+  .app.mosaic-presentation-mode .map-mosaic {
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .app.mosaic-presentation-mode .mosaic-domain .caps-list {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr));
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .app.mosaic-presentation-mode .presentation-exit-bar {
+    bottom: 8px;
+    gap: 4px 8px;
+    padding: 6px 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app.mosaic-presentation-mode .presentation-exit-bar {
+    transition: none;
+  }
 }

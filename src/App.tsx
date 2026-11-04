@@ -56,6 +56,16 @@ const domainTextColor = color => {
   const luminance = [r, g, b].map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
   return luminance > 0.42 ? '#0f172a' : '#ffffff';
 };
+const mixDomainColor = (foreground, background, amount) => {
+  const foregroundHex = resolveDomainColor(foreground).slice(1);
+  const backgroundHex = resolveDomainColor(background).slice(1);
+  const channels = [0, 2, 4].map(index => {
+    const front = Number.parseInt(foregroundHex.slice(index, index + 2), 16);
+    const back = Number.parseInt(backgroundHex.slice(index, index + 2), 16);
+    return Math.round(back + (front - back) * amount).toString(16).padStart(2, '0');
+  });
+  return `#${channels.join('')}`;
+};
 const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified' };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
 
@@ -102,6 +112,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const isPresentationWindow = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('view') === 'presentation';
   const [presentation, setPresentation] = useState(isPresentationWindow);
+  const [presentationControlsVisible, setPresentationControlsVisible] = useState(true);
+  const [presentationActivity, setPresentationActivity] = useState(0);
   const [darkMode, setDarkMode] = useState(() => preferences.readTheme() === 'dark');
   const toolsMenuRef = useRef(null);
   const toolsMenuToggleRef = useRef(null);
@@ -142,13 +154,35 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   }, [isPresentationWindow, layoutMode]);
 
   useEffect(() => {
-    if (!presentation || layoutMode !== 'mosaic') return undefined;
+    if (!presentation || layoutMode !== 'mosaic') {
+      setPresentationControlsVisible(true);
+      return undefined;
+    }
+    const revealControls = () => {
+      setPresentationControlsVisible(true);
+      setPresentationActivity(value => value + 1);
+    };
     const exitPresentation = event => {
+      revealControls();
       if (event.key === 'Escape') setPresentation(false);
     };
+    window.addEventListener('pointermove', revealControls, { passive: true });
+    window.addEventListener('pointerdown', revealControls);
     window.addEventListener('keydown', exitPresentation);
-    return () => window.removeEventListener('keydown', exitPresentation);
+    window.addEventListener('focusin', revealControls);
+    return () => {
+      window.removeEventListener('pointermove', revealControls);
+      window.removeEventListener('pointerdown', revealControls);
+      window.removeEventListener('keydown', exitPresentation);
+      window.removeEventListener('focusin', revealControls);
+    };
   }, [presentation, layoutMode]);
+
+  useEffect(() => {
+    if (!presentation || layoutMode !== 'mosaic' || !presentationControlsVisible) return undefined;
+    const timeout = window.setTimeout(() => setPresentationControlsVisible(false), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [presentation, layoutMode, presentationActivity, presentationControlsVisible]);
 
   useEffect(() => {
     navigation.initialize(mode);
@@ -689,6 +723,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const DomainCard = ({ d }) => {
     const caps = model.capabilities.filter(c => c.domainId === d.id);
+    const domainColor = resolveDomainColor(d.color);
+    const presentationColor = presentation
+      ? mixDomainColor(domainColor, darkMode ? '#20232b' : '#ffffff', darkMode ? 0.42 : 0.14)
+      : domainColor;
+    const presentationText = domainTextColor(presentationColor);
+    const bannerColor = presentation ? presentationColor : domainColor;
+    const bannerText = presentation ? presentationText : domainTextColor(d.color);
     const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}${presentation && layoutMode === 'mosaic' && caps.length === 0 ? ' mosaic-presentation-empty' : ''}`;
 
     return (
@@ -696,7 +737,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         className={domainClass}
         data-entity-id={d.id}
         data-entity-type="domain"
-        style={{ '--domain-color': resolveDomainColor(d.color), '--domain-text-color': domainTextColor(d.color) } as React.CSSProperties}
+        style={{ '--domain-color': domainColor, '--domain-text-color': domainTextColor(d.color), '--presentation-domain-color': presentationColor, '--presentation-domain-text-color': presentationText } as React.CSSProperties}
         draggable
         onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
         onDragStart={e => e.dataTransfer.setData('domain', d.id)}
@@ -705,12 +746,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
         key={d.id}
       >
-        <div className="domain-banner" style={{ backgroundColor: resolveDomainColor(d.color), color: domainTextColor(d.color), "--n0-header-color": resolveDomainColor(d.color), "--n0-header-text-color": domainTextColor(d.color) } as React.CSSProperties}>
+        <div className="domain-banner" style={{ backgroundColor: bannerColor, color: bannerText, "--n0-header-color": bannerColor, "--n0-header-text-color": bannerText } as React.CSSProperties}>
           <div className="domain-banner-title">
             {depth === 1 ? (
               <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button>
             ) : <h3>{d.name}</h3>}
-            <span className="domain-meta">{d.code} · {caps.length} N1</span>
+            <span className="domain-meta">{d.code}{(!presentation || caps.length > 0) && <> · {caps.length} N1</>}</span>
           </div>
           <div className="domain-actions">
             {depth === 2 && layoutMode === 'mosaic' && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
@@ -824,7 +865,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicLayersLayout = presentation ? layers.filter((_, index) => usedPresentationLayerIndexes.has(index)) : layers;
   const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${mosaicColumnsLayout.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
   const mosaicRows = presentation
-    ? mosaicLayersLayout.map(() => 'minmax(clamp(180px, 23vh, 220px), max-content)').join(' ')
+    ? mosaicLayersLayout.map(layer => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')
     : `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
   const mosaicView = (
     <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
@@ -1218,7 +1259,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       </div>
       )}
 
-      {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar"><span>Présentation synchronisée</span><button type="button" className="secondary" data-testid="presentation-return" onClick={() => { if (isPresentationWindow) { window.close(); if (!window.closed) { const url = new URL(window.location.href); url.searchParams.delete('view'); window.location.assign(url.toString()); } } else setPresentation(false); }}>← Retour à la cartographie</button></div>}
+      {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar" data-visible={presentationControlsVisible}>
+        <span>Présentation synchronisée</span>
+        <button type="button" className="secondary" data-testid="presentation-return" onClick={() => { if (isPresentationWindow) { window.close(); if (!window.closed) { const url = new URL(window.location.href); url.searchParams.delete('view'); window.location.assign(url.toString()); } } else setPresentation(false); }}>← Retour</button>
+      </div>}
 
       {contextMenu && (
         <div

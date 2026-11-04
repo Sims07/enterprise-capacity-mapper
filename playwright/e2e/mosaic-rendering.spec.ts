@@ -25,7 +25,9 @@ test.describe('Rendu mosaïque', () => {
     const firstDomain = mosaic.locator('.mosaic-domain').first();
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', /rgb/);
     await expect(firstDomain).toHaveCSS('border-style', 'solid');
-    await expect(mosaic).toHaveCSS('column-gap', '14px');
+    const columnGap = await mosaic.evaluate(element => Number.parseFloat(getComputedStyle(element).columnGap));
+    expect(columnGap).toBeGreaterThanOrEqual(8);
+    expect(columnGap).toBeLessThanOrEqual(14);
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(firstDomain.locator('.mosaic-resize-controls')).toHaveCount(0);
   });
@@ -73,6 +75,155 @@ test.describe('Rendu mosaïque', () => {
     await page.keyboard.press('Escape');
     await expect(page.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
     await expect(page.locator('.app > header')).toBeVisible();
+  });
+
+  test('adapte la présentation au viewport avec 12 domaines et sans débordement', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+
+    const firstDomain = page.getByTestId('mosaic-map').locator('.mosaic-domain')
+      .filter({ hasText: 'Relation & Engagement Client' });
+    for (let index = 0; index < 2; index += 1) {
+      await firstDomain.getByTestId('add-capability-to-domain').click();
+      const capabilityDialog = page.getByRole('dialog', { name: 'Nouvelle capacité N1' });
+      await capabilityDialog.getByLabel('Nom').fill(`Capacité complémentaire ${index + 1}`);
+      await capabilityDialog.getByRole('textbox', { name: 'Code', exact: true }).fill(`CRM-EXTRA-${index + 1}`);
+      await capabilityDialog.getByRole('button', { name: 'Créer' }).click();
+      await expect(capabilityDialog).toHaveCount(0);
+    }
+
+    const domainNames = [
+      'Ordonnancement Contrôle Paiement',
+      'Gouvernance des référentiels',
+      'Pilotage de la performance opérationnelle',
+      'Gestion des habilitations',
+      'Conformité réglementaire',
+      'Gestion des risques',
+      'Architecture et urbanisation SI',
+      'Qualité des données',
+    ];
+    for (let index = 0; index < domainNames.length; index += 1) {
+      await page.getByTestId('mosaic-add-domain').click();
+      const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+      await dialog.getByLabel('Nom').fill(domainNames[index]);
+      await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill(`DOM-EMPTY-${index + 1}`);
+      await dialog.getByRole('button', { name: 'Créer' }).click();
+      await expect(dialog).toHaveCount(0);
+    }
+
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 1600, height: 900 },
+      { width: 1920, height: 1080 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto('/?view=presentation');
+      const mosaic = page.getByTestId('mosaic-map');
+      await expect(mosaic.locator('.mosaic-domain')).toHaveCount(12);
+
+      const dimensions = await page.evaluate(() => ({
+        width: document.documentElement.clientWidth,
+        height: document.documentElement.clientHeight,
+        scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+        scrollHeight: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
+      }));
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
+      expect(dimensions.scrollHeight).toBeLessThanOrEqual(dimensions.height);
+
+      const geometry = await mosaic.evaluate(element => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+      }));
+      expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
+      expect(geometry.scrollHeight).toBeLessThanOrEqual(geometry.clientHeight + 1);
+
+      const titleLayout = await mosaic.locator('.domain-banner h3').evaluateAll(elements => {
+        const overflowing: string[] = [];
+        const splitWords: string[] = [];
+        for (const element of elements) {
+          const title = element as HTMLElement;
+          if (title.scrollWidth > title.clientWidth + 1) overflowing.push(title.innerText);
+          if (getComputedStyle(title).overflowWrap === 'anywhere') overflowing.push(`overflow-wrap:anywhere: ${title.innerText}`);
+          const walker = document.createTreeWalker(title, NodeFilter.SHOW_TEXT);
+          let node: Node | null;
+          while ((node = walker.nextNode())) {
+            const text = node.textContent || '';
+            const words = /\S+/g;
+            let match: RegExpExecArray | null;
+            while ((match = words.exec(text))) {
+              const range = document.createRange();
+              range.setStart(node, match.index);
+              range.setEnd(node, match.index + match[0].length);
+              if (range.getClientRects().length > 1) splitWords.push(`${title.innerText}: ${match[0]}`);
+            }
+          }
+        }
+        return { overflowing, splitWords };
+      });
+      expect(titleLayout.overflowing).toEqual([]);
+      expect(titleLayout.splitWords).toEqual([]);
+
+      const emptyCards = mosaic.locator('.mosaic-domain:has(.domain.mosaic-presentation-empty)');
+      await expect(emptyCards).toHaveCount(8);
+      const bannerRatios = await emptyCards.evaluateAll(elements => elements.map(element => {
+        const card = element.querySelector('.domain')!.getBoundingClientRect();
+        const banner = element.querySelector('.domain-banner')!.getBoundingClientRect();
+        return banner.height / card.height;
+      }));
+      expect(bannerRatios.every(ratio => ratio >= 0.95)).toBe(true);
+      const domainMeta = await mosaic.locator('.domain-meta').allTextContents();
+      expect(domainMeta.every(value => !value.includes('0 N1'))).toBe(true);
+
+      const capabilityLists = await mosaic.locator('.caps-list').evaluateAll(elements => elements.map(element => ({
+        scrollHeight: element.scrollHeight,
+        clientHeight: element.clientHeight,
+        scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth,
+      })));
+      expect(capabilityLists.every(list => list.scrollHeight <= list.clientHeight + 1 && list.scrollWidth <= list.clientWidth + 1)).toBe(true);
+
+      const returnBar = page.getByTestId('presentation-return');
+      const barBounds = await returnBar.locator('..').boundingBox();
+      expect(barBounds).not.toBeNull();
+      expect(barBounds!.x).toBeGreaterThanOrEqual(0);
+      expect(barBounds!.y).toBeGreaterThanOrEqual(0);
+      expect(barBounds!.x + barBounds!.width).toBeLessThanOrEqual(viewport.width);
+      expect(barBounds!.y + barBounds!.height).toBeLessThanOrEqual(viewport.height);
+
+      await page.waitForTimeout(3200);
+      await expect(returnBar.locator('..')).toHaveCSS('opacity', '0');
+      await page.mouse.move(100, 100);
+      await expect(returnBar.locator('..')).toHaveCSS('opacity', '1');
+    }
+  });
+
+  test('garantit un contraste lisible des bandeaux de domaine en thème sombre', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('theme-toggle').click();
+    await expect(page.locator('.app.theme-dark')).toBeVisible();
+    await page.goto('/?view=presentation');
+
+    const contrastRatios = await page.locator('.mosaic-domain .domain-banner').evaluateAll(elements => {
+      const luminance = (color: string) => {
+        const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map(value => {
+          const channel = value / 255;
+          return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+        });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      };
+      return elements.map(element => {
+        const heading = element.querySelector('h3')!;
+        const background = luminance(getComputedStyle(element).backgroundColor);
+        const foreground = luminance(getComputedStyle(heading).color);
+        return (Math.max(background, foreground) + 0.05) / (Math.min(background, foreground) + 0.05);
+      });
+    });
+    expect(contrastRatios.length).toBeGreaterThan(0);
+    expect(contrastRatios.every(ratio => ratio >= 4.5)).toBe(true);
   });
 
   test('ouvre une fenêtre de présentation dédiée et synchronise les modifications en direct', async ({ page }) => {
@@ -141,7 +292,9 @@ test.describe('Rendu mosaïque', () => {
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
     await expect(emptyDomain.locator('.domain-banner h3')).toBeVisible();
     const titleSize = await emptyDomain.locator('.domain-banner h3').evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
-    expect(titleSize).toBeGreaterThan(22);
+    const capabilitySize = await page.locator('.mosaic-domain .map-cap-select').first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(titleSize).toBeGreaterThan(16);
+    expect(titleSize).toBeGreaterThan(capabilitySize);
   });
   test('permet de revenir au rendu matrice', async ({ page }) => {
     await page.goto('/');

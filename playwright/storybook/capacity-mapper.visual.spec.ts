@@ -64,7 +64,9 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     expect(headingSize).toBeGreaterThan(16);
     const capabilitySize = await first.locator('.map-cap-select').first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
     expect(capabilitySize).toBeGreaterThan(12);
+    await mkdir('playwright/storybook/__screenshots__', { recursive: true });
     await mkdir('test-results-storybook', { recursive: true });
+    await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/mosaic-presentation-landscape-light.png', animations: 'disabled' });
     await presentationPage.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-light.png', animations: 'disabled' });
   });
 
@@ -73,7 +75,23 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
     await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', 'rgb(32, 35, 43)');
+    const contrastRatios = await mosaic.locator('.domain-banner').evaluateAll(elements => elements.map(element => {
+      const heading = element.querySelector('h3')!;
+      const luminance = (color: string) => {
+        const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map(value => {
+          const channel = value / 255;
+          return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+        });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      };
+      const background = luminance(getComputedStyle(element).backgroundColor);
+      const foreground = luminance(getComputedStyle(heading).color);
+      return (Math.max(background, foreground) + 0.05) / (Math.min(background, foreground) + 0.05);
+    }));
+    expect(contrastRatios.every(ratio => ratio >= 4.5)).toBe(true);
+    await mkdir('playwright/storybook/__screenshots__', { recursive: true });
     await mkdir('test-results-storybook', { recursive: true });
+    await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/mosaic-presentation-landscape-dark.png', animations: 'disabled' });
     await presentationPage.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-dark.png', animations: 'disabled' });
   });
   test('desktop — thème clair', async ({ page }) => {
