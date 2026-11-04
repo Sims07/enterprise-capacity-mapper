@@ -149,7 +149,7 @@ test.describe('Rendu mosaïque', () => {
           let node: Node | null;
           while ((node = walker.nextNode())) {
             const text = node.textContent || '';
-            const words = /\\S+/g;
+            const words = /\S+/g;
             let match: RegExpExecArray | null;
             while ((match = words.exec(text))) {
               const range = document.createRange();
@@ -206,7 +206,7 @@ test.describe('Rendu mosaïque', () => {
 
     const contrastRatios = await page.locator('.mosaic-domain .domain-banner').evaluateAll(elements => {
       const luminance = (color: string) => {
-        const channels = color.match(/[\\d.]+/g)!.slice(0, 3).map(Number).map(value => {
+        const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map(value => {
           const channel = value / 255;
           return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
         });
