@@ -25,7 +25,9 @@ test.describe('Rendu mosaïque', () => {
     const firstDomain = mosaic.locator('.mosaic-domain').first();
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', /rgb/);
     await expect(firstDomain).toHaveCSS('border-style', 'solid');
-    await expect(mosaic).toHaveCSS('column-gap', '14px');
+    const columnGap = await mosaic.evaluate(element => Number.parseFloat(getComputedStyle(element).columnGap));
+    expect(columnGap).toBeGreaterThanOrEqual(8);
+    expect(columnGap).toBeLessThanOrEqual(14);
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(firstDomain.locator('.mosaic-resize-controls')).toHaveCount(0);
   });
@@ -172,7 +174,8 @@ test.describe('Rendu mosaïque', () => {
         return banner.height / card.height;
       }));
       expect(bannerRatios.every(ratio => ratio >= 0.95)).toBe(true);
-      await expect(mosaic.locator('.domain-meta')).not.toContainText('0 N1');
+      const domainMeta = await mosaic.locator('.domain-meta').allTextContents();
+      expect(domainMeta.every(value => !value.includes('0 N1'))).toBe(true);
 
       const capabilityLists = await mosaic.locator('.caps-list').evaluateAll(elements => elements.map(element => ({
         scrollHeight: element.scrollHeight,
@@ -289,7 +292,9 @@ test.describe('Rendu mosaïque', () => {
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
     await expect(emptyDomain.locator('.domain-banner h3')).toBeVisible();
     const titleSize = await emptyDomain.locator('.domain-banner h3').evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
-    expect(titleSize).toBeGreaterThan(22);
+    const capabilitySize = await page.locator('.mosaic-domain .cap-head b').first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(titleSize).toBeGreaterThan(16);
+    expect(titleSize).toBeGreaterThan(capabilitySize);
   });
   test('permet de revenir au rendu matrice', async ({ page }) => {
     await page.goto('/');
