@@ -227,6 +227,46 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await expect(page.locator('.cap:visible .map-cap-select')).toContainText('Capacité historique');
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') ?? 'null').schemaVersion)).toBe(3);
   });
+  test('redimensionne le panneau, persiste le format et garde le dock dans le viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 900 });
+    const panel = page.getByTestId('companion-panel');
+    const normal = await panel.boundingBox();
+    await page.getByTestId('companion-size-toggle').click();
+    await expect(panel).toHaveClass(/is-large/);
+    const large = await panel.boundingBox();
+    expect(large!.height).toBeGreaterThan(normal!.height);
+    await page.getByTestId('companion-size-toggle').click();
+    await expect(panel).toHaveClass(/is-dock/);
+    const dock = await panel.boundingBox();
+    expect(dock!.x).toBeGreaterThanOrEqual(0);
+    expect(dock!.y).toBeGreaterThanOrEqual(0);
+    expect(dock!.x + dock!.width).toBeLessThanOrEqual(1366);
+    expect(dock!.y + dock!.height).toBeLessThanOrEqual(900);
+    await page.reload();
+    await page.getByTestId('companion-launcher').click();
+    await expect(page.getByTestId('companion-panel')).toHaveClass(/is-dock/);
+    expect(await page.evaluate(() => localStorage.getItem('companion-size'))).toBe('dock');
+  });
+
+  test('préserve au moins 240px de conversation à 1366×768', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.getByTestId('companion-mode-conversation').click();
+    const conversation = page.getByTestId('companion-conversation');
+    const box = await conversation.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeGreaterThanOrEqual(240);
+  });
+
+  test('accepte une saisie multiligne avec Maj+Entrée', async ({ page }) => {
+    await page.getByTestId('companion-mode-conversation').click();
+    const question = page.getByTestId('companion-question');
+    await expect(question).toHaveJSProperty('tagName', 'TEXTAREA');
+    await question.fill('Première ligne');
+    await question.press('Shift+Enter');
+    await question.type('Deuxième ligne');
+    await expect(question).toHaveValue('Première ligne\\nDeuxième ligne');
+  });
+
 });
 
 test.describe('Playwright regression — companion', () => {
