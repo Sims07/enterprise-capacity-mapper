@@ -77,16 +77,16 @@ test('MapLayout rejects overlaps, invalid spans and moves of unknown domains', (
   }), false);
 
   assert.equal(mapLayout.prepareDomainPlacement({
-    domains, layout, layoutMode: 'matrix', columns, layers, domainId: 'missing', columnId: 'c1', layerId: 'l2',
+    domains, layout, columns, layers, domainId: 'missing', columnId: 'c1', layerId: 'l2',
   }), null);
   assert.notEqual(mapLayout.prepareDomainPlacement({
-    domains, layout, layoutMode: 'matrix', columns, layers, domainId: 'd1', columnId: 'c2', layerId: 'l1',
+    domains, layout, columns, layers, domainId: 'd1', columnId: 'c2', layerId: 'l1',
   }), null);
   assert.equal(mapLayout.prepareDomainPlacement({
     domains: [
       { id: 'd1', name: 'Domain 1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } },
       { id: 'd2', name: 'Domain 2', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
-    ], layout, layoutMode: 'matrix', columns, layers, domainId: 'd1', columnId: 'c2', layerId: 'l1',
+    ], layout, columns, layers, domainId: 'd1', columnId: 'c2', layerId: 'l1',
   }), null);
 });
 
@@ -143,14 +143,14 @@ test('MapLayout can resize a domain while preserving its other layout metadata',
     { id: 'd2', layout: { columnId: 'c3', layerId: 'l3' } },
   ];
   const resized = MapLayout.fromDraft(draft()).prepareDomainPlacement({
-    domains, layout: {}, layoutMode: 'mosaic', columns, layers, domainId: 'd1',
+    domains, layout: {}, columns, layers, domainId: 'd1',
     columnSpan: 2, rowSpan: 2, allowExactOverlap: false,
   });
   assert.deepEqual(resized?.domains[0].layout, {
     columnId: 'c1', layerId: 'l1', custom: 'preserved', columnSpan: 2, rowSpan: 2,
   });
   assert.equal(MapLayout.fromDraft(draft()).prepareDomainPlacement({
-    domains, layout: {}, layoutMode: 'mosaic', columns, layers, domainId: 'd1',
+    domains, layout: {}, columns, layers, domainId: 'd1',
     columnSpan: 4, rowSpan: 2, allowExactOverlap: false,
   }), null);
 });
@@ -163,7 +163,7 @@ test('MapLayout validates persisted rectangle collisions and keeps legacy exact-
     { id: 'd2', layout: { columnId: 'c1', layerId: 'l1' } },
   ];
   assert.notEqual(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, sameCell), null);
-  assert.equal(MapLayout.fromDraft(source).prepareForSave({ mode: 'mosaic' }, sameCell), null);
+  assert.notEqual(MapLayout.fromDraft(source).prepareForSave({ mode: 'mosaic' }, sameCell), null, 'legacy identical placements remain readable regardless of the old view marker');
   assert.equal(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, [
     { id: 'd1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
     { id: 'd2', layout: { columnId: 'c2', layerId: 'l1' } },
