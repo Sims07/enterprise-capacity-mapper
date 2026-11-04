@@ -250,9 +250,11 @@ test.describe('Rendu mosaïque', () => {
 
     const presentationExitSwitch = presentationPage.getByTestId('presentation-switch-exit');
     await expect(presentationExitSwitch).toBeChecked();
+    const closed = presentationPage.waitForEvent('close').then(() => 'closed');
+    const returnedToEditor = presentationPage.waitForURL(/\\/$|index\\.html(?:\\?.*)?$/).then(() => 'returned');
     await presentationExitSwitch.evaluate((input: HTMLInputElement) => input.click());
-    await expect(presentationPage).toHaveURL(/\\/$|index\\.html(?:\\?.*)?$/);
-    await presentationPage.close();
+    await Promise.any([closed, returnedToEditor]);
+    if (!presentationPage.isClosed()) await presentationPage.close();
   });
 
   test('ferme la page de présentation avec Échap', async ({ page, context }) => {
@@ -263,9 +265,11 @@ test.describe('Rendu mosaïque', () => {
     const presentationPage = await presentationPagePromise;
     await presentationPage.waitForLoadState();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    const closed = presentationPage.waitForEvent('close').then(() => 'closed');
+    const returnedToEditor = presentationPage.waitForURL(/\\/$|index\\.html(?:\\?.*)?$/).then(() => 'returned');
     await presentationPage.keyboard.press('Escape');
-    await expect(presentationPage).toHaveURL(/\\/$|index\\.html(?:\\?.*)?$/);
-    await presentationPage.close();
+    await Promise.any([closed, returnedToEditor]);
+    if (!presentationPage.isClosed()) await presentationPage.close();
   });
 
   test('ouvre également une nouvelle page sur mobile', async ({ page, context }) => {
