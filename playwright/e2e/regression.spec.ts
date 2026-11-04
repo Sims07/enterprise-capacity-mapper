@@ -202,7 +202,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     const capability = page.locator('.cap:visible').first();
     await capability.getByRole('button', { name: /^Renommer / }).click();
     await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
-    await page.getByLabel('Nom', { exact: true }).fill('Capacité sauvegardée automatiquement');
+    await page.locator('.modal .field input').fill('Capacité sauvegardée automatiquement');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
     await page.keyboard.press('Control+s');
     await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
