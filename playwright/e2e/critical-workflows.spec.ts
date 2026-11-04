@@ -26,6 +26,34 @@ test.describe('Playwright POC — critical browser workflows', () => {
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toHaveCount(0);
   });
 
+  test('modifie les propriétés d’une application depuis son crayon discret', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('map-inventory-toggle').click();
+    const application = page.locator('.app-item').filter({ hasText: 'Salesforce CRM' });
+    await expect(application).toHaveCount(1);
+    await application.getByRole('button', { name: 'Modifier Salesforce CRM' }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Modifier l’application' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel('Nom').fill('Salesforce CRM — renommé');
+    await dialog.getByLabel('Code').fill('CRM-SF');
+    await dialog.getByLabel('Éditeur / fournisseur').fill('Salesforce');
+    await dialog.getByLabel('Statut').selectOption('Cible');
+    await dialog.getByLabel('Type').selectOption('ERP');
+    await dialog.getByLabel('Description').fill('Application mise à jour depuis la gestion des applications.');
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+    const updated = page.locator('.app-item').filter({ hasText: 'Salesforce CRM — renommé' });
+    await expect(updated).toContainText('CRM-SF');
+    await expect(updated).toContainText('Salesforce');
+    await expect(updated).toContainText('Cible');
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toContainText('Salesforce CRM — renommé');
+
+    await page.reload();
+    await expect(page.locator('.app-item').filter({ hasText: 'Salesforce CRM — renommé' })).toContainText('Salesforce');
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toContainText('Salesforce CRM — renommé');
+  });
+
   test('ouvre le menu Outils et crée une cartographie vierge avec l’assistant', async ({ page }) => {
     await page.goto('/');
     await openToolsMenu(page);
