@@ -80,6 +80,17 @@ test.describe('Rendu mosaïque', () => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
 
+    const firstDomain = page.getByTestId('mosaic-map').locator('.mosaic-domain')
+      .filter({ hasText: 'Relation & Engagement Client' });
+    for (let index = 0; index < 2; index += 1) {
+      await firstDomain.getByTestId('add-capability-to-domain').click();
+      const capabilityDialog = page.getByRole('dialog', { name: 'Nouvelle capacité N1' });
+      await capabilityDialog.getByLabel('Nom').fill(`Capacité complémentaire ${index + 1}`);
+      await capabilityDialog.getByRole('textbox', { name: 'Code', exact: true }).fill(`CRM-EXTRA-${index + 1}`);
+      await capabilityDialog.getByRole('button', { name: 'Créer' }).click();
+      await expect(capabilityDialog).toHaveCount(0);
+    }
+
     const domainNames = [
       'Ordonnancement Contrôle Paiement',
       'Gouvernance des référentiels',
