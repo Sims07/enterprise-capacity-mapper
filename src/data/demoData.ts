@@ -2,7 +2,7 @@ import type { CatalogModel } from '../domain/catalogModel.ts';
 
 export const DEMO_MODEL: CatalogModel = {
   schemaVersion: 3,
-  layout: { mode: 'matrix', columns: [{ id: 'customer', name: 'Client', order: 0 }, { id: 'product', name: 'Produit', order: 1 }, { id: 'operations', name: 'Opérations', order: 2 }, { id: 'support', name: 'Support', order: 3 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] },
+  layout: { columns: [{ id: 'customer', name: 'Client', order: 0 }, { id: 'product', name: 'Produit', order: 1 }, { id: 'operations', name: 'Opérations', order: 2 }, { id: 'support', name: 'Support', order: 3 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] },
   metadata: { name: 'Cartographie SI de démonstration', description: 'Modèle de capacités et applications Enterprise Architecture', updatedAt: new Date().toISOString() },
   domains: [
     { id: 'l0-1', code: 'CAP-CRM', name: 'Relation & Engagement Client', description: 'Gestion du cycle de vie client, prospection et service client.', color: 'indigo', layout: { columnId: 'customer', layerId: 'core' } },
