@@ -247,12 +247,11 @@ test.describe('Rendu mosaïque', () => {
     await expect(presentationSwitch).not.toBeChecked();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
     await expect(presentationPage.getByTestId('mosaic-map')).toBeVisible();
-    await expect(presentationSwitch).not.toBeChecked();
 
     const presentationExitSwitch = presentationPage.getByTestId('presentation-switch-exit');
     await expect(presentationExitSwitch).toBeChecked();
     const closed = presentationPage.waitForEvent('close').then(() => 'closed');
-    const returnedToEditor = presentationPage.waitForURL(/\\/$|index\\.html(?:\\?.*)?$/).then(() => 'returned');
+    const returnedToEditor = presentationPage.waitForURL(/\/$|index\.html(?:\?.*)?$/).then(() => 'returned');
     await presentationExitSwitch.evaluate((input: HTMLInputElement) => input.click());
     await Promise.any([closed, returnedToEditor]);
     if (!presentationPage.isClosed()) await presentationPage.close();
@@ -267,7 +266,7 @@ test.describe('Rendu mosaïque', () => {
     await presentationPage.waitForLoadState();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
     const closed = presentationPage.waitForEvent('close').then(() => 'closed');
-    const returnedToEditor = presentationPage.waitForURL(/\\/$|index\\.html(?:\\?.*)?$/).then(() => 'returned');
+    const returnedToEditor = presentationPage.waitForURL(/\/$|index\.html(?:\?.*)?$/).then(() => 'returned');
     await presentationPage.keyboard.press('Escape');
     await Promise.any([closed, returnedToEditor]);
     if (!presentationPage.isClosed()) await presentationPage.close();
@@ -279,7 +278,7 @@ test.describe('Rendu mosaïque', () => {
     await page.getByTestId('mosaic-view').click();
 
     const presentationPagePromise = context.waitForEvent('page');
-    await page.getByTestId('presentation-switch-toolbar').check();
+    await page.getByTestId('presentation-switch-toolbar').click();
     const presentationPage = await presentationPagePromise;
     await presentationPage.waitForLoadState();
     await expect(presentationPage).toHaveURL(/view=presentation/);
