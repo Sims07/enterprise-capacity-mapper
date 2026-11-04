@@ -168,6 +168,7 @@ jobs:
             test-results/
             test-results-storybook/
             playwright/storybook/__screenshots__/mosaic-presentation-landscape-*.png
+            playwright/storybook/__screenshots__/unified-map-presentation-landscape-*.png
           if-no-files-found: warn
           retention-days: 14
 
