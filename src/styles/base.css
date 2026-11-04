@@ -2666,7 +2666,7 @@ body::-webkit-scrollbar,
 }
 
 /* Two-dimensional capability mosaic (PR 2). */
-.map-mosaic{display:grid;gap:8px;min-width:760px;align-items:stretch;overflow:visible}
+.map-mosaic{display:grid;gap:8px;min-width:760px;align-items:stretch;align-content:start;overflow:visible}
 .mosaic-corner,.mosaic-column-heading,.mosaic-row-heading{display:flex;align-items:center;padding:9px 12px;font-size:11px;font-weight:850;color:#475569}
 .mosaic-column-heading{justify-content:center;background:#e2e8f0;border:1px solid #d7e0ea;border-radius:8px;text-align:center}
 .mosaic-row-heading{background:#e2e8f0;border:1px solid #d7e0ea;border-radius:8px}
@@ -2724,7 +2724,7 @@ body::-webkit-scrollbar,
 .workspace.mosaic-workspace>main{min-width:0}
 .workspace.mosaic-workspace.mosaic-inventory-open{grid-template-columns:280px minmax(0,1fr)}
 .workspace.mosaic-workspace.mosaic-inventory-open>aside{display:block}
-.map-mosaic{width:100%;min-width:0;grid-auto-flow:row;grid-auto-columns:minmax(0,1fr)}
+.map-mosaic{width:100%;min-width:0;grid-auto-flow:row;grid-auto-columns:minmax(0,1fr);align-content:start}
 
 /* Fond discret à points pour distinguer la surface de travail sans aplat massif. */
 .map:has(.map-mosaic){background-color:#f7f8fa;background-image:radial-gradient(circle,rgba(148,163,184,.24) 1px,transparent 1.2px);background-size:18px 18px}
@@ -2782,3 +2782,7 @@ body::-webkit-scrollbar,
   .map-matrix .matrix-domain { display: none; }
   .map-matrix .matrix-mobile-domain { display: block; }
 }
+
+
+/* Mobile keeps the bidimensional grid readable inside its own scroll container. */
+@media(max-width:760px){.workspace.mosaic-workspace>main{overflow-x:auto}.map-mosaic{min-width:680px}}
