@@ -269,7 +269,26 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-  const togglePresentation = enabled => setPresentation(enabled);
+  const togglePresentation = enabled => {
+    if (isPresentationWindow) {
+      if (!enabled) {
+        window.close();
+        if (!window.closed) {
+          const editorUrl = new URL(window.location.href);
+          editorUrl.searchParams.delete('view');
+          window.location.assign(editorUrl.toString());
+        }
+      }
+      return;
+    }
+    if (!enabled) return;
+    mapService.persist();
+    const presentationUrl = new URL(window.location.href);
+    presentationUrl.searchParams.set('view', 'presentation');
+    const presentationWindow = window.open(presentationUrl.toString(), '_blank');
+    if (presentationWindow) presentationWindow.opener = null;
+    else notify('La fenêtre de présentation a été bloquée par le navigateur. Autorisez les fenêtres contextuelles pour ce site.');
+  };
 
   useEffect(() => {
     if (isPresentationWindow) {
@@ -1249,7 +1268,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         <span>Présentation</span>
         <label className="presentation-switch">
           <span>Active</span>
-          <input type="checkbox" data-testid="presentation-switch-exit" aria-label="Désactiver le mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
+          <input type="checkbox" data-testid="presentation-switch-exit" aria-label="Fermer la présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
           <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
         </label>
       </div>}
