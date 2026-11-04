@@ -275,6 +275,32 @@ test.describe('Cartographie unifiée', () => {
     await closed;
   });
 
+  test('conserve les domaines en présentation si les pistes de leur structure ont été renommées', async ({ page, context }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      const key = 'enterprise-capacity-mapper:model:v3';
+      const raw = localStorage.getItem(key);
+      if (!raw) throw new Error('Le modèle actif doit être persisté avant le test');
+      const model = JSON.parse(raw);
+      model.layout.columns = [{ id: 'new-column-id', name: 'Nouvelle colonne', order: 0 }];
+      model.layout.layers = [{ id: 'new-layer-id', name: 'Nouvelle ligne', order: 0 }];
+      model.domains = model.domains.map(domain => ({
+        ...domain,
+        layout: { ...domain.layout, columnId: 'removed-column-id', layerId: 'removed-layer-id' },
+      }));
+      localStorage.setItem(key, JSON.stringify(model));
+    });
+    await page.reload();
+    const presentationPagePromise = context.waitForEvent('page');
+    await page.getByTestId('presentation-switch-toolbar').click();
+    const presentationPage = await presentationPagePromise;
+    await presentationPage.waitForLoadState();
+    const cards = presentationPage.getByTestId('capability-map').locator('.mosaic-domain');
+    await expect(cards).not.toHaveCount(0);
+    await expect(cards.first().locator('.domain-banner h3')).toBeVisible();
+    await presentationPage.close();
+  });
+
   test('ouvre également une nouvelle page sur mobile', async ({ page, context }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
