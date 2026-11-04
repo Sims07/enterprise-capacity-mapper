@@ -2085,7 +2085,7 @@ main{padding:28px 30px 36px;background:var(--bg)}.canvas-head{margin-bottom:18px
   background: var(--panel, #fff); color: var(--text, #334155); font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;
 }
 .toolbar-tools[open] > summary { background: var(--accent-soft); border-color: #c7d2fe; color: #3730a3; }
-.toolbar-tools > .toolbar-tools-toggle:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.toolbar-tools > .toolbar-tools-toggle:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .toolbar-tools-panel {
   position: absolute; z-index: 40; top: calc(100% + 8px); right: 0; width: 224px;
   display: flex; flex-direction: column; gap: 5px; padding: 8px;
@@ -2671,7 +2671,7 @@ body::-webkit-scrollbar,
 .mosaic-column-heading{justify-content:center;background:var(--color-surface-muted);border:1px solid var(--color-border);border-radius:8px;text-align:center}
 .mosaic-row-heading{background:var(--color-surface-muted);border:1px solid var(--color-border);border-radius:8px}
 .mosaic-zone{position:relative;min-width:0;min-height:0;border:1px dashed var(--color-border);border-radius:9px;background:color-mix(in srgb,var(--color-surface-muted) 24%,transparent);padding:7px}
-.mosaic-zone-label{position:absolute;left:9px;top:7px;color:#64748b;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;pointer-events:none}
+.mosaic-zone-label{position:absolute;left:9px;top:7px;color:var(--color-text-muted);font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;pointer-events:none}
 .mosaic-domain{z-index:1;min-width:0;min-height:0;padding:7px}
 .mosaic-domain .domain{height:100%;min-height:0;margin:0;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(15,23,42,.07)}
 .mosaic-domain .domain-desc,.mosaic-domain .domain-relations,.mosaic-domain .caps-list{overflow:auto;min-height:0}
@@ -2709,7 +2709,7 @@ body::-webkit-scrollbar,
   cursor: ns-resize;
 }
 .map-mosaic .mosaic-domain:focus-visible {
-  outline: 2px solid #818cf8;
+  outline: 2px solid var(--color-focus);
   outline-offset: -2px;
 }
 
@@ -2727,10 +2727,10 @@ body::-webkit-scrollbar,
 .map-mosaic{width:100%;min-width:0;grid-auto-flow:row;grid-auto-columns:minmax(0,1fr);align-content:start}
 
 /* Fond discret à points pour distinguer la surface de travail sans aplat massif. */
-.map:has(.map-mosaic){background-color:var(--color-bg);background-image:radial-gradient(circle,rgba(148,163,184,.16) 1px,transparent 1.2px);background-size:18px 18px}
+.map:has(.map-mosaic){background-color:var(--color-bg);background-image:radial-gradient(circle,var(--map-canvas-dot) 1px,transparent 1.2px);background-size:18px 18px}
 .app.theme-dark .map:has(.map-mosaic){background:var(--color-bg)!important}
-.structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:#334155;font-size:12px;font-weight:650}
-.structure-visibility-option input{width:16px;height:16px;accent-color:#4f46e5}
+.structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:var(--color-text);font-size:12px;font-weight:650}
+.structure-visibility-option input{width:16px;height:16px;accent-color:var(--color-accent)}
 @media(max-width:760px){.map-matrix .map-row{gap:4px}.map-matrix .map-cell{padding:5px}.workspace.mosaic-workspace>main{padding:10px}}
 
 

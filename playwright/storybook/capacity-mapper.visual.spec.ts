@@ -107,6 +107,19 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     await openCapacityMapper(page, 1440, 900, 'light');
     const map = page.getByTestId('capability-map');
     await expect(map).toBeVisible();
+    const mapTokens = await map.evaluate(element => {
+      const styles = getComputedStyle(element);
+      return {
+        canvas: styles.getPropertyValue('--map-canvas-bg').trim(),
+        gridDot: styles.getPropertyValue('--map-canvas-dot').trim(),
+        cardSurface: styles.getPropertyValue('--map-card-surface').trim(),
+        focus: styles.getPropertyValue('--color-focus').trim(),
+      };
+    });
+    expect(mapTokens.canvas).not.toBe('');
+    expect(mapTokens.gridDot).toContain('148');
+    expect(mapTokens.cardSurface).toBe('#ffffff');
+    expect(mapTokens.focus).not.toBe('');
     await expect(map.locator('.mosaic-domain')).toHaveCount(4);
     await expect(map.locator('.mosaic-column-heading')).toHaveCount(4);
     await expect(map.locator('.mosaic-row-heading')).toHaveCount(3);
@@ -126,6 +139,19 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     await openCapacityMapper(page, 1440, 900, 'dark');
     const map = page.getByTestId('capability-map');
     await expect(map.locator('.mosaic-domain')).toHaveCount(4);
+    const mapTokens = await map.evaluate(element => {
+      const styles = getComputedStyle(element);
+      return {
+        canvas: styles.getPropertyValue('--map-canvas-bg').trim(),
+        gridDot: styles.getPropertyValue('--map-canvas-dot').trim(),
+        cardSurface: styles.getPropertyValue('--map-card-surface').trim(),
+        capabilityText: styles.getPropertyValue('--map-capability-text').trim(),
+      };
+    });
+    expect(mapTokens.canvas).not.toBe('');
+    expect(mapTokens.gridDot).toContain('9%');
+    expect(mapTokens.cardSurface).toBe('#20232b');
+    expect(mapTokens.capabilityText).toBe('#f3f4f6');
     const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
     const colorChannels = zoneSurface.match(/[\d.]+/g)?.map(Number) ?? [];
     const alpha = colorChannels.length === 4 ? colorChannels[3] : 1;

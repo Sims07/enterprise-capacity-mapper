@@ -37,6 +37,21 @@
   --color-success: #166534;
   --color-warning: #92400e;
 
+
+  /* Cartographie unifiée — surfaces dédiées à l'édition et à la présentation. */
+  --map-canvas-bg: var(--color-bg);
+  --map-canvas-dot: rgb(148 163 184 / 16%);
+  --map-card-surface: #ffffff;
+  --map-card-text: #1f2937;
+  --map-capability-text: #334155;
+  --map-capability-muted: #64748b;
+  --map-capability-border: #d8dee8;
+  --map-capability-hover-bg: color-mix(in srgb, var(--palette-indigo-500) 12%, #ffffff);
+  --map-capability-hover-border: color-mix(in srgb, var(--palette-indigo-500) 48%, #94a3b8);
+  --map-presentation-control-bg: var(--color-surface-raised);
+  --map-presentation-control-border: var(--color-border-strong);
+  --map-presentation-control-text: var(--color-text);
+
   /* Shared geometry and motion */
   --radius-control: 7px;
   --radius-card: 12px;
@@ -83,6 +98,21 @@
   --color-accent-on: #ffffff;
   --color-focus: #a5b4fc;
   --shadow-overlay: 0 24px 72px rgb(0 0 0 / 42%);
+
+  /* Cartographie unifiée — valeurs adaptées au contraste du thème sombre. */
+  --map-canvas-bg: #111318;
+  --map-canvas-dot: rgb(148 163 184 / 9%);
+  --map-card-surface: #20232b;
+  --map-card-text: #e7eaf0;
+  --map-capability-text: #f3f4f6;
+  --map-capability-muted: #b8bfcc;
+  --map-capability-border: #454b59;
+  --map-capability-hover-bg: color-mix(in srgb, var(--color-accent) 18%, var(--map-card-surface));
+  --map-capability-hover-border: color-mix(in srgb, var(--color-accent) 58%, #94a3b8);
+  --map-presentation-control-bg: var(--color-surface-raised);
+  --map-presentation-control-border: var(--color-border-strong);
+  --map-presentation-control-text: var(--color-text);
+
 
   --status-gap-text: #fcd34d;
   --status-gap-bg: #422f12;

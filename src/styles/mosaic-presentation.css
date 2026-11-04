@@ -5,8 +5,8 @@
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
-  background-color: #f7f8fa;
-  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-color: var(--map-canvas-bg);
+  background-image: radial-gradient(circle, var(--map-canvas-dot) 1px, transparent 1.2px);
   background-size: 18px 18px;
 }
 
@@ -27,8 +27,8 @@
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
-  background-color: #f7f8fa;
-  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-color: var(--map-canvas-bg);
+  background-image: radial-gradient(circle, var(--map-canvas-dot) 1px, transparent 1.2px);
   background-size: 18px 18px;
 }
 
@@ -40,16 +40,16 @@
   min-height: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #f7f8fa;
-  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-color: var(--map-canvas-bg);
+  background-image: radial-gradient(circle, var(--map-canvas-dot) 1px, transparent 1.2px);
   background-size: 18px 18px;
 }
 
 /* La grille remplit exactement l'espace disponible ; les poids de lignes/colonnes
    proviennent des tailles de structure, sans minimum vertical artificiel. */
 .app.mosaic-presentation-mode .map-mosaic {
-  --mosaic-card-surface: #ffffff;
-  --mosaic-card-text: #1f2937;
+  --mosaic-card-surface: var(--map-card-surface);
+  --mosaic-card-text: var(--map-card-text);
   box-sizing: border-box;
   display: grid;
   flex: 1 1 auto;
@@ -64,8 +64,8 @@
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  background-color: #f7f8fa;
-  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-color: var(--map-canvas-bg);
+  background-image: radial-gradient(circle, var(--map-canvas-dot) 1px, transparent 1.2px);
   background-size: 18px 18px;
 }
 
@@ -76,7 +76,7 @@
   min-height: 0;
   padding: 0;
   overflow: hidden;
-  border: 1.5px solid color-mix(in srgb, var(--domain-color, #64748b) 62%, #334155);
+  border: 1.5px solid color-mix(in srgb, var(--domain-color, #64748b) 62%, var(--map-capability-text));
   border-radius: 11px;
   background: var(--mosaic-card-surface);
   box-shadow: 0 2px 7px rgb(15 23 42 / 7%);
@@ -110,11 +110,11 @@
   min-height: 0;
   padding: clamp(8px, 1.4cqi, 16px) clamp(10px, 2cqi, 20px);
   border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--presentation-domain-text-color, #1f2937) 24%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--presentation-domain-text-color, var(--map-card-text)) 24%, transparent);
   border-radius: 0;
-  background: var(--presentation-domain-color, #e5e7eb) !important;
-  background-color: var(--presentation-domain-color, #e5e7eb) !important;
-  color: var(--presentation-domain-text-color, #1f2937) !important;
+  background: var(--presentation-domain-color, var(--color-surface-muted)) !important;
+  background-color: var(--presentation-domain-color, var(--color-surface-muted)) !important;
+  color: var(--presentation-domain-text-color, var(--map-card-text)) !important;
   text-align: left;
 }
 
@@ -136,7 +136,7 @@
   max-width: 100%;
   min-width: 0;
   margin: 0;
-  color: var(--presentation-domain-text-color, #1f2937) !important;
+  color: var(--presentation-domain-text-color, var(--map-card-text)) !important;
   font-size: clamp(15px, 4.2cqi, 30px);
   font-weight: 750;
   line-height: 1.2;
@@ -150,7 +150,7 @@
 
 .app.mosaic-presentation-mode .mosaic-domain .domain-meta {
   margin: 0;
-  color: var(--presentation-domain-text-color, #1f2937) !important;
+  color: var(--presentation-domain-text-color, var(--map-card-text)) !important;
   font-size: clamp(9px, 1.8cqi, 12px);
   font-weight: 650;
   line-height: 1.25;
@@ -191,10 +191,10 @@
   align-items: center;
   padding: clamp(5px, 1.4cqi, 11px);
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--domain-color, #64748b) 30%, #d8dee8);
+  border: 1px solid color-mix(in srgb, var(--domain-color, #64748b) 30%, var(--map-capability-border));
   border-radius: 8px;
-  background: color-mix(in srgb, var(--domain-color, #64748b) 7%, white) !important;
-  color: #334155;
+  background: color-mix(in srgb, var(--domain-color, #64748b) 7%, var(--map-card-surface)) !important;
+  color: var(--map-capability-text);
   text-align: left;
 }
 
@@ -207,7 +207,7 @@
 
 .app.mosaic-presentation-mode .mosaic-domain .cap-head b,
 .app.mosaic-presentation-mode .mosaic-domain .map-cap-select {
-  color: #334155 !important;
+  color: var(--map-capability-text) !important;
   font-size: clamp(11px, 2.8cqi, 17px);
   font-weight: 650;
   line-height: 1.25;
@@ -225,7 +225,7 @@
 }
 
 .app.mosaic-presentation-mode .mosaic-domain .cap .app-count {
-  color: #64748b !important;
+  color: var(--map-capability-muted) !important;
   font-size: 9px;
 }
 
@@ -233,7 +233,7 @@
    de hauteur au détriment du bandeau. */
 .app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty {
   justify-content: stretch;
-  background: var(--presentation-domain-color, #e5e7eb) !important;
+  background: var(--presentation-domain-color, var(--color-surface-muted)) !important;
 }
 
 .app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .caps-list {
@@ -247,8 +247,8 @@
   min-height: 0;
   padding: clamp(12px, 2.5cqi, 28px);
   border: 0;
-  background: var(--presentation-domain-color, #e5e7eb) !important;
-  background-color: var(--presentation-domain-color, #e5e7eb) !important;
+  background: var(--presentation-domain-color, var(--color-surface-muted)) !important;
+  background-color: var(--presentation-domain-color, var(--color-surface-muted)) !important;
   text-align: center;
 }
 
@@ -261,7 +261,7 @@
 }
 
 .app.mosaic-presentation-mode .mosaic-domain > .domain.mosaic-presentation-empty .domain-banner h3 {
-  color: var(--presentation-domain-text-color, #1f2937) !important;
+  color: var(--presentation-domain-text-color, var(--map-card-text)) !important;
   text-align: center;
 }
 
@@ -271,20 +271,20 @@
 .app.theme-dark.mosaic-presentation-mode > .workspace.mosaic-workspace,
 .app.theme-dark.mosaic-presentation-mode > .workspace.mosaic-workspace > main,
 .app.theme-dark.mosaic-presentation-mode .map-mosaic {
-  --mosaic-card-surface: #20232b;
-  --mosaic-card-text: #e7eaf0;
-  background: #111318 !important;
+  --mosaic-card-surface: var(--map-card-surface);
+  --mosaic-card-text: var(--map-card-text);
+  background: var(--map-canvas-bg) !important;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain {
-  border-color: color-mix(in srgb, var(--domain-color, #64748b) 68%, #e2e8f0);
+  border-color: color-mix(in srgb, var(--domain-color, #64748b) 68%, var(--map-capability-border));
   background: var(--mosaic-card-surface);
   box-shadow: 0 2px 9px rgb(0 0 0 / 22%);
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain {
   background: var(--mosaic-card-surface) !important;
-  color: #e7eaf0;
+  color: var(--map-card-text);
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner {
@@ -305,18 +305,18 @@
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap {
-  border-color: color-mix(in srgb, var(--domain-color, #64748b) 38%, #454b59);
-  background: color-mix(in srgb, var(--domain-color, #64748b) 12%, #171a20) !important;
-  color: #e7eaf0;
+  border-color: color-mix(in srgb, var(--domain-color, #64748b) 38%, var(--map-capability-border));
+  background: color-mix(in srgb, var(--domain-color, #64748b) 12%, var(--map-card-surface)) !important;
+  color: var(--map-card-text);
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap-head b,
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .map-cap-select {
-  color: #f3f4f6 !important;
+  color: var(--map-capability-text) !important;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap .app-count {
-  color: #b8bfcc !important;
+  color: var(--map-capability-muted) !important;
   font-size: 9px;
 }
 
@@ -346,10 +346,10 @@
   width: max-content;
   max-width: calc(100vw - 32px);
   padding: 7px 9px 7px 12px;
-  border: 1px solid var(--border-subtle, #d8dee8);
+  border: 1px solid var(--map-presentation-control-border);
   border-radius: 14px;
-  background: var(--surface-elevated, #fff);
-  color: var(--text-primary, #1f2937);
+  background: var(--map-presentation-control-bg);
+  color: var(--map-presentation-control-text);
   box-shadow: 0 8px 28px rgb(15 23 42 / 18%);
   font-size: 12px;
   transform: translateX(-50%);
@@ -405,16 +405,16 @@
 }
 
 .app.mosaic-presentation-mode .mosaic-domain .cap:hover {
-  background: color-mix(in srgb, var(--domain-color, #64748b) 12%, white) !important;
-  border-color: color-mix(in srgb, var(--domain-color, #64748b) 48%, #94a3b8);
+  background: var(--map-capability-hover-bg) !important;
+  border-color: var(--map-capability-hover-border);
   box-shadow: none !important;
   animation: none !important;
   transform: none !important;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap:hover {
-  background: color-mix(in srgb, var(--domain-color, #64748b) 18%, #171a20) !important;
-  border-color: color-mix(in srgb, var(--domain-color, #64748b) 58%, #94a3b8);
+  background: var(--map-capability-hover-bg) !important;
+  border-color: var(--map-capability-hover-border);
 }
 
 @media (prefers-reduced-motion: reduce) {
