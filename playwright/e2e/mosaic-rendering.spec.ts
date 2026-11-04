@@ -226,33 +226,22 @@ test.describe('Rendu mosaïque', () => {
     expect(contrastRatios.every(ratio => ratio >= 4.5)).toBe(true);
   });
 
-  test('ouvre une fenêtre de présentation dédiée et synchronise les modifications en direct', async ({ page }) => {
+  test('active et désactive le mode présentation avec un switch dans la fenêtre courante', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    await page.locator('.cell-add').first().click();
-    const initialDialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
-    await initialDialog.getByLabel('Nom').fill('Domaine initial');
-    await initialDialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-INITIAL');
-    await initialDialog.getByRole('button', { name: 'Créer' }).click();
     await page.getByTestId('mosaic-view').click();
 
-    const presentationPagePromise = page.waitForEvent('popup');
-    await page.getByTestId('open-presentation-window').click();
-    const presentationPage = await presentationPagePromise;
-    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(presentationPage.getByTestId('mosaic-map')).toContainText('Domaine initial');
-
-    await page.getByTestId('mosaic-add-domain').click();
-    const updateDialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
-    await updateDialog.getByLabel('Nom').fill('Domaine ajouté après ouverture');
-    await updateDialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-LIVE');
-    await updateDialog.getByRole('button', { name: 'Créer' }).click();
-    await expect(presentationPage.getByTestId('mosaic-map')).toContainText('Domaine ajouté après ouverture');
-
-    await expect(presentationPage.getByTestId('presentation-return')).toBeVisible();
-    await presentationPage.getByTestId('presentation-return').click();
-    await expect.poll(() => presentationPage.isClosed()).toBe(true);
+    const presentationSwitch = page.getByTestId('presentation-switch');
+    await expect(presentationSwitch).toBeVisible();
+    await expect(presentationSwitch).not.toBeChecked();
+    await presentationSwitch.check();
+    await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await expect(presentationSwitch).toBeChecked();
     await expect(page.getByTestId('mosaic-map')).toBeVisible();
+
+    await presentationSwitch.uncheck();
+    await expect(page.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
+    await expect(presentationSwitch).not.toBeChecked();
   });
 
   test('utilise la fenêtre courante sur mobile', async ({ page }) => {
@@ -260,23 +249,12 @@ test.describe('Rendu mosaïque', () => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
 
-    await page.getByTestId('open-presentation-window').click();
+    await page.getByTestId('presentation-switch').check();
     await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(page.getByTestId('presentation-return')).toBeVisible();
+    await expect(page.getByTestId('presentation-switch')).toBeChecked();
   });
 
-  test('bascule dans la fenêtre courante si le navigateur bloque la popup', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.open = () => null;
-    });
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
 
-    await page.getByTestId('open-presentation-window').click();
-    await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(page.getByTestId('presentation-return')).toBeVisible();
-  });
 
   test('met en valeur le titre d’un domaine sans N1 dans un panneau dédié', async ({ page }) => {
     await page.goto('/');
@@ -309,12 +287,10 @@ test.describe('Rendu mosaïque', () => {
     await page.getByTestId('mosaic-view').click();
 
     const firstDomain = page.locator('.mosaic-domain').first();
-    const handle = firstDomain.getByTestId('mosaic-resize-handle');
-    await expect(handle).toBeVisible();
-    // La carte est dans la ligne Core, parfois hors du viewport initial :
-    // les coordonnées souris doivent être calculées après défilement réel.
-    await handle.scrollIntoViewIfNeeded();
-    await expect(handle).toBeInViewport();
+    await expect(firstDomain).toBeVisible();
+    // Les bords de la carte sont les zones de redimensionnement.
+    await firstDomain.scrollIntoViewIfNeeded();
+    await expect(firstDomain).toBeInViewport();
     const placement = await firstDomain.evaluate(element => {
       const style = getComputedStyle(element);
       return { column: style.gridColumnStart, row: style.gridRowStart };
@@ -327,24 +303,27 @@ test.describe('Rendu mosaïque', () => {
     expect(matchingZoneIndex).toBeGreaterThanOrEqual(0);
     const zone = zones.nth(matchingZoneIndex);
     const cellBounds = await zone.boundingBox();
-    const handleBounds = await handle.boundingBox();
+    const domainBounds = await firstDomain.boundingBox();
     expect(cellBounds).not.toBeNull();
-    expect(handleBounds).not.toBeNull();
-    await page.mouse.move(handleBounds!.x + handleBounds!.width / 2, handleBounds!.y + handleBounds!.height / 2);
+    expect(domainBounds).not.toBeNull();
+    const rightEdgeX = domainBounds!.x + domainBounds!.width - 3;
+    const middleY = domainBounds!.y + domainBounds!.height / 2;
+    await page.mouse.move(rightEdgeX, middleY);
     await page.mouse.down();
-    await page.mouse.move(handleBounds!.x + handleBounds!.width / 2 + cellBounds!.width * 1.1, handleBounds!.y + handleBounds!.height / 2);
+    await page.mouse.move(rightEdgeX + cellBounds!.width * 1.1, middleY);
     await page.mouse.up();
 
     await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
-    await handle.scrollIntoViewIfNeeded();
-    await expect(handle).toBeInViewport();
-    const resizedHandleBounds = await handle.boundingBox();
+    await firstDomain.scrollIntoViewIfNeeded();
+    const resizedDomainBounds = await firstDomain.boundingBox();
     const resizedCellBounds = await zone.boundingBox();
-    expect(resizedHandleBounds).not.toBeNull();
+    expect(resizedDomainBounds).not.toBeNull();
     expect(resizedCellBounds).not.toBeNull();
-    await page.mouse.move(resizedHandleBounds!.x + resizedHandleBounds!.width / 2, resizedHandleBounds!.y + resizedHandleBounds!.height / 2);
+    const bottomEdgeY = resizedDomainBounds!.y + resizedDomainBounds!.height - 3;
+    const middleX = resizedDomainBounds!.x + resizedDomainBounds!.width / 2;
+    await page.mouse.move(middleX, bottomEdgeY);
     await page.mouse.down();
-    await page.mouse.move(resizedHandleBounds!.x + resizedHandleBounds!.width / 2, resizedHandleBounds!.y + resizedHandleBounds!.height / 2 + resizedCellBounds!.height * 1.1);
+    await page.mouse.move(middleX, bottomEdgeY + resizedCellBounds!.height * 1.1);
     await page.mouse.up();
     await expect(firstDomain).toHaveCSS('grid-row', /span 2/);
 
@@ -378,8 +357,7 @@ test.describe('Rendu mosaïque', () => {
     const persistedDomain = page.locator('.mosaic-domain').first();
     await expect(persistedDomain).toHaveCSS('grid-column', /span 2/);
     await expect(persistedDomain).toHaveCSS('grid-row', /span 2/);
-    const keyboardHandle = persistedDomain.getByTestId('mosaic-resize-handle');
-    await keyboardHandle.focus();
+    await persistedDomain.focus();
     await page.keyboard.press('ArrowLeft');
     await expect(persistedDomain).toHaveCSS('grid-column', /span 1/);
     await page.keyboard.press('ArrowUp');
@@ -457,6 +435,23 @@ test.describe('Rendu mosaïque', () => {
       scrollWidth: element.scrollWidth,
     }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+  });
+
+  test('permet de faire défiler verticalement les deux vues de cartographie', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 600 });
+    await page.goto('/');
+
+    for (const view of ['matrix', 'mosaic'] as const) {
+      await page.getByTestId(view === 'matrix' ? 'matrix-view' : 'mosaic-view').click();
+      const main = page.locator('.workspace > main');
+      const dimensions = await main.evaluate(element => ({
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+      }));
+      expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.clientHeight);
+      await main.evaluate(element => { element.scrollTop = element.scrollHeight; });
+      await expect.poll(() => main.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    }
   });
 
   test('permet de créer un domaine N0 depuis la mosaïque dans la première zone libre', async ({ page }) => {
