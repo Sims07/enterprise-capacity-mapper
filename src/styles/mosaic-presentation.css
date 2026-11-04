@@ -267,12 +267,13 @@
 
 /* Thème sombre : teinte de domaine saturée sur le graphite et texte choisi
    par domainTextColor sur la couleur réellement affichée. */
+.app.theme-dark.mosaic-presentation-mode,
+.app.theme-dark.mosaic-presentation-mode > .workspace.mosaic-workspace,
+.app.theme-dark.mosaic-presentation-mode > .workspace.mosaic-workspace > main,
 .app.theme-dark.mosaic-presentation-mode .map-mosaic {
   --mosaic-card-surface: #20232b;
   --mosaic-card-text: #e7eaf0;
-  background-color: #171a20;
-  background-image: radial-gradient(circle, rgb(148 163 184 / 16%) 1px, transparent 1.2px);
-  background-size: 18px 18px;
+  background: #111318 !important;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain {
