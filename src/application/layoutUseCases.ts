@@ -66,11 +66,10 @@ export const isDomainPlacementAvailable = ({
 
 /** Returns null when a move violates layout invariants or targets an unknown domain. */
 export const prepareDomainPlacement = ({
-  domains, layout, layoutMode, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
+  domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
 }: {
   domains: Domain[];
   layout: Layout;
-  layoutMode: string;
   columns: LayoutAxis[];
   layers: LayoutAxis[];
   domainId?: string;
@@ -81,5 +80,5 @@ export const prepareDomainPlacement = ({
   allowExactOverlap?: boolean;
 }): { layout: Layout; domains: Domain[] } | null =>
   MapLayout.fromDraft({ columns, layers, zones: layout.zones || [] }).prepareDomainPlacement({
-    domains, layout, layoutMode, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
+    domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
   });
