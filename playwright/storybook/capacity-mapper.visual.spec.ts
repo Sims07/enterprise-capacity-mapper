@@ -36,7 +36,8 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
   }
   await page.getByTestId('mosaic-view').click();
   const presentationPagePromise = page.context().waitForEvent('page');
-  await page.getByTestId('presentation-switch-toolbar').check();
+  await page.getByTestId('presentation-switch-toolbar').click();
+  await expect(page.getByTestId('presentation-switch-toolbar')).not.toBeChecked();
   const presentationPage = await presentationPagePromise;
   await presentationPage.waitForLoadState();
   await presentationPage.setViewportSize({ width: 1600, height: 900 });
