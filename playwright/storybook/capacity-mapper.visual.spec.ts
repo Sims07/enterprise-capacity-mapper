@@ -50,6 +50,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
   test('mosaïque présentation — paysage 16:9, thème clair', async ({ page }) => {
     const presentationPage = await openMosaicPresentation(page, 'light');
     const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
+    await expect(mosaic).toHaveCSS('background-image', /radial-gradient/);
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
     await expect(mosaic.locator('.mosaic-zone, .mosaic-column-heading, .mosaic-row-heading')).toHaveCount(0);
     const tracks = await mosaic.evaluate(element => ({

@@ -2725,6 +2725,10 @@ body::-webkit-scrollbar,
 .workspace.mosaic-workspace.mosaic-inventory-open{grid-template-columns:280px minmax(0,1fr)}
 .workspace.mosaic-workspace.mosaic-inventory-open>aside{display:block}
 .map-mosaic{width:100%;min-width:0;grid-auto-flow:row;grid-auto-columns:minmax(0,1fr)}
+
+/* Fond discret à points pour distinguer la surface de travail sans aplat massif. */
+.map:has(.map-mosaic){background-color:#f7f8fa;background-image:radial-gradient(circle,rgba(148,163,184,.24) 1px,transparent 1.2px);background-size:18px 18px}
+.app.theme-dark .map:has(.map-mosaic){background-color:#171a20;background-image:radial-gradient(circle,rgba(148,163,184,.16) 1px,transparent 1.2px)}
 .structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:#334155;font-size:12px;font-weight:650}
 .structure-visibility-option input{width:16px;height:16px;accent-color:#4f46e5}
 @media(max-width:760px){.map-matrix .map-row{gap:4px}.map-matrix .map-cell{padding:5px}.workspace.mosaic-workspace>main{padding:10px}}
