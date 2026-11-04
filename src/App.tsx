@@ -164,7 +164,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     };
     const exitPresentation = event => {
       revealControls();
-      if (event.key === 'Escape') setPresentation(false);
+      if (event.key === 'Escape') togglePresentation(false);
     };
     window.addEventListener('pointermove', revealControls, { passive: true });
     window.addEventListener('pointerdown', revealControls);
@@ -269,7 +269,26 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-  const togglePresentation = enabled => setPresentation(enabled);
+  const togglePresentation = enabled => {
+    if (isPresentationWindow) {
+      if (!enabled) {
+        window.close();
+        if (!window.closed) {
+          const editorUrl = new URL(window.location.href);
+          editorUrl.searchParams.delete('view');
+          window.location.assign(editorUrl.toString());
+        }
+      }
+      return;
+    }
+    if (!enabled) return;
+    mapService.persist();
+    const presentationUrl = new URL(window.location.href);
+    presentationUrl.searchParams.set('view', 'presentation');
+    const presentationWindow = window.open(presentationUrl.toString(), '_blank');
+    if (presentationWindow) presentationWindow.opener = null;
+    else notify('La fenêtre de présentation a été bloquée par le navigateur. Autorisez les fenêtres contextuelles pour ce site.');
+  };
 
   useEffect(() => {
     if (isPresentationWindow) {
