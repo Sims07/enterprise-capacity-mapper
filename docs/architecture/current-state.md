@@ -30,7 +30,7 @@ La stack est React + Vite + TypeScript. Les commandes de référence sont `npm r
 | Déploiement | `.github/workflows/` | Build statique, GitHub Pages, publication |
 | PWA | `public/` + `src/sw.ts` | Manifest, service worker, cache/offline |
 
-Les cartographies déjà présentes dans la bibliothèque locale sont sauvegardées automatiquement après chaque changement, avec un court délai de regroupement pour éviter les écritures répétées pendant les interactions. L'indicateur d'état reste discret dans la barre d'outils ; la sauvegarde utilise le stockage local du navigateur et fonctionne hors ligne.
+Les cartographies déjà présentes dans la bibliothèque locale sont sauvegardées automatiquement après chaque changement, avec un court délai de regroupement pour éviter les écritures répétées pendant les interactions. L'indicateur d'état reste discret dans la barre d'outils ; la sauvegarde utilise le stockage local du navigateur et fonctionne hors ligne. Le raccourci Ctrl+S (ou Cmd+S sur macOS) déclenche également une sauvegarde immédiate de la cartographie active.
 
 ## 3. Modèle métier invariant
 

@@ -374,11 +374,24 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       }
       const saved = repository.saveLocalMap({ id: current.id, name: current.name, model: modelRef.current });
       setLocalMaps(entries.map(entry => entry.id === saved.id ? saved : entry));
+      setAutoSaveState('saved');
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
     } catch (error) {
       notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
     }
   };
+  useEffect(() => {
+    if (isPresentationWindow) return undefined;
+    const saveOnShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        saveCurrentLocalMap();
+      }
+    };
+    window.addEventListener('keydown', saveOnShortcut);
+    return () => window.removeEventListener('keydown', saveOnShortcut);
+  }, [isPresentationWindow, localMapId]);
+
   const saveNamedLocalMap = () => {
     try {
       const currentModel = modelRef.current;

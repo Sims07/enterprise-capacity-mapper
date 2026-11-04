@@ -204,6 +204,9 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await page.getByRole('button', { name: 'Renommer' }).click();
     await page.getByLabel('Nom', { exact: true }).fill('Capacité sauvegardée automatiquement');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+    await page.keyboard.press('Control+s');
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
+    await expect(page.getByText('Cartographie « Autosave Playwright » enregistrée localement')).toBeVisible();
 
     await expect.poll(() => page.evaluate(() => {
       const maps = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
