@@ -255,6 +255,20 @@ test.describe('Rendu mosaïque', () => {
     await presentationPage.close();
   });
 
+  test('ferme la page de présentation avec Échap sans fermer l’éditeur', async ({ page, context }) => {
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+    const presentationPagePromise = context.waitForEvent('page');
+    await page.getByTestId('presentation-switch-toolbar').check();
+    const presentationPage = await presentationPagePromise;
+    await presentationPage.waitForLoadState();
+    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await presentationPage.keyboard.press('Escape');
+    await expect(presentationPage).toHaveURL(/\/$|index\.html(?:\?.*)?$/);
+    await expect(page.locator('.app')).toBeVisible();
+    await presentationPage.close();
+  });
+
   test('ouvre également une nouvelle page sur mobile', async ({ page, context }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
