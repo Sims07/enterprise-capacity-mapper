@@ -2783,6 +2783,38 @@ body::-webkit-scrollbar,
   .map-matrix .matrix-mobile-domain { display: block; }
 }
 
-
-/* Mobile keeps the bidimensional grid readable inside its own scroll container. */
-@media(max-width:760px){.workspace.mosaic-workspace>main{overflow-x:auto}.map-mosaic{min-width:680px}}
+ 
+/* Mobile linearizes the same map without losing zone creation or domain actions. */
+.mosaic-zone-mobile-label{display:none}
+@media(max-width:760px){
+  .map-mosaic{
+    min-width:0!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:auto!important;
+    align-content:start;
+  }
+  .mosaic-corner,.mosaic-column-heading,.mosaic-row-heading{display:none!important}
+  .mosaic-zone{
+    grid-column:1!important;
+    grid-row:auto!important;
+    min-height:82px;
+    padding:10px;
+  }
+  .mosaic-zone-label{display:none}
+  .mosaic-zone-mobile-label{
+    display:block;
+    margin-bottom:8px;
+    color:var(--text-secondary,#64748b);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .mosaic-domain{
+    grid-column:1!important;
+    grid-row:auto!important;
+    padding:4px;
+  }
+  .mosaic-domain .domain{height:auto;min-height:0}
+  .mosaic-domain .domain-desc,.mosaic-domain .domain-relations,.mosaic-domain .caps-list{overflow:visible}
+}
