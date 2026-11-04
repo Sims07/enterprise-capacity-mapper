@@ -100,7 +100,7 @@
   --shadow-overlay: 0 24px 72px rgb(0 0 0 / 42%);
 
   /* Cartographie unifiée — valeurs adaptées au contraste du thème sombre. */
-  --map-canvas-bg: var(--color-bg);
+  --map-canvas-bg: #111318;
   --map-canvas-dot: rgb(148 163 184 / 9%);
   --map-card-surface: #20232b;
   --map-card-text: #e7eaf0;
