@@ -24,9 +24,9 @@ async function openCapacityMapper(page: import('@playwright/test').Page, width: 
   await page.waitForTimeout(150);
 }
 
-async function openMosaicPresentation(page: import('@playwright/test').Page, theme: 'light' | 'dark') {
+async function openUnifiedMapPresentation(page: import('@playwright/test').Page, theme: 'light' | 'dark') {
   await page.setViewportSize({ width: 1600, height: 900 });
-  await page.goto('/iframe.html?id=application-capacity-mapper--mosaic-presentation&viewMode=story&globals=theme:light');
+  await page.goto('/iframe.html?id=application-capacity-mapper--unified-map-presentation&viewMode=story&globals=theme:light');
   await expect(page.locator('.app').first()).toBeVisible({ timeout: 15000 });
   if (theme === 'dark') {
     await page.getByTestId('tools-menu-toggle').click();
@@ -40,15 +40,15 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
   const presentationPage = await presentationPagePromise;
   await presentationPage.waitForLoadState();
   await presentationPage.setViewportSize({ width: 1600, height: 900 });
-  await expect(presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
+  await expect(presentationPage.locator('.app.unified-map-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
   await presentationPage.evaluate(() => document.fonts.ready);
   await presentationPage.waitForTimeout(200);
   return presentationPage;
 }
 test.describe('Storybook visual regression — Capacity Mapper', () => {
   test('cartographie présentation — paysage 16:9, thème clair', async ({ page }) => {
-    const presentationPage = await openMosaicPresentation(page, 'light');
-    const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
+    const presentationPage = await openUnifiedMapPresentation(page, 'light');
+    const mosaic = presentationPage.locator('.app.unified-map-presentation-mode .map-mosaic');
     await expect(mosaic).toHaveCSS('background-image', /radial-gradient/);
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
     await expect(mosaic.locator('.mosaic-zone, .mosaic-column-heading, .mosaic-row-heading')).toHaveCount(0);
@@ -77,13 +77,13 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     expect(capabilitySize).toBeGreaterThan(12);
     await mkdir('playwright/storybook/__screenshots__', { recursive: true });
     await mkdir('test-results-storybook', { recursive: true });
-    await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/mosaic-presentation-landscape-light.png', animations: 'disabled' });
-    await presentationPage.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-light.png', animations: 'disabled' });
+    await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/unified-map-presentation-landscape-light.png', animations: 'disabled' });
+    await presentationPage.screenshot({ path: 'test-results-storybook/unified-map-presentation-landscape-light.png', animations: 'disabled' });
   });
 
   test('mosaïque présentation — paysage 16:9, thème sombre', async ({ page }) => {
-    const presentationPage = await openMosaicPresentation(page, 'dark');
-    const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
+    const presentationPage = await openUnifiedMapPresentation(page, 'dark');
+    const mosaic = presentationPage.locator('.app.unified-map-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
     await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', 'rgb(32, 35, 43)');
     const contrastRatios = await mosaic.locator('.domain-banner').evaluateAll(elements => elements.map(element => {
@@ -102,8 +102,8 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     expect(contrastRatios.every(ratio => ratio >= 4.5)).toBe(true);
     await mkdir('playwright/storybook/__screenshots__', { recursive: true });
     await mkdir('test-results-storybook', { recursive: true });
-    await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/mosaic-presentation-landscape-dark.png', animations: 'disabled' });
-    await presentationPage.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-dark.png', animations: 'disabled' });
+    await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/unified-map-presentation-landscape-dark.png', animations: 'disabled' });
+    await presentationPage.screenshot({ path: 'test-results-storybook/unified-map-presentation-landscape-dark.png', animations: 'disabled' });
   });
   test('desktop — thème clair', async ({ page }) => {
     await openCapacityMapper(page, 1440, 900, 'light');
