@@ -241,7 +241,9 @@ test.describe('Rendu mosaïque', () => {
     await expect(presentationSwitch).toBeChecked();
     await expect(page.getByTestId('mosaic-map')).toBeVisible();
 
-    await presentationSwitch.uncheck();
+    const presentationExitSwitch = page.getByTestId('presentation-switch-exit');
+    await expect(presentationExitSwitch).toBeChecked();
+    await presentationExitSwitch.uncheck();
     await expect(page.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
     await expect(presentationSwitch).not.toBeChecked();
   });
