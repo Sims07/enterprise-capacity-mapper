@@ -145,7 +145,7 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
     const cols = columns.map((x, i) => ({ id: x.id, name: x.name.trim(), order: i }));
     const lys = layers.map((x, i) => ({ id: x.id, name: x.name.trim(), order: i }));
     const colIds = new Set(cols.map(x => x.id)); const layIds = new Set(lys.map(x => x.id));
-    return { mode: 'matrix', depth, columns: cols, layers: lys, zones: zones.filter(z => colIds.has(z.columnId) && layIds.has(z.layerId)) };
+    return { depth, columns: cols, layers: lys, zones: zones.filter(z => colIds.has(z.columnId) && layIds.has(z.layerId)) };
   };
   const create = () => onCreate({ name: name.trim(), description: description.trim(), layout: buildLayout(), backup: hasContent && backup });
 

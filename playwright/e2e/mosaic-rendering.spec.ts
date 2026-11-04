@@ -1,25 +1,25 @@
 import { expect, test } from '../fixtures';
 
-test.describe('Rendu mosaïque', () => {
-  test('affiche les domaines dans une grille bidimensionnelle et conserve le mode choisi', async ({ page }) => {
+test.describe('Cartographie unifiée', () => {
+  test('affiche les domaines dans une cartographie bidimensionnelle unique', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-
-    const mosaic = page.getByTestId('mosaic-map');
+    await expect(page.getByTestId('matrix-view')).toHaveCount(0);
+    await expect(page.getByTestId('mosaic-view')).toHaveCount(0);
+    
+    const mosaic = page.getByTestId('capability-map');
     await expect(mosaic).toBeVisible();
     await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(4);
     await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(3);
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
 
     await page.reload();
-    await expect(page.getByTestId('mosaic-map')).toBeVisible();
+    await expect(page.getByTestId('capability-map')).toBeVisible();
   });
 
-  test('présente la mosaïque sans repères de grille et avec les panneaux colorés', async ({ page }) => {
+  test('présente la cartographie sans repères de grille et avec les panneaux colorés', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-    await page.goto('/?view=presentation');
-    const mosaic = page.getByTestId('mosaic-map');
+        await page.goto('/?view=presentation');
+    const mosaic = page.getByTestId('capability-map');
     await expect(mosaic.locator('.mosaic-zone')).toHaveCount(0);
     await expect(mosaic.locator('.mosaic-column-heading, .mosaic-row-heading, .mosaic-corner')).toHaveCount(0);
     const firstDomain = mosaic.locator('.mosaic-domain').first();
@@ -36,11 +36,10 @@ test.describe('Rendu mosaïque', () => {
   test('fait tenir toute la mosaïque sur une seule page en mode présentation', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-    await page.goto('/?view=presentation');
+        await page.goto('/?view=presentation');
 
     const presentation = page.locator('.app.mosaic-presentation-mode');
-    const mosaic = page.getByTestId('mosaic-map');
+    const mosaic = page.getByTestId('capability-map');
     await expect(presentation).toBeVisible();
     await expect(page.locator('.app > header')).toBeHidden();
     await expect(page.locator('.companion-root')).toBeHidden();
@@ -80,9 +79,8 @@ test.describe('Rendu mosaïque', () => {
   test('adapte la présentation au viewport avec 12 domaines et sans débordement', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-
-    const firstDomain = page.getByTestId('mosaic-map').locator('.mosaic-domain')
+    
+    const firstDomain = page.getByTestId('capability-map').locator('.mosaic-domain')
       .filter({ hasText: 'Relation & Engagement Client' });
     for (let index = 0; index < 2; index += 1) {
       await firstDomain.getByTestId('add-capability-to-domain').click();
@@ -104,7 +102,7 @@ test.describe('Rendu mosaïque', () => {
       'Qualité des données',
     ];
     for (let index = 0; index < domainNames.length; index += 1) {
-      await page.getByTestId('mosaic-add-domain').click();
+      await page.getByTestId('map-add-domain').click();
       const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
       await dialog.getByLabel('Nom').fill(domainNames[index]);
       await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill(`DOM-EMPTY-${index + 1}`);
@@ -119,7 +117,7 @@ test.describe('Rendu mosaïque', () => {
     ]) {
       await page.setViewportSize(viewport);
       await page.goto('/?view=presentation');
-      const mosaic = page.getByTestId('mosaic-map');
+      const mosaic = page.getByTestId('capability-map');
       await expect(mosaic.locator('.mosaic-domain')).toHaveCount(12);
 
       const dimensions = await page.evaluate(() => ({
@@ -208,8 +206,7 @@ test.describe('Rendu mosaïque', () => {
     await page.getByTestId('theme-toggle').click();
     await expect(page.locator('.app.theme-dark')).toBeVisible();
     await page.keyboard.press('Escape');
-    await page.getByTestId('mosaic-view').click();
-    await page.goto('/?view=presentation');
+        await page.goto('/?view=presentation');
     await expect(page.locator('.mosaic-domain .domain-banner').first()).toBeVisible();
     const darkCanvas = page.locator('.app.theme-dark.mosaic-presentation-mode');
     await expect(darkCanvas).toHaveCSS('background-color', 'rgb(17, 19, 24)');
@@ -240,8 +237,7 @@ test.describe('Rendu mosaïque', () => {
   test('ouvre le mode présentation dans un nouvel onglet depuis le switch', async ({ page, context }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-
+    
     const presentationSwitch = page.getByTestId('presentation-switch-toolbar');
     await expect(presentationSwitch).toBeVisible();
     await expect(presentationSwitch).not.toBeChecked();
@@ -252,7 +248,7 @@ test.describe('Rendu mosaïque', () => {
     await expect(presentationPage).toHaveURL(/view=presentation/);
     await expect(presentationSwitch).not.toBeChecked();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(presentationPage.getByTestId('mosaic-map')).toBeVisible();
+    await expect(presentationPage.getByTestId('capability-map')).toBeVisible();
 
     const presentationExitSwitch = presentationPage.getByTestId('presentation-switch-exit');
     await expect(presentationExitSwitch).toBeChecked();
@@ -265,8 +261,7 @@ test.describe('Rendu mosaïque', () => {
 
   test('ferme la page de présentation avec Échap', async ({ page, context }) => {
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-    const presentationPagePromise = context.waitForEvent('page');
+        const presentationPagePromise = context.waitForEvent('page');
     await page.getByTestId('presentation-switch-toolbar').click();
     const presentationPage = await presentationPagePromise;
     await presentationPage.waitForLoadState();
@@ -279,8 +274,7 @@ test.describe('Rendu mosaïque', () => {
   test('ouvre également une nouvelle page sur mobile', async ({ page, context }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-
+    
     const presentationPagePromise = context.waitForEvent('page');
     await page.getByTestId('presentation-switch-toolbar').click();
     const presentationPage = await presentationPagePromise;
@@ -297,9 +291,8 @@ test.describe('Rendu mosaïque', () => {
     await dialog.getByLabel('Nom').fill('Domaine sans capacité');
     await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-EMPTY');
     await dialog.getByRole('button', { name: 'Créer' }).click();
-    await page.getByTestId('mosaic-view').click();
-    await page.goto('/?view=presentation');
-    const emptyDomain = page.getByTestId('mosaic-map').locator('.mosaic-presentation-empty').filter({ hasText: 'Domaine sans capacité' });
+        await page.goto('/?view=presentation');
+    const emptyDomain = page.getByTestId('capability-map').locator('.mosaic-presentation-empty').filter({ hasText: 'Domaine sans capacité' });
     await expect(emptyDomain).toBeVisible();
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
     await expect(emptyDomain.locator('.domain-banner h3')).toBeVisible();
@@ -308,21 +301,12 @@ test.describe('Rendu mosaïque', () => {
     expect(titleSize).toBeGreaterThan(16);
     expect(titleSize).toBeGreaterThan(capabilitySize);
   });
-  test('permet de revenir au rendu matrice', async ({ page }) => {
-    await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-    await page.getByTestId('matrix-view').click();
-    await expect(page.locator('.map-matrix')).toBeVisible();
-    await expect(page.getByTestId('mosaic-map')).toHaveCount(0);
-  });
-
   test('redimensionne une carte par glisser-déposer et conserve ses dimensions après rechargement', async ({ page }) => {
     // La poignée basse est testée dans la fenêtre visible : le déplacement
     // doit rester dans le viewport pour que les événements pointer soient reçus.
     await page.setViewportSize({ width: 1280, height: 1200 });
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-
+    
     const firstDomain = page.locator('.mosaic-domain').first();
     await expect(firstDomain).toBeVisible();
     // Les bords de la carte sont les zones de redimensionnement.
@@ -332,7 +316,7 @@ test.describe('Rendu mosaïque', () => {
       const style = getComputedStyle(element);
       return { column: style.gridColumnStart, row: style.gridRowStart };
     });
-    const zones = page.getByTestId('mosaic-map').locator('.mosaic-zone');
+    const zones = page.getByTestId('capability-map').locator('.mosaic-zone');
     const matchingZoneIndex = await zones.evaluateAll((elements, target) => elements.findIndex(element => {
       const style = getComputedStyle(element);
       return style.gridColumnStart === target.column && style.gridRowStart === target.row;
@@ -369,34 +353,14 @@ test.describe('Rendu mosaïque', () => {
     await page.mouse.up();
     await expect(firstDomain).toHaveCSS('grid-row', /span 2/);
 
-    // Capture the identity before switching views: the Mosaic card is unmounted
-    // when Matrix becomes active.
-    const firstDomainName = await firstDomain.locator('.domain-banner h3').innerText();
-
-    // Matrix must preserve the vertical span persisted by Mosaic.
-    await page.getByTestId('matrix-view').click();
-    const matrixDomain = page.locator('.matrix-domain').filter({
-      has: page.locator('.domain').filter({ hasText: firstDomainName }),
-    }).first();
-    await expect(matrixDomain).toBeVisible();
-    await expect(matrixDomain).toHaveCSS('grid-row', /span 2/);
-    const matrixBounds = await matrixDomain.boundingBox();
-    expect(matrixBounds).not.toBeNull();
-    expect(matrixBounds!.height).toBeGreaterThan(160);
-
-    // Returning to Mosaic must not reset the saved span.
-    await page.getByTestId('mosaic-view').click();
-    await expect(page.locator('.mosaic-domain').first()).toHaveCSS('grid-row', /span 2/);
-
-    const mosaicBounds = await page.getByTestId('mosaic-map').boundingBox();
+    const mosaicBounds = await page.getByTestId('capability-map').boundingBox();
     const expandedBounds = await firstDomain.boundingBox();
     expect(mosaicBounds).not.toBeNull();
     expect(expandedBounds).not.toBeNull();
     expect(expandedBounds!.width).toBeGreaterThan(mosaicBounds!.width * 0.35);
 
     await page.reload();
-    await page.getByTestId('mosaic-view').click();
-    const persistedDomain = page.locator('.mosaic-domain').first();
+        const persistedDomain = page.locator('.mosaic-domain').first();
     await expect(persistedDomain).toHaveCSS('grid-column', /span 2/);
     await expect(persistedDomain).toHaveCSS('grid-row', /span 2/);
     await persistedDomain.focus();
@@ -408,52 +372,41 @@ test.describe('Rendu mosaïque', () => {
 
   test('permet de masquer indépendamment les intitulés des axes dans Structure', async ({ page }) => {
     await page.goto('/');
-    const matrix = page.getByTestId('matrix-map');
-
+    const map = page.getByTestId('capability-map');
     await page.getByRole('button', { name: /Structure/ }).click();
     let options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').uncheck();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
-    await expect(matrix.locator('.map-head .col-head')).toHaveCount(0);
-    await expect(matrix.locator('.axis-label')).toHaveCount(3);
-
+    await expect(map.locator('.mosaic-column-heading')).toHaveCount(0);
+    await expect(map.locator('.mosaic-row-heading')).toHaveCount(3);
     await page.getByRole('button', { name: /Structure/ }).click();
     options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').check();
     await options.getByLabel('Afficher les titres des lignes').uncheck();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
-    await expect(matrix.locator('.map-head .col-head')).toHaveCount(4);
-    await expect(matrix.locator('.axis-label')).toHaveCount(0);
-
+    await expect(map.locator('.mosaic-column-heading')).toHaveCount(4);
+    await expect(map.locator('.mosaic-row-heading')).toHaveCount(0);
     await page.getByRole('button', { name: /Structure/ }).click();
     options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').uncheck();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
-    await expect(matrix.locator('.map-head .col-head')).toHaveCount(0);
-    await expect(matrix.locator('.axis-label')).toHaveCount(0);
-
-    await page.getByTestId('mosaic-view').click();
-    const mosaic = page.getByTestId('mosaic-map');
-    await expect(mosaic.locator('.mosaic-column-heading')).toHaveCount(0);
-    await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(0);
-
+    await expect(map.locator('.mosaic-column-heading')).toHaveCount(0);
+    await expect(map.locator('.mosaic-row-heading')).toHaveCount(0);
     await page.reload();
-    await page.getByTestId('mosaic-view').click();
-    await expect(page.getByTestId('mosaic-map').locator('.mosaic-column-heading')).toHaveCount(0);
-    await expect(page.getByTestId('mosaic-map').locator('.mosaic-row-heading')).toHaveCount(0);
+    await expect(page.getByTestId('capability-map').locator('.mosaic-column-heading')).toHaveCount(0);
+    await expect(page.getByTestId('capability-map').locator('.mosaic-row-heading')).toHaveCount(0);
   });
 
-  test('utilise toute la largeur en mosaïque sans inventaire applicatif latéral', async ({ page }) => {
+  test('utilise toute la largeur avec un inventaire applicatif masquable', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-    await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeHidden();
+        await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeHidden();
     const workspace = await page.locator('.workspace').boundingBox();
-    const mosaic = await page.getByTestId('mosaic-map').boundingBox();
+    const mosaic = await page.getByTestId('capability-map').boundingBox();
     expect(workspace).not.toBeNull();
     expect(mosaic).not.toBeNull();
     expect(mosaic!.width).toBeGreaterThan(workspace!.width * 0.85);
 
-    const inventoryToggle = page.getByTestId('mosaic-inventory-toggle');
+    const inventoryToggle = page.getByTestId('map-inventory-toggle');
     await expect(inventoryToggle).toHaveAttribute('aria-expanded', 'false');
     await inventoryToggle.click();
     await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeVisible();
@@ -463,44 +416,36 @@ test.describe('Rendu mosaïque', () => {
     await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeHidden();
   });
 
-  test('conserve une matrice de huit colonnes dans la largeur de la zone de travail', async ({ page }) => {
+  test('conserve huit colonnes dans la largeur de la zone de travail', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: /Structure/ }).click();
     const addColumn = page.getByRole('button', { name: /Ajouter une colonne/ });
     for (let index = 0; index < 4; index += 1) await addColumn.click();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
 
-    const matrix = page.getByTestId('matrix-map');
-    await expect(matrix.locator('.map-row').first().locator('.col-head')).toHaveCount(8);
-    const dimensions = await matrix.evaluate(element => ({
+    const map = page.getByTestId('capability-map');
+    await expect(map.locator('.mosaic-column-heading')).toHaveCount(8);
+    const dimensions = await map.evaluate(element => ({
       clientWidth: element.clientWidth,
       scrollWidth: element.scrollWidth,
     }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
   });
 
-  test('permet de faire défiler verticalement les deux vues de cartographie', async ({ page }) => {
+  test('permet de faire défiler verticalement la cartographie', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 600 });
     await page.goto('/');
-
-    for (const view of ['matrix', 'mosaic'] as const) {
-      await page.getByTestId(view === 'matrix' ? 'matrix-view' : 'mosaic-view').click();
-      const main = page.locator('.workspace > main');
-      const dimensions = await main.evaluate(element => ({
-        clientHeight: element.clientHeight,
-        scrollHeight: element.scrollHeight,
-      }));
-      expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.clientHeight);
-      await main.evaluate(element => { element.scrollTop = element.scrollHeight; });
-      await expect.poll(() => main.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
-    }
+    const main = page.locator('.workspace > main');
+    const dimensions = await main.evaluate(element => ({ clientHeight: element.clientHeight, scrollHeight: element.scrollHeight }));
+    expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.clientHeight);
+    await main.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    await expect.poll(() => main.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
   });
 
-  test('permet de créer un domaine N0 depuis la mosaïque dans la première zone libre', async ({ page }) => {
+  test('permet de créer un domaine N0 dans la première zone libre', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
-
-    const addDomain = page.getByTestId('mosaic-add-domain');
+    
+    const addDomain = page.getByTestId('map-add-domain');
     await expect(addDomain).toBeEnabled();
     await addDomain.click();
 
@@ -509,20 +454,35 @@ test.describe('Rendu mosaïque', () => {
     await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DATA-GOV');
     await dialog.getByRole('button', { name: 'Créer' }).click();
 
-    const createdDomain = page.getByTestId('mosaic-map').locator('.mosaic-domain').filter({ hasText: 'Pilotage des données' });
+    const createdDomain = page.getByTestId('capability-map').locator('.mosaic-domain').filter({ hasText: 'Pilotage des données' });
     await expect(createdDomain).toBeVisible();
     await expect(createdDomain.locator('.domain-meta')).toContainText('0 N1');
 
     await page.reload();
-    await expect(page.getByTestId('mosaic-map')).toBeVisible();
-    await expect(page.getByTestId('mosaic-map').locator('.mosaic-domain').filter({ hasText: 'Pilotage des données' })).toBeVisible();
+    await expect(page.getByTestId('capability-map')).toBeVisible();
+    await expect(page.getByTestId('capability-map').locator('.mosaic-domain').filter({ hasText: 'Pilotage des données' })).toBeVisible();
   });
 
-  test('permet de créer une capacité N1 directement depuis un domaine en mosaïque', async ({ page }) => {
-    await page.goto('/');
-    await page.getByTestId('mosaic-view').click();
 
-    const domain = page.getByTestId('mosaic-map').locator('.mosaic-domain')
+  test('ajoute un domaine N0 directement depuis une zone libre', async ({ page }) => {
+    await page.goto('/');
+    const map = page.getByTestId('capability-map');
+    const emptyZone = map.locator('.mosaic-zone').filter({ has: page.locator('.cell-add') }).first();
+    await expect(emptyZone.locator('.cell-add')).toBeVisible();
+    const before = await map.locator('.mosaic-domain').count();
+    await emptyZone.locator('.cell-add').click();
+    const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+    await dialog.getByLabel('Nom').fill('Domaine créé depuis une zone');
+    await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('ZONE-ADD');
+    await dialog.getByRole('button', { name: 'Créer' }).click();
+    await expect(map.locator('.mosaic-domain')).toHaveCount(before + 1);
+    await expect(map.locator('.mosaic-domain').filter({ hasText: 'Domaine créé depuis une zone' })).toBeVisible();
+  });
+
+  test('permet de créer une capacité N1 directement depuis un domaine', async ({ page }) => {
+    await page.goto('/');
+    
+    const domain = page.getByTestId('capability-map').locator('.mosaic-domain')
       .filter({ hasText: 'Relation & Engagement Client' });
     await domain.getByRole('button', { name: 'Ajouter une capacité N1 à Relation & Engagement Client' }).click();
 

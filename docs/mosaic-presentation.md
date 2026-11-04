@@ -1,6 +1,6 @@
-# Mode présentation de la mosaïque
+# Mode présentation de la cartographie
 
-Le mode présentation de la mosaïque est un rendu de restitution, distinct de l'espace d'édition.
+Le mode présentation de la cartographie est un rendu de restitution, distinct de l'espace d'édition.
 
 ## Comportement
 
