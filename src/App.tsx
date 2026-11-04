@@ -137,7 +137,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [editingDomainId, setEditingDomainId] = useState(null);
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
-  const [layoutMode, setLayoutMode] = useState(model.layout?.mode || 'matrix');
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
 
   const depth = model.layout?.depth === 1 ? 1 : 2;
@@ -150,11 +149,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   }, [darkMode]);
 
   useEffect(() => {
-    if (isPresentationWindow && layoutMode !== 'mosaic') setLayoutMode('mosaic');
-  }, [isPresentationWindow, layoutMode]);
-
-  useEffect(() => {
-    if (!presentation || layoutMode !== 'mosaic') {
+    if (!presentation) {
       setPresentationControlsVisible(true);
       return undefined;
     }
@@ -176,13 +171,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       window.removeEventListener('keydown', exitPresentation);
       window.removeEventListener('focusin', revealControls);
     };
-  }, [presentation, layoutMode]);
+  }, [presentation]);
 
   useEffect(() => {
-    if (!presentation || layoutMode !== 'mosaic' || !presentationControlsVisible) return undefined;
+    if (!presentation || !presentationControlsVisible) return undefined;
     const timeout = window.setTimeout(() => setPresentationControlsVisible(false), 3000);
     return () => window.clearTimeout(timeout);
-  }, [presentation, layoutMode, presentationActivity, presentationControlsVisible]);
+  }, [presentation, presentationActivity, presentationControlsVisible]);
 
   useEffect(() => {
     navigation.initialize(mode);
@@ -481,7 +476,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const showColumnHeadings = layout.showColumnHeadings !== false;
   const showRowHeadings = layout.showRowHeadings !== false;
   const zones = columns.flatMap(column => layers.map(layer => layout.zones?.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
-  const nextMosaicDomainPlacement = columns.flatMap(column => layers.map(layer => ({
+  const nextDomainPlacement = columns.flatMap(column => layers.map(layer => ({
     columnId: column.id,
     layerId: layer.id,
   }))).find(placement => isDomainPlacementAvailable({
@@ -495,7 +490,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   })) || null;
 
 
-  const setLayoutView = m => { setLayoutMode(m); update({ layout: { ...layout, mode: m } }); };
   const openLayoutEditor = () => {
     setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })), showColumnHeadings, showRowHeadings });
     setModal('layout');
@@ -529,7 +523,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     setLocalMapId('');
     preferences.clearActiveLocalMapId();
     setSelected([]);
-    setLayoutMode('matrix');
     navigateToMode('editor');
     setModal(null);
     notify(backup ? 'Cartographie créée · sauvegarde JSON téléchargée' : 'Cartographie créée');
@@ -549,13 +542,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     const patch = prepareDomainPlacement({
       domains: model.domains,
       layout,
-      layoutMode,
       columns,
       layers,
       domainId,
       columnId,
       layerId,
-      allowExactOverlap: layoutMode !== 'mosaic',
+      allowExactOverlap: false,
     });
     if (!patch) {
       if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
@@ -564,11 +556,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     update(patch);
   };
 
-  const resizeMosaicDomain = (domain, columnSpan, rowSpan) => {
+  const resizeDomain = (domain, columnSpan, rowSpan) => {
     const patch = prepareDomainPlacement({
       domains: model.domains,
       layout,
-      layoutMode: 'mosaic',
       columns,
       layers,
       domainId: domain.id,
@@ -732,7 +723,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     const presentationText = domainTextColor(presentationColor);
     const bannerColor = presentation ? presentationColor : domainColor;
     const bannerText = presentation ? presentationText : domainTextColor(d.color);
-    const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}${presentation && layoutMode === 'mosaic' && caps.length === 0 ? ' mosaic-presentation-empty' : ''}`;
+    const domainClass = `domain domain-card${selected.includes(d.id) ? ' impact-selected' : ''}${presentation && caps.length === 0 ? ' mosaic-presentation-empty' : ''}`;
 
     return (
       <section
@@ -756,7 +747,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             <span className="domain-meta">{d.code}{(!presentation || caps.length > 0) && <> · {caps.length} N1</>}</span>
           </div>
           <div className="domain-actions">
-            {depth === 2 && layoutMode === 'mosaic' && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
+            {depth === 2 && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
             <button type="button" className="mini-action-trigger" aria-label={`Actions pour ${d.name}`} title="Actions du domaine" onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}>⋮</button>
           </div>
         </div>
@@ -869,18 +860,28 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicRows = presentation
     ? mosaicLayersLayout.map(layer => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')
     : `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
-  const mosaicView = (
-    <div className="map map-mosaic" data-testid="mosaic-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
+  const capabilityMap = (
+    <div className="map map-mosaic" data-testid="capability-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
       {!presentation && showColumnHeadings && columns.map(column => <div className="mosaic-column-heading" key={column.id} style={{ gridColumn: columns.indexOf(column) + mosaicColumnOffset, gridRow: 1 }}>{column.name}</div>)}
       {!presentation && showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + mosaicRowOffset }}>{layer.name}</div>)}
       {layers.flatMap((layer, rowIndex) => columns.map((column, columnIndex) => {
         const zone = zones.find(item => item.columnId === column.id && item.layerId === layer.id);
+        const occupied = model.domains.some(domain => {
+          const startColumn = columns.findIndex(item => item.id === (domain.layout?.columnId || columns[0].id));
+          const startLayer = layers.findIndex(item => item.id === (domain.layout?.layerId || layers[0].id));
+          const columnSpan = Math.max(1, Number(domain.layout?.columnSpan) || 1);
+          const rowSpan = Math.max(1, Number(domain.layout?.rowSpan) || 1);
+          return startColumn >= 0 && startLayer >= 0
+            && columnIndex >= startColumn && columnIndex < startColumn + columnSpan
+            && rowIndex >= startLayer && rowIndex < startLayer + rowSpan;
+        });
         return presentation ? null : <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`}
           style={{ gridColumn: columnIndex + mosaicColumnOffset, gridRow: rowIndex + mosaicRowOffset }}
           onDragOver={event => event.preventDefault()}
           onDrop={event => { event.preventDefault(); placeDomain(event.dataTransfer.getData('domain'), column.id, layer.id); }}>
           {zone?.name && zone.name !== column.name && <span className="mosaic-zone-label">{zone.name}</span>}
+          {!occupied && <button type="button" className="cell-add empty" aria-label={`Ajouter un domaine dans ${zone?.name || column.name}`} onClick={() => openNew('domain', null, { columnId: column.id, layerId: layer.id })}>＋ Domaine N0</button>}
         </div>;
       }))}
       {model.domains.filter(domain => (domain.name + ' ' + domain.code + ' ' + (domain.description || '')).toLowerCase().includes(mapQuery.toLowerCase())).map(domain => {
@@ -954,7 +955,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const cellHeight = Number(card.dataset.resizeCellHeight || 0);
             const columnDelta = card.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
             const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
-            if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
+            if (columnDelta || rowDelta) resizeDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
             card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
             card.style.gridRow = card.dataset.resizeOriginalRow || '';
             ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
@@ -987,53 +988,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     </div>
   );
 
-  const matrixColumnOffset = showRowHeadings ? 2 : 1;
-  const matrixColumns = `${showRowHeadings ? (presentation ? '100px ' : '120px ') : ''}repeat(${columns.length}, minmax(0, 1fr))`;
-  const matrixView = (
-    <div className={`map map-matrix${columns.length > 4 ? " map-matrix-wide" : ""}`} data-testid="matrix-map"
-      style={{ gridTemplateColumns: matrixColumns, gridTemplateRows: `34px repeat(${layers.length}, minmax(160px, auto))` }}>
-      <div className="map-row map-head">
-        {showRowHeadings && <div className="matrix-corner" style={{ gridColumn: 1, gridRow: 1 }} />}
-        {showColumnHeadings && columns.map((col, index) => <div className="col-head" key={col.id} style={{ gridColumn: index + matrixColumnOffset, gridRow: 1 }}>{col.name}</div>)}
-      </div>
-      {layers.map((layer, rowIndex) => (
-        <div className="map-row" key={layer.id}>
-          {showRowHeadings && <div className="axis-label" style={{ gridColumn: 1, gridRow: rowIndex + 2 }}>{layer.name}</div>}
-          {columns.map((col, columnIndex) => {
-            const here = model.domains.filter(d => (d.layout?.columnId || columns[0].id) === col.id && (d.layout?.layerId || layers[0].id) === layer.id && (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase()));
-            const zone = zones.find(z => z.columnId === col.id && z.layerId === layer.id);
-            const zoneLabel = zone?.name && zone.name !== col.name ? zone.name : '';
-            return (
-              <div className="map-cell" key={col.id} data-zone-key={`${col.id}:${layer.id}`}
-                style={{ gridColumn: columnIndex + matrixColumnOffset, gridRow: rowIndex + 2 }}
-                onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); placeDomain(e.dataTransfer.getData('domain'), col.id, layer.id); }}>
-                {showColumnHeadings && <div className="cell-column-label">{col.name}</div>}
-                {zoneLabel && <div className="cell-label">{zoneLabel}</div>}
-                {here.map(domain => <div className="matrix-mobile-domain" key={domain.id}><DomainCard d={domain} /></div>)}
-                {!here.length && <button type="button" className="cell-add empty" onClick={() => openNew('domain', null, { columnId: col.id, layerId: layer.id })}>＋ Ajouter un domaine ici</button>}
-              </div>
-            );
-          })}
-        </div>
-      ))}
-      {model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())).map(domain => {
-        const columnIndex = columns.findIndex(column => column.id === (domain.layout?.columnId || columns[0].id));
-        const rowIndex = layers.findIndex(layer => layer.id === (domain.layout?.layerId || layers[0].id));
-        if (columnIndex < 0 || rowIndex < 0) return null;
-        const columnSpan = Math.max(1, Math.min(columns.length - columnIndex, Number(domain.layout?.columnSpan) || 1));
-        const rowSpan = Math.max(1, Math.min(layers.length - rowIndex, Number(domain.layout?.rowSpan) || 1));
-        return <div className="matrix-domain" key={domain.id} data-domain-id={domain.id}
-          style={{ gridColumn: `${columnIndex + matrixColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + 2} / span ${rowSpan}` }}>
-          <DomainCard d={domain} />
-          <button type="button" className="cell-add" onClick={() => openNew('domain', null, { columnId: domain.layout?.columnId || columns[0].id, layerId: domain.layout?.layerId || layers[0].id })}>＋ Ajouter un domaine ici</button>
-        </div>;
-      })}
-
-    </div>
-  );
 
   return (
-    <div className={'app' + (presentation ? ' presentation-mode' : '') + (presentation && layoutMode === 'mosaic' ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind}>
+    <div className={'app' + (presentation ? ' presentation-mode' : '') + (presentation ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind}>
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
@@ -1091,11 +1048,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
             </div>
-            {layoutMode === 'mosaic' && <label className="presentation-switch">
+            <label className="presentation-switch">
               <span>Présentation</span>
               <input type="checkbox" data-testid="presentation-switch-toolbar" aria-label="Mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
               <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
-            </label>}
+            </label>
 
           </div>
         </div>
@@ -1178,7 +1135,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
         </section>
       ) : (
-      <div className={'workspace' + (layoutMode === 'mosaic' ? ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}` : '')}>
+      <div className={'workspace' + ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}`}>
         <aside id="app-inventory">
           <div className="panel-title">
             <span>Inventaire SI <em>{apps.length}</em></span>
@@ -1262,18 +1219,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   <span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span>
                 </div>
                 <div className="canvas-actions">
-                  <div className="map-view-toggle" role="group" aria-label="Mode de représentation">
-                    <button type="button" data-testid="matrix-view" className={layoutMode === 'matrix' ? 'active' : ''} aria-pressed={layoutMode === 'matrix'} onClick={() => setLayoutView('matrix')}>Matrice</button>
-                    <button type="button" data-testid="mosaic-view" className={layoutMode === 'mosaic' ? 'active' : ''} aria-pressed={layoutMode === 'mosaic'} onClick={() => setLayoutView('mosaic')}>Mosaïque</button>
-                  </div>
-                  {layoutMode === 'mosaic' && <button type="button" className="secondary" data-testid="mosaic-add-domain" disabled={!nextMosaicDomainPlacement} title={nextMosaicDomainPlacement ? 'Créer un domaine N0 dans la première zone libre' : 'Ajoutez une ligne ou une colonne dans Structure pour libérer une zone'} onClick={() => openNew('domain', null, nextMosaicDomainPlacement)}>＋ Domaine N0</button>}
-                  {layoutMode === 'mosaic' && <button type="button" className="secondary" data-testid="mosaic-inventory-toggle" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer les applications' : `Applications (${apps.length})`}</button>}
+                  <button type="button" className="secondary" data-testid="map-add-domain" disabled={!nextDomainPlacement} title={nextDomainPlacement ? 'Créer un domaine N0 dans la première zone libre' : 'Ajoutez une ligne ou une colonne dans Structure pour libérer une zone'} onClick={() => openNew('domain', null, nextDomainPlacement)}>＋ Domaine N0</button>
+                  <button type="button" className="secondary" data-testid="map-inventory-toggle" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer les applications' : `Applications (${apps.length})`}</button>
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
               </div>
 
-              {layoutMode === 'mosaic' ? mosaicView : matrixView}
+              {capabilityMap}
             </>
           )}
         </main>
@@ -1281,7 +1234,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       )}
 
 
-      {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar" data-visible={presentationControlsVisible}>
+      {presentation && <div className="presentation-exit-bar" data-visible={presentationControlsVisible}>
         <span>Présentation</span>
         <label className="presentation-switch">
           <span>Active</span>
