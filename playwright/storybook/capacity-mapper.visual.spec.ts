@@ -34,7 +34,6 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
     await expect(page.locator('.app.theme-dark')).toBeVisible();
     await page.keyboard.press('Escape');
   }
-  await page.getByTestId('mosaic-view').click();
   const presentationPagePromise = page.context().waitForEvent('page');
   await page.getByTestId('presentation-switch-toolbar').click();
   await expect(page.getByTestId('presentation-switch-toolbar')).not.toBeChecked();
@@ -47,7 +46,7 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
   return presentationPage;
 }
 test.describe('Storybook visual regression — Capacity Mapper', () => {
-  test('mosaïque présentation — paysage 16:9, thème clair', async ({ page }) => {
+  test('cartographie présentation — paysage 16:9, thème clair', async ({ page }) => {
     const presentationPage = await openMosaicPresentation(page, 'light');
     const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic).toHaveCSS('background-image', /radial-gradient/);
