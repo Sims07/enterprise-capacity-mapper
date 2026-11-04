@@ -2794,6 +2794,7 @@ body::-webkit-scrollbar,
     align-content:start;
   }
   .mosaic-corner,.mosaic-column-heading,.mosaic-row-heading{display:none!important}
+  .mosaic-zone[data-occupied="true"]{display:none}
   .mosaic-zone{
     grid-column:1!important;
     grid-row:auto!important;
