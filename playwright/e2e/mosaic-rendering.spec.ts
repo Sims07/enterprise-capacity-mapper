@@ -100,7 +100,7 @@ test.describe('Rendu mosaïque', () => {
 
     await expect(presentationPage.getByTestId('presentation-return')).toBeVisible();
     await presentationPage.getByTestId('presentation-return').click();
-    await expect(presentationPage).toBeClosed();
+    await expect.poll(() => presentationPage.isClosed()).toBe(true);
     await expect(page.getByTestId('mosaic-map')).toBeVisible();
   });
 
