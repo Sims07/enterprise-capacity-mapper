@@ -926,6 +926,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             event.currentTarget.dataset.resizeCellHeight = String(cellBounds?.height || 0);
             event.currentTarget.dataset.resizeColumn = String(resizeColumn);
             event.currentTarget.dataset.resizeRow = String(resizeRow);
+            event.currentTarget.dataset.resizeOriginalColumn = event.currentTarget.style.gridColumn;
+            event.currentTarget.dataset.resizeOriginalRow = event.currentTarget.style.gridRow;
           }}
           onPointerMove={event => {
             const card = event.currentTarget;
@@ -953,18 +955,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const columnDelta = card.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
             const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
             if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
-            card.style.removeProperty('grid-column');
-            card.style.removeProperty('grid-row');
-            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete card.dataset[key]);
+            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
+            card.style.gridRow = card.dataset.resizeOriginalRow || '';
+            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
             const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
             if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
           }}
           onPointerCancel={event => {
             const card = event.currentTarget;
-            card.style.removeProperty('grid-column');
-            card.style.removeProperty('grid-row');
-            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete card.dataset[key]);
+            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
+            card.style.gridRow = card.dataset.resizeOriginalRow || '';
+            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
             const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
             if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
