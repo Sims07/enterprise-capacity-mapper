@@ -14,9 +14,8 @@ Le mode présentation de la mosaïque est un rendu de restitution, distinct de l
 - En thème clair, les bandeaux conservent une teinte légère de la couleur du domaine. En thème sombre, la couleur est davantage saturée sur la surface graphite ; le texte est choisi en fonction du contraste du fond calculé.
 - Les capacités N1 se répartissent dans la hauteur disponible sans défilement interne.
 - Le mode présentation est activé et désactivé par un switch dans la barre d'outils, dans la fenêtre courante, sur ordinateur comme sur mobile. En présentation, un second switch temporaire est disponible dans la barre flottante de sortie, qui se masque après trois secondes d'inactivité.
-- La touche **Échap** quitte également le mode présentation.
+- La touche **Échap** quitte également le mode présentation et restaure l'interface d'édition.
 - L'URL `?view=presentation` reste disponible pour ouvrir directement une vue de restitution.
-- La touche **Échap** quitte le mode présentation et restaure l'interface d'édition.
 
 ## Vérification
 
