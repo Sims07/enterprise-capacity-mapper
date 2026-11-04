@@ -192,6 +192,32 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await expect(page.getByTestId('saved-maps-list')).toContainText('Playwright local');
   });
 
+  test('sauvegarde automatiquement les changements d’une cartographie déjà enregistrée', async ({ page }) => {
+    await openTools(page);
+    await page.getByTestId('save-local-map').click();
+    await page.getByTestId('local-map-name').fill('Autosave Playwright');
+    await page.locator('.modal').getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
+
+    const capability = page.locator('.cap:visible').first();
+    await capability.click({ button: 'right' });
+    await page.getByRole('button', { name: 'Renommer' }).click();
+    await page.getByLabel('Nom', { exact: true }).fill('Capacité sauvegardée automatiquement');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
+    const savedName = await page.evaluate(() => {
+      const maps = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
+      return maps.find((entry: { name: string }) => entry.name === 'Autosave Playwright')
+        ?.model.capabilities[0].name;
+    });
+    expect(savedName).toBe('Capacité sauvegardée automatiquement');
+    await page.reload();
+    await page.getByTestId('primary-library').click();
+    await page.getByRole('button', { name: /Autosave Playwright/ }).click();
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Capacité sauvegardée automatiquement' })).toBeVisible();
+  });
+
   test('importe un modèle JSON et conserve sa structure après rechargement', async ({ page }) => {
     await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
     const model = await page.evaluate(() => {
