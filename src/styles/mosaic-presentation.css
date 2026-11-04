@@ -394,3 +394,30 @@
     transition: none;
   }
 }
+
+
+/* En présentation, le survol d'une capacité reste un repère stable :
+   aucune animation/pulsation, seulement un éclaircissement discret et continu. */
+.app.mosaic-presentation-mode .mosaic-domain .cap {
+  transition: background-color 120ms ease, border-color 120ms ease;
+  animation: none !important;
+}
+
+.app.mosaic-presentation-mode .mosaic-domain .cap:hover {
+  background: color-mix(in srgb, var(--domain-color, #64748b) 12%, white) !important;
+  border-color: color-mix(in srgb, var(--domain-color, #64748b) 48%, #94a3b8);
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap:hover {
+  background: color-mix(in srgb, var(--domain-color, #64748b) 18%, #171a20) !important;
+  border-color: color-mix(in srgb, var(--domain-color, #64748b) 58%, #94a3b8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app.mosaic-presentation-mode .mosaic-domain .cap {
+    transition: none;
+  }
+}
