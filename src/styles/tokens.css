@@ -107,8 +107,8 @@
   --map-capability-text: #f3f4f6;
   --map-capability-muted: #b8bfcc;
   --map-capability-border: #454b59;
-  --map-capability-hover-bg: color-mix(in srgb, var(--domain-color, var(--color-accent)) 18%, var(--map-card-surface));
-  --map-capability-hover-border: color-mix(in srgb, var(--domain-color, var(--color-accent)) 58%, #94a3b8);
+  --map-capability-hover-bg: color-mix(in srgb, var(--color-accent) 18%, var(--map-card-surface));
+  --map-capability-hover-border: color-mix(in srgb, var(--color-accent) 58%, #94a3b8);
   --map-presentation-control-bg: var(--color-surface-raised);
   --map-presentation-control-border: var(--color-border-strong);
   --map-presentation-control-text: var(--color-text);
