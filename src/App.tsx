@@ -926,31 +926,48 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             event.currentTarget.dataset.resizeCellHeight = String(cellBounds?.height || 0);
             event.currentTarget.dataset.resizeColumn = String(resizeColumn);
             event.currentTarget.dataset.resizeRow = String(resizeRow);
+            event.currentTarget.dataset.resizeOriginalColumn = event.currentTarget.style.gridColumn;
+            event.currentTarget.dataset.resizeOriginalRow = event.currentTarget.style.gridRow;
           }}
           onPointerMove={event => {
-            if (event.currentTarget.dataset.resizeStartX === undefined) return;
-            event.currentTarget.dataset.resizeLastX = String(event.clientX);
-            event.currentTarget.dataset.resizeLastY = String(event.clientY);
+            const card = event.currentTarget;
+            if (card.dataset.resizeStartX === undefined) return;
+            card.dataset.resizeLastX = String(event.clientX);
+            card.dataset.resizeLastY = String(event.clientY);
+            const startX = Number(card.dataset.resizeStartX);
+            const startY = Number(card.dataset.resizeStartY);
+            const cellWidth = Number(card.dataset.resizeCellWidth || 0);
+            const cellHeight = Number(card.dataset.resizeCellHeight || 0);
+            const columnDelta = card.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
+            const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
+            const previewColumnSpan = Math.max(1, Math.min(columns.length - sourceColumnIndex, columnSpan + columnDelta));
+            const previewRowSpan = Math.max(1, Math.min(layers.length - sourceRowIndex, rowSpan + rowDelta));
+            card.style.gridColumn = `${columnIndex + mosaicColumnOffset} / span ${previewColumnSpan}`;
+            card.style.gridRow = `${rowIndex + mosaicRowOffset} / span ${previewRowSpan}`;
           }}
           onPointerUp={event => {
-            if (event.currentTarget.dataset.resizeStartX === undefined) return;
-            const startX = Number(event.currentTarget.dataset.resizeStartX);
-            const startY = Number(event.currentTarget.dataset.resizeStartY);
-            const endX = Number(event.currentTarget.dataset.resizeLastX ?? event.clientX);
-            const endY = Number(event.currentTarget.dataset.resizeLastY ?? event.clientY);
-            const cellWidth = Number(event.currentTarget.dataset.resizeCellWidth || 0);
-            const cellHeight = Number(event.currentTarget.dataset.resizeCellHeight || 0);
-            const columnDelta = event.currentTarget.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((endX - startX) / cellWidth) : 0;
-            const rowDelta = event.currentTarget.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((endY - startY) / cellHeight) : 0;
+            const card = event.currentTarget;
+            if (card.dataset.resizeStartX === undefined) return;
+            const startX = Number(card.dataset.resizeStartX);
+            const startY = Number(card.dataset.resizeStartY);
+            const cellWidth = Number(card.dataset.resizeCellWidth || 0);
+            const cellHeight = Number(card.dataset.resizeCellHeight || 0);
+            const columnDelta = card.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
+            const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
             if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
-            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete event.currentTarget.dataset[key]);
-            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
+            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
+            card.style.gridRow = card.dataset.resizeOriginalRow || '';
+            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
+            const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
             if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
           }}
           onPointerCancel={event => {
-            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete event.currentTarget.dataset[key]);
-            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
+            const card = event.currentTarget;
+            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
+            card.style.gridRow = card.dataset.resizeOriginalRow || '';
+            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
+            const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
             if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
           }}
