@@ -126,3 +126,15 @@ Le déplacement reste possible par glisser-déposer vers une zone de la grille. 
 - La matrice répartit les colonnes sur la largeur disponible, y compris au-delà de six colonnes, au lieu d'imposer une largeur minimale fixe par colonne.
 - En mode mosaïque, l'inventaire applicatif latéral est replié par défaut pour réserver toute la zone de travail à la cartographie ; un bouton **Applications** permet de le rouvrir ponctuellement pour conserver le glisser-déposer et le rattachement des applications.
 - Les offsets de grille sont calculés en fonction des axes visibles : les placements N0 et leurs portées multi-colonnes / multi-lignes restent alignés lorsque les intitulés sont masqués.
+
+
+## Unification des représentations — Lot 1
+
+La cartographie ne propose désormais plus deux modes de représentation. Le rendu bidimensionnel unique reprend les axes, zones nommées et conventions de lecture de la matrice, ainsi que les cartes à étendue variable, le redimensionnement interactif et les actions rapides auparavant spécifiques à la mosaïque.
+
+- Le sélecteur Matrice / Mosaïque et le rendu matriciel parallèle sont supprimés.
+- Les zones restent des cibles de dépôt et permettent de créer un domaine N0 lorsqu'elles sont libres.
+- Le redimensionnement horizontal et vertical reste piloté par les invariants métier, avec prévisualisation pendant le déplacement et commandes clavier.
+- L'inventaire applicatif est masquable depuis la cartographie.
+- La présentation est indépendante de l'ancien mode et reste disponible dans une nouvelle fenêtre.
+- Les anciens marqueurs `layout.mode` présents dans les JSON sont ignorés par le rendu. Les cartographies historiques restent lisibles ; les placements identiques préexistants sont acceptés à la validation, tandis que les nouveaux déplacements et redimensionnements refusent les chevauchements.
