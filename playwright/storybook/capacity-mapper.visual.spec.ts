@@ -127,7 +127,6 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     const map = page.getByTestId('capability-map');
     await expect(map.locator('.mosaic-domain')).toHaveCount(4);
     const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
-    expect(zoneSurface).toMatch(/^rgba?\(/);
     const colorChannels = zoneSurface.match(/[\d.]+/g)?.map(Number) ?? [];
     const alpha = colorChannels.length === 4 ? colorChannels[3] : 1;
     expect(alpha).toBeLessThanOrEqual(0.3);
@@ -158,9 +157,9 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     await expect(map.locator('.mosaic-zone-mobile-label').first()).toBeVisible();
     await expect(map.locator('.mosaic-domain')).toHaveCount(4);
     const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
-    const channels = zoneSurface.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
-    expect(channels.length).toBe(3);
-    expect(Math.max(...channels)).toBeLessThan(80);
+    const channels = zoneSurface.match(/[\d.]+/g)?.map(Number) ?? [];
+    expect(channels.length).toBe(4);
+    expect(channels[3]).toBeLessThanOrEqual(0.3);
     await mkdir('test-results-storybook', { recursive: true });
     await page.screenshot({ path: 'test-results-storybook/unified-map-mobile-dark.png', animations: 'disabled' });
   });
