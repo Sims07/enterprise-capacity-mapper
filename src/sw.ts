@@ -10,6 +10,7 @@ interface ExtendableEventLike extends Event {
 interface FetchEventLike extends Event {
   request: Request;
   respondWith(response: Promise<Response | undefined>): void;
+  waitUntil(promise: Promise<unknown>): void;
 }
 
 interface ServiceWorkerRuntime extends EventTarget {
