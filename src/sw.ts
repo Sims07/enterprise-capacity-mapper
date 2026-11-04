@@ -1,3 +1,5 @@
+import { fetchFreshNavigation } from './services/pwaNavigation.ts';
+
 const CACHE = 'ecm-v2.0.110';
 const PRECACHE = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg'];
 
@@ -51,10 +53,12 @@ worker.addEventListener('fetch', event => {
 
   if (isNavigation) {
     fetchEvent.respondWith(
-      fetch(request)
+      fetchFreshNavigation(request)
         .then(response => {
-          const copy = response.clone();
-          void caches.open(CACHE).then(cache => cache.put('./index.html', copy));
+          if (response.ok) {
+            const copy = response.clone();
+            fetchEvent.waitUntil(caches.open(CACHE).then(cache => cache.put('./index.html', copy)));
+          }
           return response;
         })
         .catch(() => caches.match('./index.html'))
