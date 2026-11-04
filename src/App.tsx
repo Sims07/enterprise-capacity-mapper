@@ -981,7 +981,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const change = changes[event.key];
             if (!change) return;
             event.preventDefault();
-            resizeMosaicDomain(domain, columnSpan + change[0], rowSpan + change[1]);
+            resizeDomain(domain, columnSpan + change[0], rowSpan + change[1]);
           }}>
           <DomainCard d={domain} />
         </div>;
