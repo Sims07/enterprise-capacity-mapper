@@ -35,7 +35,7 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
     await page.keyboard.press('Escape');
   }
   await page.getByTestId('mosaic-view').click();
-  await page.getByTestId('presentation-switch').check();
+  await page.getByTestId('presentation-switch-toolbar').check();
   await page.setViewportSize({ width: 1600, height: 900 });
   await expect(page.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
   await page.evaluate(() => document.fonts.ready);
