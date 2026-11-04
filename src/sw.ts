@@ -1,4 +1,4 @@
-const CACHE = 'ecm-v2.0.110';
+const CACHE = 'ecm-v2.0.111';
 const PRECACHE = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg'];
 
 interface ExtendableEventLike extends Event {
