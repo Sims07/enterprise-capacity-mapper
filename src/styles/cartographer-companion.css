@@ -1067,3 +1067,93 @@
   font-weight: 500;
   line-height: 1.45;
 }
+
+
+/* Companion workspace sizing: prioritize the conversation over decorative chrome. */
+.companion-root .companion-size-toggle {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--companion-border);
+  border-radius: var(--radius-control);
+  background: var(--companion-panel);
+  color: var(--companion-text);
+  font-size: 16px;
+  cursor: pointer;
+}
+.companion-root .companion-size-toggle:hover {
+  border-color: var(--companion-accent);
+  background: var(--companion-accent-soft);
+}
+.companion-root .companion-size-toggle:focus-visible {
+  outline: 3px solid var(--companion-accent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 601px) {
+  .companion-root .companion-panel.is-large {
+    width: min(760px, calc(100vw - 48px));
+    height: calc(100dvh - 104px);
+    max-height: calc(100dvh - 104px);
+  }
+  .companion-root .companion-panel.is-dock {
+    inset: 0 0 0 auto;
+    width: min(560px, 46vw);
+    height: 100dvh;
+    max-height: none;
+    min-height: 0;
+    border-width: 0 0 0 1px;
+    border-radius: 0;
+  }
+}
+@media (max-width: 600px) {
+  .companion-root .companion-size-toggle { display: none; }
+}
+
+.companion-root .companion-conversation { min-height: 240px; }
+.companion-root .companion-provider-settings { max-height: min(240px, 30dvh); }
+.companion-root .companion-mode-note { padding-top: 6px; padding-bottom: 6px; }
+.companion-root .companion-duo-control { padding: 4px 0; }
+.companion-root .companion-duo-control p { display: none; }
+.companion-root .companion-duo-control button:disabled + p { display: block; }
+.companion-root .companion-footer-note { display: none; }
+
+.companion-root .companion-panel.is-large .companion-answer-paragraph,
+.companion-root .companion-panel.is-dock .companion-answer-paragraph,
+.companion-root .companion-panel.is-large .companion-answer-list-item p,
+.companion-root .companion-panel.is-dock .companion-answer-list-item p {
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.companion-root .companion-panel.is-large .companion-user-message,
+.companion-root .companion-panel.is-dock .companion-user-message { max-width: 80%; }
+
+.companion-root .companion-composer { align-items: flex-end; }
+.companion-root .companion-composer textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  max-height: 160px;
+  padding: 10px 11px;
+  border: 1px solid var(--companion-border);
+  border-radius: var(--radius-control);
+  background: var(--companion-panel);
+  color: var(--companion-text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  resize: vertical;
+  field-sizing: content;
+}
+.companion-root .companion-composer textarea::placeholder { color: var(--companion-muted); opacity: 1; }
+@media (max-width: 600px) {
+  .companion-root .companion-composer textarea {
+    min-height: 44px;
+    font-size: 16px;
+    resize: none;
+  }
+  .companion-root .companion-composer { align-items: flex-end; }
+}
