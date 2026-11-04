@@ -38,9 +38,9 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
   await page.getByTestId('presentation-switch').check();
   await page.setViewportSize({ width: 1600, height: 900 });
   await expect(page.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
-  await presentationPage.evaluate(() => document.fonts.ready);
-  await presentationPage.waitForTimeout(200);
-  return presentationPage;
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(200);
+  return page;
 }
 test.describe('Storybook visual regression — Capacity Mapper', () => {
   test('mosaïque présentation — paysage 16:9, thème clair', async ({ page }) => {
