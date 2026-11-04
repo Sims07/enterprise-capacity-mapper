@@ -1057,7 +1057,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             </div>
             {layoutMode === 'mosaic' && <label className="presentation-switch">
               <span>Présentation</span>
-              <input type="checkbox" data-testid="presentation-switch" aria-label="Mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
+              <input type="checkbox" data-testid="presentation-switch-toolbar" aria-label="Mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
               <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
             </label>}
 
@@ -1244,6 +1244,15 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       </div>
       )}
 
+
+      {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar" data-visible={presentationControlsVisible}>
+        <span>Présentation</span>
+        <label className="presentation-switch">
+          <span>Active</span>
+          <input type="checkbox" data-testid="presentation-switch-exit" aria-label="Désactiver le mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
+          <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
+        </label>
+      </div>}
 
       {contextMenu && (
         <div
