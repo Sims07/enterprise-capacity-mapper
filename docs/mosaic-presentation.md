@@ -23,3 +23,8 @@ Le mode présentation de la cartographie est un rendu de restitution, distinct d
 Le scénario Playwright `playwright/e2e/mosaic-rendering.spec.ts` vérifie les dimensions 1440×900, 1600×900 et 1920×1080 avec douze domaines, l'absence de débordement, le retour à la ligne des titres, le remplissage des cartes sans N1, l'absence de « 0 N1 », le switch de présentation et le contraste en thème sombre.
 
 Le test visuel Storybook capture les rendus paysage clair et sombre dans `playwright/storybook/__screenshots__/`. Les captures évoluent parce que les cartes vides occupent maintenant toute leur surface, que la grille remplit le viewport et que les couleurs/tailles de texte sont recalculées à partir de la carte plutôt que de la fenêtre.
+
+
+## Robustesse des structures importées
+
+Si un domaine référence un identifiant de colonne ou de ligne absent de la structure courante (par exemple après import d'un ancien JSON ou suppression/recréation de pistes), le rendu le rattache à la première piste disponible. La présentation conserve ainsi les domaines au lieu de produire une grille vide. Les tests d'ouverture dans un nouvel onglet vérifient la présence effective des cartes et de leurs titres, pas seulement celle du conteneur.
