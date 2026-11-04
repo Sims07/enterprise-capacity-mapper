@@ -5,7 +5,9 @@
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
-  background: #f1f3f6;
+  background-color: #f7f8fa;
+  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-size: 18px 18px;
 }
 
 .app.mosaic-presentation-mode > header,
@@ -25,7 +27,9 @@
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
-  background: #f1f3f6;
+  background-color: #f7f8fa;
+  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-size: 18px 18px;
 }
 
 .app.mosaic-presentation-mode > .workspace.mosaic-workspace > main {
@@ -36,7 +40,9 @@
   min-height: 0;
   padding: 0;
   overflow: hidden;
-  background: #f1f3f6;
+  background-color: #f7f8fa;
+  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-size: 18px 18px;
 }
 
 /* La grille remplit exactement l'espace disponible ; les poids de lignes/colonnes
@@ -58,7 +64,9 @@
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  background: #f1f3f6;
+  background-color: #f7f8fa;
+  background-image: radial-gradient(circle, rgb(148 163 184 / 24%) 1px, transparent 1.2px);
+  background-size: 18px 18px;
 }
 
 .app.mosaic-presentation-mode .mosaic-domain {
@@ -262,7 +270,9 @@
 .app.theme-dark.mosaic-presentation-mode .map-mosaic {
   --mosaic-card-surface: #20232b;
   --mosaic-card-text: #e7eaf0;
-  background: #111318;
+  background-color: #171a20;
+  background-image: radial-gradient(circle, rgb(148 163 184 / 16%) 1px, transparent 1.2px);
+  background-size: 18px 18px;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain {
