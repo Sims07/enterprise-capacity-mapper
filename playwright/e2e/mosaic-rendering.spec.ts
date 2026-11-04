@@ -240,10 +240,11 @@ test.describe('Rendu mosaïque', () => {
     await expect(presentationSwitch).toBeVisible();
     await expect(presentationSwitch).not.toBeChecked();
     const presentationPagePromise = context.waitForEvent('page');
-    await presentationSwitch.check();
+    await presentationSwitch.click();
     const presentationPage = await presentationPagePromise;
     await presentationPage.waitForLoadState();
     await expect(presentationPage).toHaveURL(/view=presentation/);
+    await expect(presentationSwitch).not.toBeChecked();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
     await expect(presentationPage.getByTestId('mosaic-map')).toBeVisible();
     await expect(presentationSwitch).not.toBeChecked();
@@ -261,7 +262,7 @@ test.describe('Rendu mosaïque', () => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
     const presentationPagePromise = context.waitForEvent('page');
-    await page.getByTestId('presentation-switch-toolbar').check();
+    await page.getByTestId('presentation-switch-toolbar').click();
     const presentationPage = await presentationPagePromise;
     await presentationPage.waitForLoadState();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
