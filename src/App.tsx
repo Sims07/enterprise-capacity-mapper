@@ -890,7 +890,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             if (!resizeColumn && !resizeRow) return;
             event.preventDefault();
             event.stopPropagation();
-            const draggableDomain = event.currentTarget.querySelector('.domain-card');
+            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain) {
               draggableDomain.dataset.resizeWasDraggable = draggableDomain.getAttribute('draggable') || 'false';
               draggableDomain.setAttribute('draggable', 'false');
@@ -925,13 +925,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const rowDelta = event.currentTarget.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((endY - startY) / cellHeight) : 0;
             if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
             ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete event.currentTarget.dataset[key]);
-            const draggableDomain = event.currentTarget.querySelector('.domain-card');
+            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
             if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
           }}
           onPointerCancel={event => {
             ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete event.currentTarget.dataset[key]);
-            const draggableDomain = event.currentTarget.querySelector('.domain-card');
+            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
             if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
           }}
