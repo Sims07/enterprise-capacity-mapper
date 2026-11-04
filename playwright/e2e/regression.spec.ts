@@ -215,7 +215,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     })).toBe('Capacité sauvegardée automatiquement');
     await page.reload();
     await page.getByTestId('primary-library').click();
-    const savedCard = page.locator('.library-map-card').filter({ has: page.getByRole('heading', { name: 'Autosave Playwright' }) });
+    const savedCard = page.getByTestId('saved-maps-list').locator('.library-map-card').filter({ has: page.getByRole('heading', { name: 'Autosave Playwright' }) });
     await savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' }).click();
     await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
     await expect(page.locator('.cap:visible').filter({ hasText: 'Capacité sauvegardée automatiquement' })).toBeVisible();
