@@ -124,7 +124,7 @@ Le déplacement reste possible par glisser-déposer vers une zone de la grille. 
 
 - Les options `showColumnHeadings` et `showRowHeadings` du layout permettent de masquer indépendamment les intitulés des colonnes et des lignes. Leur valeur par défaut reste visible pour préserver les cartographies existantes.
 - La matrice répartit les colonnes sur la largeur disponible, y compris au-delà de six colonnes, au lieu d'imposer une largeur minimale fixe par colonne.
-- En mode mosaïque, l'inventaire applicatif latéral est replié par défaut pour réserver toute la zone de travail à la cartographie ; un bouton **Applications** permet de le rouvrir ponctuellement pour conserver le glisser-déposer et le rattachement des applications.
+- En mode cartographie, l'inventaire applicatif latéral est replié par défaut pour réserver toute la zone de travail à la cartographie ; un bouton **Applications** permet de le rouvrir ponctuellement pour conserver le glisser-déposer et le rattachement des applications.
 - Les offsets de grille sont calculés en fonction des axes visibles : les placements N0 et leurs portées multi-colonnes / multi-lignes restent alignés lorsque les intitulés sont masqués.
 
 
@@ -138,3 +138,6 @@ La cartographie ne propose désormais plus deux modes de représentation. Le ren
 - L'inventaire applicatif est masquable depuis la cartographie.
 - La présentation est indépendante de l'ancien mode et reste disponible dans une nouvelle fenêtre.
 - Les anciens marqueurs `layout.mode` présents dans les JSON sont ignorés par le rendu. Les cartographies historiques restent lisibles ; les placements identiques préexistants sont acceptés à la validation, tandis que les nouveaux déplacements et redimensionnements refusent les chevauchements.
+
+- Sur mobile, la grille est linéarisée : les zones libres gardent leur libellé et leur action de création, puis les domaines restent pleinement lisibles.
+- Les fonds des zones et des axes utilisent les tokens sémantiques clair/sombre du design system.
