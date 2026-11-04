@@ -292,7 +292,7 @@ test.describe('Rendu mosaïque', () => {
     await expect(emptyDomain.locator('.domain-banner')).toHaveCSS('justify-content', 'center');
     await expect(emptyDomain.locator('.domain-banner h3')).toBeVisible();
     const titleSize = await emptyDomain.locator('.domain-banner h3').evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
-    const capabilitySize = await page.locator('.mosaic-domain .cap-head b').first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    const capabilitySize = await page.locator('.mosaic-domain .map-cap-select').first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
     expect(titleSize).toBeGreaterThan(16);
     expect(titleSize).toBeGreaterThan(capabilitySize);
   });
