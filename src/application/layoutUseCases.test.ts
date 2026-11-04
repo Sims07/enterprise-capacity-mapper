@@ -103,11 +103,11 @@ test('prepares domain placement patches and rejects overlapping moves', () => {
     { id: 'd3', name: 'Domain 3', layout: { columnId: 'c1', layerId: 'l2', columnSpan: 1 } },
   ];
   const prepare = (domainId, columnId, layerId) => prepareDomainPlacement({
-    domains, layout, layoutMode: 'matrix', columns, layers, domainId, columnId, layerId,
+    domains, layout, columns, layers, domainId, columnId, layerId,
   });
 
   const moved = prepare('d1', 'c2', 'l2');
-  assert.deepEqual(moved.layout, { ...layout, mode: 'matrix', columns, layers });
+  assert.deepEqual(moved.layout, { ...layout, columns, layers });
   assert.deepEqual(moved.domains[0].layout, {
     columnId: 'c2', layerId: 'l2', columnSpan: 1, custom: true,
   });
@@ -119,7 +119,7 @@ test('prepares domain placement patches and rejects overlapping moves', () => {
 
 
 
-test('checks vertical spans and exposes strict no-overlap placement for mosaic layouts', () => {
+test('checks vertical spans and exposes strict no-overlap placement for the unified map', () => {
   const columns = [...draft().columns, { id: 'c3', name: 'Operations', order: 2 }];
   const layers = [...draft().layers, { id: 'l3', name: 'Strategic', order: 2 }];
   const domains = [
@@ -142,14 +142,14 @@ test('resizes a domain through the application use case and preserves custom pla
     { id: 'd2', layout: { columnId: 'c3', layerId: 'l3' } },
   ];
   const resized = prepareDomainPlacement({
-    domains, layout: { mode: 'mosaic' }, layoutMode: 'mosaic', columns, layers,
+    domains, layout: { mode: 'mosaic' }, columns, layers,
     domainId: 'd1', columnSpan: 2, rowSpan: 2, allowExactOverlap: false,
   });
   assert.equal(resized.domains[0].layout.rowSpan, 2);
   assert.equal(resized.domains[0].layout.columnSpan, 2);
   assert.equal(resized.domains[0].layout.custom, true);
   assert.equal(prepareDomainPlacement({
-    domains, layout: { mode: 'mosaic' }, layoutMode: 'mosaic', columns, layers,
+    domains, layout: { mode: 'mosaic' }, columns, layers,
     domainId: 'd1', columnSpan: 4, rowSpan: 2, allowExactOverlap: false,
   }), null);
 });
