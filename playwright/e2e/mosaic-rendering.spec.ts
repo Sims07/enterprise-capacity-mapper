@@ -231,7 +231,7 @@ test.describe('Rendu mosaïque', () => {
     expect(contrastRatios.every(ratio => ratio >= 4.5)).toBe(true);
   });
 
-  test('active et désactive le mode présentation avec un switch dans la fenêtre courante', async ({ page }) => {
+  test('ouvre le mode présentation dans un nouvel onglet depuis le switch', async ({ page, context }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
@@ -239,31 +239,48 @@ test.describe('Rendu mosaïque', () => {
     const presentationSwitch = page.getByTestId('presentation-switch-toolbar');
     await expect(presentationSwitch).toBeVisible();
     await expect(presentationSwitch).not.toBeChecked();
+    const presentationPagePromise = context.waitForEvent('page');
     await presentationSwitch.check();
-    await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(presentationSwitch).toBeChecked();
-    await expect(page.getByTestId('mosaic-map')).toBeVisible();
-
-    const presentationExitSwitch = page.getByTestId('presentation-switch-exit');
-    await expect(presentationExitSwitch).toBeChecked();
-    // Le switch disparaît avec la barre de sortie dès que le mode est désactivé :
-    // déclencher le clic DOM évite que Playwright attende un input démonté.
-    await presentationExitSwitch.evaluate((input: HTMLInputElement) => input.click());
-    await expect(page.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
+    const presentationPage = await presentationPagePromise;
+    await presentationPage.waitForLoadState();
+    await expect(presentationPage).toHaveURL(/view=presentation/);
+    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await expect(presentationPage.getByTestId('mosaic-map')).toBeVisible();
     await expect(presentationSwitch).not.toBeChecked();
+
+    const presentationExitSwitch = presentationPage.getByTestId('presentation-switch-exit');
+    await expect(presentationExitSwitch).toBeChecked();
+    await presentationExitSwitch.evaluate((input: HTMLInputElement) => input.click());
+    await expect(presentationPage).toHaveURL(/\\/$|index\\.html(?:\\?.*)?$/);
+    await presentationPage.close();
   });
 
-  test('utilise la fenêtre courante sur mobile', async ({ page }) => {
+  test('ferme la page de présentation avec Échap', async ({ page, context }) => {
+    await page.goto('/');
+    await page.getByTestId('mosaic-view').click();
+    const presentationPagePromise = context.waitForEvent('page');
+    await page.getByTestId('presentation-switch-toolbar').check();
+    const presentationPage = await presentationPagePromise;
+    await presentationPage.waitForLoadState();
+    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await presentationPage.keyboard.press('Escape');
+    await expect(presentationPage).toHaveURL(/\\/$|index\\.html(?:\\?.*)?$/);
+    await presentationPage.close();
+  });
+
+  test('ouvre également une nouvelle page sur mobile', async ({ page, context }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
 
+    const presentationPagePromise = context.waitForEvent('page');
     await page.getByTestId('presentation-switch-toolbar').check();
-    await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(page.getByTestId('presentation-switch-toolbar')).toBeChecked();
+    const presentationPage = await presentationPagePromise;
+    await presentationPage.waitForLoadState();
+    await expect(presentationPage).toHaveURL(/view=presentation/);
+    await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await presentationPage.close();
   });
-
-
 
   test('met en valeur le titre d’un domaine sans N1 dans un panneau dédié', async ({ page }) => {
     await page.goto('/');
