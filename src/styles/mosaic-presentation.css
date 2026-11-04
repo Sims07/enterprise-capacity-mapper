@@ -273,9 +273,7 @@
 .app.theme-dark.mosaic-presentation-mode .map-mosaic {
   --mosaic-card-surface: #20232b;
   --mosaic-card-text: #e7eaf0;
-  background-color: var(--dl-bg, #111318);
-  background-image: radial-gradient(circle, rgb(160 167 181 / 8%) .8px, transparent 1px);
-  background-size: 28px 28px;
+  background: #111318 !important;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain {
