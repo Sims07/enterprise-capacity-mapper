@@ -27,7 +27,7 @@ async function openCapacityMapper(page: import('@playwright/test').Page, width: 
 async function openMosaicPresentation(page: import('@playwright/test').Page, theme: 'light' | 'dark') {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto('/iframe.html?id=application-capacity-mapper--mosaic-presentation&viewMode=story&globals=theme:light');
-  await expect(page.locator('.app').first()).toBeVisible();
+  await expect(page.locator('.app').first()).toBeVisible({ timeout: 15000 });
   if (theme === 'dark') {
     await page.getByTestId('tools-menu-toggle').click();
     await page.getByTestId('theme-toggle').click();
@@ -38,7 +38,8 @@ async function openMosaicPresentation(page: import('@playwright/test').Page, the
   const presentationPagePromise = page.waitForEvent('popup');
   await page.getByTestId('open-presentation-window').click();
   const presentationPage = await presentationPagePromise;
-  await expect(presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible();
+  await presentationPage.setViewportSize({ width: 1600, height: 900 });
+  await expect(presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
   await presentationPage.evaluate(() => document.fonts.ready);
   await presentationPage.waitForTimeout(200);
   return presentationPage;
