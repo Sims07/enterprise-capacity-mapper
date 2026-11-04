@@ -342,6 +342,11 @@ test.describe('Rendu mosaïque', () => {
     await page.mouse.move(rightEdgeX, middleY);
     await page.mouse.down();
     await page.mouse.move(rightEdgeX + cellBounds!.width * 1.1, middleY);
+    // La grille doit déjà refléter la nouvelle taille avant le relâchement.
+    await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+    const livePreviewBounds = await firstDomain.boundingBox();
+    expect(livePreviewBounds).not.toBeNull();
+    expect(livePreviewBounds!.width).toBeGreaterThan(domainBounds!.width);
     await page.mouse.up();
 
     await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
