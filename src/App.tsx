@@ -164,7 +164,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     };
     const exitPresentation = event => {
       revealControls();
-      if (event.key === 'Escape') setPresentation(false);
+      if (event.key === 'Escape') togglePresentation(false);
     };
     window.addEventListener('pointermove', revealControls, { passive: true });
     window.addEventListener('pointerdown', revealControls);
