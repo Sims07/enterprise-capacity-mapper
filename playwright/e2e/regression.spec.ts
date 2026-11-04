@@ -192,6 +192,35 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await expect(page.getByTestId('saved-maps-list')).toContainText('Playwright local');
   });
 
+  test('sauvegarde automatiquement les changements d’une cartographie déjà enregistrée', async ({ page }) => {
+    await openTools(page);
+    await page.getByTestId('save-local-map').click();
+    await page.getByTestId('local-map-name').fill('Autosave Playwright');
+    await page.locator('.modal').getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
+
+    const capability = page.locator('.cap:visible').first();
+    await capability.getByRole('button', { name: /^Renommer / }).click();
+    await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
+    await page.locator('.modal .field input').fill('Capacité sauvegardée automatiquement');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+    await page.keyboard.press('Control+s');
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
+    await expect(page.getByText('Cartographie « Autosave Playwright » enregistrée localement')).toBeVisible();
+
+    await expect.poll(() => page.evaluate(() => {
+      const maps = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
+      return maps.find((entry: { name: string }) => entry.name === 'Autosave Playwright')
+        ?.model.capabilities[0].name;
+    })).toBe('Capacité sauvegardée automatiquement');
+    await page.reload();
+    await page.getByTestId('primary-library').click();
+    const savedCard = page.getByTestId('saved-maps-list').locator('.library-map-card').filter({ has: page.getByRole('heading', { name: 'Autosave Playwright' }) });
+    await savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' }).click();
+    await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Capacité sauvegardée automatiquement' })).toBeVisible();
+  });
+
   test('importe un modèle JSON et conserve sa structure après rechargement', async ({ page }) => {
     await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
     const model = await page.evaluate(() => {

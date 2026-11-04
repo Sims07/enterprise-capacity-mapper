@@ -121,6 +121,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
+  const [autoSaveState, setAutoSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [localMaps, setLocalMaps] = useState([]);
   const [recentMaps, setRecentMaps] = useState([]);
   const [activeRecentMapId, setActiveRecentMapId] = useState(() => preferences.readActiveRecentMapId(uid('recent')));
@@ -311,6 +312,33 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     }
   }, [model, activeRecentMapId]);
 
+  // Sauvegarde silencieuse des cartographies déjà présentes dans la bibliothèque locale.
+  // Le délai regroupe les rafales de changements (saisie, glisser-déposer, redimensionnement).
+  useEffect(() => {
+    if (isPresentationWindow || !localMapId) {
+      setAutoSaveState('idle');
+      return undefined;
+    }
+
+    setAutoSaveState('saving');
+    const timeout = window.setTimeout(() => {
+      try {
+        const current = repository.loadLocalMaps().find(entry => entry.id === localMapId);
+        if (!current) {
+          setAutoSaveState('idle');
+          return;
+        }
+        const saved = repository.saveLocalMap({ id: current.id, name: current.name, model });
+        setLocalMaps(entries => entries.map(entry => entry.id === saved.id ? saved : entry));
+        setAutoSaveState('saved');
+      } catch {
+        setAutoSaveState('error');
+      }
+    }, 450);
+
+    return () => window.clearTimeout(timeout);
+  }, [model, localMapId, isPresentationWindow]);
+
   const apps = model.applications || [];
   const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
@@ -348,11 +376,24 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       }
       const saved = repository.saveLocalMap({ id: current.id, name: current.name, model: modelRef.current });
       setLocalMaps(entries.map(entry => entry.id === saved.id ? saved : entry));
+      setAutoSaveState('saved');
       notify(`Cartographie « ${saved.name} » enregistrée localement`);
     } catch (error) {
       notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
     }
   };
+  useEffect(() => {
+    if (isPresentationWindow) return undefined;
+    const saveOnShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        saveCurrentLocalMap();
+      }
+    };
+    window.addEventListener('keydown', saveOnShortcut);
+    return () => window.removeEventListener('keydown', saveOnShortcut);
+  }, [isPresentationWindow, localMapId]);
+
   const saveNamedLocalMap = () => {
     try {
       const currentModel = modelRef.current;
@@ -1065,6 +1106,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             </div>
           </nav>
           <div className="toolbar-actions">
+            {!isPresentationWindow && localMapId && autoSaveState !== 'idle' && (
+              <span
+                className="autosave-status"
+                data-testid="autosave-status"
+                role="status"
+                aria-live="polite"
+                title={autoSaveState === 'error' ? 'La sauvegarde automatique a échoué' : undefined}
+                style={{ fontSize: 11, color: autoSaveState === 'error' ? 'var(--color-danger, #b91c1c)' : 'var(--color-text-muted)', whiteSpace: 'nowrap' }}
+              >
+                {autoSaveState === 'saving' ? 'Enregistrement…' : autoSaveState === 'saved' ? 'Enregistré' : 'Échec de sauvegarde'}
+              </span>
+            )}
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
