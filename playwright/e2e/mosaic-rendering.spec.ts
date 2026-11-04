@@ -185,8 +185,10 @@ test.describe('Rendu mosaïque', () => {
       })));
       expect(capabilityLists.every(list => list.scrollHeight <= list.clientHeight + 1 && list.scrollWidth <= list.clientWidth + 1)).toBe(true);
 
-      const returnBar = page.getByTestId('presentation-return');
-      const barBounds = await returnBar.locator('..').boundingBox();
+      const exitBar = page.locator('.presentation-exit-bar');
+      const exitSwitch = page.getByTestId('presentation-switch-exit');
+      await expect(exitSwitch).toBeChecked();
+      const barBounds = await exitBar.boundingBox();
       expect(barBounds).not.toBeNull();
       expect(barBounds!.x).toBeGreaterThanOrEqual(0);
       expect(barBounds!.y).toBeGreaterThanOrEqual(0);
@@ -194,9 +196,9 @@ test.describe('Rendu mosaïque', () => {
       expect(barBounds!.y + barBounds!.height).toBeLessThanOrEqual(viewport.height);
 
       await page.waitForTimeout(3200);
-      await expect(returnBar.locator('..')).toHaveCSS('opacity', '0');
+      await expect(exitBar).toHaveCSS('opacity', '0');
       await page.mouse.move(100, 100);
-      await expect(returnBar.locator('..')).toHaveCSS('opacity', '1');
+      await expect(exitBar).toHaveCSS('opacity', '1');
     }
   });
 
@@ -231,7 +233,7 @@ test.describe('Rendu mosaïque', () => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
 
-    const presentationSwitch = page.getByTestId('presentation-switch');
+    const presentationSwitch = page.getByTestId('presentation-switch-toolbar');
     await expect(presentationSwitch).toBeVisible();
     await expect(presentationSwitch).not.toBeChecked();
     await presentationSwitch.check();
@@ -249,9 +251,9 @@ test.describe('Rendu mosaïque', () => {
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
 
-    await page.getByTestId('presentation-switch').check();
+    await page.getByTestId('presentation-switch-toolbar').check();
     await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    await expect(page.getByTestId('presentation-switch')).toBeChecked();
+    await expect(page.getByTestId('presentation-switch-toolbar')).toBeChecked();
   });
 
 
