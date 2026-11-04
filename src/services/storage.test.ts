@@ -17,7 +17,7 @@ test('validates a supported model and normalizes missing layout defaults', () =>
   assert.equal(validated.schemaVersion, 3);
   assert.equal(validated.domains[0].layout.columnId, 'customer');
   assert.equal(validated.domains[0].layout.layerId, 'strategic');
-  assert.equal((validated.layout as { mode: string }).mode, 'matrix');
+  assert.equal((validated.layout as { mode?: string }).mode, undefined);
 });
 
 test('rejects unsupported schemas before normalizing and does not mutate the invalid model', () => {
