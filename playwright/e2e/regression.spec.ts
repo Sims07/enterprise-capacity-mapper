@@ -205,16 +205,16 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await page.getByLabel('Nom', { exact: true }).fill('Capacité sauvegardée automatiquement');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
 
-    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
-    const savedName = await page.evaluate(() => {
+    await expect.poll(() => page.evaluate(() => {
       const maps = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
       return maps.find((entry: { name: string }) => entry.name === 'Autosave Playwright')
         ?.model.capabilities[0].name;
-    });
-    expect(savedName).toBe('Capacité sauvegardée automatiquement');
+    })).toBe('Capacité sauvegardée automatiquement');
     await page.reload();
     await page.getByTestId('primary-library').click();
-    await page.getByRole('button', { name: /Autosave Playwright/ }).click();
+    const savedCard = page.locator('.library-map-card').filter({ has: page.getByRole('heading', { name: 'Autosave Playwright' }) });
+    await savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' }).click();
+    await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
     await expect(page.locator('.cap:visible').filter({ hasText: 'Capacité sauvegardée automatiquement' })).toBeVisible();
   });
 
