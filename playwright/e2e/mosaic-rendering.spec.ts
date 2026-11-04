@@ -1,6 +1,6 @@
 import { expect, test } from '../fixtures';
 
-test.describe('Rendu mosaïque', () => {
+test.describe('Cartographie unifiée', () => {
   test('affiche les domaines dans une cartographie bidimensionnelle unique', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByTestId('matrix-view')).toHaveCount(0);
@@ -461,6 +461,22 @@ test.describe('Rendu mosaïque', () => {
     await page.reload();
     await expect(page.getByTestId('capability-map')).toBeVisible();
     await expect(page.getByTestId('capability-map').locator('.mosaic-domain').filter({ hasText: 'Pilotage des données' })).toBeVisible();
+  });
+
+
+  test('ajoute un domaine N0 directement depuis une zone libre', async ({ page }) => {
+    await page.goto('/');
+    const map = page.getByTestId('capability-map');
+    const emptyZone = map.locator('.mosaic-zone').filter({ has: page.locator('.cell-add') }).first();
+    await expect(emptyZone.locator('.cell-add')).toBeVisible();
+    const before = await map.locator('.mosaic-domain').count();
+    await emptyZone.locator('.cell-add').click();
+    const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+    await dialog.getByLabel('Nom').fill('Domaine créé depuis une zone');
+    await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('ZONE-ADD');
+    await dialog.getByRole('button', { name: 'Créer' }).click();
+    await expect(map.locator('.mosaic-domain')).toHaveCount(before + 1);
+    await expect(map.locator('.mosaic-domain').filter({ hasText: 'Domaine créé depuis une zone' })).toBeVisible();
   });
 
   test('permet de créer une capacité N1 directement depuis un domaine', async ({ page }) => {
