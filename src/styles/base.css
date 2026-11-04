@@ -2819,3 +2819,12 @@ body::-webkit-scrollbar,
   .mosaic-domain .domain{height:auto;min-height:0}
   .mosaic-domain .domain-desc,.mosaic-domain .domain-relations,.mosaic-domain .caps-list{overflow:visible}
 }
+
+
+/* Action de modification discrète dans la liste de gestion des applications. */
+.app-side{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:0 0 auto}
+.app-edit{display:inline-grid;place-items:center;width:23px;height:23px;padding:4px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--color-text-muted);opacity:.62;cursor:pointer;transition:opacity 120ms ease,background-color 120ms ease,border-color 120ms ease}
+.app-edit svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.app-item:hover .app-edit,.app-edit:focus-visible{opacity:1}
+.app-edit:hover{background:var(--color-surface-muted);border-color:var(--color-border);color:var(--color-text)}
+.app-edit:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
