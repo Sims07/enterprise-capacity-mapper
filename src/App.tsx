@@ -860,7 +860,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${mosaicColumnsLayout.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
   const mosaicRows = presentation
     ? mosaicLayersLayout.map(layer => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')
-    : `${showColumnHeadings ? '44px ' : ''}${layers.map(layer => `minmax(180px, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')}`;
+    : `${showColumnHeadings ? '44px ' : ''}${layers.map(() => 'minmax(180px, auto)').join(' ')}`;
   const capabilityMap = (
     <div className="map map-mosaic" data-testid="capability-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
