@@ -161,6 +161,23 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   onNavigateToEvidence?: (item: EvidenceReference) => void;
 }) {
   const [open, setOpen] = useState(false);
+  type PanelSize = 'normal' | 'large' | 'dock';
+  const [size, setSize] = useState<PanelSize>(() => {
+    try {
+      const stored = window.localStorage.getItem('companion-size');
+      return stored === 'large' || stored === 'dock' ? stored : 'normal';
+    } catch { return 'normal'; }
+  });
+  const sizeLabels: Record<PanelSize, string> = {
+    normal: 'Agrandir',
+    large: 'Ancrer à droite',
+    dock: 'Réduire',
+  };
+  const cycleSize = () => setSize(current => {
+    const next: PanelSize = current === 'normal' ? 'large' : current === 'large' ? 'dock' : 'normal';
+    try { window.localStorage.setItem('companion-size', next); } catch { /* Session-only preference when storage is unavailable. */ }
+    return next;
+  });
   const [mascot, setMascot] = useState<MascotKind>(() => {
     try { return window.localStorage.getItem('companion-mascot') === 'octopus' ? 'octopus' : 'raccoon'; }
     catch { return 'raccoon'; }
@@ -184,7 +201,20 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const conversationRef = useRef(null);
+  const stickToBottom = useRef(true);
   const wasOpenRef = useRef(false);
+
+  const onConversationScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const element = event.currentTarget;
+    stickToBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+  };
+
+  const onQuestionKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  };
 
   const navigateToEvidence = (item: EvidenceReference) => {
     onNavigateToEvidence?.(item);
@@ -199,13 +229,6 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   useEffect(() => {
     companionPreferences.save(providerSettings);
   }, [providerSettings]);
-
-  useEffect(() => {
-    setHistory([]);
-    setActivePrompt(null);
-    setConfirmClear(false);
-    setConfirmDeleteId(null);
-  }, [model]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -276,7 +299,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   }, [open]);
 
   useEffect(() => {
-    if (conversationRef.current) {
+    if (conversationRef.current && stickToBottom.current) {
       conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
     }
   }, [history, open, mode]);
@@ -496,6 +519,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
         status: 'streaming',
       }]);
       setQuery('');
+      stickToBottom.current = true;
       try {
         const aiCompanion = aiCompanionFactory(providerSettings);
         const answer = await aiCompanion.ask({
@@ -749,7 +773,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       {open && (
         <section
           id="companion-panel"
-          className="companion-panel"
+          className={`companion-panel is-${size}`}
           data-testid="companion-panel"
           role="dialog"
           aria-modal="false"
@@ -764,6 +788,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               <p data-testid="companion-personality-tagline">{MASCOT_PERSONALITIES[mascot].tagline}</p>
             </div>
             <button type="button" className="companion-mascot-toggle" aria-label={mascot === 'raccoon' ? 'Passer à la mascotte pieuvre' : 'Revenir à la mascotte raton laveur'} data-testid="companion-mascot-toggle" onClick={toggleMascot}><MascotIcon kind={mascot === 'raccoon' ? 'octopus' : 'raccoon'} className="companion-mascot-toggle-icon" /><span>{mascot === 'raccoon' ? 'Pieuvre' : 'Raton laveur'}</span></button>
+            <button type="button" className="companion-size-toggle" data-testid="companion-size-toggle" aria-label={`${sizeLabels[size]} le compagnon`} title={sizeLabels[size]} onClick={cycleSize}>{size === 'dock' ? '⤡' : '⤢'}</button>
             <button type="button" className="companion-settings-toggle" aria-label="Configurer le fournisseur IA" data-testid="companion-settings-toggle" aria-expanded={showProviderSettings} onClick={() => setShowProviderSettings(value => !value)}>IA</button>
             <button type="button" className="companion-close" aria-label="Fermer le compagnon" data-testid="companion-close" onClick={() => { setOpen(false); triggerRef.current?.focus(); }}>×</button>
           </div>
@@ -908,7 +933,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             </section>
           )}
 
-          <div className="companion-conversation" data-testid="companion-conversation" aria-live="polite" ref={conversationRef}>
+          <div className="companion-conversation" data-testid="companion-conversation" aria-live="polite" ref={conversationRef} onScroll={onConversationScroll}>
             {mode === 'conversation' && history.length === 0 && (
               <div className="companion-start">
                 <div className="companion-welcome">
@@ -926,12 +951,14 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           {mode === 'conversation' ? (
             <form className="companion-composer" onSubmit={submitQuestion}>
               <label className="companion-sr-only" htmlFor="companion-question">Question sur la cartographie</label>
-              <input
+              <textarea
                 id="companion-question"
                 data-testid="companion-question"
+                rows={1}
                 value={query}
                 onChange={event => setQuery(event.target.value)}
-                placeholder={isSending ? 'Réponse en cours…' : 'Posez une question sur votre cartographie…'}
+                onKeyDown={onQuestionKeyDown}
+                placeholder={isSending ? 'Réponse en cours…' : 'Posez une question… (Maj+Entrée : nouvelle ligne)'}
                 autoComplete="off"
                 disabled={isSending}
               />
@@ -940,7 +967,6 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           ) : (
             <p className="companion-guided-footer">Les résultats restent disponibles dans cet onglet. Passez en mode Conversation pour poser une question libre.</p>
           )}
-          <p className="companion-footer-note">Historique conservé pendant cette session · {providerSettings.enabled ? `fournisseur ${companionPreferences.defaults[providerSettings.provider].label} activé` : 'mode local, aucun envoi réseau'}</p>
         </section>
       )}
       <button
