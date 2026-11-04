@@ -267,7 +267,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await question.fill('Première ligne');
     await question.press('Shift+Enter');
     await question.type('Deuxième ligne');
-    await expect(question).toHaveValue('Première ligne\\nDeuxième ligne');
+    await expect(question).toHaveValue('Première ligne\nDeuxième ligne');
   });
 
 });
