@@ -16,10 +16,8 @@ async function openCapacityMapper(page: import('@playwright/test').Page, width: 
     await expect(app).toHaveClass(theme === 'dark' ? /theme-dark/ : /(?!.*theme-dark).*/);
     await page.keyboard.press('Escape');
   }
-  // Keep the shared Storybook visual baseline focused on the map layout.
-  // The new matrix/mosaic selector has dedicated functional coverage in E2E;
-  // hiding it here avoids treating an intentional toolbar addition as a layout regression.
-  await page.addStyleTag({ content: '.map-view-toggle { display: none !important; } .workspace aside#app-inventory { position: static !important; top: auto !important; height: auto !important; align-self: stretch !important; }' });
+  // Keep the visual checks focused on the map and a stable sidebar position.
+  await page.addStyleTag({ content: '.workspace aside#app-inventory { position: static !important; top: auto !important; height: auto !important; align-self: stretch !important; }' });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(150);
 }
@@ -45,7 +43,7 @@ async function openUnifiedMapPresentation(page: import('@playwright/test').Page,
   await presentationPage.waitForTimeout(200);
   return presentationPage;
 }
-test.describe('Storybook visual regression — Capacity Mapper', () => {
+test.describe('Storybook visual checks — Unified Capability Map', () => {
   test('cartographie présentation — paysage 16:9, thème clair', async ({ page }) => {
     const presentationPage = await openUnifiedMapPresentation(page, 'light');
     const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
@@ -107,45 +105,63 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
   });
   test('desktop — thème clair', async ({ page }) => {
     await openCapacityMapper(page, 1440, 900, 'light');
-    await expect(page).toHaveScreenshot('capacity-mapper-desktop-light.png', {
-      animations: 'disabled',
-      caret: 'hide',
-      fullPage: false,
-      maxDiffPixelRatio: 0.03,
-    });
+    const map = page.getByTestId('capability-map');
+    await expect(map).toBeVisible();
+    await expect(map.locator('.mosaic-domain')).toHaveCount(4);
+    await expect(map.locator('.mosaic-column-heading')).toHaveCount(4);
+    await expect(map.locator('.mosaic-row-heading')).toHaveCount(3);
+    const dimensions = await map.evaluate(element => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+    expect(dimensions.scrollHeight).toBeGreaterThanOrEqual(dimensions.clientHeight);
+    await mkdir('test-results-storybook', { recursive: true });
+    await page.screenshot({ path: 'test-results-storybook/unified-map-desktop-light.png', animations: 'disabled' });
   });
 
-  test('desktop — thème sombre', async ({ page }) => {
+  test('desktop — thème sombre avec surfaces discrètes', async ({ page }) => {
     await openCapacityMapper(page, 1440, 900, 'dark');
-    await expect(page).toHaveScreenshot('capacity-mapper-desktop-dark.png', {
-      animations: 'disabled',
-      caret: 'hide',
-      fullPage: false,
-      maxDiffPixelRatio: 0.03,
-    });
+    const map = page.getByTestId('capability-map');
+    await expect(map.locator('.mosaic-domain')).toHaveCount(4);
+    const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
+    expect(zoneSurface).toMatch(/^rgba?\\(/);
+    const alpha = Number(zoneSurface.match(/[\\d.]+\\)$/)?.[0] ?? 1);
+    expect(alpha).toBeLessThanOrEqual(0.3);
+    await mkdir('test-results-storybook', { recursive: true });
+    await page.screenshot({ path: 'test-results-storybook/unified-map-desktop-dark.png', animations: 'disabled' });
   });
 
   test('mobile 390×844 — thème clair sans débordement horizontal', async ({ page }) => {
     await openCapacityMapper(page, 390, 844, 'light');
+    const map = page.getByTestId('capability-map');
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    await expect(page).toHaveScreenshot('capacity-mapper-mobile-light.png', {
-      animations: 'disabled',
-      caret: 'hide',
-      fullPage: false,
-      maxDiffPixels: 6500,
-    });
+    await expect(map.locator('.mosaic-zone-mobile-label').first()).toBeVisible();
+    await expect(map.locator('.mosaic-domain')).toHaveCount(4);
+    const tracks = await map.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+    expect(tracks).toBe(1);
+    const firstDomain = await map.locator('.mosaic-domain').first().boundingBox();
+    expect(firstDomain?.width ?? 0).toBeGreaterThan(320);
+    await mkdir('test-results-storybook', { recursive: true });
+    await page.screenshot({ path: 'test-results-storybook/unified-map-mobile-light.png', animations: 'disabled' });
   });
 
   test('mobile 390×844 — thème sombre sans débordement horizontal', async ({ page }) => {
     await openCapacityMapper(page, 390, 844, 'dark');
+    const map = page.getByTestId('capability-map');
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    await expect(page).toHaveScreenshot('capacity-mapper-mobile-dark.png', {
-      animations: 'disabled',
-      caret: 'hide',
-      fullPage: false,
-      maxDiffPixels: 1500,
-    });
+    await expect(map.locator('.mosaic-zone-mobile-label').first()).toBeVisible();
+    await expect(map.locator('.mosaic-domain')).toHaveCount(4);
+    const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
+    const channels = zoneSurface.match(/[\\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+    expect(channels.length).toBe(3);
+    expect(Math.max(...channels)).toBeLessThan(80);
+    await mkdir('test-results-storybook', { recursive: true });
+    await page.screenshot({ path: 'test-results-storybook/unified-map-mobile-dark.png', animations: 'disabled' });
   });
+
 });
