@@ -127,8 +127,9 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     const map = page.getByTestId('capability-map');
     await expect(map.locator('.mosaic-domain')).toHaveCount(4);
     const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
-    expect(zoneSurface).toMatch(/^rgba?\\(/);
-    const alpha = Number(zoneSurface.match(/[\\d.]+\\)$/)?.[0] ?? 1);
+    expect(zoneSurface).toMatch(/^rgba?\(/);
+    const colorChannels = zoneSurface.match(/[\d.]+/g)?.map(Number) ?? [];
+    const alpha = colorChannels.length === 4 ? colorChannels[3] : 1;
     expect(alpha).toBeLessThanOrEqual(0.3);
     await mkdir('test-results-storybook', { recursive: true });
     await page.screenshot({ path: 'test-results-storybook/unified-map-desktop-dark.png', animations: 'disabled' });
@@ -157,7 +158,7 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     await expect(map.locator('.mosaic-zone-mobile-label').first()).toBeVisible();
     await expect(map.locator('.mosaic-domain')).toHaveCount(4);
     const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
-    const channels = zoneSurface.match(/[\\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+    const channels = zoneSurface.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
     expect(channels.length).toBe(3);
     expect(Math.max(...channels)).toBeLessThan(80);
     await mkdir('test-results-storybook', { recursive: true });
