@@ -277,6 +277,7 @@ test.describe('Cartographie unifiée', () => {
 
   test('conserve les domaines en présentation si les pistes de leur structure ont été renommées', async ({ page, context }) => {
     await page.goto('/');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
     await page.evaluate(() => {
       const key = 'enterprise-capacity-mapper:model:v3';
       const raw = localStorage.getItem(key);
