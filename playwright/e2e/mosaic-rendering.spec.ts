@@ -207,7 +207,10 @@ test.describe('Rendu mosaïque', () => {
     await page.getByTestId('tools-menu-toggle').click();
     await page.getByTestId('theme-toggle').click();
     await expect(page.locator('.app.theme-dark')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.getByTestId('mosaic-view').click();
     await page.goto('/?view=presentation');
+    await expect(page.locator('.mosaic-domain .domain-banner').first()).toBeVisible();
 
     const contrastRatios = await page.locator('.mosaic-domain .domain-banner').evaluateAll(elements => {
       const luminance = (color: string) => {
@@ -243,7 +246,9 @@ test.describe('Rendu mosaïque', () => {
 
     const presentationExitSwitch = page.getByTestId('presentation-switch-exit');
     await expect(presentationExitSwitch).toBeChecked();
-    await presentationExitSwitch.uncheck();
+    // Le switch disparaît avec la barre de sortie dès que le mode est désactivé :
+    // déclencher le clic DOM évite que Playwright attende un input démonté.
+    await presentationExitSwitch.evaluate((input: HTMLInputElement) => input.click());
     await expect(page.locator('.app.mosaic-presentation-mode')).toHaveCount(0);
     await expect(presentationSwitch).not.toBeChecked();
   });
@@ -287,6 +292,9 @@ test.describe('Rendu mosaïque', () => {
   });
 
   test('redimensionne une carte par glisser-déposer et conserve ses dimensions après rechargement', async ({ page }) => {
+    // La poignée basse est testée dans la fenêtre visible : le déplacement
+    // doit rester dans le viewport pour que les événements pointer soient reçus.
+    await page.setViewportSize({ width: 1280, height: 1200 });
     await page.goto('/');
     await page.getByTestId('mosaic-view').click();
 
@@ -327,7 +335,7 @@ test.describe('Rendu mosaïque', () => {
     const middleX = resizedDomainBounds!.x + resizedDomainBounds!.width / 2;
     await page.mouse.move(middleX, bottomEdgeY);
     await page.mouse.down();
-    await page.mouse.move(middleX, bottomEdgeY + resizedCellBounds!.height * 1.1);
+    await page.mouse.move(middleX, bottomEdgeY + resizedCellBounds!.height * 0.6);
     await page.mouse.up();
     await expect(firstDomain).toHaveCSS('grid-row', /span 2/);
 
