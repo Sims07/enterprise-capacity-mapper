@@ -1,4 +1,4 @@
-/** Domain rules for the TOGAF capability-map matrix layout. */
+/** Domain rules for the unified TOGAF capability-map layout. */
 
 export type LayoutAxis = { id: string; name: string; order?: number; size?: number; [key: string]: unknown };
 export type LayoutZone = { id: string; columnId: string; layerId: string; name: string; [key: string]: unknown };
@@ -165,7 +165,9 @@ export class MapLayout {
         layerId: placement.layerId as string,
         columnSpan: (placement.columnSpan as string | number | undefined) ?? 1,
         rowSpan: (placement.rowSpan as string | number | undefined) ?? 1,
-        allowExactOverlap: layout.mode !== 'mosaic',
+        // Imported matrix maps may contain intentional identical legacy placements.
+        // New moves/resizes are strict and pass allowExactOverlap: false.
+        allowExactOverlap: true,
       })) return null;
     }
 
@@ -220,11 +222,10 @@ export class MapLayout {
   }
 
   prepareDomainPlacement({
-    domains, layout, layoutMode, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true,
+    domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true,
   }: {
     domains: DomainPlacement[];
     layout: MapLayoutData;
-    layoutMode: string;
     columns: LayoutAxis[];
     layers: LayoutAxis[];
     domainId?: string;
@@ -249,7 +250,7 @@ export class MapLayout {
     })) return null;
 
     return {
-      layout: cloneValue({ ...layout, mode: layoutMode, columns, layers }),
+      layout: cloneValue({ ...layout, columns, layers }),
       domains: domains.map(domain => cloneValue(domain.id === domainId
         ? { ...domain, layout: { ...(domain.layout || {}), columnId: targetColumn, layerId: targetLayer,
           ...(columnSpan === undefined ? {} : { columnSpan: targetColumnSpan }),
