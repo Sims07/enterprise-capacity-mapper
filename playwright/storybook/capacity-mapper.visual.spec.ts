@@ -57,6 +57,15 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
       rows: getComputedStyle(element).gridTemplateRows.split(' ').length,
     }));
     expect(tracks).toEqual({ columns: 3, rows: 2 });
+    const hoveredCapability = mosaic.locator('.mosaic-domain .cap').first();
+    await hoveredCapability.hover();
+    await expect(hoveredCapability).toHaveCSS('animation-name', 'none');
+    const hoverStyle = await hoveredCapability.evaluate(element => ({
+      transitionProperty: getComputedStyle(element).transitionProperty,
+      boxShadow: getComputedStyle(element).boxShadow,
+    }));
+    expect(hoverStyle.transitionProperty).toContain('background-color');
+    expect(hoverStyle.boxShadow).toBe('none');
     const first = mosaic.locator('.mosaic-domain').first();
     await expect(first).toHaveCSS('border-style', 'solid');
     await expect(first.locator('.domain')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
