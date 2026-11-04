@@ -470,7 +470,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     });
   }, [contextMenu]);
 
-  const layout = model.layout || { mode: 'matrix', columns: DEFAULT_LAYOUTS.columns, layers: DEFAULT_LAYOUTS.layers };
+  const layout = model.layout || { columns: DEFAULT_LAYOUTS.columns, layers: DEFAULT_LAYOUTS.layers };
   const columns = layout.columns?.length ? layout.columns : DEFAULT_LAYOUTS.columns;
   const layers = layout.layers?.length ? layout.layers : DEFAULT_LAYOUTS.layers;
   const showColumnHeadings = layout.showColumnHeadings !== false;
@@ -536,6 +536,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     columnId,
     layerId,
     columnSpan,
+    allowExactOverlap: false,
   });
 
   const placeDomain = (domainId, columnId, layerId) => {
