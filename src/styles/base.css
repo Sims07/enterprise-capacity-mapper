@@ -2667,10 +2667,10 @@ body::-webkit-scrollbar,
 
 /* Two-dimensional capability mosaic (PR 2). */
 .map-mosaic{display:grid;gap:8px;min-width:760px;align-items:stretch;align-content:start;overflow:visible}
-.mosaic-corner,.mosaic-column-heading,.mosaic-row-heading{display:flex;align-items:center;padding:9px 12px;font-size:11px;font-weight:850;color:#475569}
-.mosaic-column-heading{justify-content:center;background:#e2e8f0;border:1px solid #d7e0ea;border-radius:8px;text-align:center}
-.mosaic-row-heading{background:#e2e8f0;border:1px solid #d7e0ea;border-radius:8px}
-.mosaic-zone{position:relative;min-width:0;min-height:0;border:1px dashed #cbd5e1;border-radius:9px;background:rgba(248,250,252,.72);padding:7px}
+.mosaic-corner,.mosaic-column-heading,.mosaic-row-heading{display:flex;align-items:center;padding:9px 12px;font-size:11px;font-weight:850;color:var(--color-text-muted)}
+.mosaic-column-heading{justify-content:center;background:var(--color-surface-muted);border:1px solid var(--color-border);border-radius:8px;text-align:center}
+.mosaic-row-heading{background:var(--color-surface-muted);border:1px solid var(--color-border);border-radius:8px}
+.mosaic-zone{position:relative;min-width:0;min-height:0;border:1px dashed var(--color-border);border-radius:9px;background:color-mix(in srgb,var(--color-surface-muted) 24%,transparent);padding:7px}
 .mosaic-zone-label{position:absolute;left:9px;top:7px;color:#64748b;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;pointer-events:none}
 .mosaic-domain{z-index:1;min-width:0;min-height:0;padding:7px}
 .mosaic-domain .domain{height:100%;min-height:0;margin:0;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(15,23,42,.07)}
@@ -2727,8 +2727,8 @@ body::-webkit-scrollbar,
 .map-mosaic{width:100%;min-width:0;grid-auto-flow:row;grid-auto-columns:minmax(0,1fr);align-content:start}
 
 /* Fond discret à points pour distinguer la surface de travail sans aplat massif. */
-.map:has(.map-mosaic){background-color:#f7f8fa;background-image:radial-gradient(circle,rgba(148,163,184,.24) 1px,transparent 1.2px);background-size:18px 18px}
-.app.theme-dark .map:has(.map-mosaic){background:#111318!important}
+.map:has(.map-mosaic){background-color:var(--color-bg);background-image:radial-gradient(circle,rgba(148,163,184,.16) 1px,transparent 1.2px);background-size:18px 18px}
+.app.theme-dark .map:has(.map-mosaic){background:var(--color-bg)!important}
 .structure-visibility-option{display:flex;align-items:center;gap:9px;margin:9px 0;color:#334155;font-size:12px;font-weight:650}
 .structure-visibility-option input{width:16px;height:16px;accent-color:#4f46e5}
 @media(max-width:760px){.map-matrix .map-row{gap:4px}.map-matrix .map-cell{padding:5px}.workspace.mosaic-workspace>main{padding:10px}}
@@ -2805,7 +2805,7 @@ body::-webkit-scrollbar,
   .mosaic-zone-mobile-label{
     display:block;
     margin-bottom:8px;
-    color:var(--text-secondary,#64748b);
+    color:var(--color-text-muted);
     font-size:10px;
     font-weight:800;
     letter-spacing:.04em;
