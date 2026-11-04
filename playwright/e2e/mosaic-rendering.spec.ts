@@ -211,6 +211,12 @@ test.describe('Rendu mosaïque', () => {
     await page.getByTestId('mosaic-view').click();
     await page.goto('/?view=presentation');
     await expect(page.locator('.mosaic-domain .domain-banner').first()).toBeVisible();
+    const darkCanvas = page.locator('.app.theme-dark.mosaic-presentation-mode');
+    await expect(darkCanvas).toHaveCSS('background-color', 'rgb(17, 19, 24)');
+    await expect(darkCanvas.locator('.workspace.mosaic-workspace')).toHaveCSS('background-color', 'rgb(17, 19, 24)');
+    await expect(darkCanvas.locator('main')).toHaveCSS('background-color', 'rgb(17, 19, 24)');
+    await expect(darkCanvas.locator('.map-mosaic')).toHaveCSS('background-color', 'rgb(17, 19, 24)');
+    await expect(darkCanvas.locator('.map-mosaic')).toHaveCSS('background-image', 'none');
 
     const contrastRatios = await page.locator('.mosaic-domain .domain-banner').evaluateAll(elements => {
       const luminance = (color: string) => {
