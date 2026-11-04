@@ -167,6 +167,7 @@ jobs:
             playwright-storybook-report/
             test-results/
             test-results-storybook/
+            playwright/storybook/__screenshots__/mosaic-presentation-landscape-*.png
           if-no-files-found: warn
           retention-days: 14
 
