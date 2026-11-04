@@ -40,7 +40,7 @@ async function openUnifiedMapPresentation(page: import('@playwright/test').Page,
   const presentationPage = await presentationPagePromise;
   await presentationPage.waitForLoadState();
   await presentationPage.setViewportSize({ width: 1600, height: 900 });
-  await expect(presentationPage.locator('.app.unified-map-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
+  await expect(presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
   await presentationPage.evaluate(() => document.fonts.ready);
   await presentationPage.waitForTimeout(200);
   return presentationPage;
@@ -48,7 +48,7 @@ async function openUnifiedMapPresentation(page: import('@playwright/test').Page,
 test.describe('Storybook visual regression — Capacity Mapper', () => {
   test('cartographie présentation — paysage 16:9, thème clair', async ({ page }) => {
     const presentationPage = await openUnifiedMapPresentation(page, 'light');
-    const mosaic = presentationPage.locator('.app.unified-map-presentation-mode .map-mosaic');
+    const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic).toHaveCSS('background-image', /radial-gradient/);
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
     await expect(mosaic.locator('.mosaic-zone, .mosaic-column-heading, .mosaic-row-heading')).toHaveCount(0);
@@ -83,7 +83,7 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
 
   test('mosaïque présentation — paysage 16:9, thème sombre', async ({ page }) => {
     const presentationPage = await openUnifiedMapPresentation(page, 'dark');
-    const mosaic = presentationPage.locator('.app.unified-map-presentation-mode .map-mosaic');
+    const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
     await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', 'rgb(32, 35, 43)');
     const contrastRatios = await mosaic.locator('.domain-banner').evaluateAll(elements => elements.map(element => {
