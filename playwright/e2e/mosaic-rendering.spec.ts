@@ -511,6 +511,57 @@ test.describe('Cartographie unifiée', () => {
     await expect(map.locator('.mosaic-domain').filter({ hasText: 'Domaine créé depuis une zone' })).toBeVisible();
   });
 
+  test('affiche toutes les capacités N1 d’un N0 en présentation et désactive les interactions d’édition', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    const domain = page.getByTestId('capability-map').locator('.mosaic-domain')
+      .filter({ hasText: 'Relation & Engagement Client' });
+    const initialCount = await domain.locator('.cap').count();
+    for (let index = initialCount; index < 4; index += 1) {
+      await domain.getByTestId('add-capability-to-domain').click();
+      const dialog = page.getByRole('dialog', { name: 'Nouvelle capacité N1' });
+      await dialog.getByLabel('Nom').fill(`Capacité N1 visible ${index + 1}`);
+      await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill(`CRM-VISIBLE-${index + 1}`);
+      await dialog.getByRole('button', { name: 'Créer' }).click();
+      await expect(dialog).toHaveCount(0);
+    }
+
+    await page.goto('/?view=presentation');
+    const presentationDomain = page.getByTestId('capability-map').locator('.mosaic-domain')
+      .filter({ hasText: 'Relation & Engagement Client' });
+    await expect(presentationDomain.locator('.cap')).toHaveCount(4);
+    await expect(presentationDomain.locator('.map-cap-select')).toHaveCount(4);
+    const capabilityVisibility = await presentationDomain.locator('.cap').evaluateAll(elements =>
+      elements.map(element => {
+        const bounds = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return bounds.width > 0 && bounds.height > 0
+          && style.display !== 'none'
+          && bounds.top >= 0
+          && bounds.bottom <= window.innerHeight;
+      })
+    );
+    expect(capabilityVisibility).toEqual([true, true, true, true]);
+    await expect(presentationDomain.locator('[draggable="true"]')).toHaveCount(0);
+    await expect(presentationDomain.locator('button')).toHaveCount(0);
+
+    const map = page.getByTestId('capability-map');
+    const before = await map.locator('.mosaic-domain').evaluateAll(elements =>
+      elements.map(element => ({ id: element.getAttribute('data-entity-id'), style: (element as HTMLElement).style.cssText }))
+    );
+    const firstCard = presentationDomain.locator('.domain');
+    const firstBounds = await firstCard.boundingBox();
+    expect(firstBounds).not.toBeNull();
+    await page.mouse.move(firstBounds!.x + firstBounds!.width - 2, firstBounds!.y + firstBounds!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(firstBounds!.x + firstBounds!.width + 80, firstBounds!.y + firstBounds!.height / 2);
+    await page.mouse.up();
+    const after = await map.locator('.mosaic-domain').evaluateAll(elements =>
+      elements.map(element => ({ id: element.getAttribute('data-entity-id'), style: (element as HTMLElement).style.cssText }))
+    );
+    expect(after).toEqual(before);
+  });
+
   test('permet de créer une capacité N1 directement depuis un domaine', async ({ page }) => {
     await page.goto('/');
     

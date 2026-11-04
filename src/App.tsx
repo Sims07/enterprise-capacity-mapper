@@ -745,18 +745,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         data-entity-id={d.id}
         data-entity-type="domain"
         style={{ '--domain-color': domainColor, '--domain-text-color': domainTextColor(d.color), '--presentation-domain-color': presentationColor, '--presentation-domain-text-color': presentationText } as React.CSSProperties}
-        draggable
-        onContextMenu={e => openContextMenu(e, { type: 'domain', item: d })}
-        onDragStart={e => e.dataTransfer.setData('domain', d.id)}
-        onDragOver={e => { if (depth === 1) hoverOn(e); }}
-        onDragLeave={e => { if (depth === 1) hoverOff(e); }}
-        onDrop={e => { if (depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
+        draggable={!presentation}
+        onContextMenu={e => { if (!presentation) openContextMenu(e, { type: 'domain', item: d }); }}
+        onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData('domain', d.id); }}
+        onDragOver={e => { if (!presentation && depth === 1) hoverOn(e); }}
+        onDragLeave={e => { if (!presentation && depth === 1) hoverOff(e); }}
+        onDrop={e => { if (!presentation && depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
         key={d.id}
       >
         <div className="domain-banner" style={{ backgroundColor: bannerColor, color: bannerText, "--n0-header-color": bannerColor, "--n0-header-text-color": bannerText } as React.CSSProperties}>
           <div className="domain-banner-title">
             {depth === 1 ? (
-              <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button>
+              presentation ? <span className="map-domain-select">{d.name}</span> : <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button>
             ) : <h3>{d.name}</h3>}
             <span className="domain-meta">{d.code}{(!presentation || caps.length > 0) && <> · {caps.length} N1</>}</span>
           </div>
@@ -790,13 +790,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   data-entity-id={c.id}
                   data-entity-type="capability"
                   key={c.id}
-                  onContextMenu={e => openContextMenu(e, { type: 'capability', item: c })}
-                  onDragOver={hoverOn}
-                  onDragLeave={hoverOff}
-                  onDrop={e => onDrop(e, c.id)}
+                  onContextMenu={e => { if (!presentation) openContextMenu(e, { type: 'capability', item: c }); }}
+                  onDragOver={e => { if (!presentation) hoverOn(e); }}
+                  onDragLeave={e => { if (!presentation) hoverOff(e); }}
+                  onDrop={e => { if (!presentation) onDrop(e, c.id); }}
                 >
                   <div className="cap-head">
-                    <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>
+                    {presentation ? <span className="map-cap-select">{c.name}</span> : <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>}
                     <button
                       type="button"
                       className="mini-action-trigger"
@@ -920,10 +920,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const rowSpan = presentation
           ? mosaicLayersLayout.filter(layer => { const index = layers.findIndex(item => item.id === layer.id); return index >= sourceRowIndex && index < sourceRowIndex + sourceRowSpan; }).length
           : sourceRowSpan;
-        return <div className="mosaic-domain" key={domain.id} tabIndex={0} role="group"
-          aria-label={`Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
+        return <div className="mosaic-domain" key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
+          aria-label={presentation ? `Carte ${domain.name}` : `Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
           style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}
           onPointerDown={event => {
+            if (presentation) return;
             const bounds = event.currentTarget.getBoundingClientRect();
             const edgeSize = 12;
             const resizeColumn = bounds.right - event.clientX <= edgeSize;
@@ -994,6 +995,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
           }}
           onKeyDown={event => {
+            if (presentation) return;
             const changes = {
               ArrowLeft: [-1, 0], ArrowRight: [1, 0],
               ArrowUp: [0, -1], ArrowDown: [0, 1],
