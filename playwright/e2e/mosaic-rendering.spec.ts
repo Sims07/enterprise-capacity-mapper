@@ -265,11 +265,9 @@ test.describe('Rendu mosaïque', () => {
     const presentationPage = await presentationPagePromise;
     await presentationPage.waitForLoadState();
     await expect(presentationPage.locator('.app.mosaic-presentation-mode')).toBeVisible();
-    const closed = presentationPage.waitForEvent('close').then(() => 'closed');
-    const returnedToEditor = presentationPage.waitForURL(/\/$|index\.html(?:\?.*)?$/).then(() => 'returned');
-    await presentationPage.keyboard.press('Escape');
-    await Promise.any([closed, returnedToEditor]);
-    if (!presentationPage.isClosed()) await presentationPage.close();
+    const closed = presentationPage.waitForEvent('close');
+    await presentationPage.keyboard.press('Escape').catch(() => undefined);
+    await closed;
   });
 
   test('ouvre également une nouvelle page sur mobile', async ({ page, context }) => {
