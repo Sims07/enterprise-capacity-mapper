@@ -2374,16 +2374,19 @@ body {
 }
 
 .app > .workspace {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   height: auto;
   min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
 }
 
 .app > .workspace > aside,
 .app > .workspace > main {
   min-height: 0;
+  overflow: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -2411,6 +2414,7 @@ body::-webkit-scrollbar,
 @media (max-width: 900px) {
   .app > .workspace {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .app > .workspace > aside,
@@ -2676,27 +2680,37 @@ body::-webkit-scrollbar,
 @media(max-width:760px){.map-mosaic{min-width:680px}.mosaic-domain{padding:4px}.mosaic-domain .domain-banner{padding:8px}}
 
 
-/* Redimensionnement direct des cartes de la mosaïque. */
-.map-mosaic .mosaic-domain { position: relative; padding: 7px 7px 34px; }
-.mosaic-resize-handle {
-  position: absolute; right: 7px; bottom: 6px; z-index: 3;
-  display: grid; place-items: center; width: 25px; height: 25px; padding: 0;
-  border: 1px solid #cbd5e1; border-radius: 7px;
-  background: rgba(255,255,255,.96); color: #475569;
-  cursor: nwse-resize; touch-action: none;
-  box-shadow: 0 1px 4px rgba(15,23,42,.1);
+/* Redimensionnement par les bords de chaque carte : aucun bouton ni pictogramme superposé. */
+.map-mosaic .mosaic-domain {
+  position: relative;
+  padding: 7px;
+  touch-action: pan-y;
 }
-.mosaic-resize-handle::before {
-  content: ""; width: 9px; height: 9px;
-  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+.map-mosaic .mosaic-domain::before,
+.map-mosaic .mosaic-domain::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  background: transparent;
+  touch-action: none;
 }
-.mosaic-resize-handle:hover { background: #eef2ff; border-color: #818cf8; color: #3730a3; }
-.mosaic-resize-handle:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
-.mosaic-resize-handle:active { cursor: grabbing; background: #e0e7ff; }
-.app.theme-dark .mosaic-resize-handle { background: #272a32; border-color: #596273; color: #d1d5db; }
-.app.theme-dark .mosaic-resize-handle:hover { background: #37334f; border-color: #818cf8; color: #e0e7ff; }
-@media (max-width: 760px) {
-  .mosaic-resize-handle { width: 30px; height: 30px; right: 5px; bottom: 5px; }
+.map-mosaic .mosaic-domain::before {
+  top: 7px;
+  right: 0;
+  bottom: 7px;
+  width: 12px;
+  cursor: ew-resize;
+}
+.map-mosaic .mosaic-domain::after {
+  left: 7px;
+  right: 7px;
+  bottom: 0;
+  height: 12px;
+  cursor: ns-resize;
+}
+.map-mosaic .mosaic-domain:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: -2px;
 }
 
 /* Les matrices larges utilisent toute la largeur disponible sans modifier la grille standard. */
