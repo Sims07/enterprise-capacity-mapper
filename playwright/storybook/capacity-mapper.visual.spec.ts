@@ -65,7 +65,9 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     const capabilitySize = await first.locator('.map-cap-select').first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
     expect(capabilitySize).toBeGreaterThan(12);
     await mkdir('playwright/storybook/__screenshots__', { recursive: true });
+    await mkdir('test-results-storybook', { recursive: true });
     await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/mosaic-presentation-landscape-light.png', animations: 'disabled' });
+    await presentationPage.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-light.png', animations: 'disabled' });
   });
 
   test('mosaïque présentation — paysage 16:9, thème sombre', async ({ page }) => {
@@ -88,7 +90,9 @@ test.describe('Storybook visual regression — Capacity Mapper', () => {
     }));
     expect(contrastRatios.every(ratio => ratio >= 4.5)).toBe(true);
     await mkdir('playwright/storybook/__screenshots__', { recursive: true });
+    await mkdir('test-results-storybook', { recursive: true });
     await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/mosaic-presentation-landscape-dark.png', animations: 'disabled' });
+    await presentationPage.screenshot({ path: 'test-results-storybook/mosaic-presentation-landscape-dark.png', animations: 'disabled' });
   });
   test('desktop — thème clair', async ({ page }) => {
     await openCapacityMapper(page, 1440, 900, 'light');
