@@ -882,6 +882,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           onDragOver={event => event.preventDefault()}
           onDrop={event => { event.preventDefault(); placeDomain(event.dataTransfer.getData('domain'), column.id, layer.id); }}>
           {zone?.name && zone.name !== column.name && <span className="mosaic-zone-label">{zone.name}</span>}
+          <span className="mosaic-zone-mobile-label">{layer.name} · {column.name}</span>
           {!occupied && <button type="button" className="cell-add empty" aria-label={`Ajouter un domaine dans ${zone?.name || column.name}`} onClick={() => openNew('domain', null, { columnId: column.id, layerId: layer.id })}>＋ Domaine N0</button>}
         </div>;
       }))}
