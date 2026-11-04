@@ -269,24 +269,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-  const openPresentation = () => {
-    const isMobile = experienceKind === 'mobile' || window.matchMedia('(max-width: 767px)').matches;
-    if (isMobile) {
-      setPresentation(true);
-      return;
-    }
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('view', 'presentation');
-    const presentationWindow = window.open(url.toString(), '_blank');
-    if (presentationWindow) {
-      presentationWindow.opener = null;
-      return;
-    }
-
-    // Repli explicite lorsque le navigateur bloque les fenêtres contextuelles.
-    setPresentation(true);
-  };
+  const togglePresentation = enabled => setPresentation(enabled);
 
   useEffect(() => {
     if (isPresentationWindow) {
@@ -896,75 +879,73 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const rowSpan = presentation
           ? mosaicLayersLayout.filter(layer => { const index = layers.findIndex(item => item.id === layer.id); return index >= sourceRowIndex && index < sourceRowIndex + sourceRowSpan; }).length
           : sourceRowSpan;
-        return <div className="mosaic-domain" key={domain.id}
-          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}`,  }}>
+        return <div className="mosaic-domain" key={domain.id} tabIndex={0} role="group"
+          aria-label={`Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
+          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}
+          onPointerDown={event => {
+            const bounds = event.currentTarget.getBoundingClientRect();
+            const edgeSize = 12;
+            const resizeColumn = bounds.right - event.clientX <= edgeSize;
+            const resizeRow = bounds.bottom - event.clientY <= edgeSize;
+            if (!resizeColumn && !resizeRow) return;
+            event.preventDefault();
+            event.stopPropagation();
+            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
+            if (draggableDomain) {
+              draggableDomain.dataset.resizeWasDraggable = draggableDomain.getAttribute('draggable') || 'false';
+              draggableDomain.setAttribute('draggable', 'false');
+            }
+            const map = event.currentTarget.closest('.map-mosaic');
+            const cell = map?.querySelector(`[data-zone-key="${domain.layout?.columnId || columns[0].id}:${domain.layout?.layerId || layers[0].id}"]`);
+            const cellBounds = cell?.getBoundingClientRect();
+            event.currentTarget.setPointerCapture(event.pointerId);
+            event.currentTarget.dataset.resizeStartX = String(event.clientX);
+            event.currentTarget.dataset.resizeStartY = String(event.clientY);
+            event.currentTarget.dataset.resizeLastX = String(event.clientX);
+            event.currentTarget.dataset.resizeLastY = String(event.clientY);
+            event.currentTarget.dataset.resizeCellWidth = String(cellBounds?.width || 0);
+            event.currentTarget.dataset.resizeCellHeight = String(cellBounds?.height || 0);
+            event.currentTarget.dataset.resizeColumn = String(resizeColumn);
+            event.currentTarget.dataset.resizeRow = String(resizeRow);
+          }}
+          onPointerMove={event => {
+            if (event.currentTarget.dataset.resizeStartX === undefined) return;
+            event.currentTarget.dataset.resizeLastX = String(event.clientX);
+            event.currentTarget.dataset.resizeLastY = String(event.clientY);
+          }}
+          onPointerUp={event => {
+            if (event.currentTarget.dataset.resizeStartX === undefined) return;
+            const startX = Number(event.currentTarget.dataset.resizeStartX);
+            const startY = Number(event.currentTarget.dataset.resizeStartY);
+            const endX = Number(event.currentTarget.dataset.resizeLastX ?? event.clientX);
+            const endY = Number(event.currentTarget.dataset.resizeLastY ?? event.clientY);
+            const cellWidth = Number(event.currentTarget.dataset.resizeCellWidth || 0);
+            const cellHeight = Number(event.currentTarget.dataset.resizeCellHeight || 0);
+            const columnDelta = event.currentTarget.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((endX - startX) / cellWidth) : 0;
+            const rowDelta = event.currentTarget.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((endY - startY) / cellHeight) : 0;
+            if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
+            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete event.currentTarget.dataset[key]);
+            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
+            if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
+            if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
+          }}
+          onPointerCancel={event => {
+            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow'].forEach(key => delete event.currentTarget.dataset[key]);
+            const draggableDomain = event.currentTarget.querySelector('.domain-card') as HTMLElement | null;
+            if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
+            if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
+          }}
+          onKeyDown={event => {
+            const changes = {
+              ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+              ArrowUp: [0, -1], ArrowDown: [0, 1],
+            };
+            const change = changes[event.key];
+            if (!change) return;
+            event.preventDefault();
+            resizeMosaicDomain(domain, columnSpan + change[0], rowSpan + change[1]);
+          }}>
           <DomainCard d={domain} />
-          {!presentation && <button type="button" className="mosaic-resize-handle" data-testid="mosaic-resize-handle"
-            aria-label={`Redimensionner ${domain.name}`} title="Glisser pour redimensionner · Flèches pour ajuster"
-            onPointerDown={event => {
-              // The parent domain is draggable too: stop its native drag so the resize handle keeps pointer capture.
-              event.preventDefault();
-              event.stopPropagation();
-              const draggableDomain = event.currentTarget.closest('.domain-card') as HTMLElement | null;
-              if (draggableDomain) {
-                draggableDomain.dataset.resizeWasDraggable = draggableDomain.getAttribute('draggable') || 'false';
-                draggableDomain.setAttribute('draggable', 'false');
-              }
-              const map = event.currentTarget.closest('.map-mosaic');
-              const cell = map?.querySelector(`[data-zone-key="${domain.layout?.columnId || columns[0].id}:${domain.layout?.layerId || layers[0].id}"]`);
-              const bounds = cell?.getBoundingClientRect();
-              event.currentTarget.setPointerCapture(event.pointerId);
-              event.currentTarget.dataset.resizeStartX = String(event.clientX);
-              event.currentTarget.dataset.resizeStartY = String(event.clientY);
-              event.currentTarget.dataset.resizeLastX = String(event.clientX);
-              event.currentTarget.dataset.resizeLastY = String(event.clientY);
-              event.currentTarget.dataset.resizeCellWidth = String(bounds?.width || 0);
-              event.currentTarget.dataset.resizeCellHeight = String(bounds?.height || 0);
-            }}
-            onPointerMove={event => {
-              if (event.currentTarget.dataset.resizeStartX === undefined) return;
-              event.currentTarget.dataset.resizeLastX = String(event.clientX);
-              event.currentTarget.dataset.resizeLastY = String(event.clientY);
-            }}
-            onPointerUp={event => {
-              const startX = Number(event.currentTarget.dataset.resizeStartX ?? event.clientX);
-              const startY = Number(event.currentTarget.dataset.resizeStartY ?? event.clientY);
-              const endX = Number(event.currentTarget.dataset.resizeLastX ?? event.clientX);
-              const endY = Number(event.currentTarget.dataset.resizeLastY ?? event.clientY);
-              const cellWidth = Number(event.currentTarget.dataset.resizeCellWidth || 0);
-              const cellHeight = Number(event.currentTarget.dataset.resizeCellHeight || 0);
-              const columnDelta = cellWidth > 0 ? Math.round((endX - startX) / cellWidth) : 0;
-              const rowDelta = cellHeight > 0 ? Math.round((endY - startY) / cellHeight) : 0;
-              if (columnDelta || rowDelta) resizeMosaicDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
-              delete event.currentTarget.dataset.resizeStartX;
-              delete event.currentTarget.dataset.resizeStartY;
-              delete event.currentTarget.dataset.resizeLastX;
-              delete event.currentTarget.dataset.resizeLastY;
-              const draggableDomain = event.currentTarget.closest('.domain-card') as HTMLElement | null;
-              if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
-              if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
-            }}
-            onPointerCancel={event => {
-              delete event.currentTarget.dataset.resizeStartX;
-              delete event.currentTarget.dataset.resizeStartY;
-              delete event.currentTarget.dataset.resizeLastX;
-              delete event.currentTarget.dataset.resizeLastY;
-              const draggableDomain = event.currentTarget.closest('.domain-card') as HTMLElement | null;
-              if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
-              if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
-            }}
-            onKeyDown={event => {
-              const changes = {
-                ArrowLeft: [-1, 0], ArrowRight: [1, 0],
-                ArrowUp: [0, -1], ArrowDown: [0, 1],
-              };
-              const change = changes[event.key];
-              if (!change) return;
-              event.preventDefault();
-              resizeMosaicDomain(domain, columnSpan + change[0], rowSpan + change[1]);
-            }}>
-            <span className="sr-only">Ajuster la taille de {domain.name}</span>
-          </button>}
         </div>;
       })}
     </div>
@@ -1074,7 +1055,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
             </div>
-            {layoutMode === 'mosaic' && !presentation && <button type="button" className="secondary presentation-open-window" data-testid="open-presentation-window" onClick={openPresentation}>↗ Ouvrir la présentation</button>}
+            {layoutMode === 'mosaic' && <label className="presentation-switch">
+              <span>Présentation</span>
+              <input type="checkbox" data-testid="presentation-switch-toolbar" aria-label="Mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
+              <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
+            </label>}
 
           </div>
         </div>
@@ -1259,9 +1244,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       </div>
       )}
 
+
       {presentation && layoutMode === 'mosaic' && <div className="presentation-exit-bar" data-visible={presentationControlsVisible}>
-        <span>Présentation synchronisée</span>
-        <button type="button" className="secondary" data-testid="presentation-return" onClick={() => { if (isPresentationWindow) { window.close(); if (!window.closed) { const url = new URL(window.location.href); url.searchParams.delete('view'); window.location.assign(url.toString()); } } else setPresentation(false); }}>← Retour</button>
+        <span>Présentation</span>
+        <label className="presentation-switch">
+          <span>Active</span>
+          <input type="checkbox" data-testid="presentation-switch-exit" aria-label="Désactiver le mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
+          <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
+        </label>
       </div>}
 
       {contextMenu && (
