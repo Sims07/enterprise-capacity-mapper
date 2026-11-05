@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { analyzeCapabilityGaps, findMissingReferenceCapabilities } from '../domain/capabilityGaps.ts';
 
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
@@ -12,7 +13,7 @@ const resetDashboardScroll = () => {
   });
 };
 
-export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [] }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -23,6 +24,22 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const [statusFilter, setStatusFilter] = useState('all');
   const [domainFilter, setDomainFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [referenceError, setReferenceError] = useState('');
+  const diagnostics = useMemo(() => analyzeCapabilityGaps(model), [model]);
+  const diagnosedGaps = diagnostics.filter(finding => finding.signals.length > 0);
+  const expectedMissing = useMemo(() => capabilityReference ? findMissingReferenceCapabilities(model, capabilityReference) : [], [model, capabilityReference]);
+  const importReference = async event => {
+    const file = event.target.files?.[0];
+    if (!file || !onImportReference) return;
+    setReferenceError('');
+    try {
+      await onImportReference(file);
+    } catch (error) {
+      setReferenceError(error instanceof Error ? error.message : 'Référence JSON invalide.');
+    } finally {
+      event.target.value = '';
+    }
+  };
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [activeView, setActiveView] = useState(() => {
     const view = window.history.state?.capacityMapperDashboardView;
@@ -362,6 +379,39 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         )}
       </section>}
 
+      {activeView === 'attention' && (
+        <section className="dashboard-panel" data-testid="capability-diagnostic" aria-label="Diagnostic des écarts de capacités">
+          <div className="dashboard-panel-heading">
+            <div><h3>Diagnostic métier des capacités</h3><p>Écarts déclarés et points à confirmer, sans scores automatiques. Une application cible ne constitue pas une couverture actuelle.</p></div>
+            <span>{depth === 1 ? 'Vue N0' : diagnosedGaps.length + ' capacité(s) à examiner'}</span>
+          </div>
+          {depth === 1 ? (
+            <p>Le diagnostic détaillé nécessite une cartographie à deux niveaux (N0 et N1).</p>
+          ) : (
+            <>
+              <p data-testid="capability-diagnostic-summary">{diagnosedGaps.length} capacités avec un signal, {diagnostics.filter(finding => finding.needsQualification).length} à qualifier sur la couverture fonctionnelle.</p>
+              {diagnosedGaps.length ? <div className="dashboard-target-list">
+                {diagnosedGaps.slice(0, 8).map(finding => <button type="button" className="dashboard-target" key={finding.id} onClick={() => onExploreTarget(finding.id)}>
+                  <strong>{finding.name}</strong>
+                  <span>{finding.signals.map(signal => signal.description).join(' · ')}</span>
+                  <small>{finding.currentApplications.length} application(s) actuelle(s) · {finding.targetApplications.length} cible(s)</small>
+                </button>)}
+                {diagnosedGaps.length > 8 && <p>+ {diagnosedGaps.length - 8} autres capacités à examiner</p>}
+              </div> : <p>Aucun écart déclaré ou absence d'application actuelle détecté. Les évaluations inconnues restent à qualifier.</p>}
+              <div className="field">
+                <label htmlFor="capability-reference-import">Comparer à une cartographie de référence JSON V3</label>
+                <input id="capability-reference-import" data-testid="capability-reference-import" type="file" accept=".json,application/json" onChange={importReference} />
+                <small>Le fichier de référence est lu localement, validé et ne remplace pas la cartographie active. Correspondances par codes ou noms normalisés dans un même domaine.</small>
+              </div>
+              {referenceError && <p role="alert">{referenceError}</p>}
+              {capabilityReference && <section data-testid="reference-missing-capabilities">
+                <div className="dashboard-panel-heading"><strong>{expectedMissing.length} capacité(s) absente(s) de la carte actuelle</strong><button type="button" className="secondary" onClick={() => { onClearReference?.(); setReferenceError(''); }}>Retirer la référence</button></div>
+                {expectedMissing.length ? <ul>{expectedMissing.map((capability, index) => <li key={capability.id + ':' + index}>{capability.domainName} · {capability.code ? capability.code + ' — ' : ''}{capability.name}</li>)}</ul> : <p>Les capacités attendues de cette référence sont présentes dans la cartographie.</p>}
+              </section>}
+            </>
+          )}
+        </section>
+      )}
       {activeView === 'attention' && depth !== 1 && (
         <section className="dashboard-panel dashboard-gap-priorities" data-testid="dashboard-gap-priorities" aria-label="Gaps prioritaires par domaine N0">
           <div className="dashboard-panel-heading">

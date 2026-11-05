@@ -103,6 +103,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   }
   const { repository, map: mapService, navigation, aiCompanion, preferences, companionPreferences, viewport, browserInteractions } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
+  const [capabilityReference, setCapabilityReference] = useState(null);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
   const [mode, setMode] = useState('editor'); // 'editor', 'relations' ou 'dashboard'
@@ -1251,6 +1252,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             <Dashboard
               model={model}
               depth={depth}
+              capabilityReference={capabilityReference}
+              onImportReference={async file => setCapabilityReference(await repository.importModel(file))}
+              onClearReference={() => setCapabilityReference(null)}
               onExploreTarget={exploreDashboardTarget}
               onLinkApp={openLinkForApp}
               onUpdatePriority={updateCapabilityPriority}

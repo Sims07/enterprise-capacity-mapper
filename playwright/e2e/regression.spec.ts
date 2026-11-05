@@ -410,3 +410,33 @@ test.describe('Playwright regression — companion', () => {
     expect(values.focusWidth).toBe('2px');
   });
 });
+test.describe('Diagnostic métier des capacités', () => {
+  test('sépare les applications cibles et les applications obsolètes dans les signaux', async ({ page }) => {
+    await fresh(page);
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    const panel = page.getByTestId('capability-diagnostic');
+    await expect(panel).toContainText('Gestion des Offres & Devis');
+    await expect(panel).toContainText('obsolète');
+    await expect(panel).toContainText('Aucune application actuelle reliée');
+  });
+
+  test('compare une référence JSON sans remplacer la cartographie active', async ({ page }) => {
+    await fresh(page);
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    const reference = {
+      schemaVersion: 3,
+      domains: [{ id: 'r-domain', code: 'CAP-CRM', name: 'Relation & Engagement Client' }],
+      capabilities: [{ id: 'r-cap', domainId: 'r-domain', code: 'CRM-99', name: 'Gestion des abonnements' }],
+      applications: [],
+    };
+    await page.getByTestId('capability-reference-import').setInputFiles({
+      name: 'reference.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(reference)),
+    });
+    await expect(page.getByTestId('reference-missing-capabilities')).toContainText('Gestion des abonnements');
+    await expect(page.getByTestId('dashboard-coverage-rate')).toBeVisible();
+    await page.getByRole('button', { name: 'Retirer la référence' }).click();
+    await expect(page.getByTestId('reference-missing-capabilities')).toHaveCount(0);
+  });
+});
