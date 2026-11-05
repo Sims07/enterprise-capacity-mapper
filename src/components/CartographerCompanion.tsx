@@ -584,7 +584,8 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                     : `Octave n’a pas pu terminer son analyse complémentaire. ${error.message}`, duoStatus: null, status: null }
                 : { answer: exchange.answer
                     ? `${exchange.answer}\n\nRéponse interrompue : ${error.message}`
-                    : `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`, source: 'error', status: null }),
+                    : `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`,
+                    partialResponse: Boolean(exchange.answer), source: 'error', status: null }),
             }
           : exchange));
       } finally {
@@ -789,7 +790,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             ) : exchange.source === 'local' ? (
               <p className="companion-no-findings">Aucun constat n’a été relevé par cette revue.</p>
             ) : null}
-            {exchange.status !== 'streaming' && <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.' : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>}
+            {exchange.status !== 'streaming' && <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? (exchange.partialResponse ? 'Réponse incomplète : seuls les fragments déjà reçus sont affichés. Tu peux réessayer.' : 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.') : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>}
           </div>
           {index < history.length - 1 && <div className="companion-exchange-divider" aria-hidden="true" />}
         </article>
