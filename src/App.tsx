@@ -32,6 +32,7 @@ import {
   updateDomain,
 } from './application/catalogUseCases.ts';
 import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.ts';
+import { isCurrentApplication } from './domain/coverage.ts';
 import NewMapWizard from './components/NewMapWizard.tsx';
 import TogafGuide from './components/TogafGuide.tsx';
 import CoverageTree from './components/CoverageTree.tsx';
@@ -41,6 +42,7 @@ import CartographerCompanion from './components/CartographerCompanion.tsx';
 import { publishPresentationUpdate, subscribeToPresentationUpdates } from './adapters/browser/presentationSync.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
+const PRESENTATION_APP_PREVIEW_LIMIT = 2;
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
@@ -131,6 +133,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [mapQuery, setMapQuery] = useState('');
   const [mapReadingMode, setMapReadingMode] = useState<MapReadingMode>('applications');
   const [presentationReadingMode, setPresentationReadingMode] = useState<PresentationReadingMode>('identity');
+  const [presentationShowApplications, setPresentationShowApplications] = useState(false);
+  const [presentationFocusedCapabilityId, setPresentationFocusedCapabilityId] = useState<string | null>(null);
   const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
   const [autoSaveState, setAutoSaveState] = useState<'draft' | 'saving' | 'saved' | 'error'>('draft');
   const [workingCopySaveError, setWorkingCopySaveError] = useState(false);
@@ -169,13 +173,20 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       setPresentationControlsVisible(true);
       return undefined;
     }
-    const revealControls = () => {
+    const revealControls = (event?: Event) => {
+      // Ne pas remonter App pendant l'activation d'une N1 :
+      // pointerdown comme focusin précèdent click et DomainCard est recréé au rendu.
+      if (event?.target instanceof Element && event.target.closest('.mosaic-domain .cap[role="button"]')) return;
+      if (document.activeElement?.closest('.mosaic-domain .cap[role="button"]')) return;
       setPresentationControlsVisible(true);
       setPresentationActivity(value => value + 1);
     };
     const exitPresentation = event => {
       revealControls();
-      if (event.key === 'Escape') togglePresentation(false);
+      if (event.key === 'Escape') {
+        if (presentationFocusedCapabilityId) setPresentationFocusedCapabilityId(null);
+        else togglePresentation(false);
+      }
     };
     window.addEventListener('pointermove', revealControls, { passive: true });
     window.addEventListener('pointerdown', revealControls);
@@ -187,7 +198,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       window.removeEventListener('keydown', exitPresentation);
       window.removeEventListener('focusin', revealControls);
     };
-  }, [presentation]);
+  }, [presentation, presentationFocusedCapabilityId]);
 
   useEffect(() => {
     if (!presentation || !presentationControlsVisible) return undefined;
@@ -448,6 +459,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   }, [localMapId, isPresentationWindow]);
 
   const apps = model.applications || [];
+  const presentationFocusedCapability = presentation ? model.capabilities.find(item => item.id === presentationFocusedCapabilityId) : undefined;
   const capabilityFindings = useMemo(() => new Map(analyzeCapabilityGaps(model).map(finding => [finding.id, finding])), [model]);
   const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
@@ -958,6 +970,17 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 <div
                   className={capItemClass}
                   data-presentation-tone={presentation && presentationReadingMode !== 'identity' ? signal.tone : undefined}
+                  data-show-applications={presentation && presentationShowApplications ? 'true' : undefined}
+                  role={presentation ? 'button' : undefined}
+                  tabIndex={presentation ? 0 : undefined}
+                  aria-label={presentation ? `Détails de ${c.name}` : undefined}
+                  onClick={presentation ? () => setPresentationFocusedCapabilityId(c.id) : undefined}
+                  onKeyDown={presentation ? event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setPresentationFocusedCapabilityId(c.id);
+                    }
+                  } : undefined}
                   data-entity-id={c.id}
                   data-entity-type="capability"
                   key={c.id}
@@ -983,6 +1006,15 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     </div>}
                   </div>
                   {presentation && presentationReadingMode !== 'identity' && <span className="presentation-cap-signal">{signal.label}</span>}
+                  {presentation && presentationShowApplications && <div className="presentation-app-preview" aria-label="Applications rattachées">
+                    {coverage.apps.slice(0, PRESENTATION_APP_PREVIEW_LIMIT).map(application => <span
+                      className={isCurrentApplication(application) ? 'presentation-app-chip' : 'presentation-app-chip is-target'}
+                      key={application.id} title={`${application.name} · ${isCurrentApplication(application) ? 'Actuelle' : 'Cible'}`}>
+                      {application.name}{!isCurrentApplication(application) && <em>cible</em>}
+                    </span>)}
+                    {coverage.apps.length > PRESENTATION_APP_PREVIEW_LIMIT && <span className="presentation-app-more">+{coverage.apps.length - PRESENTATION_APP_PREVIEW_LIMIT} autres</span>}
+                    {coverage.apps.length === 0 && <span className="presentation-app-empty">Aucune application reliée</span>}
+                  </div>}
 
                   <div className="cap-meta">
                     <span className="app-count" title={`${coverage.currentCount} application(s) actuelle(s), ${coverage.targetCount} cible(s)`}>{coverage.currentCount}{coverage.targetCount > 0 ? ` +${coverage.targetCount}` : ''}</span>
@@ -1541,6 +1573,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               onClick={() => setPresentationReadingMode(option.id)}>{option.label}</button>
           ))}
         </div>
+        <label className="presentation-app-toggle">
+          <input type="checkbox" data-testid="presentation-show-applications" checked={presentationShowApplications}
+            disabled={depth !== 2} onChange={event => setPresentationShowApplications(event.target.checked)} />Applications
+        </label>
         {presentationReadingMode !== 'identity' && <div className="presentation-reading-legend" data-testid="presentation-legend" aria-label="Légende de la coloration">
           {(['covered', 'gap', 'high', 'critical', 'neutral'] as const).map(tone => (
             <span key={tone}><i data-tone={tone} aria-hidden="true" />{({ covered: 'Satisfaisant', gap: 'Intermédiaire', high: 'Attention', critical: 'Écart important', neutral: 'Non évalué' })[tone]}</span>
@@ -1553,6 +1589,35 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </label>
       </div>}
 
+      {presentation && presentationFocusedCapability && (() => {
+        const coverage = getCapCoverageState(presentationFocusedCapability.id);
+        const detail = capabilityMapReadout(presentationFocusedCapability, coverage, capabilityFindings.get(presentationFocusedCapability.id));
+        const current = coverage.apps.filter(isCurrentApplication);
+        const targets = coverage.apps.filter(application => !isCurrentApplication(application));
+        return <div className="presentation-focus-overlay" onMouseDown={event => {
+          if (event.target === event.currentTarget) setPresentationFocusedCapabilityId(null);
+        }}>
+          <section className="presentation-focus-sheet" role="dialog" aria-modal="true" aria-label={`Détail de ${presentationFocusedCapability.name}`}>
+            <div className="presentation-focus-header">
+              <div><span>Capacité N1 · Restitution</span><h2>{presentationFocusedCapability.name}</h2></div>
+              <button autoFocus type="button" aria-label="Fermer le détail" data-testid="presentation-focus-close" onClick={() => setPresentationFocusedCapabilityId(null)}>×</button>
+            </div>
+            <div className="presentation-focus-metrics">
+              <div><span>Couverture métier</span><strong>{detail.functionalLabel}</strong></div>
+              <div><span>Maturité</span><strong>{detail.currentMaturityLabel}</strong><small>Cible : {detail.targetMaturityLabel}</small></div>
+              <div><span>Écarts</span><strong>{detail.signals.length ? `${detail.signals.length} point(s) à examiner` : detail.needsQualification ? 'À qualifier' : 'Aucun signal détecté'}</strong></div>
+            </div>
+            <div className="presentation-focus-application-groups">
+              <section><h3>Applications actuelles <span>{current.length}</span></h3>
+                {current.length ? <ul>{current.map(a => <li key={a.id}><strong>{a.name}</strong><small>{a.status || 'Statut non renseigné'}</small></li>)}</ul> : <p>Aucune application actuelle rattachée.</p>}
+              </section>
+              <section><h3>Applications cibles <span>{targets.length}</span></h3>
+                {targets.length ? <ul>{targets.map(a => <li key={a.id}><strong>{a.name}</strong><small>{a.status || 'Cible'}</small></li>)}</ul> : <p>Aucune application cible rattachée.</p>}
+              </section>
+            </div>
+          </section>
+        </div>;
+      })()}
       {contextMenu && (
         <div
           className="context-menu"

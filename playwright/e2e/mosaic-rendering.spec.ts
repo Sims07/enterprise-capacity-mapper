@@ -673,6 +673,7 @@ test.describe('Cartographie unifiée', () => {
   test('colorise les N1 selon les faits évalués en présentation sans masquer les capacités', async ({ page }) => {
     await page.goto('/?view=presentation');
     const capabilities = page.locator('.mosaic-domain .cap');
+    await expect(capabilities.first()).toBeVisible();
     const total = await capabilities.count();
     expect(total).toBeGreaterThan(0);
     await page.getByTestId('presentation-reading-coverage').click();
@@ -687,6 +688,36 @@ test.describe('Cartographie unifiée', () => {
     await page.getByTestId('presentation-reading-identity').click();
     await expect(page.getByTestId('presentation-legend')).toHaveCount(0);
     await expect(capabilities.first()).not.toHaveAttribute('data-presentation-tone', /.+/);
+  });
+
+  test('révèle les applications et ouvre une fiche N1 accessible sans quitter la présentation', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/?view=presentation');
+    await page.mouse.move(150, 150);
+    const capabilities = page.locator('.mosaic-domain .cap');
+    await expect(capabilities.first()).toBeVisible();
+    const total = await capabilities.count();
+    expect(total).toBeGreaterThan(0);
+    await page.getByTestId('presentation-show-applications').check();
+    await expect(page.locator('.presentation-app-preview')).toHaveCount(total);
+    await expect(capabilities).toHaveCount(total);
+    await capabilities.first().focus();
+    await page.keyboard.press('Enter');
+    const sheet = page.getByRole('dialog', { name: /Détail de/ });
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByText('Applications actuelles')).toBeVisible();
+    await expect(sheet.getByText('Applications cibles')).toBeVisible();
+    await expect(sheet.getByText('Couverture métier')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(sheet).toHaveCount(0);
+    await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await capabilities.first().click();
+    await expect(sheet).toBeVisible();
+    await page.getByTestId('presentation-focus-close').click();
+    await expect(sheet).toHaveCount(0);
+    await page.mouse.move(160, 160);
+    await page.getByTestId('presentation-show-applications').uncheck();
+    await expect(page.locator('.presentation-app-preview')).toHaveCount(0);
   });
 
 });
