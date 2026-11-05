@@ -25,6 +25,21 @@ test.describe('Cartographie unifiée', () => {
     const firstDomain = mosaic.locator('.mosaic-domain').first();
     await expect(firstDomain.locator('.domain')).toHaveCSS('background-color', /rgb/);
     await expect(firstDomain).toHaveCSS('border-style', 'solid');
+    const borders = await firstDomain.evaluate(element => {
+      const domain = getComputedStyle(element);
+      const capability = getComputedStyle(element.querySelector('.cap')!);
+      return {
+        domainWidth: Number.parseFloat(domain.borderTopWidth),
+        capabilityWidth: Number.parseFloat(capability.borderTopWidth),
+        domainColor: domain.borderTopColor,
+        capabilityColor: capability.borderTopColor,
+        surfaceColor: getComputedStyle(element.querySelector('.domain')!).backgroundColor,
+      };
+    });
+    expect(borders.domainWidth).toBeGreaterThanOrEqual(2);
+    expect(borders.capabilityWidth).toBeGreaterThanOrEqual(1.5);
+    expect(borders.domainColor).not.toBe(borders.surfaceColor);
+    expect(borders.capabilityColor).not.toBe(borders.surfaceColor);
     const columnGap = await mosaic.evaluate(element => Number.parseFloat(getComputedStyle(element).columnGap));
     expect(columnGap).toBeGreaterThanOrEqual(8);
     expect(columnGap).toBeLessThanOrEqual(14);
@@ -545,6 +560,15 @@ test.describe('Cartographie unifiée', () => {
       })
     );
     expect(capabilityVisibility).toEqual(Array.from({ length: expectedCount }, () => true));
+    const textVisibility = await presentationDomain.locator('.cap').evaluateAll(elements => {
+      const frame = elements[0]?.closest('.mosaic-domain')?.getBoundingClientRect();
+      return elements.map(element => {
+        const tile = element.getBoundingClientRect();
+        const title = element.querySelector('.map-cap-select')!.getBoundingClientRect();
+        return Boolean(frame) && tile.bottom <= frame!.bottom + 1 && title.bottom <= tile.bottom + 1;
+      });
+    });
+    expect(textVisibility).toEqual(Array.from({ length: expectedCount }, () => true));
     await expect(presentationDomain.locator('[draggable="true"]')).toHaveCount(0);
     await expect(presentationDomain.locator('button')).toHaveCount(0);
 
@@ -579,6 +603,28 @@ test.describe('Cartographie unifiée', () => {
 
     await expect(domain.locator('.caps-list')).toContainText('Gestion des contrats clients');
     await expect(domain.locator('.domain-meta')).toContainText('4 N1');
+    await expect(domain.locator('.cap')).toHaveCount(4);
+
+    const checkAllCapabilitiesFit = async () => {
+      const geometry = await domain.locator('.caps-list').evaluate(list => {
+        const frame = list.getBoundingClientRect();
+        return {
+          internalScroll: list.scrollHeight > list.clientHeight + 1,
+          visible: Array.from(list.querySelectorAll('.cap')).map(element => {
+            const card = element.getBoundingClientRect();
+            return card.height > 0 && card.top >= frame.top - 1 && card.bottom <= frame.bottom + 1;
+          }),
+        };
+      });
+      expect(geometry.internalScroll).toBe(false);
+      expect(geometry.visible).toEqual([true, true, true, true]);
+    };
+
+    await checkAllCapabilitiesFit();
+    // La sélection d'une N1 ne doit pas faire disparaître les autres tuiles.
+    await domain.getByTestId('map-cap-select').first().click();
+    await expect(domain.locator('.cap.impact-selected')).toHaveCount(1);
+    await checkAllCapabilitiesFit();
   });
 
 

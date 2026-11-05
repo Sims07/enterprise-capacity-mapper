@@ -2675,6 +2675,21 @@ body::-webkit-scrollbar,
 .mosaic-domain{z-index:1;min-width:0;min-height:0;padding:7px}
 .mosaic-domain .domain{height:100%;min-height:0;margin:0;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(15,23,42,.07)}
 .mosaic-domain .domain-desc,.mosaic-domain .domain-relations,.mosaic-domain .caps-list{overflow:auto;min-height:0}
+
+/* En édition, la grille grandit selon le contenu N1 plutôt que de rogner
+   la liste dans une hauteur de ligne fixe (notamment dès le 4e N1).
+   Le défilement reste celui de l'espace de travail, pas celui des cartes. */
+.app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain {
+  height: auto;
+  min-height: 100%;
+}
+.app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .caps-list,
+.app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain-desc,
+.app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain-relations {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
 .mosaic-domain .domain-banner-title{min-width:0}
 .mosaic-domain .domain-banner-title h3,.mosaic-domain .map-domain-select{overflow-wrap:anywhere}
 @media(max-width:760px){.map-mosaic{min-width:680px}.mosaic-domain{padding:4px}.mosaic-domain .domain-banner{padding:8px}}
