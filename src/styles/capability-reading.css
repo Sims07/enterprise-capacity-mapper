@@ -1,0 +1,83 @@
+/* Lecture métier de la cartographie : nouveaux contrôles fondés sur les tokens du DS. */
+.app:not(.presentation-mode) .capability-reading-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.capability-reading-intro { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.capability-reading-intro strong { font-size: 12px; }
+.capability-reading-intro span { color: var(--color-text-muted); font-size: 11px; line-height: 1.4; }
+.capability-reading-options {
+  display: flex; flex-wrap: wrap; gap: 3px;
+  border: 1px solid var(--color-border); border-radius: 10px;
+  padding: 3px; background: var(--color-surface-muted);
+}
+.app .capability-reading-options button {
+  border: 1px solid transparent; border-radius: 7px;
+  background: transparent; color: var(--color-text-muted);
+  padding: 7px 10px; font-size: 11px; font-weight: 700;
+  min-height: 32px; cursor: pointer;
+}
+.app .capability-reading-options button.is-active {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft); color: var(--color-accent-text);
+}
+.app .capability-reading-options button:focus-visible,
+.app .capability-open-sheet:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.app:not(.presentation-mode) .capability-card-actions {
+  display: flex; align-items: flex-start; gap: 4px; flex-shrink: 0;
+}
+.app:not(.presentation-mode) .capability-open-sheet {
+  border: 1px solid var(--color-accent-border);
+  border-radius: 7px; background: var(--color-accent-soft);
+  color: var(--color-accent-text); padding: 4px 7px;
+  cursor: pointer; font-size: 10px; font-weight: 700;
+  min-height: 25px; line-height: 1.1;
+}
+.app:not(.presentation-mode) .capability-open-sheet:hover { border-color: var(--color-focus); }
+.app:not(.presentation-mode) .cap .cap-meta {
+  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+}
+.capability-qualification {
+  display: inline-flex; align-items: center;
+  font-size: 10px; line-height: 1.4; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+  background: var(--status-neutral-bg); color: var(--status-neutral-text);
+}
+.capability-qualification.is-none,
+.capability-qualification.is-partial { background: var(--status-gap-bg); color: var(--status-gap-text); }
+.capability-qualification.is-sufficient { background: var(--status-covered-bg); color: var(--status-covered-text); }
+.capability-reading-detail {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 7px 9px; margin: 7px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px; background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 10px; line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.capability-reading-detail strong { color: var(--color-text); font-weight: 750; }
+.capability-sheet-context {
+  display: flex; flex-wrap: wrap; gap: 5px 10px;
+  background: var(--color-surface-muted); color: var(--color-text-muted);
+  padding: 10px 12px; border: 1px solid var(--color-border);
+  border-radius: 9px; font-size: 11px; line-height: 1.5;
+}
+.capability-sheet-context strong { color: var(--color-text); width: 100%; }
+.capability-sheet-context span:last-child { width: 100%; }
+@media (max-width: 700px) {
+  .capability-reading-toolbar { align-items: stretch !important; }
+  .capability-reading-options { width: 100%; }
+  .app .capability-reading-options button { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .capability-reading-detail, .capability-open-sheet { transition: none !important; }
+}

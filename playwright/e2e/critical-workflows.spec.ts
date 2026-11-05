@@ -13,9 +13,8 @@ test.describe('Playwright POC — critical browser workflows', () => {
 
     const capability = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
     await expect(capability).toHaveCount(1);
-    await capability.getByRole('button', { name: 'Renommer Gestion des Prospects & Leads' }).click();
-    await page.locator('.context-menu').getByRole('button', { name: 'Renommer' }).click();
-    await page.locator('.modal .field input').fill('Qualification des prospects');
+    await capability.getByRole('button', { name: 'Ouvrir la fiche de Gestion des Prospects & Leads' }).click();
+      await page.locator('.modal .field input').fill('Qualification des prospects');
     await page.locator('.modal').getByRole('button', { name: 'Enregistrer' }).click();
 
     const renamed = page.locator('.cap:visible').filter({ hasText: 'Qualification des prospects' });
@@ -91,9 +90,8 @@ test.describe('Playwright POC — critical browser workflows', () => {
 test('qualifie la couverture et la maturité d’une capacité puis conserve la saisie après rechargement', async ({ page }) => {
   await page.goto('/');
   const capability = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
-  await capability.getByRole('button', { name: 'Renommer Gestion des Prospects & Leads' }).click();
-  await page.locator('.context-menu').getByRole('button', { name: 'Renommer' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Modifier la capacité N1' });
+  await capability.getByRole('button', { name: 'Ouvrir la fiche de Gestion des Prospects & Leads' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Fiche de capacité N1' });
   await dialog.getByTestId('capability-functional-coverage').selectOption('partial');
   await dialog.getByTestId('capability-current-maturity').selectOption('2');
   await dialog.getByTestId('capability-target-maturity').selectOption('4');
@@ -101,11 +99,66 @@ test('qualifie la couverture et la maturité d’une capacité puis conserve la 
   await dialog.getByRole('button', { name: 'Enregistrer' }).click();
   await page.reload();
   const updated = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
-  await updated.getByRole('button', { name: 'Renommer Gestion des Prospects & Leads' }).click();
-  await page.locator('.context-menu').getByRole('button', { name: 'Renommer' }).click();
-  const restored = page.getByRole('dialog', { name: 'Modifier la capacité N1' });
+  await updated.getByRole('button', { name: 'Ouvrir la fiche de Gestion des Prospects & Leads' }).click();
+  const restored = page.getByRole('dialog', { name: 'Fiche de capacité N1' });
   await expect(restored.getByTestId('capability-functional-coverage')).toHaveValue('partial');
   await expect(restored.getByTestId('capability-current-maturity')).toHaveValue('2');
   await expect(restored.getByTestId('capability-target-maturity')).toHaveValue('4');
   await expect(restored.getByTestId('capability-assessment-rationale')).toHaveValue('Couverture partielle confirmée par les métiers');
+});
+
+test.describe('Parcours de lecture métier depuis la cartographie', () => {
+  test('la fiche N1 est accessible directement sans passer par Renommer', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByTestId('capability-reading-toolbar')).toBeVisible();
+    const capability = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
+    await expect(capability.getByTestId('capability-qualification')).toContainText('À évaluer');
+    await capability.getByRole('button', { name: 'Ouvrir la fiche de Gestion des Prospects & Leads' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Fiche de capacité N1' });
+    await expect(sheet.getByTestId('capability-sheet-context')).toContainText('Code : CRM-01');
+    await sheet.getByTestId('capability-functional-coverage').selectOption('partial');
+    await sheet.getByTestId('capability-current-maturity').selectOption('2');
+    await sheet.getByTestId('capability-target-maturity').selectOption('4');
+    await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(capability.getByTestId('capability-qualification')).toContainText('Partielle');
+    await page.getByTestId('map-reading-maturity').click();
+    const maturity = capability.getByTestId('capability-reading-detail');
+    await expect(maturity).toContainText('Actuelle : 2/5');
+    await expect(maturity).toContainText('Cible : 4/5');
+    await expect(maturity).toContainText('+2 niveau(x) à atteindre');
+    await page.getByTestId('map-reading-gaps').click();
+    await expect(capability.getByTestId('capability-reading-detail')).toContainText('Écart de maturité');
+    await page.getByTestId('map-reading-coverage').click();
+    await expect(capability.getByTestId('capability-reading-detail')).toContainText('Couverture métier : Partielle');
+    await page.getByTestId('map-reading-applications').click();
+    await expect(capability).toContainText('Salesforce CRM');
+  });
+
+  test('la lecture métier est réversible et ne modifie ni les relations ni la sélection impact', async ({ page }) => {
+    await page.goto('/');
+    const capability = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
+    const selectedButton = capability.getByTestId('map-cap-select');
+    await selectedButton.click();
+    await expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
+    await page.getByTestId('map-reading-gaps').click();
+    await expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
+    await page.getByTestId('map-reading-applications').click();
+    await expect(capability).toContainText('Salesforce CRM');
+    await page.reload();
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toContainText('Salesforce CRM');
+  });
+
+  test('une cartographie N0 sans N1 ne présente pas de lecture de maturité fictive', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('new-map-button').click();
+    await page.getByTestId('template-blank').click();
+    await page.getByTestId('depth-1').click();
+    await page.getByTestId('wizard-name').fill('Carte N0');
+    await page.getByRole('button', { name: 'Suivant' }).click();
+    // Skip the remaining wizard steps with their existing defaults.
+    await page.getByRole('button', { name: 'Suivant' }).click();
+    await page.getByRole('button', { name: 'Créer la cartographie' }).click();
+    await expect(page.getByTestId('capability-reading-toolbar')).toHaveCount(0);
+  });
 });
