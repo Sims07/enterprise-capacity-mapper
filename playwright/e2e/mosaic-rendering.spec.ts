@@ -517,7 +517,8 @@ test.describe('Cartographie unifiée', () => {
     const domain = page.getByTestId('capability-map').locator('.mosaic-domain')
       .filter({ hasText: 'Relation & Engagement Client' });
     const initialCount = await domain.locator('.cap').count();
-    for (let index = initialCount; index < 4; index += 1) {
+    const minimumCapabilities = 4;
+    for (let index = initialCount; index < minimumCapabilities; index += 1) {
       await domain.getByTestId('add-capability-to-domain').click();
       const dialog = page.getByRole('dialog', { name: 'Nouvelle capacité N1' });
       await dialog.getByLabel('Nom').fill(`Capacité N1 visible ${index + 1}`);
@@ -529,8 +530,9 @@ test.describe('Cartographie unifiée', () => {
     await page.goto('/?view=presentation');
     const presentationDomain = page.getByTestId('capability-map').locator('.mosaic-domain')
       .filter({ hasText: 'Relation & Engagement Client' });
-    await expect(presentationDomain.locator('.cap')).toHaveCount(4);
-    await expect(presentationDomain.locator('.map-cap-select')).toHaveCount(4);
+    const expectedCount = Math.max(initialCount, minimumCapabilities);
+    await expect(presentationDomain.locator('.cap')).toHaveCount(expectedCount);
+    await expect(presentationDomain.locator('.map-cap-select')).toHaveCount(expectedCount);
     const capabilityVisibility = await presentationDomain.locator('.cap').evaluateAll(elements =>
       elements.map(element => {
         const bounds = element.getBoundingClientRect();
@@ -541,7 +543,7 @@ test.describe('Cartographie unifiée', () => {
           && bounds.bottom <= window.innerHeight;
       })
     );
-    expect(capabilityVisibility).toEqual([true, true, true, true]);
+    expect(capabilityVisibility).toEqual(Array.from({ length: expectedCount }, () => true));
     await expect(presentationDomain.locator('[draggable="true"]')).toHaveCount(0);
     await expect(presentationDomain.locator('button')).toHaveCount(0);
 
