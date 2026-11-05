@@ -748,4 +748,58 @@ test.describe('Cartographie unifiée', () => {
     await expect(presentationPage.locator('.app')).toHaveAttribute('data-presentation-reading', 'identity');
   });
 
+  for (const theme of ['light', 'dark'] as const) {
+    test(`garde le focus N0 net et les autres cartes opaques en thème ${theme}`, async ({ page, context }) => {
+      await page.setViewportSize({ width: 1600, height: 900 });
+      await page.goto('/');
+      if (theme === 'dark') {
+        await page.getByTestId('tools-menu-toggle').click();
+        await page.getByTestId('theme-toggle').click();
+        await expect(page.locator('.app.theme-dark')).toBeVisible();
+        await page.keyboard.press('Escape');
+      }
+
+      const presentationPromise = context.waitForEvent('page');
+      await page.getByTestId('presentation-switch-toolbar').click();
+      const presentationPage = await presentationPromise;
+      await presentationPage.waitForLoadState();
+      await expect(presentationPage.locator('.mosaic-domain .cap').first()).toBeVisible();
+      await page.getByTestId('presentation-director-toggle').click();
+      const domainSelect = page.getByTestId('presentation-director-domain');
+      await domainSelect.selectOption({ index: 1 });
+
+      const focused = presentationPage.locator('.mosaic-domain.is-presentation-focused');
+      const dimmed = presentationPage.locator('.mosaic-domain.is-presentation-dimmed');
+      await expect(focused).toHaveCount(1);
+      await expect(dimmed.first()).toBeVisible();
+      await expect(focused).toHaveCSS('opacity', '1');
+      await expect(dimmed.first()).toHaveCSS('opacity', '1');
+      await expect(dimmed.first()).toHaveCSS('filter', 'none');
+
+      const layers = await presentationPage.evaluate(() => {
+        const active = document.querySelector('.mosaic-domain.is-presentation-focused')!;
+        const subdued = document.querySelector('.mosaic-domain.is-presentation-dimmed')!;
+        const title = subdued.querySelector('.domain-banner h3')!;
+        const domain = subdued.querySelector('.domain')!;
+        return {
+          active: Number(getComputedStyle(active).zIndex),
+          subdued: Number(getComputedStyle(subdued).zIndex),
+          titleColor: getComputedStyle(title).color,
+          bodyColor: getComputedStyle(domain).color,
+          bodyBackground: getComputedStyle(domain).backgroundColor,
+        };
+      });
+      expect(layers.active).toBeGreaterThan(layers.subdued);
+      expect(layers.titleColor).toBe(layers.bodyColor);
+      expect(layers.bodyBackground).not.toBe('transparent');
+      expect(layers.bodyBackground).not.toBe('rgba(0, 0, 0, 0)');
+
+      await domainSelect.selectOption({ index: 2 });
+      await expect(presentationPage.locator('.mosaic-domain.is-presentation-focused')).toHaveCount(1);
+      await expect(presentationPage.locator('.mosaic-domain.is-presentation-dimmed').first()).toHaveCSS('opacity', '1');
+      await domainSelect.selectOption('');
+      await expect(presentationPage.locator('.mosaic-domain.is-presentation-dimmed')).toHaveCount(0);
+    });
+  }
+
 });
