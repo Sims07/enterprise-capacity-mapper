@@ -196,16 +196,17 @@
   overflow-wrap: anywhere;
 }
 
-/* En Linear Black, les capacités restent distinctes du domaine en présentation. */
-.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
+/* En Linear Black, les capacités sans scorecard restent distinctes du domaine.
+   En lecture métier, laisser les tokens --status-* contrôler toute la carte N1. */
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected):not([data-presentation-tone]) {
   background: #11151d !important;
   background-color: #11151d !important;
   border: 1px solid #657087 !important;
   box-shadow: inset 0 0 0 1px #252c3a, 0 1px 2px rgba(0, 0, 0, .28) !important;
   color: #e0e3ea !important;
 }
-.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) .cap-head b,
-.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected) .app-count {
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected):not([data-presentation-tone]) .cap-head b,
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected):not([data-presentation-tone]) .app-count {
   color: #e0e3ea !important;
 }
 
@@ -219,7 +220,7 @@
 }
 
 /* Bordures N1 renforcées : elles doivent rester visibles sur les surfaces N0 sombres. */
-.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected):hover {
+.app.theme-dark.presentation-mode .domain-card:not(.impact-selected) .cap:not(.impact-selected):not([data-presentation-tone]):hover {
   border-color: #9aa6bd !important;
   background: #1a2030 !important;
 }

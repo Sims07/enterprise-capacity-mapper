@@ -670,6 +670,53 @@ test.describe('Cartographie unifiée', () => {
 
 
 
+  for (const theme of ['light', 'dark'] as const) {
+    test(`scorecard : fond, contour et texte des N1 restent cohérents en thème ${theme}`, async ({ page }) => {
+      await page.goto('/');
+      if (theme === 'dark') {
+        await page.getByTestId('tools-menu-toggle').click();
+        await page.getByTestId('theme-toggle').click();
+        await expect(page.locator('.app.theme-dark')).toBeVisible();
+      }
+      await page.goto('/?view=presentation');
+      await page.getByTestId('presentation-reading-coverage').click();
+      const tile = page.locator('.mosaic-domain .cap[data-presentation-tone]').first();
+      await expect(tile).toBeVisible();
+
+      // Vérifie les cinq états sur le vrai DOM avec les tokens du thème.
+      // Le jeu de démonstration ne contient pas nécessairement chaque niveau.
+      for (const tone of ['covered', 'gap', 'high', 'critical', 'neutral'] as const) {
+        await tile.evaluate((element, value) => element.setAttribute('data-presentation-tone', value), tone);
+        const colors = await tile.evaluate(element => {
+          const probe = document.createElement('span');
+          probe.style.backgroundColor = 'var(--presentation-signal-bg)';
+          probe.style.color = 'var(--presentation-signal-text)';
+          element.appendChild(probe);
+          const expected = getComputedStyle(probe);
+          const expectedBackground = expected.backgroundColor;
+          const expectedText = expected.color;
+          probe.remove();
+          const actual = getComputedStyle(element);
+          return {
+            foreground: actual.color,
+            borderWidth: actual.borderTopWidth,
+            expectedBackground,
+            expectedText,
+          };
+        });
+        // Le changement de tonalité anime background-color : attendre la
+        // couleur finale évite d'asserter une image intermédiaire de la transition.
+        await expect(tile, `${theme}/${tone}: fond N1`).toHaveCSS('background-color', colors.expectedBackground);
+        expect(colors.foreground, `${theme}/${tone}: texte N1`).toBe(colors.expectedText);
+        await expect(tile.locator('.map-cap-select'), `${theme}/${tone}: titre N1`).toHaveCSS('color', colors.expectedText);
+        expect(colors.borderWidth).toBe('2px');
+
+        await tile.hover();
+        await expect(tile, `${theme}/${tone}: fond au survol`).toHaveCSS('background-color', colors.expectedBackground);
+      }
+    });
+  }
+
   test('colorise les N1 selon les faits évalués en présentation sans masquer les capacités', async ({ page }) => {
     await page.goto('/?view=presentation');
     const capabilities = page.locator('.mosaic-domain .cap');

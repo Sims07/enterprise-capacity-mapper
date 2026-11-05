@@ -38,7 +38,7 @@ La barre de restitution permet de choisir **Carte** (couleurs N0 habituelles), *
 - Maturité : niveau courant déclaré sur 5, avec cible affichée en indication si disponible ; pas de score calculé.
 - Écarts : affiche les signaux existants ; les teintes servent à guider la lecture et non à attribuer une criticité métier calculée.
 
-Les couleurs sont issues des tokens `--status-*` du design system (clair et sombre). La barre reste temporaire comme le switch de sortie, accessible au clavier.
+Les couleurs sont issues des tokens `--status-*` du design system (clair et sombre). Dans les deux thèmes, **le fond entier et le contour de chaque N1** reflètent son état (pas uniquement la couleur de son texte), y compris au survol ; le libellé reprend la couleur de texte contrastée du token. Le mode Carte conserve ses surfaces habituelles. La barre reste temporaire comme le switch de sortie, accessible au clavier.
 
 ## Applications rattachées (lot 2)
 
