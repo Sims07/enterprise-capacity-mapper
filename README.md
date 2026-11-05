@@ -32,6 +32,7 @@ En mode mosaïque, chaque carte dispose d’une poignée de redimensionnement di
 - cartographie TOGAF / capability mapping ;
 - intitulés des axes de matrice affichables ou masquables indépendamment ;
 - matrices larges et mosaïques optimisées pour les cartographies multi-colonnes ;
+- ajout d’un domaine N0 sur une cartographie existante, même quand la grille est complète : la création propose automatiquement une nouvelle ligne, sans modifier la carte si elle est annulée ;
 - capacités N1 et applications associées ;
 - analyse de couverture, gaps, redondances et impact ;
 - gestion des relations ;
