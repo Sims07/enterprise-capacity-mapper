@@ -39,7 +39,7 @@ import CoverageTree from './components/CoverageTree.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
-import { publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
+import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_APP_PREVIEW_LIMIT = 2;
@@ -168,10 +168,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
   const relationIds = item => item.capabilityIds || [];
   const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
-
-  useEffect(() => {
-    preferences.writeTheme(darkMode ? 'dark' : 'light');
-  }, [darkMode]);
 
   useEffect(() => {
     if (!presentation) {
@@ -309,6 +305,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
+  useEffect(() => {
+    // The presentation is read-only: only the editor writes user preferences.
+    if (isPresentationWindow) return;
+    const theme = darkMode ? 'dark' : 'light';
+    preferences.writeTheme(theme);
+    publishPresentationTheme({ sourceId: presentationSourceId.current, theme });
+  }, [darkMode, isPresentationWindow, preferences]);
+
   const updateDirectorView = (patch: Partial<PresentationViewState>) => {
     const next = { ...directorView, ...patch };
     setDirectorView(next);
@@ -362,6 +366,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         modelRef.current = latest;
         setModel(latest);
         syncHistoryState(mapService.snapshot());
+      },
+      onTheme: theme => {
+        if (isPresentationWindow) setDarkMode(theme === 'dark');
       },
       onView: view => {
         if (isPresentationWindow) {

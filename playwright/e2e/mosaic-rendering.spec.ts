@@ -720,6 +720,37 @@ test.describe('Cartographie unifiée', () => {
     await expect(page.locator('.presentation-app-preview')).toHaveCount(0);
   });
 
+  test('synchronise le thème clair/sombre dans la fenêtre de présentation sans rechargement', async ({ page, context }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.evaluate(() => localStorage.setItem('enterprise-capacity-mapper:theme', 'light'));
+    await page.reload();
+    const presentationPromise = context.waitForEvent('page');
+    await page.getByTestId('presentation-switch-toolbar').click();
+    const presentationPage = await presentationPromise;
+    await presentationPage.waitForLoadState();
+    const editor = page.locator('.app');
+    const projection = presentationPage.locator('.app');
+    const banner = presentationPage.locator('.mosaic-domain .domain-banner').first();
+    await expect(banner).toBeVisible();
+    await expect(editor).not.toHaveClass(/theme-dark/);
+    await expect(projection).not.toHaveClass(/theme-dark/);
+    const lightBannerColor = await banner.evaluate(element => getComputedStyle(element).backgroundColor);
+
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('theme-toggle').click();
+    await expect(editor).toHaveClass(/theme-dark/);
+    await expect(projection).toHaveClass(/theme-dark/);
+    await expect(banner).not.toHaveCSS('background-color', lightBannerColor);
+
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('theme-toggle').click();
+    await expect(editor).not.toHaveClass(/theme-dark/);
+    await expect(projection).not.toHaveClass(/theme-dark/);
+    await expect(banner).toHaveCSS('background-color', lightBannerColor);
+    expect(await presentationPage.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:theme'))).toBe('light');
+  });
+
   test('pilote en temps réel le mode présentation depuis la fenêtre d’édition', async ({ page, context }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
