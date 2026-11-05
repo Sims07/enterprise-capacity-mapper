@@ -8,6 +8,8 @@ export type AiQuestion = {
   /** Instructions de rôle et de style injectées dans le message système, jamais dans la question utilisateur. */
   personaInstructions?: string;
   onChunk?: (chunk: string) => void;
+  /** Ollama peut émettre un champ thinking avant content ; le montrer séparément de la réponse finale. */
+  onThinkingChunk?: (chunk: string) => void;
 };
 
 /** Outbound contract for asking the AI companion, independent of any provider. */
