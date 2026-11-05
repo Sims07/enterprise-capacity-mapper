@@ -606,17 +606,33 @@ test.describe('Cartographie unifiée', () => {
     await expect(domain.locator('.cap')).toHaveCount(4);
 
     const checkAllCapabilitiesFit = async () => {
-      const geometry = await domain.locator('.caps-list').evaluate(list => {
-        const frame = list.getBoundingClientRect();
+      const geometry = await domain.evaluate(wrapper => {
+        const map = wrapper.closest('.map-mosaic')!;
+        const card = wrapper.querySelector('.domain')!;
+        const list = wrapper.querySelector('.caps-list')!;
+        const outer = wrapper.getBoundingClientRect();
+        const inner = card.getBoundingClientRect();
+        const listFrame = list.getBoundingClientRect();
+        const mapFrame = map.getBoundingClientRect();
+        const epsilon = 1;
         return {
-          internalScroll: list.scrollHeight > list.clientHeight + 1,
+          internalScroll: list.scrollHeight > list.clientHeight + epsilon,
+          cardWithinGrid: outer.bottom <= mapFrame.bottom + epsilon,
+          cardWithinPlacement: inner.bottom <= outer.bottom + epsilon,
+          listWithinCard: listFrame.bottom <= inner.bottom + epsilon,
           visible: Array.from(list.querySelectorAll('.cap')).map(element => {
-            const card = element.getBoundingClientRect();
-            return card.height > 0 && card.top >= frame.top - 1 && card.bottom <= frame.bottom + 1;
+            const bounds = element.getBoundingClientRect();
+            return bounds.height > 0
+              && bounds.top >= listFrame.top - epsilon
+              && bounds.bottom <= listFrame.bottom + epsilon
+              && bounds.bottom <= outer.bottom + epsilon;
           }),
         };
       });
       expect(geometry.internalScroll).toBe(false);
+      expect(geometry.cardWithinGrid).toBe(true);
+      expect(geometry.cardWithinPlacement).toBe(true);
+      expect(geometry.listWithinCard).toBe(true);
       expect(geometry.visible).toEqual([true, true, true, true]);
     };
 
@@ -625,6 +641,30 @@ test.describe('Cartographie unifiée', () => {
     await domain.getByTestId('map-cap-select').first().click();
     await expect(domain.locator('.cap.impact-selected')).toHaveCount(1);
     await checkAllCapabilitiesFit();
+
+    // Les axes à huit colonnes restent compacts, mais ne doivent ni écraser
+    // les titres contre les actions ni éjecter le quatrième N1 hors de la grille.
+    await page.getByRole('button', { name: /Structure/ }).click();
+    const addColumn = page.getByRole('button', { name: /Ajouter une colonne/ });
+    for (let index = 0; index < 4; index += 1) await addColumn.click();
+    await page.getByRole('button', { name: 'Enregistrer' }).last().click();
+    await expect(page.getByTestId('capability-map').locator('.mosaic-column-heading')).toHaveCount(8);
+    await checkAllCapabilitiesFit();
+
+    const headingGeometry = await domain.evaluate(wrapper => {
+      const banner = wrapper.querySelector('.domain-banner')!;
+      const title = wrapper.querySelector('.domain-banner h3')!;
+      const actions = wrapper.querySelector('.domain-actions')!;
+      const titleBounds = title.getBoundingClientRect();
+      const actionsBounds = actions.getBoundingClientRect();
+      const bannerBounds = banner.getBoundingClientRect();
+      return {
+        actionsBelowTitle: actionsBounds.top >= titleBounds.bottom - 1,
+        titleOccupiesCardWidth: titleBounds.width >= bannerBounds.width * 0.7,
+      };
+    });
+    expect(headingGeometry.actionsBelowTitle).toBe(true);
+    expect(headingGeometry.titleOccupiesCardWidth).toBe(true);
   });
 
 
