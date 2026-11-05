@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
 import { downloadDecisionReview } from './adapters/browser/decisionReviewDownload.ts';
-import type { CapabilityAssessment } from './domain/catalogModel.ts';
+import type { CapabilityAssessment, CatalogModel } from './domain/catalogModel.ts';
 import { createFrontendApplication } from './adapters/react/architecture.ts';
 import {
   addLayoutDraftItem,
@@ -36,6 +36,8 @@ import Dashboard from './components/Dashboard.tsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
 import { publishPresentationUpdate, subscribeToPresentationUpdates } from './adapters/browser/presentationSync.ts';
+
+const LOCAL_AUTOSAVE_DELAY_MS = 450;
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
@@ -125,7 +127,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
-  const [autoSaveState, setAutoSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [autoSaveState, setAutoSaveState] = useState<'draft' | 'saving' | 'saved' | 'error'>('draft');
+  const [workingCopySaveError, setWorkingCopySaveError] = useState(false);
+  const lastSavedLocalSnapshotRef = useRef<{ id: string; json: string } | null>(null);
   const [localMaps, setLocalMaps] = useState([]);
   const [recentMaps, setRecentMaps] = useState([]);
   const [activeRecentMapId, setActiveRecentMapId] = useState(() => preferences.readActiveRecentMapId(uid('recent')));
@@ -307,41 +311,123 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     return undefined;
   }, [isPresentationWindow]);
 
-  useEffect(() => {
-    if (!isPresentationWindow) mapService.persist();
-    if (!isPresentationWindow) publishPresentationUpdate({ sourceId: presentationSourceId.current });
-    if (!isPresentationWindow && activeRecentMapId && activeRecentMapId !== '__dismissed__') {
-      repository.updateRecentMap({ id: activeRecentMapId, name: model.metadata?.name || '', model });
-      preferences.writeActiveRecentMapId(activeRecentMapId);
+  // La copie de travail permet de retrouver un brouillon après rechargement, même
+  // avant son ajout à la bibliothèque. Un échec ne doit pas faire planter React.
+  const persistWorkingCopy = () => {
+    try {
+      mapService.persist();
+      if (activeRecentMapId && activeRecentMapId !== '__dismissed__') {
+        repository.updateRecentMap({ id: activeRecentMapId, name: modelRef.current.metadata?.name || '', model: modelRef.current });
+        preferences.writeActiveRecentMapId(activeRecentMapId);
+      }
+      setWorkingCopySaveError(false);
+      return true;
+    } catch {
+      setWorkingCopySaveError(true);
+      return false;
     }
-  }, [model, activeRecentMapId]);
+  };
 
-  // Sauvegarde silencieuse des cartographies déjà présentes dans la bibliothèque locale.
-  // Le délai regroupe les rafales de changements (saisie, glisser-déposer, redimensionnement).
   useEffect(() => {
-    if (isPresentationWindow || !localMapId) {
-      setAutoSaveState('idle');
+    if (!isPresentationWindow && persistWorkingCopy()) {
+      publishPresentationUpdate({ sourceId: presentationSourceId.current });
+    }
+  }, [model, activeRecentMapId, isPresentationWindow]);
+
+  const persistLocalSnapshot = (id: string, snapshot: CatalogModel) => {
+    const current = repository.loadLocalMaps().find(entry => entry.id === id);
+    if (!current) throw new Error('La cartographie ne se trouve plus dans la bibliothèque locale.');
+    const saved = repository.saveLocalMap({ id: current.id, name: current.name, model: snapshot });
+    lastSavedLocalSnapshotRef.current = { id: saved.id, json: JSON.stringify(snapshot) };
+    setLocalMaps(entries => entries.map(entry => entry.id === saved.id ? saved : entry));
+    setAutoSaveState('saved');
+    return saved;
+  };
+
+  // Lors d'un changement de cartographie, enregistrer immédiatement la dernière
+  // modification au lieu d'annuler silencieusement le délai de regroupement.
+  const flushCurrentLocalMap = () => {
+    if (!localMapId) return true;
+    const json = JSON.stringify(modelRef.current);
+    if (lastSavedLocalSnapshotRef.current?.id === localMapId && lastSavedLocalSnapshotRef.current.json === json) return true;
+    try {
+      persistLocalSnapshot(localMapId, modelRef.current);
+      return true;
+    } catch {
+      setAutoSaveState('error');
+      notify('Sauvegarde impossible : les modifications restent ouvertes. Réessayez ou exportez en JSON avant de changer de cartographie.');
+      return false;
+    }
+  };
+
+  // Ne pas écrire à nouveau une cartographie identique. Les modifications rapides
+  // restent regroupées ; le dernier snapshot du modèle est la source de vérité.
+  useEffect(() => {
+    if (isPresentationWindow) return undefined;
+    if (!localMapId) {
+      setAutoSaveState('draft');
+      return undefined;
+    }
+    const json = JSON.stringify(model);
+    if (lastSavedLocalSnapshotRef.current?.id === localMapId && lastSavedLocalSnapshotRef.current.json === json) {
+      setAutoSaveState('saved');
+      return undefined;
+    }
+    try {
+      const current = repository.loadLocalMaps().find(entry => entry.id === localMapId);
+      if (!current) {
+        setAutoSaveState('error');
+        return undefined;
+      }
+      if (JSON.stringify(current.model) === json) {
+        lastSavedLocalSnapshotRef.current = { id: localMapId, json };
+        setAutoSaveState('saved');
+        return undefined;
+      }
+    } catch {
+      setAutoSaveState('error');
       return undefined;
     }
 
     setAutoSaveState('saving');
     const timeout = window.setTimeout(() => {
-      try {
-        const current = repository.loadLocalMaps().find(entry => entry.id === localMapId);
-        if (!current) {
-          setAutoSaveState('idle');
-          return;
-        }
-        const saved = repository.saveLocalMap({ id: current.id, name: current.name, model });
-        setLocalMaps(entries => entries.map(entry => entry.id === saved.id ? saved : entry));
+      if (lastSavedLocalSnapshotRef.current?.id === localMapId && lastSavedLocalSnapshotRef.current.json === json) {
         setAutoSaveState('saved');
+        return;
+      }
+      try {
+        persistLocalSnapshot(localMapId, model);
       } catch {
         setAutoSaveState('error');
       }
-    }, 450);
+    }, LOCAL_AUTOSAVE_DELAY_MS);
 
     return () => window.clearTimeout(timeout);
   }, [model, localMapId, isPresentationWindow]);
+
+  // Le navigateur peut fermer ou masquer l'onglet avant la fin du debounce.
+  useEffect(() => {
+    if (isPresentationWindow) return undefined;
+    const flushOnLeave = () => {
+      if (!localMapId) return;
+      const json = JSON.stringify(modelRef.current);
+      if (lastSavedLocalSnapshotRef.current?.id === localMapId && lastSavedLocalSnapshotRef.current.json === json) return;
+      try {
+        persistLocalSnapshot(localMapId, modelRef.current);
+      } catch {
+        setAutoSaveState('error');
+      }
+    };
+    const flushOnHidden = () => {
+      if (document.visibilityState === 'hidden') flushOnLeave();
+    };
+    window.addEventListener('pagehide', flushOnLeave);
+    document.addEventListener('visibilitychange', flushOnHidden);
+    return () => {
+      window.removeEventListener('pagehide', flushOnLeave);
+      document.removeEventListener('visibilitychange', flushOnHidden);
+    };
+  }, [localMapId, isPresentationWindow]);
 
   const apps = model.applications || [];
   const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
@@ -371,18 +457,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   };
   const saveCurrentLocalMap = () => {
     try {
-      const entries = repository.loadLocalMaps();
-      const current = entries.find(entry => entry.id === localMapId);
-      if (!current) {
+      if (!localMapId || !repository.loadLocalMaps().some(entry => entry.id === localMapId)) {
         setLocalMapName(modelRef.current.metadata?.name || '');
         setModal('save-local-map');
         return;
       }
-      const saved = repository.saveLocalMap({ id: current.id, name: current.name, model: modelRef.current });
-      setLocalMaps(entries.map(entry => entry.id === saved.id ? saved : entry));
-      setAutoSaveState('saved');
-      notify(`Cartographie « ${saved.name} » enregistrée localement`);
+      const saved = persistLocalSnapshot(localMapId, modelRef.current);
+      const workingCopySaved = persistWorkingCopy();
+      notify(workingCopySaved
+        ? `Cartographie « ${saved.name} » enregistrée sur cet appareil`
+        : 'Cartographie enregistrée dans la bibliothèque, mais la copie de travail n’a pas pu être mise à jour.');
     } catch (error) {
+      setAutoSaveState('error');
       notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
     }
   };
@@ -403,25 +489,39 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       const currentModel = modelRef.current;
       const savedModel = { ...currentModel, metadata: { ...currentModel.metadata, name: localMapName.trim() } };
       const saved = repository.saveLocalMap({ name: localMapName, model: savedModel });
+      lastSavedLocalSnapshotRef.current = { id: saved.id, json: JSON.stringify(savedModel) };
       commitModel(savedModel);
       setLocalMapId(saved.id);
-      preferences.writeActiveLocalMapId(saved.id);
+      setAutoSaveState('saved');
       setLocalMaps(maps => [...maps, saved]);
       setModal(null);
-      notify(`Cartographie « ${saved.name} » enregistrée localement`);
+      try {
+        preferences.writeActiveLocalMapId(saved.id);
+        notify(`Cartographie « ${saved.name} » enregistrée sur cet appareil`);
+      } catch {
+        notify('Cartographie enregistrée, mais le navigateur ne peut pas mémoriser son ouverture automatique.');
+      }
     } catch (error) {
+      setAutoSaveState('error');
       notify(`Impossible d’enregistrer la cartographie : ${error.message}`);
     }
   };
   const confirmLoadLocalMap = () => {
     if (!pendingLocalMap) return;
-    const saved = pendingLocalMap;
     try {
+      if (!flushCurrentLocalMap()) return;
+
+      // La bibliothèque peut avoir changé depuis l'affichage de la liste.
+      // Ne pas restaurer un ancien snapshot sur celui qu'on vient de sauvegarder.
+      const latestInLibrary = repository.loadLocalMaps().find(entry => entry.id === pendingLocalMap.id);
+      const saved = latestInLibrary || pendingLocalMap;
       if (!saved.model || !Array.isArray(saved.model.domains) || !Array.isArray(saved.model.capabilities)) {
         throw new Error('le modèle enregistré est incomplet ou invalide');
       }
 
-      // Le stockage de l’identifiant actif ne doit pas bloquer l’ouverture de la cartographie.
+      // Une entrée « récente » peut être un brouillon, sans sauvegarde en bibliothèque.
+      const savedInLibrary = Boolean(latestInLibrary);
+      lastSavedLocalSnapshotRef.current = savedInLibrary ? { id: saved.id, json: JSON.stringify(saved.model) } : null;
       replaceModel(saved.model);
       setSelected([]);
       setMapQuery('');
@@ -432,8 +532,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
       try {
         setActiveRecentMapId(saved.id);
-        setLocalMapId(saved.id);
-        preferences.writeActiveLocalMapId(saved.id);
+        setLocalMapId(savedInLibrary ? saved.id : '');
+        if (savedInLibrary) preferences.writeActiveLocalMapId(saved.id);
+        else preferences.clearActiveLocalMapId();
       } catch (storageError) {
         notify(`Cartographie « ${saved.name} » ouverte, mais son identifiant actif n’a pas pu être mémorisé.`);
       }
@@ -564,6 +665,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const openWizard = () => setModal('wizard');
   const closeWizard = () => setModal(null);
   const createMap = ({ name, description, layout: nextLayout, backup }) => {
+    if (!flushCurrentLocalMap()) return;
     if (backup) repository.exportModel(model);
     applyModelSnapshot(mapService.createEmptyMap({ name, description, layout: nextLayout }));
     setActiveRecentMapId(uid('recent'));
@@ -760,7 +862,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     const f = e.target.files?.[0];
     if (!f) return;
     try {
-      replaceModel(await repository.importModel(f));
+      const imported = await repository.importModel(f);
+      if (!flushCurrentLocalMap()) return;
+      replaceModel(imported);
       setActiveRecentMapId(uid('recent'));
       setLocalMapId('');
       preferences.clearActiveLocalMapId();
@@ -1112,17 +1216,35 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             </div>
           </nav>
           <div className="toolbar-actions">
-            {!isPresentationWindow && localMapId && autoSaveState !== 'idle' && (
-              <span
-                className="autosave-status"
-                data-testid="autosave-status"
-                role="status"
-                aria-live="polite"
-                title={autoSaveState === 'error' ? 'La sauvegarde automatique a échoué' : undefined}
-                style={{ fontSize: 11, color: autoSaveState === 'error' ? 'var(--color-danger, #b91c1c)' : 'var(--color-text-muted)', whiteSpace: 'nowrap' }}
+            {!isPresentationWindow && (
+              <div
+                className={`autosave-control autosave-control--${workingCopySaveError ? 'error' : autoSaveState}`}
+                data-testid="autosave-control"
+                title={workingCopySaveError || autoSaveState === 'error'
+                  ? 'Échec de l’enregistrement local. Vérifiez l’espace disponible ou les autorisations du navigateur.'
+                  : 'Conservée dans ce navigateur, pas sur un serveur. Un export JSON permet de garder une copie externe.'}
               >
-                {autoSaveState === 'saving' ? 'Enregistrement…' : autoSaveState === 'saved' ? 'Enregistré' : 'Échec de sauvegarde'}
-              </span>
+                <span className="autosave-status" data-testid="autosave-status" role="status" aria-live="polite">
+                  <span className="autosave-indicator" aria-hidden="true" />
+                  {workingCopySaveError || autoSaveState === 'error' ? 'Sauvegarde échouée'
+                    : autoSaveState === 'saving' ? 'Enregistrement…'
+                      : autoSaveState === 'saved' ? 'Enregistrée sur cet appareil' : 'Brouillon local'}
+                </span>
+                {(workingCopySaveError || autoSaveState === 'error' || !localMapId) && (
+                  <button type="button" className="autosave-action" data-testid="autosave-action" onClick={() => {
+                    if (workingCopySaveError) {
+                      const recovered = persistWorkingCopy();
+                      if (!recovered) {
+                        notify('Stockage local indisponible. Exportez votre cartographie en JSON pour la conserver.');
+                        return;
+                      }
+                    }
+                    saveCurrentLocalMap();
+                  }}>
+                    {workingCopySaveError || autoSaveState === 'error' ? 'Réessayer' : 'Enregistrer'}
+                  </button>
+                )}
+              </div>
             )}
             <div className="toolbar-history" role="group" aria-label="Historique des modifications">
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>

@@ -230,6 +230,15 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await fresh(page);
   });
 
+  test('indique le brouillon local puis sa sauvegarde sur cet appareil', async ({ page }) => {
+    await expect(page.getByTestId('autosave-status')).toHaveText('Brouillon local');
+    await page.getByTestId('autosave-action').click();
+    await page.getByTestId('local-map-name').fill('Mon brouillon');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistrée sur cet appareil');
+    await expect(page.getByTestId('autosave-action')).toHaveCount(0);
+  });
+
   test('enregistre une cartographie locale et la restaure', async ({ page }) => {
     await openTools(page);
     await page.getByTestId('save-local-map').click();
@@ -245,16 +254,22 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await page.getByTestId('save-local-map').click();
     await page.getByTestId('local-map-name').fill('Autosave Playwright');
     await page.locator('.modal').getByRole('button', { name: 'Enregistrer' }).click();
-    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistrée sur cet appareil');
 
     const capability = page.locator('.cap:visible').first();
     await capability.getByRole('button', { name: /^Renommer / }).click();
     await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
     await page.locator('.modal .field input').fill('Capacité sauvegardée automatiquement');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+    // Vérifier que la sauvegarde différée aboutit avant la sauvegarde manuelle.
+    await expect.poll(() => page.evaluate(() => {
+      const maps = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
+      return maps.find((entry: { name: string }) => entry.name === 'Autosave Playwright')
+        ?.model.capabilities[0].name;
+    })).toBe('Capacité sauvegardée automatiquement');
     await page.keyboard.press('Control+s');
-    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistré');
-    await expect(page.getByText('Cartographie « Autosave Playwright » enregistrée localement')).toBeVisible();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistrée sur cet appareil');
+    await expect(page.getByText('Cartographie « Autosave Playwright » enregistrée sur cet appareil')).toBeVisible();
 
     await expect.poll(() => page.evaluate(() => {
       const maps = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
@@ -267,6 +282,64 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' }).click();
     await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
     await expect(page.locator('.cap:visible').filter({ hasText: 'Capacité sauvegardée automatiquement' })).toBeVisible();
+  });
+
+
+  test('permet de réessayer après une erreur de sauvegarde dans le navigateur', async ({ page }) => {
+    await openTools(page);
+    await page.getByTestId('save-local-map').click();
+    await page.getByTestId('local-map-name').fill('Test reprise');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+    await page.evaluate(() => {
+      const originalSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key: string, value: string) {
+        if (key === 'enterprise-capacity-mapper:local-maps:v1' && sessionStorage.getItem('__block_save') === 'yes') {
+          throw new DOMException('Stockage saturé', 'QuotaExceededError');
+        }
+        return originalSetItem.call(this, key, value);
+      };
+      sessionStorage.setItem('__block_save', 'yes');
+    });
+    const capability = page.locator('.cap:visible').first();
+    await capability.getByRole('button', { name: /^Renommer / }).click();
+    await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
+    await page.locator('.modal .field input').fill('Modification après panne');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Sauvegarde échouée');
+    await page.evaluate(() => sessionStorage.removeItem('__block_save'));
+    await page.getByTestId('autosave-action').click();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistrée sur cet appareil');
+    await expect.poll(() => page.evaluate(() => {
+      const maps = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:local-maps:v1') || '[]');
+      return maps.find((entry: { name: string }) => entry.name === 'Test reprise')
+        ?.model.capabilities[0].name;
+    })).toBe('Modification après panne');
+  });
+
+  test('ne recharge pas une version périmée lors de l’ouverture de la cartographie active', async ({ page }) => {
+    await openTools(page);
+    await page.getByTestId('save-local-map').click();
+    await page.getByTestId('local-map-name').fill('Ouverture sécurisée');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+
+    const capability = page.locator('.cap:visible').first();
+    await capability.getByRole('button', { name: /^Renommer / }).click();
+    await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
+    await page.locator('.modal .field input').fill('Édition à conserver');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+    await page.getByTestId('primary-library').click();
+    await page.getByTestId('saved-maps-list').getByRole('button', { name: 'Ouvrir cette cartographie' }).first().click();
+    await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Édition à conserver' })).toBeVisible();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Enregistrée sur cet appareil');
+  });
+
+  test('une cartographie récente non nommée reste un brouillon', async ({ page }) => {
+    await page.getByTestId('primary-library').click();
+    await page.getByTestId('recent-maps-list').getByRole('button', { name: 'Ouvrir cette cartographie' }).first().click();
+    await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
+    await expect(page.getByTestId('autosave-status')).toHaveText('Brouillon local');
+    await expect(page.getByTestId('autosave-action')).toHaveText('Enregistrer');
   });
 
   test('importe un modèle JSON et conserve sa structure après rechargement', async ({ page }) => {

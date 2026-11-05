@@ -30,7 +30,7 @@ La stack est React + Vite + TypeScript. Les commandes de référence sont `npm r
 | Déploiement | `.github/workflows/` | Build statique, GitHub Pages, publication |
 | PWA | `public/` + `src/sw.ts` | Manifest, service worker, cache/offline |
 
-Les cartographies déjà présentes dans la bibliothèque locale sont sauvegardées automatiquement après chaque changement, avec un court délai de regroupement pour éviter les écritures répétées pendant les interactions. L'indicateur d'état reste discret dans la barre d'outils ; la sauvegarde utilise le stockage local du navigateur et fonctionne hors ligne. Le raccourci Ctrl+S (ou Cmd+S sur macOS) déclenche également une sauvegarde immédiate de la cartographie active.
+Les cartographies déjà présentes dans la bibliothèque locale sont sauvegardées automatiquement après chaque changement, avec un délai de regroupement de 450 ms pour éviter les écritures répétées. La copie de travail et l’historique récent sont également conservés localement. Le statut de la barre d’outils distingue un **brouillon local non ajouté à la bibliothèque**, une **sauvegarde en cours**, une **cartographie enregistrée sur cet appareil** et une **erreur de sauvegarde** avec action de réessai. Une modification encore en attente est sauvegardée lors du masquage/de la fermeture de l’onglet et avant le changement de cartographie ; si cette dernière écriture échoue, l’ouverture du nouveau modèle est interrompue pour ne pas écraser les modifications. Le raccourci Ctrl+S (ou Cmd+S sur macOS) permet une sauvegarde immédiate dans la bibliothèque, ou propose de nommer le brouillon. Ces données ne sont pas synchronisées avec GitHub ou un serveur : l’export JSON reste nécessaire pour conserver une sauvegarde externe.
 
 ## 3. Modèle métier invariant
 
