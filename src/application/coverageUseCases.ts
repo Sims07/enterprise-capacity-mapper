@@ -2,6 +2,7 @@
 export {
   deriveCoverageOverview,
   getCapabilityCoverageState,
+  isCurrentApplication,
   type CoverageState,
   type MappedItem,
 } from '../domain/coverage.ts';

@@ -105,3 +105,7 @@ L'import facultatif d'une cartographie de référence JSON V3 permet d'identifie
 Le panneau de revue d'architecture présente des **questions** classées par priorité métier déclarée, jamais des décisions approuvées. Un export Markdown local (.md) consolide les preuves, les questions et les limites des indicateurs. Une simulation de retrait d'application signale les capacités perdant leur dernier support actuel, celles avec moins de supports, et celles perdant un support cible ; elle ne modifie ni les applications ni leurs relations.
 
 Un JSON V3 de référence peut être sélectionné localement ou chargé depuis une URL HTTPS publique, y compris un lien GitHub `blob` converti en contenu brut. La donnée chargée reste en mémoire pendant la session, sans synchronisation ni backend.
+
+## 11. Couverture par liens applicatifs actuels
+
+Le taux de couverture **applicative actuelle** et les compteurs de gaps/redondances utilisent les applications reliées hors statut `Cible`. Une application `Cible` reste visible dans la carte, les relations et le scénario de transformation mais ne prouve pas une couverture actuelle. Une application `Obsolète` peut encore servir le métier aujourd'hui : elle reste comptée, tout en faisant l'objet d'un signal explicite. Cette couverture par liens n'est pas synonyme de couverture fonctionnelle évaluée.

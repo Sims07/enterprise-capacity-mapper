@@ -852,7 +852,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </div>
 
                   <div className="cap-meta">
-                    <span className="app-count">{coverage.count}</span>
+                    <span className="app-count" title={`${coverage.currentCount} application(s) actuelle(s), ${coverage.targetCount} cible(s)`}>{coverage.currentCount}{coverage.targetCount > 0 ? ` +${coverage.targetCount}` : ''}</span>
                   </div>
 
                   {c.description?.trim() && <p className="cap-desc">{c.description.trim()}</p>}

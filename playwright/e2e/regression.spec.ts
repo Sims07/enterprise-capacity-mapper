@@ -148,13 +148,13 @@ test.describe('Playwright regression — analysis and relations', () => {
     await page.getByTestId('tab-relations').click();
     await expect(page.locator('.tree-summary')).toContainText('2 gaps');
     await page.getByRole('button', { name: 'Relier des applications à Gestion des Prospects & Leads' }).click();
-    await page.getByTestId('link-list').getByLabel('Odoo Invoice').check();
+    await page.getByTestId('link-list').getByLabel('ADP Decidium').check();
     await page.getByTestId('link-save').click();
     const node = page.locator('.tree-node-cap').filter({ hasText: 'Gestion des Prospects & Leads' });
-    await expect(node).toContainText('Odoo Invoice');
+    await expect(node).toContainText('ADP Decidium');
     await expect(node).toContainText('Redondance');
-    await page.getByRole('button', { name: 'Retirer Odoo Invoice de Gestion des Prospects & Leads' }).click();
-    await expect(node).not.toContainText('Odoo Invoice');
+    await page.getByRole('button', { name: 'Retirer ADP Decidium de Gestion des Prospects & Leads' }).click();
+    await expect(node).not.toContainText('ADP Decidium');
   });
 
   test('conserve la sélection d’impact entre analyse, relations et cartographie', async ({ page }) => {
@@ -485,4 +485,21 @@ test.describe('Revue de décisions et scénarios de transformation', () => {
     await page.getByTestId('dashboard-view-overview').click();
     await expect(page.getByTestId('dashboard-coverage-rate')).toBeVisible();
   });
+});
+
+test('ne compte pas une application uniquement cible dans la couverture actuelle', async ({ page }) => {
+  await fresh(page);
+  await page.getByTestId('map-inventory-toggle').click();
+  const application = page.locator('.app-item').filter({ hasText: 'Salesforce CRM' });
+  await application.getByRole('button', { name: 'Modifier Salesforce CRM' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Modifier l’application' });
+  await dialog.getByLabel('Statut').selectOption('Cible');
+  await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByTestId('nav-analysis').click();
+  await expect(page.getByTestId('dashboard-gap-count')).toHaveText('3');
+  await page.getByTestId('tab-relations').click();
+  await expect(page.locator('.tree-summary')).toContainText('3 gaps');
+  const capability = page.locator('.tree-node-cap').filter({ hasText: 'Gestion des Prospects & Leads' });
+  await expect(capability).toContainText('Gap');
+  await expect(capability).toContainText('1 cible(s)');
 });

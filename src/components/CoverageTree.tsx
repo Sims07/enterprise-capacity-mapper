@@ -1,12 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { getCapabilityCoverageState, isCurrentApplication } from '../application/coverageUseCases.ts';
 
 const statusClass = status => 'badge ' + String(status || '').toLowerCase().replace('é', 'e');
-
-const coverageOf = count => count === 0
-  ? { state: 'gap', symbol: '✕', label: 'Gap' }
-  : count === 1
-    ? { state: 'ok', symbol: '✓', label: 'Couvert' }
-    : { state: 'redundant', symbol: '⇄', label: 'Redondance' };
 
 const dropOver = e => { e.preventDefault(); e.currentTarget.classList.add('drop-over'); };
 const dropOut = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-over'); };
@@ -28,7 +23,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
 
   const appsFor = id => apps.filter(a => (a.capabilityIds || []).includes(id));
   const matchesCoverage = id => {
-    const n = appsFor(id).length;
+    const n = appsFor(id).filter(isCurrentApplication).length;
     return coverage === 'all' || (coverage === 'gap' && n === 0) || (coverage === 'redundant' && n > 1);
   };
   const matchesText = item => !q
@@ -36,8 +31,8 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
     || appsFor(item.id).some(a => a.name.toLowerCase().includes(q));
 
   const targets = depth === 1 ? domains : capabilities;
-  const gapCount = targets.filter(t => appsFor(t.id).length === 0).length;
-  const redundantCount = targets.filter(t => appsFor(t.id).length > 1).length;
+  const gapCount = targets.filter(t => appsFor(t.id).filter(isCurrentApplication).length === 0).length;
+  const redundantCount = targets.filter(t => appsFor(t.id).filter(isCurrentApplication).length > 1).length;
 
   const rows = domains.map(d => {
     if (depth === 1) return { d, caps: [], visible: matchesText(d) && matchesCoverage(d.id) };
@@ -115,7 +110,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
 
   const renderTargetBody = (target, level) => {
     const linked = appsFor(target.id);
-    const cov = coverageOf(linked.length);
+    const cov = getCapabilityCoverageState(target.id, apps);
     const isOpen = !collapsed.has(target.id);
     return { linked, cov, isOpen, level };
   };
@@ -130,7 +125,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
             <span className="tree-code">{cap.code}</span>
             <span className="tree-name">{cap.name}</span>
           </button>
-          <span className={`tree-cov cov-${cov.state}`}><span aria-hidden="true">{cov.symbol}</span> {cov.label} · {linked.length}</span>
+          <span className={`tree-cov cov-${cov.state}`}><span aria-hidden="true">{cov.symbol}</span> {cov.label} · {cov.currentCount} actuelle(s){cov.targetCount > 0 ? ` + ${cov.targetCount} cible(s)` : ''}</span>
           <TargetActions target={cap} />
         </div>
         {isOpen && (
@@ -163,7 +158,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
             <span className="tree-name">{d.name}</span>
           </button>
           {isTarget
-            ? <><span className={`tree-cov cov-${cov.state}`}><span aria-hidden="true">{cov.symbol}</span> {cov.label} · {linked.length}</span><TargetActions target={d} /></>
+            ? <><span className={`tree-cov cov-${cov.state}`}><span aria-hidden="true">{cov.symbol}</span> {cov.label} · {cov.currentCount} actuelle(s){cov.targetCount > 0 ? ` + ${cov.targetCount} cible(s)` : ''}</span><TargetActions target={d} /></>
             : <span className="tree-count">{allCaps.length} N1</span>}
         </div>
         {isOpen && (
