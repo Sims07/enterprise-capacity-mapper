@@ -13,8 +13,8 @@ export const createCompanionAiAdapter = ({
   send = sendCompanionRequest,
 }: CompanionAiSettings & { send?: CompanionSender } = {}) => {
   const adapter = {
-    ask: ({ question, cartography, history = [], personaInstructions, onChunk }: AiQuestion) => send({
-      provider, model, endpoint, apiKey, question, cartography, history, personaInstructions, onChunk,
+    ask: ({ question, cartography, history = [], personaInstructions, onChunk, onThinkingChunk }: AiQuestion) => send({
+      provider, model, endpoint, apiKey, question, cartography, history, personaInstructions, onChunk, onThinkingChunk,
     }),
   } satisfies AiCompanionPort;
   return Object.freeze(adapter);
