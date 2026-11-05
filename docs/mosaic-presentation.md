@@ -29,3 +29,13 @@ Le test visuel Storybook capture les rendus paysage clair et sombre dans `playwr
 ## Robustesse des structures importées
 
 Si un domaine référence un identifiant de colonne ou de ligne absent de la structure courante (par exemple après import d'un ancien JSON ou suppression/recréation de pistes), le rendu le rattache à la première piste disponible. La présentation conserve ainsi les domaines au lieu de produire une grille vide. Les tests d'ouverture dans un nouvel onglet vérifient la présence effective des cartes et de leurs titres, pas seulement celle du conteneur.
+
+## Lecture métier colorée (lot 1)
+
+La barre de restitution permet de choisir **Carte** (couleurs N0 habituelles), **Couverture**, **Maturité** ou **Écarts**. La coloration porte sur les N1, sans écraser les couleurs de domaine ni modifier les placements. Une légende explicite les états et le gris signifie toujours « non évalué ». Le mode initial Carte conserve le rendu historique.
+
+- Couverture : uniquement l'évaluation fonctionnelle renseignée par les métiers ; la présence d'applications ne prouve pas la couverture.
+- Maturité : niveau courant déclaré sur 5, avec cible affichée en indication si disponible ; pas de score calculé.
+- Écarts : affiche les signaux existants ; les teintes servent à guider la lecture et non à attribuer une criticité métier calculée.
+
+Les couleurs sont issues des tokens `--status-*` du design system (clair et sombre). La barre reste temporaire comme le switch de sortie, accessible au clavier.

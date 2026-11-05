@@ -429,3 +429,78 @@
     transition: none;
   }
 }
+
+
+/* Lecture de présentation : couleurs d'état provenant des tokens sémantiques. */
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone] {
+  --presentation-signal-bg: var(--status-neutral-bg);
+  --presentation-signal-text: var(--status-neutral-text);
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 3px;
+  background: var(--presentation-signal-bg) !important;
+  border-color: color-mix(in srgb, var(--presentation-signal-text) 48%, var(--map-capability-border)) !important;
+  color: var(--presentation-signal-text) !important;
+}
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone="covered"] { --presentation-signal-bg: var(--status-covered-bg); --presentation-signal-text: var(--status-covered-text); }
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone="gap"] { --presentation-signal-bg: var(--status-gap-bg); --presentation-signal-text: var(--status-gap-text); }
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone="high"] { --presentation-signal-bg: var(--status-high-bg); --presentation-signal-text: var(--status-high-text); }
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone="critical"] { --presentation-signal-bg: var(--status-critical-bg); --presentation-signal-text: var(--status-critical-text); }
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone="neutral"] { --presentation-signal-bg: var(--status-neutral-bg); --presentation-signal-text: var(--status-neutral-text); }
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone] .map-cap-select,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone] .map-cap-select {
+  color: var(--presentation-signal-text) !important;
+}
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-presentation-tone]:hover {
+  background: var(--presentation-signal-bg) !important;
+  border-color: var(--presentation-signal-text) !important;
+}
+.app.mosaic-presentation-mode .presentation-cap-signal {
+  color: var(--presentation-signal-text);
+  font-size: clamp(9px, 1.5cqi, 12px);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.app.mosaic-presentation-mode .presentation-reading-controls {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
+}
+.app.mosaic-presentation-mode .presentation-reading-controls button {
+  min-height: 30px;
+  padding: 5px 9px;
+  background: transparent;
+  color: var(--map-presentation-control-text);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.app.mosaic-presentation-mode .presentation-reading-controls button.is-active {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+.app.mosaic-presentation-mode .presentation-reading-controls button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.mosaic-presentation-mode .presentation-reading-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  align-items: center;
+}
+.app.mosaic-presentation-mode .presentation-reading-legend span { display: flex; align-items: center; gap: 4px; font-size: 10px; white-space: nowrap; }
+.app.mosaic-presentation-mode .presentation-reading-legend i { width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--color-border-strong); background: var(--status-neutral-bg); }
+.app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="covered"] { background: var(--status-covered-bg); border-color: var(--status-covered-text); }
+.app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="gap"] { background: var(--status-gap-bg); border-color: var(--status-gap-text); }
+.app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="high"] { background: var(--status-high-bg); border-color: var(--status-high-text); }
+.app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="critical"] { background: var(--status-critical-bg); border-color: var(--status-critical-text); }
+.app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="neutral"] { background: var(--status-neutral-bg); border-color: var(--status-neutral-text); }
