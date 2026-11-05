@@ -543,7 +543,7 @@ test.describe('Diagnostic métier — expérience design system', () => {
     await expect(panel.getByTestId('capability-diagnostic-summary')).toContainText('À qualifier');
     await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(6);
     await panel.getByTestId('attention-show-all').click();
-    await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(18);
+    await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(10);
     await panel.getByTestId('attention-show-all').click();
     await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(6);
     const first = panel.getByTestId('capability-diagnostic-item').first();
@@ -597,7 +597,8 @@ test.describe('Diagnostic métier — expérience design system', () => {
       surfaceProbe.remove();
       return { actual: getComputedStyle(element).backgroundColor, expected };
     });
-    expect(await inspect()).toEqual(expect.objectContaining({ actual: (await inspect()).expected }));
+    const light = await inspect();
+    expect(light.actual).toBe(light.expected);
     await page.getByTestId('tools-menu-toggle').click();
     await page.getByTestId('theme-toggle').click();
     await expect(page.locator('.app.theme-dark')).toBeVisible();
@@ -627,6 +628,7 @@ test.describe('Diagnostic métier des capacités', () => {
     await fresh(page);
     await page.getByTestId('nav-analysis').click();
     await page.getByTestId('dashboard-view-attention').click();
+    await page.getByTestId('attention-reference-toggle').click();
     const reference = {
       schemaVersion: 3,
       domains: [{ id: 'r-domain', code: 'CAP-CRM', name: 'Relation & Engagement Client' }],
