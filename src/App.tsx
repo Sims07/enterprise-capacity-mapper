@@ -164,7 +164,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
   const [editingApplicationId, setEditingApplicationId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
-  const [pendingDomainLayout, setPendingDomainLayout] = useState<Layout | null>(null);
+  const [pendingDomainPlan, setPendingDomainPlan] = useState<NonNullable<ReturnType<typeof prepareNewDomainSlot>> | null>(null);
+  const [domainInsertionTarget, setDomainInsertionTarget] = useState('auto');
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
 
   const depth = model.layout?.depth === 1 ? 1 : 2;
@@ -704,8 +705,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const showColumnHeadings = layout.showColumnHeadings !== false;
   const showRowHeadings = layout.showRowHeadings !== false;
   const zones = columns.flatMap(column => layers.map(layer => layout.zones?.find(zone => zone.columnId === column.id && zone.layerId === layer.id) || { id: `${column.id}:${layer.id}`, columnId: column.id, layerId: layer.id, name: column.name }));
-  const domainFormColumns = modal === 'domain' && pendingDomainLayout?.columns?.length ? pendingDomainLayout.columns : columns;
-  const domainFormLayers = modal === 'domain' && pendingDomainLayout?.layers?.length ? pendingDomainLayout.layers : layers;
+  const domainFormColumns = modal === 'domain' && pendingDomainPlan?.layout.columns?.length ? pendingDomainPlan.layout.columns : columns;
+  const domainFormLayers = modal === 'domain' && pendingDomainPlan?.layout.layers?.length ? pendingDomainPlan.layout.layers : layers;
+  const insertingN0 = modal === 'domain' && domainInsertionTarget !== 'auto';
 
   const openLayoutEditor = () => {
     setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })), showColumnHeadings, showRowHeadings });
@@ -747,7 +749,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   };
 
   const placementAvailable = (domainId, columnId, layerId, columnSpan) => isDomainPlacementAvailable({
-    domains: model.domains,
+    domains: modal === 'domain' && pendingDomainPlan ? pendingDomainPlan.domains : model.domains,
     columns: domainFormColumns,
     layers: domainFormLayers,
     domainId,
@@ -795,20 +797,23 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     update(patch);
   };
 
-  const openNew = (kind, parent = null, place = null) => {
-    const domainPlan = kind === 'domain' && !place
-      ? prepareNewDomainSlot({ layout, domains: model.domains, newLayerId: uid('layer') })
+  const openNew = (kind, parent = null, place = null, beforeDomainId = null) => {
+    const domainPlan = kind === 'domain'
+      ? (place
+        ? { layout, domains: model.domains, placement: place, expanded: false, shiftedCount: 0 }
+        : prepareNewDomainSlot({ layout, domains: model.domains, newLayerId: uid('layer'), beforeDomainId: beforeDomainId || undefined }))
       : null;
-    if (kind === 'domain' && !place && !domainPlan) {
-      notify('Ajoutez une colonne et une ligne dans Structure avant de créer un domaine.');
+    if (kind === 'domain' && !domainPlan) {
+      notify('Impossible de préparer la position de ce domaine dans la cartographie.');
       return;
     }
-    setPendingDomainLayout(domainPlan?.expanded ? domainPlan.layout : null);
+    setPendingDomainPlan(domainPlan);
+    setDomainInsertionTarget(beforeDomainId || 'auto');
     setEditingDomainId(null);
     setEditingCapabilityId(null);
     setFormErrors({});
     const defaultDomain = parent || (model.domains[0]?.id || '');
-    const initialPlace = place || domainPlan?.placement;
+    const initialPlace = domainPlan?.placement || place;
     setForm({
       ...emptyForm,
       domainId: defaultDomain,
@@ -818,6 +823,23 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       columnSpan: '1'
     });
     setModal(kind);
+  };
+
+  const chooseDomainInsertion = (beforeDomainId: string) => {
+    const plan = prepareNewDomainSlot({
+      layout, domains: model.domains, newLayerId: uid('layer'),
+      beforeDomainId: beforeDomainId === 'auto' ? undefined : beforeDomainId,
+    });
+    if (!plan) {
+      notify('Impossible d’insérer ce domaine à cet emplacement.');
+      return;
+    }
+    setPendingDomainPlan(plan);
+    setDomainInsertionTarget(beforeDomainId);
+    setForm(current => ({
+      ...current, columnId: plan.placement.columnId, layerId: plan.placement.layerId, columnSpan: '1',
+    }));
+    setFormErrors({});
   };
 
   const openEditDomain = d => {
@@ -868,14 +890,16 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
     setFormErrors({});
     if (modal === 'domain') {
-      const creationLayout = pendingDomainLayout || layout;
+      const creationLayout = pendingDomainPlan?.layout || layout;
       update({
-        ...(pendingDomainLayout ? { layout: pendingDomainLayout } : {}),
-        domains: createDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: creationLayout, form, id: uid('l0'), defaultColumnId: domainFormColumns[0].id, defaultLayerId: domainFormLayers[0].id, resolveColor: resolveDomainColor }),
+        ...(pendingDomainPlan?.expanded ? { layout: creationLayout } : {}),
+        domains: createDomain({ domains: pendingDomainPlan?.domains || model.domains, capabilities: model.capabilities, applications: apps, layout: creationLayout, form, id: uid('l0'), defaultColumnId: domainFormColumns[0].id, defaultLayerId: domainFormLayers[0].id, resolveColor: resolveDomainColor }),
       });
-      setPendingDomainLayout(null);
+      setPendingDomainPlan(null);
       setMapQuery('');
-      notify(pendingDomainLayout ? 'Domaine N0 créé · ligne ajoutée' : 'Domaine N0 créé');
+      notify(pendingDomainPlan?.shiftedCount
+        ? `Domaine N0 inséré · ${pendingDomainPlan.shiftedCount} domaine(s) repositionné(s)`
+        : pendingDomainPlan?.expanded ? 'Domaine N0 créé · ligne ajoutée' : 'Domaine N0 créé');
     }
     if (modal === 'edit-domain') {
       update({ domains: updateDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
@@ -1578,7 +1602,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   <span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span>
                 </div>
                 <div className="canvas-actions">
-                  <button type="button" className="secondary" data-testid="map-add-domain" title="Créer un domaine N0 ; si la grille est pleine, une ligne sera ajoutée" onClick={() => openNew('domain')}>＋ Domaine N0</button>
+                  <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
                   <button type="button" className="secondary" data-testid="map-inventory-toggle" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer les applications' : `Applications (${apps.length})`}</button>
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
@@ -1711,7 +1735,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         >
           {contextMenu.type === 'domain' && (
             <>
-              {depth === 2 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('capability', contextMenu.item.id); }}>＋ Ajouter N1</button>}
+              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('domain', null, null, contextMenu.item.id); }}>＋ Insérer N0 avant</button>
+              {depth === 2 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('capability', contextMenu.item.id); }}>＋ Ajouter N1</button>
               {depth === 1 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>}
               <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditDomain(contextMenu.item); }}>Modifier</button>
               <button type="button" className="danger" onClick={e => { e.stopPropagation(); closeContextMenu(); removeDomain(contextMenu.item.id); }}>Supprimer</button>
@@ -1860,7 +1885,17 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           onClose={() => setModal(null)}
         >
           {(modal === 'domain' || modal === 'edit-domain') && <div className="field-guidance"><b>N0 — Domaine métier</b><span>Regroupe un ensemble large de capacités.</span></div>}
-          {modal === 'domain' && pendingDomainLayout && <p className="structure-hint" data-testid="domain-auto-expand-hint">La grille est complète. Une nouvelle ligne sera ajoutée à la cartographie uniquement lorsque vous créerez ce domaine. Vous pourrez la renommer dans Structure.</p>}
+          {modal === 'domain' && (
+            <label className="field">
+              <span>Position du domaine N0</span>
+              <select data-testid="domain-insertion-target" value={domainInsertionTarget} onChange={event => chooseDomainInsertion(event.target.value)}>
+                <option value="auto">Première zone libre (nouvelle ligne si nécessaire)</option>
+                {model.domains.map(domain => <option key={domain.id} value={domain.id}>Insérer avant « {domain.name} »</option>)}
+              </select>
+            </label>
+          )}
+          {modal === 'domain' && pendingDomainPlan?.expanded && <p className="structure-hint" data-testid="domain-auto-expand-hint">L’espace actuel ne suffit pas. {domainInsertionTarget === 'auto' ? 'Une nouvelle ligne sera ajoutée.' : 'Les domaines suivants seront décalés et une ligne supplémentaire sera créée.'} La carte ne change que lorsque vous confirmez la création.</p>}
+          {insertingN0 && <p className="structure-hint" data-testid="domain-insertion-hint">Les domaines sont réorganisés à partir de cette position, sans changer leurs capacités ou applications. La position est calculée automatiquement.</p>}
           {(modal === 'capability' || modal === 'edit-capability') && <div className="field-guidance"><b>N1 — Capacité</b><span>Décrit ce que l’entreprise sait faire.</span></div>}
           {modal === 'edit-capability' && (
             <div className="capability-sheet-context" data-testid="capability-sheet-context">
@@ -1889,19 +1924,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 <>
                   <label className="field">
                     <span>Colonne</span>
-                    <select value={form.columnId} onChange={e => setForm({ ...form, columnId: e.target.value })}>
+                    <select value={form.columnId} disabled={insertingN0} onChange={e => setForm({ ...form, columnId: e.target.value })}>
                       {domainFormColumns.map(c => <option value={c.id} key={c.id}>{c.name}</option>)}
                     </select>
                   </label>
                   <label className="field">
                     <span>Ligne (layer)</span>
-                    <select value={form.layerId} onChange={e => setForm({ ...form, layerId: e.target.value })}>
+                    <select value={form.layerId} disabled={insertingN0} onChange={e => setForm({ ...form, layerId: e.target.value })}>
                       {domainFormLayers.map(l => <option value={l.id} key={l.id}>{l.name}</option>)}
                     </select>
                   </label>
                   <label className={'field ' + (formErrors.columnSpan ? 'has-error' : '')}>
                     <span>Étendue sur les colonnes</span>
-                    <select value={form.columnSpan} onChange={e => setForm({ ...form, columnSpan: e.target.value })}>
+                    <select value={form.columnSpan} disabled={insertingN0} onChange={e => setForm({ ...form, columnSpan: e.target.value })}>
                       {domainFormColumns.slice(Math.max(0, domainFormColumns.findIndex(c => c.id === form.columnId))).map((c, i) => (
                         <option key={c.id} value={i + 1}>{i + 1} colonne{i ? 's' : ''}</option>
                       ))}
