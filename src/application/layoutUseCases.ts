@@ -65,38 +65,130 @@ export const isDomainPlacementAvailable = ({
 });
 
 /**
- * Plans the first unoccupied N0 cell without modifying the active map.
- * When the current grid is full, a new row is staged and must be committed
- * together with the domain. Cancelling the dialog leaves the map unchanged.
+ * Prepares adding a N0 without editing the existing cartography until Save.
+ *
+ * With beforeDomainId, this is an insertion in visual reading order, not a
+ * legacy matrix placement: existing N0 after the insertion move to the next
+ * available cells, preserving their spans and all other domain properties.
+ * Earlier N0 stay in place. Extra rows are created only when required.
  */
 export const prepareNewDomainSlot = ({
-  layout, domains, newLayerId,
+  layout, domains, newLayerId, beforeDomainId,
 }: {
   layout: Layout;
   domains: Domain[];
   newLayerId: string;
-}): { layout: Layout; placement: { columnId: string; layerId: string }; expanded: boolean } | null => {
+  beforeDomainId?: string;
+}): {
+  layout: Layout;
+  domains: Domain[];
+  placement: { columnId: string; layerId: string };
+  expanded: boolean;
+  shiftedCount: number;
+} | null => {
   const columns = layout.columns || [];
   const layers = layout.layers || [];
   if (!columns.length || !layers.length) return null;
 
-  const placement = columns.flatMap(column => layers.map(layer => ({
+  const available = (currentDomains: Domain[], columnId: string, layerId: string, candidateColumns = columns, candidateLayers = layers, columnSpan = 1, rowSpan = 1) =>
+    isDomainPlacementAvailable({
+      domains: currentDomains, columns: candidateColumns, layers: candidateLayers,
+      columnId, layerId, columnSpan, rowSpan, allowExactOverlap: false,
+    });
+
+  const firstFree = columns.flatMap(column => layers.map(layer => ({
     columnId: column.id,
     layerId: layer.id,
-  }))).find(candidate => isDomainPlacementAvailable({
-    domains, columns, layers, ...candidate,
-    columnSpan: 1, rowSpan: 1, allowExactOverlap: false,
-  }));
-  if (placement) return { layout, placement, expanded: false };
+  }))).find(candidate => available(domains, candidate.columnId, candidate.layerId));
 
-  const draft = MapLayout.fromDraft({ columns, layers, zones: layout.zones || [] })
-    .addItem('layers', newLayerId)
-    .renameItem('layers', newLayerId, `Ligne ${layers.length + 1}`)
-    .toDraft();
+  if (!beforeDomainId) {
+    if (firstFree) return { layout, domains, placement: firstFree, expanded: false, shiftedCount: 0 };
+    const draft = MapLayout.fromDraft({ columns, layers, zones: layout.zones || [] })
+      .addItem('layers', newLayerId)
+      .renameItem('layers', newLayerId, `Ligne ${layers.length + 1}`)
+      .toDraft();
+    return {
+      layout: { ...layout, columns: draft.columns, layers: draft.layers, zones: draft.zones },
+      domains,
+      placement: { columnId: columns[0].id, layerId: newLayerId },
+      expanded: true,
+      shiftedCount: 0,
+    };
+  }
+
+  const coordinate = (domain: Domain) => {
+    const column = columns.findIndex(item => item.id === (domain.layout?.columnId || columns[0].id));
+    const layer = layers.findIndex(item => item.id === (domain.layout?.layerId || layers[0].id));
+    return { column, layer, offset: layer * columns.length + column };
+  };
+  const ordered = domains.map((domain, index) => ({ domain, index, ...coordinate(domain) }))
+    .sort((a, b) => a.offset - b.offset || a.index - b.index);
+  const insertionIndex = ordered.findIndex(item => item.domain.id === beforeDomainId);
+  if (insertionIndex < 0) return null;
+  if (ordered.some(item => item.column < 0 || item.layer < 0)) return null;
+
+  const original = ordered[insertionIndex];
+  const placed = ordered.slice(0, insertionIndex).map(item => item.domain);
+  const repositioned = new Map<string, Domain>();
+  let workingLayout = layout;
+  let workingLayers = layers;
+  let nextOffset = original.offset;
+  const pendingId = `${newLayerId}:pending-n0`;
+  let placement: { columnId: string; layerId: string } | null = null;
+  let shiftedCount = 0;
+
+  const toInsert = [
+    { domain: { id: pendingId, layout: { columnSpan: 1, rowSpan: 1 } }, offset: original.offset, pending: true },
+    ...ordered.slice(insertionIndex).map(item => ({ domain: item.domain, offset: item.offset, pending: false })),
+  ];
+  for (const item of toInsert) {
+    const width = Number(item.domain.layout?.columnSpan ?? 1);
+    const height = Number(item.domain.layout?.rowSpan ?? 1);
+    if (!Number.isInteger(width) || width < 1 || width > columns.length || !Number.isInteger(height) || height < 1) return null;
+
+    let candidateOffset = Math.max(nextOffset, item.offset);
+    // Each candidate moves forward through the visual grid. An extra row is
+    // appended when the next placement would exceed the existing layout.
+    while (true) {
+      const columnIndex = candidateOffset % columns.length;
+      const layerIndex = Math.floor(candidateOffset / columns.length);
+      while (workingLayers.length < layerIndex + height) {
+        const layerId = `${newLayerId}-${workingLayers.length - layers.length}`;
+        const draft = MapLayout.fromDraft({
+          columns, layers: workingLayers, zones: workingLayout.zones || [],
+        }).addItem('layers', layerId)
+          .renameItem('layers', layerId, `Ligne ${workingLayers.length + 1}`)
+          .toDraft();
+        workingLayers = draft.layers;
+        workingLayout = { ...workingLayout, columns: draft.columns, layers: draft.layers, zones: draft.zones };
+      }
+      const candidateColumnId = columns[columnIndex].id;
+      const candidateLayerId = workingLayers[layerIndex].id;
+      if (available(placed, candidateColumnId, candidateLayerId, columns, workingLayers, width, height)) {
+        const newDomain = {
+          ...item.domain,
+          layout: { ...(item.domain.layout || {}), columnId: candidateColumnId, layerId: candidateLayerId },
+        };
+        placed.push(newDomain);
+        if (item.pending) placement = { columnId: candidateColumnId, layerId: candidateLayerId };
+        else {
+          repositioned.set(item.domain.id, newDomain);
+          if (coordinate(item.domain).offset !== candidateOffset) shiftedCount += 1;
+        }
+        nextOffset = candidateOffset + 1;
+        break;
+      }
+      candidateOffset += 1;
+    }
+  }
+
+  if (!placement) return null;
   return {
-    layout: { ...layout, columns: draft.columns, layers: draft.layers, zones: draft.zones },
-    placement: { columnId: columns[0].id, layerId: newLayerId },
-    expanded: true,
+    layout: workingLayout,
+    domains: domains.map(domain => repositioned.get(domain.id) || domain),
+    placement,
+    expanded: workingLayers.length > layers.length,
+    shiftedCount,
   };
 };
 
