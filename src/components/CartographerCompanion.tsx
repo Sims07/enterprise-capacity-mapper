@@ -770,7 +770,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   );
 
   return (
-    <div className={`companion-root${darkMode ? ' companion-dark' : ''}`}>
+    <div className={`companion-root${darkMode ? ' companion-dark theme-dark' : ''}`}>
       {open && (
         <section
           id="companion-panel"
@@ -982,7 +982,6 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
       >
         <span className="companion-launcher-icon" aria-hidden="true">{open ? '×' : <MascotIcon kind={mascot} className="companion-launcher-mascot" />}</span>
         <span>{open ? 'Fermer' : 'Compagnon'}</span>
-        {!open && <span className="companion-launcher-status" aria-hidden="true" />}
       </button>
     </div>
   );
