@@ -516,6 +516,8 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
         mascot: primaryMascot,
         duoMode,
         duoAnswer: '',
+        thinking: '',
+        duoThinking: '',
         duoStatus: null,
         status: 'streaming',
       }]);
@@ -530,6 +532,9 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           personaInstructions: MASCOT_PERSONALITIES[primaryMascot].style,
           onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
             ? { ...exchange, answer: exchange.answer + chunk }
+            : exchange)),
+          onThinkingChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+            ? { ...exchange, thinking: exchange.thinking + chunk }
             : exchange)),
         });
         const validated = validateGeneratedReferences(answer || '', model);
@@ -553,6 +558,9 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             onChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
               ? { ...exchange, duoAnswer: exchange.duoAnswer + chunk }
               : exchange)),
+            onThinkingChunk: chunk => setHistory(previous => previous.map(exchange => exchange.id === exchangeId
+              ? { ...exchange, duoThinking: exchange.duoThinking + chunk }
+              : exchange)),
           });
           const validatedOctopus = validateGeneratedReferences(octopusAnswer || '', model);
           setHistory(previous => previous.map(exchange => exchange.id === exchangeId
@@ -571,8 +579,13 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
           ? {
               ...exchange,
               ...(exchange.status === 'duo-follow-up'
-                ? { duoAnswer: `Octave n’a pas pu terminer son analyse complémentaire. ${error.message}`, duoStatus: null, status: null }
-                : { answer: `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`, source: 'error', status: null }),
+                ? { duoAnswer: exchange.duoAnswer
+                    ? `${exchange.duoAnswer}\n\nAnalyse complémentaire interrompue : ${error.message}`
+                    : `Octave n’a pas pu terminer son analyse complémentaire. ${error.message}`, duoStatus: null, status: null }
+                : { answer: exchange.answer
+                    ? `${exchange.answer}\n\nRéponse interrompue : ${error.message}`
+                    : `Je n’ai pas pu obtenir de réponse du fournisseur sélectionné. ${error.message}`,
+                    partialResponse: Boolean(exchange.answer), source: 'error', status: null }),
             }
           : exchange));
       } finally {
@@ -636,6 +649,14 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                 <p className="companion-answer-meta">{exchange.status === 'streaming' || exchange.status === 'duo-follow-up' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
               </div>
             </div>
+            {exchange.thinking && (
+              <details className="companion-model-thinking" open={exchange.status === 'streaming'} data-testid="companion-thinking-details">
+                <summary>Réflexion transmise par le modèle{exchange.status === 'streaming' ? ' · en cours' : ''}</summary>
+                <div className="companion-model-thinking-content">
+                  <FormattedAnswer text={exchange.thinking} testId="companion-thinking-content" />
+                </div>
+              </details>
+            )}
             {exchange.status === 'streaming' && !exchange.answer ? (
               <p className="companion-thinking" role="status" data-testid="companion-thinking">
                 <span className="companion-thinking-indicator" aria-hidden="true" />
@@ -656,6 +677,14 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                     <p className="companion-answer-meta">{exchange.duoStatus === 'streaming' ? 'Réaction à Rico en cours…' : 'Réaction complémentaire'}</p>
                   </div>
                 </div>
+                {exchange.duoThinking && (
+                  <details className="companion-model-thinking" open={exchange.duoStatus === 'streaming'} data-testid="companion-duo-thinking-details">
+                    <summary>Réflexion transmise par Octave{exchange.duoStatus === 'streaming' ? ' · en cours' : ''}</summary>
+                    <div className="companion-model-thinking-content">
+                      <FormattedAnswer text={exchange.duoThinking} testId="companion-duo-thinking-content" />
+                    </div>
+                  </details>
+                )}
                 {exchange.duoStatus === 'streaming' && !exchange.duoAnswer
                   ? <p className="companion-thinking" role="status">Octave réagit à la réponse de Rico…</p>
                   : <FormattedAnswer text={exchange.duoAnswer} testId="companion-duo-answer" />}
@@ -761,7 +790,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
             ) : exchange.source === 'local' ? (
               <p className="companion-no-findings">Aucun constat n’a été relevé par cette revue.</p>
             ) : null}
-            {exchange.status !== 'streaming' && <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.' : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>}
+            {exchange.status !== 'streaming' && <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? (exchange.partialResponse ? 'Réponse incomplète : seuls les fragments déjà reçus sont affichés. Tu peux réessayer.' : 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.') : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>}
           </div>
           {index < history.length - 1 && <div className="companion-exchange-divider" aria-hidden="true" />}
         </article>
