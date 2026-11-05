@@ -698,7 +698,6 @@ test.describe('Cartographie unifiée', () => {
           probe.remove();
           const actual = getComputedStyle(element);
           return {
-            background: actual.backgroundColor,
             foreground: actual.color,
             title: getComputedStyle(element.querySelector('.map-cap-select')!).color,
             borderWidth: actual.borderTopWidth,
@@ -706,7 +705,9 @@ test.describe('Cartographie unifiée', () => {
             expectedText,
           };
         });
-        expect(colors.background, `${theme}/${tone}: fond N1`).toBe(colors.expectedBackground);
+        // Le changement de tonalité anime background-color : attendre la
+        // couleur finale évite d'asserter une image intermédiaire de la transition.
+        await expect(tile, `${theme}/${tone}: fond N1`).toHaveCSS('background-color', colors.expectedBackground);
         expect(colors.foreground, `${theme}/${tone}: texte N1`).toBe(colors.expectedText);
         expect(colors.title, `${theme}/${tone}: titre N1`).toBe(colors.expectedText);
         expect(colors.borderWidth).toBe('2px');
