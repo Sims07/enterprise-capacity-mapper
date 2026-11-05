@@ -231,7 +231,7 @@
 }
 
 .companion-root .companion-guided-section .companion-prompt {
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-card);
 }
 
 .companion-root .companion-assistant-message,
