@@ -699,7 +699,6 @@ test.describe('Cartographie unifiée', () => {
           const actual = getComputedStyle(element);
           return {
             foreground: actual.color,
-            title: getComputedStyle(element.querySelector('.map-cap-select')!).color,
             borderWidth: actual.borderTopWidth,
             expectedBackground,
             expectedText,
@@ -709,7 +708,7 @@ test.describe('Cartographie unifiée', () => {
         // couleur finale évite d'asserter une image intermédiaire de la transition.
         await expect(tile, `${theme}/${tone}: fond N1`).toHaveCSS('background-color', colors.expectedBackground);
         expect(colors.foreground, `${theme}/${tone}: texte N1`).toBe(colors.expectedText);
-        expect(colors.title, `${theme}/${tone}: titre N1`).toBe(colors.expectedText);
+        await expect(tile.locator('.map-cap-select'), `${theme}/${tone}: titre N1`).toHaveCSS('color', colors.expectedText);
         expect(colors.borderWidth).toBe('2px');
 
         await tile.hover();
