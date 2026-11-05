@@ -80,3 +80,12 @@ L'objectif n'est pas de transformer l'application en formation TOGAF : les expli
 Toute nouvelle fonctionnalité qui introduit un concept d'architecture doit fournir une explication contextuelle pour un utilisateur non expert et, lorsque pertinent, un exemple de nommage.
 
 Toute modification des conventions doit mettre à jour ce document et l'aide contextuelle correspondante dans l'interface.
+
+## 8. Évaluation métier d'une capacité N1 (facultative)
+
+Une capacité peut maintenant porter `assessment` dans le même JSON V3, sans migration destructive :
+- `functionalCoverage` : `unknown` (défaut), `none`, `partial`, `sufficient` ;
+- `currentMaturity` et `targetMaturity` : niveaux définis explicitement sur une échelle de 1 à 5, facultatifs ;
+- `rationale` : justification factuelle de l'évaluation.
+
+Les champs absents restent **non évalués**. Aucun nombre d'applications reliées ne doit déterminer automatiquement la maturité ou la qualité de couverture. La priorité P1/P2/P3 reste un indicateur différent de la maturité. Les données N0-only ne reçoivent pas automatiquement d'évaluations N1 fictives.

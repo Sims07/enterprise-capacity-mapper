@@ -1,4 +1,5 @@
 import type { Application, Capability, CatalogModel, Domain } from './catalogModel.ts';
+import { validateCapabilityAssessment } from './capabilityAssessment.ts';
 
 const normalizedName = (name: string): string => name.trim();
 const cloneValue = <T>(value: T): T => {
@@ -56,16 +57,18 @@ export class Catalog {
     const name = Catalog.requireName(capability.name, 'Le nom de la capacité est obligatoire.');
     this.requireDomain(capability.domainId);
     Catalog.requireUniqueId(this.model.capabilities, capability.id, 'capacité');
+    if (capability.assessment !== undefined) validateCapabilityAssessment(capability.assessment);
     return this.with({ capabilities: [...this.model.capabilities, { ...capability, name }] });
   }
 
-  updateCapability(capabilityId: string, changes: Partial<Pick<Capability, 'domainId' | 'code' | 'name' | 'description' | 'priority'>>): Catalog {
+  updateCapability(capabilityId: string, changes: Partial<Pick<Capability, 'domainId' | 'code' | 'name' | 'description' | 'priority' | 'assessment'>>): Catalog {
     const current = this.requireCapability(capabilityId);
     const domainId = changes.domainId || current.domainId;
     this.requireDomain(domainId);
     const name = changes.name === undefined
       ? current.name
       : Catalog.requireName(changes.name, 'Le nom de la capacité est obligatoire.');
+    if (changes.assessment !== undefined) validateCapabilityAssessment(changes.assessment);
     return this.with({
       capabilities: this.model.capabilities.map(capability => capability.id === capabilityId
         ? { ...capability, ...changes, id: capability.id, domainId, name }
