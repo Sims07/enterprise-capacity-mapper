@@ -612,6 +612,13 @@
   outline-offset: var(--focus-ring-offset);
 }
 @media (max-width: 720px) {
-  .autosave-control { flex-wrap: wrap; max-width: 100%; }
+  .toolbar-actions { flex-wrap: wrap; }
+  .autosave-control {
+    order: 2;
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
   .autosave-status { white-space: normal; }
 }
