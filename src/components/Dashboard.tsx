@@ -7,6 +7,8 @@ const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18',
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
 const linksFor = (app, targetId) => (app.capabilityIds || []).includes(targetId);
 const coverageState = count => count === 0 ? 'gap' : count === 1 ? 'covered' : 'redundant';
+const ATTENTION_PREVIEW_LIMIT = 6;
+const REVIEW_PREVIEW_LIMIT = 4;
 const resetDashboardScroll = () => {
   window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   document.querySelectorAll('main, [data-scroll-container]').forEach(node => {
@@ -30,6 +32,10 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const [referenceUrl, setReferenceUrl] = useState('');
   const [referenceLoading, setReferenceLoading] = useState(false);
   const [retirementApplicationId, setRetirementApplicationId] = useState('');
+  const [attentionFilter, setAttentionFilter] = useState<'signals' | 'qualification'>('signals');
+  const [showAllFindings, setShowAllFindings] = useState(false);
+  const [showAllReviewItems, setShowAllReviewItems] = useState(false);
+  const [referenceToolsOpen, setReferenceToolsOpen] = useState(false);
   const decisionReview = useMemo(() => createDecisionReview(model, capabilityReference), [model, capabilityReference]);
   const retirementScenario = useMemo(() => retirementApplicationId ? simulateApplicationRetirement(model, retirementApplicationId) : null, [model, retirementApplicationId]);
   const loadReferenceUrl = async () => {
@@ -49,6 +55,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   };
   const diagnostics = useMemo(() => analyzeCapabilityGaps(model), [model]);
   const diagnosedGaps = diagnostics.filter(finding => finding.signals.length > 0);
+  const unqualifiedCapabilities = diagnostics.filter(finding => finding.needsQualification);
+  const attentionItems = attentionFilter === 'signals' ? diagnosedGaps : unqualifiedCapabilities;
+  const visibleAttentionItems = showAllFindings ? attentionItems : attentionItems.slice(0, ATTENTION_PREVIEW_LIMIT);
   const expectedMissing = useMemo(() => capabilityReference ? findMissingReferenceCapabilities(model, capabilityReference) : [], [model, capabilityReference]);
   const importReference = async event => {
     const file = event.target.files?.[0];
@@ -61,6 +70,10 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
     } finally {
       event.target.value = '';
     }
+  };
+  const selectAttentionFilter = (filter: 'signals' | 'qualification') => {
+    setAttentionFilter(filter);
+    setShowAllFindings(false);
   };
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [activeView, setActiveView] = useState(() => {
@@ -403,101 +416,229 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
       </section>}
 
       {activeView === 'attention' && (
-        <section className="dashboard-panel" data-testid="capability-diagnostic" aria-label="Diagnostic des écarts de capacités">
-          <div className="dashboard-panel-heading">
-            <div><h3>Diagnostic métier des capacités</h3><p>Écarts déclarés et points à confirmer, sans scores automatiques. Une application cible ne constitue pas une couverture actuelle.</p></div>
-            <span>{depth === 1 ? 'Vue N0' : diagnosedGaps.length + ' capacité(s) à examiner'}</span>
+        <section className="dashboard-panel dashboard-attention" data-testid="capability-diagnostic" aria-label="Diagnostic des écarts de capacités">
+          <div className="attention-section-heading">
+            <div className="attention-heading-copy">
+              <span className="attention-eyebrow">DIAGNOSTIC MÉTIER · N1</span>
+              <h2>Points d’attention</h2>
+              <p>Identifiez ce qui mérite une vérification métier. Les signaux proviennent des données déclarées, pas d’un score automatique.</p>
+            </div>
+            <span className="attention-section-icon" aria-hidden="true">◎</span>
           </div>
           {depth === 1 ? (
-            <p>Le diagnostic détaillé nécessite une cartographie à deux niveaux (N0 et N1).</p>
+            <div className="attention-empty">Cette analyse détaillée nécessite une cartographie à deux niveaux (N0 et N1).</div>
           ) : (
             <>
-              <p data-testid="capability-diagnostic-summary">{diagnosedGaps.length} capacités avec un signal, {diagnostics.filter(finding => finding.needsQualification).length} à qualifier sur la couverture fonctionnelle.</p>
-              {diagnosedGaps.length ? <div className="dashboard-target-list">
-                {diagnosedGaps.slice(0, 8).map(finding => (
-                  <article className="capability-diagnostic-item" data-testid="capability-diagnostic-item" key={finding.id}>
-                    <div className="capability-diagnostic-facts">
-                      <strong>{finding.name}</strong>
-                      <span>{finding.signals.map(signal => signal.description).join(' · ')}</span>
-                      <small>{finding.currentApplications.length} application(s) actuelle(s) · {finding.targetApplications.length} cible(s)</small>
-                      {finding.needsQualification && <small>Couverture fonctionnelle à qualifier</small>}
-                    </div>
-                    <div className="capability-diagnostic-actions">
-                      <button type="button" className="capability-diagnostic-edit" data-testid="capability-diagnostic-edit"
-                        onClick={() => onEditCapability?.(finding.id)}>
-                        {finding.needsQualification ? 'Qualifier la capacité' : 'Modifier l’évaluation'}
-                      </button>
-                      <button type="button" className="capability-diagnostic-map" data-testid="capability-diagnostic-map"
-                        onClick={() => onShowOnMap?.(finding.id)}>Voir sur la carte</button>
-                      <button type="button" className="capability-diagnostic-relations" onClick={() => onExploreTarget(finding.id)}>Relations</button>
-                    </div>
-                  </article>
-                ))}
-                {diagnosedGaps.length > 8 && <p>+ {diagnosedGaps.length - 8} autres capacités à examiner</p>}
-              </div> : <p>Aucun écart déclaré ou absence d'application actuelle détecté. Les évaluations inconnues restent à qualifier.</p>}
-              <div className="field">
-                <label htmlFor="capability-reference-import">Comparer à une cartographie de référence JSON V3</label>
-                <input id="capability-reference-import" data-testid="capability-reference-import" type="file" accept=".json,application/json" onChange={importReference} />
-                <small>Le fichier de référence est lu localement, validé et ne remplace pas la cartographie active. Correspondances par codes ou noms normalisés dans un même domaine.</small>
-              </div>
-              <div className="field">
-                <label htmlFor="capability-reference-url">Ou charger un JSON de référence depuis un dépôt GitHub public</label>
-                <input id="capability-reference-url" data-testid="capability-reference-url" type="url" value={referenceUrl}
-                  onChange={event => setReferenceUrl(event.target.value)} placeholder="https://github.com/…/blob/main/reference.json" />
-                <button type="button" className="secondary" data-testid="capability-reference-load-url" disabled={referenceLoading} onClick={loadReferenceUrl}>
-                  {referenceLoading ? 'Chargement…' : 'Charger la référence'}
+              <div className="attention-metrics" data-testid="capability-diagnostic-summary">
+                <button type="button" data-testid="attention-filter-signals" aria-pressed={attentionFilter === 'signals'}
+                  className={`attention-metric is-signals${attentionFilter === 'signals' ? ' is-active' : ''}`}
+                  onClick={() => selectAttentionFilter('signals')}>
+                  <span className="attention-metric-label">Avec signal</span>
+                  <strong>{diagnosedGaps.length}</strong>
+                  <small>Écarts détectés <span aria-hidden="true">↗</span></small>
                 </button>
+                <button type="button" data-testid="attention-filter-qualification" aria-pressed={attentionFilter === 'qualification'}
+                  className={`attention-metric is-qualification${attentionFilter === 'qualification' ? ' is-active' : ''}`}
+                  onClick={() => selectAttentionFilter('qualification')}>
+                  <span className="attention-metric-label">À qualifier</span>
+                  <strong>{unqualifiedCapabilities.length}</strong>
+                  <small>Couverture métier inconnue <span aria-hidden="true">↗</span></small>
+                </button>
+                <div className="attention-metric is-context">
+                  <span className="attention-metric-label">Périmètre analysé</span>
+                  <strong>{diagnostics.length}</strong>
+                  <small>Capacités de la cartographie</small>
+                </div>
               </div>
-              {referenceError && <p role="alert">{referenceError}</p>}
-              {capabilityReference && <section data-testid="reference-missing-capabilities">
-                <div className="dashboard-panel-heading"><strong>{expectedMissing.length} capacité(s) absente(s) de la carte actuelle</strong><button type="button" className="secondary" onClick={() => { onClearReference?.(); setReferenceError(''); }}>Retirer la référence</button></div>
-                {expectedMissing.length ? <ul>{expectedMissing.map((capability, index) => <li key={capability.id + ':' + index}>{capability.domainName} · {capability.code ? capability.code + ' — ' : ''}{capability.name}</li>)}</ul> : <p>Les capacités attendues de cette référence sont présentes dans la cartographie.</p>}
-              </section>}
+
+              <div className="attention-list-heading">
+                <div>
+                  <h3>{attentionFilter === 'signals' ? 'Capacités avec écarts' : 'Capacités à qualifier'}</h3>
+                  <p>{attentionFilter === 'signals'
+                    ? 'Un signal appelle une revue : il ne mesure pas automatiquement le risque métier.'
+                    : 'Ces capacités n’ont pas encore de couverture fonctionnelle renseignée.'}</p>
+                </div>
+                <span className="attention-list-count">{attentionItems.length} résultat{attentionItems.length > 1 ? 's' : ''}</span>
+              </div>
+
+              {attentionItems.length ? (
+                <div className="attention-findings-list" aria-live="polite">
+                  {visibleAttentionItems.map(finding => (
+                    <article className="capability-diagnostic-item attention-finding" data-testid="capability-diagnostic-item" key={finding.id}>
+                      <div className="capability-diagnostic-facts">
+                        <div className="attention-finding-heading">
+                          <span className="attention-finding-monogram" aria-hidden="true">N1</span>
+                          <div>
+                            <strong>{finding.name}</strong>
+                            <small>{domains.find(domain => domain.id === finding.domainId)?.name || 'Domaine non renseigné'}</small>
+                          </div>
+                        </div>
+                        <div className="attention-finding-signals">
+                          {finding.signals.map(signal => (
+                            <span key={signal.kind} className={`attention-signal is-${signal.kind}`}>{signal.description}</span>
+                          ))}
+                          {finding.needsQualification && <span className="attention-signal is-unqualified">Couverture fonctionnelle à qualifier</span>}
+                        </div>
+                        <div className="attention-finding-links">
+                          <span><b>{finding.currentApplications.length}</b> application{finding.currentApplications.length > 1 ? 's' : ''} actuelle{finding.currentApplications.length > 1 ? 's' : ''}</span>
+                          <span><b>{finding.targetApplications.length}</b> application{finding.targetApplications.length > 1 ? 's' : ''} cible{finding.targetApplications.length > 1 ? 's' : ''}</span>
+                        </div>
+                      </div>
+                      <div className="capability-diagnostic-actions">
+                        <button type="button" className="capability-diagnostic-edit" data-testid="capability-diagnostic-edit"
+                          onClick={() => onEditCapability?.(finding.id)}>
+                          {finding.needsQualification ? 'Qualifier la capacité' : 'Modifier l’évaluation'}
+                        </button>
+                        <button type="button" className="capability-diagnostic-map" data-testid="capability-diagnostic-map"
+                          onClick={() => onShowOnMap?.(finding.id)}>Voir sur la carte</button>
+                        <button type="button" className="capability-diagnostic-relations"
+                          onClick={() => onExploreTarget(finding.id)}>Relations</button>
+                      </div>
+                    </article>
+                  ))}
+                  {attentionItems.length > ATTENTION_PREVIEW_LIMIT && (
+                    <button type="button" className="attention-show-more" data-testid="attention-show-all"
+                      onClick={() => setShowAllFindings(previous => !previous)}>
+                      {showAllFindings ? 'Afficher moins de capacités' : `Afficher les ${attentionItems.length - ATTENTION_PREVIEW_LIMIT} autres capacités`}
+                    </button>
+                  )}
+                </div>
+              ) : <div className="attention-empty" data-testid="attention-empty">
+                <strong>{attentionFilter === 'signals' ? 'Aucun signal détecté' : 'Toutes les capacités ont été qualifiées'}</strong>
+                <p>{attentionFilter === 'signals'
+                  ? 'Les capacités peuvent néanmoins nécessiter une évaluation fonctionnelle.'
+                  : 'Les évaluations existantes restent à confirmer par les métiers.'}</p>
+              </div>}
+
+              <section className="attention-reference" aria-label="Comparaison à une référence">
+                <div className="attention-reference-heading">
+                  <div className="attention-reference-title">
+                    <span className="attention-eyebrow">ANALYSE COMPLÉMENTAIRE · FACULTATIVE</span>
+                    <h3>Comparer à une cartographie de référence</h3>
+                    <p>Repérez les capacités attendues qui n’existent pas dans la carte active, sans modifier vos données.</p>
+                  </div>
+                  <button type="button" className="attention-reference-toggle" data-testid="attention-reference-toggle"
+                    aria-expanded={referenceToolsOpen} aria-controls="attention-reference-options"
+                    onClick={() => setReferenceToolsOpen(open => !open)}>
+                    {referenceToolsOpen ? 'Masquer les options' : 'Configurer une référence'} <span aria-hidden="true">{referenceToolsOpen ? '⌃' : '⌄'}</span>
+                  </button>
+                </div>
+                {referenceToolsOpen && (
+                  <div className="attention-reference-options" id="attention-reference-options">
+                    <div className="attention-reference-source">
+                      <strong>Depuis un fichier JSON V3</strong>
+                      <p>Import local et temporaire, sans remplacer la cartographie.</p>
+                      <label className="attention-file-picker">
+                        <span aria-hidden="true">↥</span> Choisir un fichier JSON
+                        <input id="capability-reference-import" data-testid="capability-reference-import"
+                          className="attention-file-input" type="file" accept=".json,application/json" onChange={importReference} />
+                      </label>
+                    </div>
+                    <div className="attention-reference-source">
+                      <label htmlFor="capability-reference-url">Depuis un dépôt GitHub public</label>
+                      <p>Utilisez le lien vers un fichier JSON brut ou sa page GitHub.</p>
+                      <div className="attention-url-actions">
+                        <input id="capability-reference-url" data-testid="capability-reference-url" type="url" value={referenceUrl}
+                          onChange={event => setReferenceUrl(event.target.value)} placeholder="https://github.com/…/blob/main/reference.json" />
+                        <button type="button" data-testid="capability-reference-load-url" disabled={referenceLoading} onClick={loadReferenceUrl}>
+                          {referenceLoading ? 'Chargement…' : 'Charger'}
+                        </button>
+                      </div>
+                    </div>
+                    <p className="attention-reference-note">Correspondances strictes par code ou nom normalisé au sein d’un même domaine.</p>
+                  </div>
+                )}
+                {referenceError && <p role="alert" className="attention-feedback is-error">{referenceError}</p>}
+                {capabilityReference && <section className="attention-reference-result" data-testid="reference-missing-capabilities">
+                  <div className="attention-reference-result-heading">
+                    <div><strong>{expectedMissing.length} capacité{expectedMissing.length > 1 ? 's' : ''} absente{expectedMissing.length > 1 ? 's' : ''}</strong><span>Comparaison terminée · référence active</span></div>
+                    <button type="button" onClick={() => { onClearReference?.(); setReferenceError(''); }}>Retirer la référence</button>
+                  </div>
+                  {expectedMissing.length
+                    ? <ul>{expectedMissing.map((capability, index) => (
+                      <li key={capability.id + ':' + index}><span>{capability.domainName}</span><strong>{capability.code ? capability.code + ' — ' : ''}{capability.name}</strong></li>
+                    ))}</ul>
+                    : <p>Toutes les capacités attendues de cette référence sont présentes.</p>}
+                </section>}
+              </section>
             </>
           )}
         </section>
       )}
+
       {activeView === 'attention' && depth !== 1 && (
-        <section className="dashboard-panel" data-testid="capability-decision-review" aria-label="Préparer les décisions d’architecture">
-          <div className="dashboard-panel-heading">
-            <div><h3>Préparer une revue de décisions</h3><p>Questions de revue dérivées des constats. Rien n'est décidé ni modifié automatiquement.</p></div>
-            <button type="button" className="secondary" data-testid="download-decision-review" onClick={() => onExportReview?.(formatDecisionReviewMarkdown(decisionReview))}>Exporter la revue (.md)</button>
+        <section className="dashboard-panel dashboard-attention-review" data-testid="capability-decision-review" aria-label="Préparer les décisions d’architecture">
+          <div className="attention-section-heading">
+            <div className="attention-heading-copy">
+              <span className="attention-eyebrow">PRÉPARATION DE REVUE</span>
+              <h2>Préparer une revue de décisions</h2>
+              <p>Des questions pour instruire une revue d’architecture. Aucun arbitrage n’est appliqué automatiquement.</p>
+            </div>
+            <button type="button" className="attention-export-button" data-testid="download-decision-review"
+              onClick={() => onExportReview?.(formatDecisionReviewMarkdown(decisionReview))}>
+              <span aria-hidden="true">↧</span> Exporter la revue <small>.md</small>
+            </button>
           </div>
-          <p>{decisionReview.items.length} point(s) à examiner, dont {decisionReview.unqualifiedCoverage} capacités à qualifier.</p>
+          <div className="attention-review-overview">
+            <span><strong>{decisionReview.items.length}</strong> point{decisionReview.items.length > 1 ? 's' : ''} à examiner</span>
+            <span><strong>{decisionReview.unqualifiedCoverage}</strong> capacité{decisionReview.unqualifiedCoverage > 1 ? 's' : ''} à qualifier</span>
+          </div>
           {decisionReview.items.length ? (
-            <ol className="dashboard-target-list" data-testid="decision-review-items">
-              {decisionReview.items.slice(0, DECISION_REVIEW_DISPLAY_LIMIT).map((item, index) => (
-                <li key={item.title + ':' + item.evidence + ':' + index}>
-                  <strong>{item.title}</strong> · {item.priority === 'unqualified' ? 'À qualifier' : item.priority}
-                  <p>{item.evidence}</p>
-                  <p><b>Question :</b> {item.question}</p>
-                  {item.capabilityId && <div className="capability-diagnostic-actions">
-                    <button type="button" className="capability-diagnostic-edit" onClick={() => onEditCapability?.(item.capabilityId)}>Ouvrir la fiche</button>
-                    <button type="button" className="capability-diagnostic-relations" onClick={() => onExploreTarget(item.capabilityId)}>Voir les relations</button>
-                  </div>}
-                </li>
-              ))}
-              {decisionReview.items.length > DECISION_REVIEW_DISPLAY_LIMIT && <li>+ {decisionReview.items.length - DECISION_REVIEW_DISPLAY_LIMIT} autres points dans l'export</li>}
-            </ol>
-          ) : <p>Aucun signal déterministe prioritaire. Une validation métier reste nécessaire.</p>}
-          <div className="field">
-            <label htmlFor="retirement-application">Simuler le retrait d'une application (sans modifier les relations)</label>
+            <>
+              <ol className="attention-review-list" data-testid="decision-review-items">
+                {(showAllReviewItems ? decisionReview.items.slice(0, DECISION_REVIEW_DISPLAY_LIMIT) : decisionReview.items.slice(0, REVIEW_PREVIEW_LIMIT)).map((item, index) => (
+                  <li className="attention-review-card" key={item.title + ':' + item.evidence + ':' + index}>
+                    <div className="attention-review-card-title">
+                      <strong>{item.title}</strong>
+                      <span className={`dashboard-priority is-${item.priority}`}>{item.priority === 'unqualified' ? 'À qualifier' : item.priority}</span>
+                    </div>
+                    <p className="attention-review-evidence">{item.evidence}</p>
+                    <p className="attention-review-question"><span>Question à instruire</span>{item.question}</p>
+                    {item.capabilityId && <div className="capability-diagnostic-actions">
+                      <button type="button" className="capability-diagnostic-edit" onClick={() => onEditCapability?.(item.capabilityId)}>Ouvrir la fiche</button>
+                      <button type="button" className="capability-diagnostic-relations" onClick={() => onExploreTarget(item.capabilityId)}>Voir les relations</button>
+                    </div>}
+                  </li>
+                ))}
+              </ol>
+              {decisionReview.items.length > REVIEW_PREVIEW_LIMIT && <button type="button" className="attention-show-more" data-testid="attention-review-show-more"
+                onClick={() => setShowAllReviewItems(previous => !previous)}>
+                {showAllReviewItems ? 'Réduire la liste' : `Afficher davantage de questions (${Math.min(decisionReview.items.length, DECISION_REVIEW_DISPLAY_LIMIT) - REVIEW_PREVIEW_LIMIT})`}
+              </button>}
+              {decisionReview.items.length > DECISION_REVIEW_DISPLAY_LIMIT && (
+                <p className="attention-reference-note">Les {decisionReview.items.length - DECISION_REVIEW_DISPLAY_LIMIT} autres points sont inclus dans l’export complet.</p>
+              )}
+            </>
+          ) : <div className="attention-empty">Aucun signal de décision prioritaire. Une validation métier reste nécessaire.</div>}
+
+          <section className="attention-simulation" aria-label="Simulation de retrait d'application">
+            <div className="attention-simulation-heading">
+              <div><span className="attention-eyebrow">SCÉNARIO EXPLORATOIRE</span><h3>Simuler le retrait d’une application</h3></div>
+              <span>Sans modification des relations</span>
+            </div>
+            <label htmlFor="retirement-application">Application à retirer du paysage SI</label>
             <select id="retirement-application" data-testid="retirement-application" value={retirementApplicationId}
               onChange={event => setRetirementApplicationId(event.target.value)}>
-              <option value="">Choisir une application</option>
+              <option value="">Sélectionner une application</option>
               {apps.map(app => <option key={app.id} value={app.id}>{app.name} · {app.status || 'Statut non défini'}</option>)}
             </select>
-          </div>
-          {retirementScenario && (
-            <div data-testid="retirement-scenario">
-              <p><strong>{retirementScenario.applicationName}</strong> : {retirementScenario.touchedCapabilityIds.length} capacité(s) concernée(s).</p>
-              <p>{retirementScenario.lostLastCurrentSupport.length} perdraient leur dernière application actuelle ; {retirementScenario.reducedCurrentSupport.length} auraient moins de supports actuels ; {retirementScenario.lostTargetSupport.length} perdraient un support cible.</p>
-              {retirementScenario.lostLastCurrentSupport.length > 0 && <ul>{retirementScenario.lostLastCurrentSupport.map(capability => (
-                <li key={capability.id}><button className="secondary" type="button" onClick={() => onExploreTarget(capability.id)}>{capability.name}</button></li>
-              ))}</ul>}
-              <small>Simulation locale indicative : le rôle fonctionnel de chaque application doit être vérifié avant toute décision.</small>
-            </div>
-          )}
+            {retirementScenario && (
+              <div className="attention-simulation-results" data-testid="retirement-scenario">
+                <h4>{retirementScenario.applicationName} <small>· {retirementScenario.touchedCapabilityIds.length} capacité{retirementScenario.touchedCapabilityIds.length > 1 ? 's' : ''} concernée{retirementScenario.touchedCapabilityIds.length > 1 ? 's' : ''}</small></h4>
+                <div className="attention-simulation-metrics">
+                  <div className="is-gap"><strong>{retirementScenario.lostLastCurrentSupport.length}</strong><span>Dernier support actuel perdu</span></div>
+                  <div><strong>{retirementScenario.reducedCurrentSupport.length}</strong><span>Support actuel réduit</span></div>
+                  <div><strong>{retirementScenario.lostTargetSupport.length}</strong><span>Support cible perdu</span></div>
+                </div>
+                {retirementScenario.lostLastCurrentSupport.length > 0 && <ul className="attention-simulation-links">
+                  {retirementScenario.lostLastCurrentSupport.map(capability => (
+                    <li key={capability.id}><button type="button" onClick={() => onExploreTarget(capability.id)}>{capability.name} <span aria-hidden="true">↗</span></button></li>
+                  ))}
+                </ul>}
+                <p>Simulation indicative : confirmer le rôle fonctionnel de chaque application avant toute décision.</p>
+              </div>
+            )}
+          </section>
         </section>
       )}
       {activeView === 'attention' && depth !== 1 && (

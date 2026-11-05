@@ -59,3 +59,8 @@ La story « Application / Capacity Mapper » exerce les quatre lectures métier 
 
 
 La story de l'application vérifie le parcours Cartographie → Diagnostic métier → action de qualification, avec navigation réelle plutôt que captures statiques simulées.
+
+
+### Attention et décisions — revue visuelle
+
+La story applicative réelle ouvre l'intention « Examiner les points d'attention » en thème clair et sombre. La CI enregistre les captures de ces deux états dans les artefacts Storybook, puis vérifie l'usage des surfaces et bordures issues des tokens du thème, le basculement entre signaux et capacités à qualifier, l'accordéon de référence et la simulation. Ce contrôle visuel cible spécifiquement le rendu HTML brut autrefois présent dans cet écran.
