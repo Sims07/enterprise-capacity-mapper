@@ -173,9 +173,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       setPresentationControlsVisible(true);
       return undefined;
     }
-    const revealControls = () => {
-      // Les N1 sont rendus par DomainCard, recréé à chaque rendu de App :
-      // conserver le focus du clavier plutôt que le perdre en réveillant la barre.
+    const revealControls = (event?: Event) => {
+      // Ne pas remonter App pendant l'activation d'une N1 :
+      // pointerdown comme focusin précèdent click et DomainCard est recréé au rendu.
+      if (event?.target instanceof Element && event.target.closest('.mosaic-domain .cap[role="button"]')) return;
       if (document.activeElement?.closest('.mosaic-domain .cap[role="button"]')) return;
       setPresentationControlsVisible(true);
       setPresentationActivity(value => value + 1);
