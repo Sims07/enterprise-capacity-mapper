@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { analyzeCapabilityGaps, findMissingReferenceCapabilities } from '../domain/capabilityGaps.ts';
 import { createDecisionReview, formatDecisionReviewMarkdown, simulateApplicationRetirement, DECISION_REVIEW_DISPLAY_LIMIT } from '../application/decisionReview.ts';
+import { isCurrentApplication } from '../application/coverageUseCases.ts';
 
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
@@ -95,7 +96,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const stats = useMemo(() => {
     const enriched = targets.map(target => {
       const linkedApps = apps.filter(app => linksFor(app, target.id));
-      return { ...target, linkedApps, coverageCount: linkedApps.length, state: coverageState(linkedApps.length) };
+      const currentApps = linkedApps.filter(isCurrentApplication);
+      return { ...target, linkedApps, coverageCount: currentApps.length, targetCoverageCount: linkedApps.length - currentApps.length, state: coverageState(currentApps.length) };
     });
     const covered = enriched.filter(target => target.coverageCount > 0).length;
     const priorityOrder = { P1: 0, P2: 1, P3: 2, unqualified: 3 };
@@ -188,7 +190,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
       <span className="dashboard-target-name">{target.code ? `${target.code} — ` : ''}{target.name}</span>
       <span className={`dashboard-status is-${target.state}`}>{target.state === 'gap' ? 'Gap' : target.state === 'redundant' ? 'Redondance' : 'Couvert'}</span>
       {target.state === 'gap' ? <span className={`dashboard-priority is-${target.priority || 'unqualified'}`}>{target.priority || 'À qualifier'}</span> : <span className="dashboard-priority-placeholder" aria-hidden="true" />}
-      <span className="dashboard-target-apps">{target.coverageCount} application{target.coverageCount > 1 ? 's' : ''}</span>
+      <span className="dashboard-target-apps">{target.coverageCount} actuelle(s){target.targetCoverageCount > 0 ? ` · ${target.targetCoverageCount} cible(s)` : ''}</span>
       <span className="dashboard-target-action" aria-hidden="true">↗</span>
     </button>
   );
@@ -288,7 +290,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
             <div><h3>Capacités à analyser</h3><p>Ajoutez ou retirez des capacités métier pour affiner la simulation d’impact.</p></div>
             <span>{selected.length} sélectionnée(s)</span>
           </div>
-          <div className="dashboard-impact-select-list">{stats.enriched.map(target => <button type="button" key={target.id} className={selected.includes(target.id) ? 'is-selected' : ''} aria-pressed={selected.includes(target.id)} onClick={() => onToggleTarget?.(target.id)}>{selected.includes(target.id) ? '✓' : '+'} {target.code ? `${target.code} — ` : ''}{target.name}<span>{target.coverageCount} application{target.coverageCount === 1 ? '' : 's'}</span></button>)}</div>
+          <div className="dashboard-impact-select-list">{stats.enriched.map(target => <button type="button" key={target.id} className={selected.includes(target.id) ? 'is-selected' : ''} aria-pressed={selected.includes(target.id)} onClick={() => onToggleTarget?.(target.id)}>{selected.includes(target.id) ? '✓' : '+'} {target.code ? `${target.code} — ` : ''}{target.name}<span>{target.coverageCount} actuelle(s){target.targetCoverageCount > 0 ? ` · ${target.targetCoverageCount} cible(s)` : ''}</span></button>)}</div>
         </section>
       )}
       {activeView === 'impact' && impactTargets.length === 0 && (
@@ -327,9 +329,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
 
       <div className="dashboard-kpis" aria-label="Indicateurs de couverture">
         <article className="dashboard-kpi dashboard-kpi-primary">
-          <span>Couverture globale</span>
+          <span>Relations applicatives actuelles</span>
           <strong data-testid="dashboard-coverage-rate">{stats.coverage}%</strong>
-          <div className="dashboard-progress" role="progressbar" aria-label="Couverture globale" aria-valuemin={0} aria-valuemax={100} aria-valuenow={stats.coverage}><span style={{ width: `${stats.coverage}%` }} /></div>
+          <div className="dashboard-progress" role="progressbar" aria-label="Relations applicatives actuelles" aria-valuemin={0} aria-valuemax={100} aria-valuenow={stats.coverage}><span style={{ width: `${stats.coverage}%` }} /></div>
           <small>{stats.covered} sur {targets.length} {targetLabel} couverts</small>
         </article>
         <article className="dashboard-kpi"><span>{targetLabel.charAt(0).toUpperCase() + targetLabel.slice(1)}</span><strong>{targets.length}</strong><small>dans la cartographie active</small></article>
@@ -345,8 +347,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         </div>
         <div className="dashboard-heatmap-legend" aria-label="Légende de la couverture">
           <span><i className="is-gap" /> Sans application</span>
-          <span><i className="is-covered" /> Une application</span>
-          <span><i className="is-redundant" /> Plusieurs applications</span>
+          <span><i className="is-covered" /> Une application actuelle</span>
+          <span><i className="is-redundant" /> Plusieurs applications actuelles</span>
         </div>
         <div className="dashboard-heatmap-filters" data-testid="dashboard-heatmap-filters" role="search" aria-label="Filtres de la heatmap">
           <label className="dashboard-heatmap-filter dashboard-heatmap-search">
@@ -602,7 +604,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         </div>}
       </div>}
 
-      <p className="dashboard-footnote">Les indicateurs décrivent les relations présentes dans la cartographie ; une redondance n’est pas nécessairement une anomalie. Vérifiez la criticité et le rôle des applications avant toute rationalisation.</p>
+      <p className="dashboard-footnote">Les indicateurs de couverture recensent les relations vers des applications actuelles (hors statut Cible), sans prouver la couverture fonctionnelle. Les supports obsolètes restent comptés mais sont signalés dans le diagnostic métier. Une couverture multiple n'est pas nécessairement une anomalie.</p>
     </section>
   );
 }
