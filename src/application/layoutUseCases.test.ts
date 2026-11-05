@@ -6,6 +6,7 @@ import {
   isDomainPlacementAvailable,
   prepareLayoutForSave,
   prepareDomainPlacement,
+  prepareNewDomainSlot,
   removeLayoutDraftItem,
   renameLayoutDraftItem,
   renameLayoutZone,
@@ -152,4 +153,37 @@ test('resizes a domain through the application use case and preserves custom pla
     domains, layout: { mode: 'mosaic' }, columns, layers,
     domainId: 'd1', columnSpan: 4, rowSpan: 2, allowExactOverlap: false,
   }), null);
+});
+
+test('plans an N0 in a free cell without changing an existing map', () => {
+  const source = { ...draft(), mode: 'mosaic', showRowHeadings: false };
+  const domains = [{ id: 'd1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } }];
+  const prepared = prepareNewDomainSlot({ layout: source, domains, newLayerId: 'new-row' });
+
+  assert.deepEqual(prepared.placement, { columnId: 'c1', layerId: 'l2' });
+  assert.equal(prepared.expanded, false);
+  assert.equal(prepared.layout, source);
+  assert.equal(source.layers.length, 2);
+});
+
+test('stages a new grid row only for a full existing N0 map, preserving metadata and placements', () => {
+  const source = { ...draft(), mode: 'mosaic', showRowHeadings: false, customSetting: 'keep' };
+  const original = JSON.stringify(source);
+  const domains = [{ id: 'd1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2 } }];
+  const prepared = prepareNewDomainSlot({ layout: source, domains, newLayerId: 'new-row' });
+
+  assert.equal(JSON.stringify(source), original, 'opening then cancelling must not change the layout');
+  assert.equal(prepared.expanded, true);
+  assert.equal(prepared.layout.mode, 'mosaic');
+  assert.equal(prepared.layout.showRowHeadings, false);
+  assert.equal(prepared.layout.customSetting, 'keep');
+  assert.deepEqual(prepared.layout.layers.map(layer => layer.name), ['Core', 'Support', 'Ligne 3']);
+  assert.equal(prepared.layout.zones.length, 6);
+  assert.deepEqual(prepared.placement, { columnId: 'c1', layerId: 'new-row' });
+  assert.ok(isDomainPlacementAvailable({
+    domains, columns: prepared.layout.columns, layers: prepared.layout.layers,
+    ...prepared.placement, columnSpan: 1, rowSpan: 1, allowExactOverlap: false,
+  }));
+  assert.equal(prepared.layout.zones.find(zone => zone.id === 'c1:l2').name, 'Business support');
+  assert.equal(prepareNewDomainSlot({ layout: { columns: [], layers: [] }, domains, newLayerId: 'row' }), null);
 });
