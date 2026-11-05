@@ -551,8 +551,8 @@
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain > .domain-banner,
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain.mosaic-presentation-empty,
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain.mosaic-presentation-empty > .domain-banner {
-  background: color-mix(in srgb, var(--presentation-domain-color, var(--map-card-surface)) 22%, var(--map-card-surface)) !important;
-  background-color: color-mix(in srgb, var(--presentation-domain-color, var(--map-card-surface)) 22%, var(--map-card-surface)) !important;
+  background: color-mix(in srgb, var(--presentation-domain-color, var(--map-card-surface)) var(--map-presentation-muted-domain-share), var(--map-card-surface)) !important;
+  background-color: color-mix(in srgb, var(--presentation-domain-color, var(--map-card-surface)) var(--map-presentation-muted-domain-share), var(--map-card-surface)) !important;
   color: var(--map-card-text) !important;
 }
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed .domain-banner h3,
