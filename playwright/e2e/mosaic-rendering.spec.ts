@@ -673,6 +673,7 @@ test.describe('Cartographie unifiée', () => {
   test('colorise les N1 selon les faits évalués en présentation sans masquer les capacités', async ({ page }) => {
     await page.goto('/?view=presentation');
     const capabilities = page.locator('.mosaic-domain .cap');
+    await expect(capabilities.first()).toBeVisible();
     const total = await capabilities.count();
     expect(total).toBeGreaterThan(0);
     await page.getByTestId('presentation-reading-coverage').click();
@@ -694,6 +695,7 @@ test.describe('Cartographie unifiée', () => {
     await page.goto('/?view=presentation');
     await page.mouse.move(150, 150);
     const capabilities = page.locator('.mosaic-domain .cap');
+    await expect(capabilities.first()).toBeVisible();
     const total = await capabilities.count();
     expect(total).toBeGreaterThan(0);
     await page.getByTestId('presentation-show-applications').check();
