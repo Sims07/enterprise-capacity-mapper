@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ACTIVE_MODEL_STORAGE_KEY } from '../../services/storage.ts';
-import { PRESENTATION_CHANNEL_NAME, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates } from './presentationSync.ts';
+import { APP_THEME_STORAGE_KEY } from './appPreferences.ts';
+import { PRESENTATION_CHANNEL_NAME, publishPresentationTheme, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates } from './presentationSync.ts';
 
 describe('presentationSync', () => {
   let messageHandler: EventListener | undefined;
@@ -60,4 +61,24 @@ describe('presentationSync', () => {
     unsubscribe();
   });
 
+  it('propage les changements de thème et accepte le repli storage sans boucle', () => {
+    const onTheme = vi.fn();
+    const unsubscribe = subscribeToPresentationUpdates({
+      sourceId: 'presentation-1', windowTarget, channelFactory: () => channel,
+      onUpdate: vi.fn(), onTheme,
+    });
+    publishPresentationTheme({ channel, sourceId: 'editor-1', theme: 'dark' });
+    expect(channel.postMessage).toHaveBeenCalledWith({ type: 'theme-updated', sourceId: 'editor-1', theme: 'dark' });
+    messageHandler?.({ data: { type: 'theme-updated', sourceId: 'editor-1', theme: 'dark' } } as MessageEvent);
+    expect(onTheme).toHaveBeenLastCalledWith('dark');
+    messageHandler?.({ data: { type: 'theme-updated', sourceId: 'presentation-1', theme: 'light' } } as MessageEvent);
+    messageHandler?.({ data: { type: 'theme-updated', sourceId: 'editor-1', theme: 'invalid' } } as MessageEvent);
+    expect(onTheme).toHaveBeenCalledTimes(1);
+    storageHandler?.({ key: APP_THEME_STORAGE_KEY, newValue: 'light' } as StorageEvent);
+    expect(onTheme).toHaveBeenLastCalledWith('light');
+    storageHandler?.({ key: APP_THEME_STORAGE_KEY, newValue: null } as StorageEvent);
+    expect(onTheme).toHaveBeenLastCalledWith('light');
+    expect(onTheme).toHaveBeenCalledTimes(3);
+    unsubscribe();
+  });
 });

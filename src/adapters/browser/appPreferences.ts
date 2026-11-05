@@ -18,6 +18,9 @@ const KEYS = Object.freeze({
   activeRecentMap: 'enterprise-capacity-mapper:active-recent-map',
 });
 
+/** Storage fallback for presentation windows without an active BroadcastChannel. */
+export const APP_THEME_STORAGE_KEY = KEYS.theme;
+
 export const createAppPreferences = ({ storage = localStorage }: { storage?: StorageLike } = {}): AppPreferences => ({
   readTheme: () => storage.getItem(KEYS.theme) === 'dark' ? 'dark' : 'light',
   writeTheme: theme => storage.setItem(KEYS.theme, theme === 'dark' ? 'dark' : 'light'),
