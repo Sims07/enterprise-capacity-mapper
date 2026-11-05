@@ -720,4 +720,32 @@ test.describe('Cartographie unifiée', () => {
     await expect(page.locator('.presentation-app-preview')).toHaveCount(0);
   });
 
+  test('pilote en temps réel le mode présentation depuis la fenêtre d’édition', async ({ page, context }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    const presentationPromise = context.waitForEvent('page');
+    await page.getByTestId('presentation-switch-toolbar').click();
+    const presentationPage = await presentationPromise;
+    await presentationPage.waitForLoadState();
+    await expect(presentationPage.locator('.mosaic-domain .cap').first()).toBeVisible();
+    await page.getByTestId('presentation-director-toggle').click();
+    const panel = page.getByTestId('presentation-director-panel');
+    await expect(panel).toBeVisible();
+
+    await panel.getByTestId('director-reading-maturity').click();
+    await expect(presentationPage.locator('.app')).toHaveAttribute('data-presentation-reading', 'maturity');
+    await panel.getByTestId('director-show-applications').check();
+    await expect(presentationPage.locator('.presentation-app-preview').first()).toBeVisible();
+    await panel.getByTestId('presentation-director-domain').selectOption({ index: 1 });
+    await expect(presentationPage.locator('.mosaic-domain.is-presentation-focused')).toHaveCount(1);
+    await expect(presentationPage.locator('.mosaic-domain.is-presentation-dimmed').first()).toBeVisible();
+
+    await panel.getByTestId('presentation-director-next').click();
+    await expect(presentationPage.locator('.mosaic-domain.is-presentation-focused')).toHaveCount(1);
+    await panel.getByTestId('presentation-director-domain').selectOption('');
+    await expect(presentationPage.locator('.mosaic-domain.is-presentation-dimmed')).toHaveCount(0);
+    await panel.getByTestId('director-reading-identity').click();
+    await expect(presentationPage.locator('.app')).toHaveAttribute('data-presentation-reading', 'identity');
+  });
+
 });
