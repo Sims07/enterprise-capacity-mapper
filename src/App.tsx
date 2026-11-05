@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
+import { downloadDecisionReview } from './adapters/browser/decisionReviewDownload.ts';
 import type { CapabilityAssessment } from './domain/catalogModel.ts';
 import { createFrontendApplication } from './adapters/react/architecture.ts';
 import {
@@ -1255,6 +1256,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               capabilityReference={capabilityReference}
               onImportReference={async file => setCapabilityReference(await repository.importModel(file))}
               onClearReference={() => setCapabilityReference(null)}
+              onLoadReferenceUrl={async url => {
+                if (!repository.loadRemoteModel) throw new Error('Source de référence distante indisponible.');
+                setCapabilityReference(await repository.loadRemoteModel(repository.normalizeJsonUrl?.(url) || url));
+              }}
+              onExportReview={downloadDecisionReview}
               onExploreTarget={exploreDashboardTarget}
               onLinkApp={openLinkForApp}
               onUpdatePriority={updateCapabilityPriority}

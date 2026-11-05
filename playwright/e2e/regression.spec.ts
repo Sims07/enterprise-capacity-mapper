@@ -441,3 +441,48 @@ test.describe('Diagnostic métier des capacités', () => {
     await expect(page.getByTestId('dashboard-coverage-rate')).toBeVisible();
   });
 });
+
+test.describe('Revue de décisions et scénarios de transformation', () => {
+  // These tests mock a remote reference. Allow page.route to intercept the fetch,
+  // rather than letting the PWA service worker own the request.
+  test.use({ serviceWorkers: 'block' });
+
+  test('simule le retrait d’une application sans modifier les relations et exporte la revue', async ({ page }) => {
+    await fresh(page);
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    const review = page.getByTestId('capability-decision-review');
+    await expect(review).toContainText('Préparer une revue de décisions');
+    await page.getByTestId('retirement-application').selectOption('app-1');
+    await expect(page.getByTestId('retirement-scenario')).toContainText('Gestion des Prospects & Leads');
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByTestId('download-decision-review').click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('capability-decision-review.md');
+    await page.reload();
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-overview').click();
+    await expect(page.getByTestId('dashboard-coverage-rate')).toBeVisible();
+  });
+
+  test('charge la référence via une URL GitHub compatible JSON brut sans remplacer la carte', async ({ page }) => {
+    await fresh(page);
+    const reference = {
+      schemaVersion: 3,
+      domains: [{ id: 'domain-reference', code: 'CAP-CRM', name: 'Relation client' }],
+      capabilities: [{ id: 'cap-reference', domainId: 'domain-reference', code: 'CRM-99', name: 'Gestion des abonnements' }],
+      applications: [],
+    };
+    await page.route('https://raw.githubusercontent.com/Sims07/test-capabilities/main/reference.json', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(reference) }));
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    await page.getByTestId('capability-reference-url').fill('https://github.com/Sims07/test-capabilities/blob/main/reference.json');
+    await page.getByTestId('capability-reference-load-url').click();
+    const referenceError = page.getByTestId('capability-diagnostic').getByRole('alert');
+    if (await referenceError.isVisible()) throw new Error('Chargement référence: ' + await referenceError.innerText());
+    await expect(page.getByTestId('reference-missing-capabilities')).toContainText('Gestion des abonnements');
+    await page.getByTestId('dashboard-view-overview').click();
+    await expect(page.getByTestId('dashboard-coverage-rate')).toBeVisible();
+  });
+});

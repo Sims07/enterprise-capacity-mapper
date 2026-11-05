@@ -4,6 +4,8 @@ import {
   importModel,
   loadLocalMaps,
   loadModel,
+  loadRemoteModel,
+  normalizeJsonUrl,
   loadRecentMaps,
   recordRecentMap,
   removeRecentMap,
@@ -27,6 +29,8 @@ export const createLocalStorageModelRepository = () => {
     updateRecentMap,
     removeRecentMap,
     importModel,
+    loadRemoteModel,
+    normalizeJsonUrl,
     exportModel,
   } satisfies ModelRepository;
   return Object.freeze(adapter);

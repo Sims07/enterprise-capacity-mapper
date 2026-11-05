@@ -99,3 +99,9 @@ Dans « Analyse > Examiner les points d'attention », le diagnostic N1 distingue
 - les supports applicatifs déclarés obsolètes, qui constituent un signal à revoir et non une déduction de défaillance.
 
 L'import facultatif d'une cartographie de référence JSON V3 permet d'identifier les capacités attendues absentes du modèle actif : comparaison stricte des codes normalisés, ou des noms normalisés dans leur domaine si les codes sont absents. Cette comparaison n'effectue aucun appariement flou et ne modifie pas les données actives. Une absence de déclaration n'est **pas** assimilée à une absence de capacité métier.
+
+## 10. Préparer les décisions sans automatiser les décisions
+
+Le panneau de revue d'architecture présente des **questions** classées par priorité métier déclarée, jamais des décisions approuvées. Un export Markdown local (.md) consolide les preuves, les questions et les limites des indicateurs. Une simulation de retrait d'application signale les capacités perdant leur dernier support actuel, celles avec moins de supports, et celles perdant un support cible ; elle ne modifie ni les applications ni leurs relations.
+
+Un JSON V3 de référence peut être sélectionné localement ou chargé depuis une URL HTTPS publique, y compris un lien GitHub `blob` converti en contenu brut. La donnée chargée reste en mémoire pendant la session, sans synchronisation ni backend.
