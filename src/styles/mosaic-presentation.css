@@ -537,3 +537,46 @@
 .app.mosaic-presentation-mode .presentation-focus-application-groups li strong { font-size: 12px; }
 .app.mosaic-presentation-mode .presentation-focus-application-groups li small,.app.mosaic-presentation-mode .presentation-focus-application-groups p { color: var(--color-text-muted); font-size: 11px; }
 @media(max-width:600px) { .app.mosaic-presentation-mode .presentation-focus-metrics,.app.mosaic-presentation-mode .presentation-focus-application-groups { grid-template-columns: 1fr; } }
+
+/* Lot 3 : focalisation N0 sans changement de grille ; commandes côté éditeur. */
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed { opacity: .22; }
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-focused {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-accent-border);
+}
+.app:not(.mosaic-presentation-mode) .presentation-director { position: relative; }
+.app:not(.mosaic-presentation-mode) .presentation-director-toggle {
+  min-height: 34px; padding: 7px 11px;
+  border: 1px solid var(--color-accent-border); border-radius: var(--radius-control);
+  background: var(--color-accent-soft); color: var(--color-accent-text);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.app:not(.mosaic-presentation-mode) .presentation-director-panel {
+  position: absolute; z-index: 85; top: calc(100% + 8px); right: 0;
+  display: flex; flex-direction: column; gap: 11px;
+  width: min(420px, calc(100vw - 32px)); padding: 16px;
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-panel);
+  background: var(--color-surface-raised); color: var(--color-text); box-shadow: var(--shadow-overlay);
+}
+.app:not(.mosaic-presentation-mode) .presentation-director-panel strong { font-size: 14px; }
+.app:not(.mosaic-presentation-mode) .presentation-director-panel p { margin: -4px 0 0; color: var(--color-text-muted); font-size: 11px; line-height: 1.5; }
+.app:not(.mosaic-presentation-mode) .presentation-director-readings { display: flex; gap: 2px; flex-wrap: wrap; padding: 3px; background: var(--color-surface-muted); border-radius: var(--radius-control); }
+.app:not(.mosaic-presentation-mode) .presentation-director-readings button {
+  flex: 1 1 auto; min-height: 32px; padding: 7px;
+  border: 1px solid transparent; border-radius: var(--radius-control);
+  background: transparent; color: var(--color-text); cursor: pointer; font-size: 11px;
+}
+.app:not(.mosaic-presentation-mode) .presentation-director-readings button.is-active { background: var(--color-accent-soft); border-color: var(--color-accent-border); color: var(--color-accent-text); font-weight: 700; }
+.app:not(.mosaic-presentation-mode) .presentation-director-checkbox { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.app:not(.mosaic-presentation-mode) .presentation-director-checkbox input { accent-color: var(--color-accent); }
+.app:not(.mosaic-presentation-mode) .presentation-director-domain-label { display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: var(--color-text-muted); }
+.app:not(.mosaic-presentation-mode) .presentation-director-domain-label select {
+  min-height: 34px; width: 100%; padding: 7px; border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); font: inherit;
+}
+.app:not(.mosaic-presentation-mode) .presentation-director-navigation { display: flex; gap: 8px; }
+.app:not(.mosaic-presentation-mode) .presentation-director-navigation button { flex: 1; min-height: 34px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text); cursor: pointer; }
+.app:not(.mosaic-presentation-mode) .presentation-director-navigation button:disabled { opacity: .45; cursor: not-allowed; }
+.app:not(.mosaic-presentation-mode) .presentation-director-panel button:focus-visible,
+.app:not(.mosaic-presentation-mode) .presentation-director-panel select:focus-visible,
+.app:not(.mosaic-presentation-mode) .presentation-director-toggle:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: var(--focus-ring-offset); }
