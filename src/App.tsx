@@ -3,6 +3,7 @@ import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
 import { analyzeCapabilityGaps } from './domain/capabilityGaps.ts';
 import { capabilityMapReadout, MAP_READING_MODES, type MapReadingMode } from './application/capabilityMapReadout.ts';
+import { presentationCapabilitySignal, PRESENTATION_READING_OPTIONS, type PresentationReadingMode } from './application/presentationReadout.ts';
 import { downloadDecisionReview } from './adapters/browser/decisionReviewDownload.ts';
 import type { CapabilityAssessment, CatalogModel } from './domain/catalogModel.ts';
 import { createFrontendApplication } from './adapters/react/architecture.ts';
@@ -129,6 +130,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapReadingMode, setMapReadingMode] = useState<MapReadingMode>('applications');
+  const [presentationReadingMode, setPresentationReadingMode] = useState<PresentationReadingMode>('identity');
   const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
   const [autoSaveState, setAutoSaveState] = useState<'draft' | 'saving' | 'saved' | 'error'>('draft');
   const [workingCopySaveError, setWorkingCopySaveError] = useState(false);
@@ -949,11 +951,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             {caps.map(c => {
               const coverage = getCapCoverageState(c.id);
               const insight = capabilityMapReadout(c, coverage, capabilityFindings.get(c.id));
+              const signal = presentationCapabilitySignal(c, capabilityFindings.get(c.id), presentationReadingMode);
               const capItemClass = `cap${selected.includes(c.id) ? ' impact-selected' : ''}`;
 
               return (
                 <div
                   className={capItemClass}
+                  data-presentation-tone={presentation && presentationReadingMode !== 'identity' ? signal.tone : undefined}
                   data-entity-id={c.id}
                   data-entity-type="capability"
                   key={c.id}
@@ -978,6 +982,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                       >⋮</button>
                     </div>}
                   </div>
+                  {presentation && presentationReadingMode !== 'identity' && <span className="presentation-cap-signal">{signal.label}</span>}
 
                   <div className="cap-meta">
                     <span className="app-count" title={`${coverage.currentCount} application(s) actuelle(s), ${coverage.targetCount} cible(s)`}>{coverage.currentCount}{coverage.targetCount > 0 ? ` +${coverage.targetCount}` : ''}</span>
@@ -1216,7 +1221,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
 
   return (
-    <div className={'app' + (presentation ? ' presentation-mode' : '') + (presentation ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind}>
+    <div className={'app' + (presentation ? ' presentation-mode' : '') + (presentation ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind} data-presentation-reading={presentation ? presentationReadingMode : undefined}>
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
@@ -1527,7 +1532,20 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
 
       {presentation && <div className="presentation-exit-bar" data-visible={presentationControlsVisible}>
-        <span>Présentation</span>
+        <span className="presentation-bar-label">Présentation</span>
+        <div className="presentation-reading-controls" role="group" aria-label="Coloration de la présentation">
+          {PRESENTATION_READING_OPTIONS.map(option => (
+            <button key={option.id} type="button" data-testid={`presentation-reading-${option.id}`}
+              aria-pressed={presentationReadingMode === option.id}
+              className={presentationReadingMode === option.id ? 'is-active' : ''}
+              onClick={() => setPresentationReadingMode(option.id)}>{option.label}</button>
+          ))}
+        </div>
+        {presentationReadingMode !== 'identity' && <div className="presentation-reading-legend" data-testid="presentation-legend" aria-label="Légende de la coloration">
+          {(['covered', 'gap', 'high', 'critical', 'neutral'] as const).map(tone => (
+            <span key={tone}><i data-tone={tone} aria-hidden="true" />{({ covered: 'Satisfaisant', gap: 'Intermédiaire', high: 'Attention', critical: 'Écart important', neutral: 'Non évalué' })[tone]}</span>
+          ))}
+        </div>}
         <label className="presentation-switch">
           <span>Active</span>
           <input type="checkbox" data-testid="presentation-switch-exit" aria-label="Désactiver le mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />

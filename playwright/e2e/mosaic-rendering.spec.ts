@@ -670,4 +670,23 @@ test.describe('Cartographie unifiée', () => {
 
 
 
+  test('colorise les N1 selon les faits évalués en présentation sans masquer les capacités', async ({ page }) => {
+    await page.goto('/?view=presentation');
+    const capabilities = page.locator('.mosaic-domain .cap');
+    const total = await capabilities.count();
+    expect(total).toBeGreaterThan(0);
+    await page.getByTestId('presentation-reading-coverage').click();
+    await expect(page.locator('.app')).toHaveAttribute('data-presentation-reading', 'coverage');
+    await expect(page.getByTestId('presentation-legend')).toBeVisible();
+    await expect(capabilities).toHaveCount(total);
+    await expect(capabilities.first()).toHaveAttribute('data-presentation-tone', /covered|gap|high|critical|neutral/);
+    await page.getByTestId('presentation-reading-maturity').click();
+    await expect(page.locator('.app')).toHaveAttribute('data-presentation-reading', 'maturity');
+    await page.getByTestId('presentation-reading-gaps').click();
+    await expect(page.locator('.app')).toHaveAttribute('data-presentation-reading', 'gaps');
+    await page.getByTestId('presentation-reading-identity').click();
+    await expect(page.getByTestId('presentation-legend')).toHaveCount(0);
+    await expect(capabilities.first()).not.toHaveAttribute('data-presentation-tone', /.+/);
+  });
+
 });
