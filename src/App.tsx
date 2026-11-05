@@ -760,10 +760,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             ) : <h3>{d.name}</h3>}
             <span className="domain-meta">{d.code}{(!presentation || caps.length > 0) && <> · {caps.length} N1</>}</span>
           </div>
-          <div className="domain-actions">
+          {!presentation && <div className="domain-actions">
             {depth === 2 && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
             <button type="button" className="mini-action-trigger" aria-label={`Actions pour ${d.name}`} title="Actions du domaine" onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}>⋮</button>
-          </div>
+          </div>}
         </div>
 
         {d.description?.trim() && <p className="cap-desc domain-desc">{d.description.trim()}</p>}
@@ -773,10 +773,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             {apps.filter(a => relationIds(a).includes(d.id)).map(a => (
               <div className="rel" key={a.id} draggable={!presentation} onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData("app", a.id); }}>
                 <span>◈</span>{a.name}
-                <button type="button" onClick={() => unassign(a.id, d.id)}>×</button>
+                {!presentation && <button type="button" onClick={() => unassign(a.id, d.id)}>×</button>}
               </div>
             ))}
-            <div className="drop">Déposer une application ici</div>
+            {!presentation && <div className="drop">Déposer une application ici</div>}
           </div>
         ) : (
           <div className="caps-list">
@@ -797,13 +797,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 >
                   <div className="cap-head">
                     {presentation ? <span className="map-cap-select">{c.name}</span> : <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>}
-                    <button
+                    {!presentation && <button
                       type="button"
                       className="mini-action-trigger"
                       aria-label={`Renommer ${c.name}`}
                       title="Actions de la capacité"
                       onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'capability', item: c }); }}
-                    >⋮</button>
+                    >⋮</button>}
                   </div>
 
                   <div className="cap-meta">
@@ -816,10 +816,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     {coverage.apps.map(a => (
                       <div className="rel" key={a.id} draggable={!presentation} onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData('app', a.id); }}>
                         <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
-                        <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>
+                        {!presentation && <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>}
                       </div>
                     ))}
-                    <div className="drop">Déposer une application ici</div>
+                    {!presentation && <div className="drop">Déposer une application ici</div>}
                   </div>
                 </div>
               );
