@@ -72,16 +72,16 @@ export const isDomainPlacementAvailable = ({
  * available cells, preserving their spans and all other domain properties.
  * Earlier N0 stay in place. Extra rows are created only when required.
  */
-export const prepareNewDomainSlot = ({
+export const prepareNewDomainSlot = <T extends Domain>({
   layout, domains, newLayerId, beforeDomainId,
 }: {
   layout: Layout;
-  domains: Domain[];
+  domains: T[];
   newLayerId: string;
   beforeDomainId?: string;
 }): {
   layout: Layout;
-  domains: Domain[];
+  domains: T[];
   placement: { columnId: string; layerId: string };
   expanded: boolean;
   shiftedCount: number;
@@ -129,7 +129,7 @@ export const prepareNewDomainSlot = ({
 
   const original = ordered[insertionIndex];
   const placed = ordered.slice(0, insertionIndex).map(item => item.domain);
-  const repositioned = new Map<string, Domain>();
+  const repositioned = new Map<string, T>();
   let workingLayout = layout;
   let workingLayers = layers;
   let nextOffset = original.offset;
@@ -172,7 +172,7 @@ export const prepareNewDomainSlot = ({
         placed.push(newDomain);
         if (item.pending) placement = { columnId: candidateColumnId, layerId: candidateLayerId };
         else {
-          repositioned.set(item.domain.id, newDomain);
+          repositioned.set(item.domain.id, newDomain as T);
           if (coordinate(item.domain).offset !== candidateOffset) shiftedCount += 1;
         }
         nextOffset = candidateOffset + 1;
