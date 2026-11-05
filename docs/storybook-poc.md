@@ -51,3 +51,8 @@ La CI construit Storybook, lance les tests visuels avec Chromium et conserve les
 Le build statique est placé dans `dist/storybook/`, sans être importé par le runtime PWA. La CI construit Storybook avec le préfixe `/enterprise-capacity-mapper/storybook/` et l'inclut dans l'artefact GitHub Pages. Après réussite du déploiement, l'URL attendue est `https://sims07.github.io/enterprise-capacity-mapper/storybook/`.
 
 Storybook et les tests visuels complètent Vitest et les parcours E2E existants. Ils ne remplacent pas les tests métier. Les contrôles complémentaires d'accessibilité sont volontairement hors périmètre de cette étape.
+
+
+### Lecture métier N1
+
+La story « Application / Capacity Mapper » exerce les quatre lectures métier sur le composant réel. Les tests visuels vérifient désormais, sur l'interface réelle en thèmes clair et sombre, la présence des commandes « Lecture métier », le rendu des constats et l'accès direct à la fiche N1. Le mode présentation n'affiche aucune de ces actions d'édition.

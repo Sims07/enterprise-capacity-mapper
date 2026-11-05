@@ -109,3 +109,14 @@ Un JSON V3 de référence peut être sélectionné localement ou chargé depuis 
 ## 11. Couverture par liens applicatifs actuels
 
 Le taux de couverture **applicative actuelle** et les compteurs de gaps/redondances utilisent les applications reliées hors statut `Cible`. Une application `Cible` reste visible dans la carte, les relations et le scénario de transformation mais ne prouve pas une couverture actuelle. Une application `Obsolète` peut encore servir le métier aujourd'hui : elle reste comptée, tout en faisant l'objet d'un signal explicite. Cette couverture par liens n'est pas synonyme de couverture fonctionnelle évaluée.
+
+
+## 12. Lecture métier directe de la cartographie
+
+Depuis la cartographie N0/N1, le bandeau **Lecture métier** permet de basculer sans modifier le modèle :
+- **Applications** (défaut) : relations applicatives et dépôt des applications ;
+- **Couverture** : liens actuels/cibles d'une part, couverture fonctionnelle explicitement évaluée d'autre part ;
+- **Maturité** : niveaux actuel et cible 1–5 renseignés, avec écart uniquement calculé si les deux sont connus ;
+- **Écarts** : signaux issus du diagnostic déterministe, avec « à qualifier » si la couverture n'a pas été évaluée.
+
+Chaque carte N1 présente toujours l'état de couverture fonctionnelle, et le bouton **Fiche** ouvre directement l'édition de ses propriétés métier. La sélection d'impact et les actions de relation restent indépendantes de la lecture choisie. Le mode présentation reste exempt de contrôles d'édition. Les cartographies N0 seules n'affichent pas une maturité N1 fictive.

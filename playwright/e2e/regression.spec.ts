@@ -257,8 +257,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await expect(page.getByTestId('autosave-status')).toHaveText('Enregistrée sur cet appareil');
 
     const capability = page.locator('.cap:visible').first();
-    await capability.getByRole('button', { name: /^Renommer / }).click();
-    await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
+    await capability.getByRole('button', { name: /^Ouvrir la fiche de / }).click();
     await page.locator('.modal .field input').fill('Capacité sauvegardée automatiquement');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
     // Vérifier que la sauvegarde différée aboutit avant la sauvegarde manuelle.
@@ -301,8 +300,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
       sessionStorage.setItem('__block_save', 'yes');
     });
     const capability = page.locator('.cap:visible').first();
-    await capability.getByRole('button', { name: /^Renommer / }).click();
-    await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
+    await capability.getByTestId('capability-open-sheet').click();
     await page.locator('.modal .field input').fill('Modification après panne');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByTestId('autosave-status')).toHaveText('Sauvegarde échouée');
@@ -323,8 +321,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
 
     const capability = page.locator('.cap:visible').first();
-    await capability.getByRole('button', { name: /^Renommer / }).click();
-    await page.locator('.context-menu').getByRole('button', { name: 'Renommer', exact: true }).click();
+    await capability.getByTestId('capability-open-sheet').click();
     await page.locator('.modal .field input').fill('Édition à conserver');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
     await page.getByTestId('primary-library').click();

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
+import { analyzeCapabilityGaps } from './domain/capabilityGaps.ts';
+import { capabilityMapReadout, MAP_READING_MODES, type MapReadingMode } from './application/capabilityMapReadout.ts';
 import { downloadDecisionReview } from './adapters/browser/decisionReviewDownload.ts';
 import type { CapabilityAssessment, CatalogModel } from './domain/catalogModel.ts';
 import { createFrontendApplication } from './adapters/react/architecture.ts';
@@ -126,6 +128,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const toolsMenuToggleRef = useRef(null);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
+  const [mapReadingMode, setMapReadingMode] = useState<MapReadingMode>('applications');
   const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
   const [autoSaveState, setAutoSaveState] = useState<'draft' | 'saving' | 'saved' | 'error'>('draft');
   const [workingCopySaveError, setWorkingCopySaveError] = useState(false);
@@ -430,6 +433,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   }, [localMapId, isPresentationWindow]);
 
   const apps = model.applications || [];
+  const capabilityFindings = useMemo(() => new Map(analyzeCapabilityGaps(model).map(finding => [finding.id, finding])), [model]);
   const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
   const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
   const visibleDomains = useMemo(() => model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), [model.domains, mapQuery]);
@@ -931,6 +935,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           <div className="caps-list">
             {caps.map(c => {
               const coverage = getCapCoverageState(c.id);
+              const insight = capabilityMapReadout(c, coverage, capabilityFindings.get(c.id));
               const capItemClass = `cap${selected.includes(c.id) ? ' impact-selected' : ''}`;
 
               return (
@@ -946,22 +951,58 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 >
                   <div className="cap-head">
                     {presentation ? <span className="map-cap-select">{c.name}</span> : <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>}
-                    {!presentation && <button
-                      type="button"
-                      className="mini-action-trigger"
-                      aria-label={`Renommer ${c.name}`}
-                      title="Actions de la capacité"
-                      onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'capability', item: c }); }}
-                    >⋮</button>}
+                    {!presentation && <div className="capability-card-actions">
+                      <button type="button" className="capability-open-sheet" data-testid="capability-open-sheet"
+                        aria-label={`Ouvrir la fiche de ${c.name}`}
+                        title="Nom, couverture, maturité et justification"
+                        onClick={event => { event.stopPropagation(); openEditCapability(c); }}>Fiche</button>
+                      <button
+                        type="button"
+                        className="mini-action-trigger"
+                        aria-label={`Actions pour ${c.name}`}
+                        title="Autres actions et relations"
+                        onClick={event => { event.stopPropagation(); openContextMenu(event, { type: 'capability', item: c }); }}
+                      >⋮</button>
+                    </div>}
                   </div>
 
                   <div className="cap-meta">
                     <span className="app-count" title={`${coverage.currentCount} application(s) actuelle(s), ${coverage.targetCount} cible(s)`}>{coverage.currentCount}{coverage.targetCount > 0 ? ` +${coverage.targetCount}` : ''}</span>
+                    {!presentation && <span className={`capability-qualification is-${insight.functionalCoverage}`}
+                      data-testid="capability-qualification" title="Couverture fonctionnelle déclarée par les métiers">
+                      {insight.functionalLabel}
+                    </span>}
                   </div>
 
                   {c.description?.trim() && <p className="cap-desc">{c.description.trim()}</p>}
 
-                  <div className="relations">
+                  {!presentation && mapReadingMode !== 'applications' && (
+                    <div className="capability-reading-detail" data-testid="capability-reading-detail" data-reading={mapReadingMode} aria-live="polite">
+                      {mapReadingMode === 'coverage' && (
+                        <>
+                          <span>Support actuel : <strong>{insight.applicationLabel}</strong></span>
+                          {coverage.targetCount > 0 && <span>À venir : <strong>{insight.targetApplicationLabel}</strong></span>}
+                          <span>Couverture métier : <strong>{insight.functionalLabel}</strong></span>
+                        </>
+                      )}
+                      {mapReadingMode === 'maturity' && (
+                        <>
+                          <span>Actuelle : <strong>{insight.currentMaturityLabel}</strong></span>
+                          <span>Cible : <strong>{insight.targetMaturityLabel}</strong></span>
+                          <span>{insight.maturityGapLabel}</span>
+                        </>
+                      )}
+                      {mapReadingMode === 'gaps' && (
+                        <>
+                          <strong>{insight.signals.length ? `${insight.signals.length} point(s) à examiner` : insight.needsQualification ? 'Évaluation à compléter' : 'Aucun signal détecté'}</strong>
+                          {insight.signals.length > 0 && <span>{insight.signals.map(signal => signal.description).join(' · ')}</span>}
+                          {insight.needsQualification && <span>Couverture fonctionnelle non évaluée</span>}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {(presentation || mapReadingMode === 'applications') && <div className="relations">
                     {coverage.apps.map(a => (
                       <div className="rel" key={a.id} draggable={!presentation} onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData('app', a.id); }}>
                         <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
@@ -969,7 +1010,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                       </div>
                     ))}
                     {!presentation && <div className="drop">Déposer une application ici</div>}
-                  </div>
+                  </div>}
                 </div>
               );
             })}
@@ -1437,6 +1478,22 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 </div>
               </div>
 
+              {!presentation && depth === 2 && (
+                <section className="capability-reading-toolbar" data-testid="capability-reading-toolbar" aria-label="Lire la cartographie métier">
+                  <div className="capability-reading-intro">
+                    <strong>Lecture métier</strong>
+                    <span>{MAP_READING_MODES.find(reading => reading.id === mapReadingMode)?.help}</span>
+                  </div>
+                  <div className="capability-reading-options" role="group" aria-label="Mode de lecture des capacités">
+                    {MAP_READING_MODES.map(reading => (
+                      <button type="button" key={reading.id} data-testid={`map-reading-${reading.id}`}
+                        className={mapReadingMode === reading.id ? 'is-active' : ''}
+                        aria-pressed={mapReadingMode === reading.id}
+                        onClick={() => setMapReadingMode(reading.id)}>{reading.label}</button>
+                    ))}
+                  </div>
+                </section>
+              )}
               {capabilityMap}
             </>
           )}
@@ -1471,7 +1528,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           {contextMenu.type === 'capability' && (
             <>
               <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>
-              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditCapability(contextMenu.item); }}>Renommer</button>
+              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditCapability(contextMenu.item); }}>Ouvrir la fiche de capacité</button>
             </>
           )}
         </div>
@@ -1607,11 +1664,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
       {['domain', 'edit-domain', 'capability', 'edit-capability', 'app', 'edit-app'].includes(modal) && (
         <Modal
-          title={modal === 'edit-app' ? 'Modifier l’application' : modal === 'edit-capability' ? 'Modifier la capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
+          title={modal === 'edit-app' ? 'Modifier l’application' : modal === 'edit-capability' ? 'Fiche de capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
           onClose={() => setModal(null)}
         >
           {(modal === 'domain' || modal === 'edit-domain') && <div className="field-guidance"><b>N0 — Domaine métier</b><span>Regroupe un ensemble large de capacités.</span></div>}
           {(modal === 'capability' || modal === 'edit-capability') && <div className="field-guidance"><b>N1 — Capacité</b><span>Décrit ce que l’entreprise sait faire.</span></div>}
+          {modal === 'edit-capability' && (
+            <div className="capability-sheet-context" data-testid="capability-sheet-context">
+              <strong>{model.domains.find(domain => domain.id === model.capabilities.find(capability => capability.id === editingCapabilityId)?.domainId)?.name ?? 'Domaine non renseigné'}</strong>
+              <span>Code : {model.capabilities.find(capability => capability.id === editingCapabilityId)?.code || '—'}</span>
+              <span>{getCapCoverageState(editingCapabilityId).currentCount} application(s) actuelle(s) · {getCapCoverageState(editingCapabilityId).targetCount} cible(s)</span>
+              <span>Une liaison applicative ne suffit pas à prouver la couverture métier.</span>
+            </div>
+          )}
 
           <Field label="Nom" required error={formErrors.name} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
 

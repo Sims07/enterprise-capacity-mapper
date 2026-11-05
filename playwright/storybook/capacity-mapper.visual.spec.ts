@@ -191,3 +191,20 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
   });
 
 });
+
+test('story réelle — accès aux nouvelles lectures métier, thème clair et sombre', async ({ page }) => {
+  await openCapacityMapper(page, 1440, 900, 'light');
+  const reading = page.getByTestId('capability-reading-toolbar');
+  await expect(reading).toBeVisible();
+  await page.getByTestId('map-reading-coverage').click();
+  const capability = page.locator('.cap:visible').first();
+  await expect(capability.getByTestId('capability-reading-detail')).toContainText('Couverture métier');
+  await capability.getByTestId('capability-open-sheet').click();
+  await expect(page.getByRole('dialog', { name: 'Fiche de capacité N1' })).toBeVisible();
+  await page.getByRole('dialog', { name: 'Fiche de capacité N1' }).getByRole('button', { name: '×' }).click();
+  await page.getByTestId('tools-menu-toggle').click();
+  await page.getByTestId('theme-toggle').click();
+  await expect(page.locator('.app.theme-dark')).toBeVisible();
+  await page.getByTestId('map-reading-maturity').click();
+  await expect(page.locator('.cap:visible').first().getByTestId('capability-reading-detail')).toContainText('Actuelle');
+});
