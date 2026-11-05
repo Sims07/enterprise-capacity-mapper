@@ -107,3 +107,29 @@ Notes indicatives sur cinq (pas un résultat d'étude utilisateur) :
 - Les maquettes sont **éditables** et réalisables par React/CSS, mais ne sont pas encore des captures du produit implémenté. Le rendu responsive mobile, le contrôle clavier et les états de chargement doivent être spécifiés avant la livraison.
 - Le contenu est fictif, contrairement à la structure du modèle de démonstration utilisée.
 - Ce document de décision ne modifie pas l'application ni les tests ; les changements fonctionnels seront proposés dans des PR distinctes **après choix explicite**. Aucune PR ne doit être fusionnée sans l'autorisation explicite du propriétaire.
+
+## Correction après retour client — la mosaïque est un invariant (05/11/2026)
+
+Le premier jeu de maquettes a été rejeté pour une raison de fidélité métier : il alignait les quatre N0 comme des listes verticales indépendantes. Les clients ne pouvaient plus se projeter dans la **mosaïque/matrice unifiée** de l'application, avec des positions et des zones occupées sur plusieurs colonnes **et plusieurs lignes**.
+
+La présentation révisée de 16 diapositives corrige ce point. La comparaison doit désormais montrer une seule grille de référence **6 colonnes × 3 lignes** reproduite strictement dans les directions ÉVIDENCE, SIGNAL et ATELIER :
+
+| Domaine | Colonne de départ (index 0) | Ligne de départ (index 0) | Colonnes occupées | Lignes occupées |
+|---|---:|---:|---:|---:|
+| Relation client (CRM) | 0 | 0 | 3 | 2 |
+| Finance | 3 | 0 | 3 | 1 |
+| Supply chain | 3 | 1 | 3 | 2 |
+| Ressources humaines | 0 | 2 | 3 | 1 |
+
+Ce **placement de démonstration est illustratif**, sans revendiquer les coordonnées réelles du `DEMO_MODEL` ; les quatre N0, les dix N1 et les sept rattachements applicatifs actuels restent ceux de la démo. Aucune modification JSON n'est requise.
+
+**Règles visuelles non négociables :**
+
+- Dans les trois directions, les N0 conservent **leurs surfaces et leurs spans de colonnes et de lignes** ; la carte doit être immédiatement reconnaissable comme la cartographie actuelle.
+- Tous les N1 sont affichés à l'intérieur du N0 parent ; aucun plafond artificiel de trois N1, aucun découpage en liste indépendante, aucune carte masquée.
+- La couverture s'affiche en changeant la **dimension de lecture des mêmes N1**, sans déplacer ni reclasser les zones : bandeau N0 = identité de domaine ; fond/contour N1 = état fonctionnel ; étiquette textuelle toujours présente.
+- Le statut « aucune application actuelle » reste indépendant de la couverture fonctionnelle évaluée. Des évaluations illustratives servent seulement à comparer les styles.
+- La géométrie matricielle est identique dans les trois options ; seuls changent le design system (palette, typographie, densité, navigation et formes). Un écran de qualification conserve le contexte du domaine/capacité sélectionné.
+- Sur les petites cartes, la densité de texte est adaptée sans masquer un N1 ; les labels restent lisibles et les interactions devront être testées au clavier et en mode présentation.
+
+**Vérification de fidélité à ajouter lors de l'implémentation :** un E2E Playwright doit comparer les coordonnées/colSpan/rowSpan des quatre N0 avant/après le basculement vers les vues applications, couverture, maturité, écarts et présentation. Ajouter les captures des trois systèmes dans Storybook lors du choix final, avec un scénario N0 ≥ 4 N1 pour éviter les anciennes régressions de visibilité.
