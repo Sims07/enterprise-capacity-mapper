@@ -191,7 +191,7 @@
   align-items: center;
   padding: clamp(5px, 1.4cqi, 11px);
   overflow: hidden;
-  border: 1.5px solid color-mix(in srgb, var(--domain-color, var(--color-accent)) 25%, var(--map-capability-muted));
+  border: 2px solid color-mix(in srgb, var(--domain-color, var(--color-accent)) 25%, var(--map-capability-muted));
   border-radius: 8px;
   background: color-mix(in srgb, var(--domain-color, #64748b) 7%, var(--map-card-surface)) !important;
   color: var(--map-capability-text);
@@ -314,7 +314,7 @@
    La spécificité tient compte du domaine parent pour garantir les contours
    de la présentation, sans modifier les couleurs de l'éditeur. */
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
-  border: 1.5px solid color-mix(in srgb, var(--domain-color, var(--color-accent)) 25%, var(--map-capability-muted)) !important;
+  border: 2px solid color-mix(in srgb, var(--domain-color, var(--color-accent)) 25%, var(--map-capability-muted)) !important;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap-head b,
