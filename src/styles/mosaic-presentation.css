@@ -555,9 +555,13 @@
   background-color: color-mix(in srgb, var(--presentation-domain-color, var(--map-card-surface)) var(--map-presentation-muted-domain-share), var(--map-card-surface)) !important;
   color: var(--map-card-text) !important;
 }
-.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed .domain-banner h3,
-.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed .domain-banner .map-domain-select,
-.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed .domain-banner .domain-meta {
+/* Même spécificité que les variantes sombres (y compris N0 sans N1),
+   sinon la couleur héritée du bandeau d'origine reste imposée au texte. */
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain > .domain-banner h3,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain > .domain-banner .map-domain-select,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain > .domain-banner .domain-meta,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain.mosaic-presentation-empty > .domain-banner h3,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain.mosaic-presentation-empty > .domain-banner .domain-meta {
   color: var(--map-card-text) !important;
 }
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-focused {
