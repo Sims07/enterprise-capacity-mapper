@@ -164,7 +164,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
   const [editingApplicationId, setEditingApplicationId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
-  const [pendingDomainPlan, setPendingDomainPlan] = useState<NonNullable<ReturnType<typeof prepareNewDomainSlot>> | null>(null);
+  const [pendingDomainPlan, setPendingDomainPlan] = useState<{
+    layout: Layout; domains: CatalogModel['domains']; placement: { columnId: string; layerId: string };
+    expanded: boolean; shiftedCount: number;
+  } | null>(null);
   const [domainInsertionTarget, setDomainInsertionTarget] = useState('auto');
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
 
