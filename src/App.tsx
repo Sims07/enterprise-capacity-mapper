@@ -39,7 +39,7 @@ import CoverageTree from './components/CoverageTree.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
-import { publishPresentationUpdate, subscribeToPresentationUpdates } from './adapters/browser/presentationSync.ts';
+import { publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_APP_PREVIEW_LIMIT = 2;
@@ -135,6 +135,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [presentationReadingMode, setPresentationReadingMode] = useState<PresentationReadingMode>('identity');
   const [presentationShowApplications, setPresentationShowApplications] = useState(false);
   const [presentationFocusedCapabilityId, setPresentationFocusedCapabilityId] = useState<string | null>(null);
+  const [presentationFocusedDomainId, setPresentationFocusedDomainId] = useState<string | null>(null);
+  const [presentationDirectorOpen, setPresentationDirectorOpen] = useState(false);
+  const [directorView, setDirectorView] = useState<PresentationViewState>({
+    readingMode: 'identity', showApplications: false, focusedDomainId: null,
+  });
   const [localMapId, setLocalMapId] = useState(() => preferences.readActiveLocalMapId());
   const [autoSaveState, setAutoSaveState] = useState<'draft' | 'saving' | 'saved' | 'error'>('draft');
   const [workingCopySaveError, setWorkingCopySaveError] = useState(false);
@@ -304,6 +309,29 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
+  const updateDirectorView = (patch: Partial<PresentationViewState>) => {
+    const next = { ...directorView, ...patch };
+    setDirectorView(next);
+    publishPresentationView({ sourceId: presentationSourceId.current, view: next });
+  };
+  const publishLocalPresentationView = (patch: Partial<PresentationViewState>) => {
+    publishPresentationView({
+      sourceId: presentationSourceId.current,
+      view: {
+        readingMode: presentationReadingMode,
+        showApplications: presentationShowApplications,
+        focusedDomainId: presentationFocusedDomainId,
+        ...patch,
+      },
+    });
+  };
+  const stepDirectorDomain = (step: -1 | 1) => {
+    if (!model.domains.length) return;
+    const current = model.domains.findIndex(domain => domain.id === directorView.focusedDomainId);
+    const index = Math.min(model.domains.length - 1, Math.max(0, (current < 0 ? (step > 0 ? -1 : model.domains.length) : current) + step));
+    updateDirectorView({ focusedDomainId: model.domains[index].id });
+  };
+
   const togglePresentation = enabled => {
     if (isPresentationWindow) {
       if (!enabled) {
@@ -326,18 +354,29 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   };
 
   useEffect(() => {
-    if (isPresentationWindow) {
-      return subscribeToPresentationUpdates({
-        sourceId: presentationSourceId.current,
-        onUpdate: () => {
-          const latest = mapService.load(modelRef.current);
-          modelRef.current = latest;
-          setModel(latest);
-          syncHistoryState(mapService.snapshot());
-        },
-      });
-    }
-    return undefined;
+    return subscribeToPresentationUpdates({
+      sourceId: presentationSourceId.current,
+      onUpdate: () => {
+        if (!isPresentationWindow) return;
+        const latest = mapService.load(modelRef.current);
+        modelRef.current = latest;
+        setModel(latest);
+        syncHistoryState(mapService.snapshot());
+      },
+      onView: view => {
+        if (isPresentationWindow) {
+          setPresentationReadingMode(view.readingMode);
+          setPresentationShowApplications(view.showApplications);
+          setPresentationFocusedDomainId(
+            view.focusedDomainId && modelRef.current.domains.some(domain => domain.id === view.focusedDomainId)
+              ? view.focusedDomainId : null,
+          );
+          setPresentationFocusedCapabilityId(null);
+        } else {
+          setDirectorView(view);
+        }
+      },
+    });
   }, [isPresentationWindow]);
 
   // La copie de travail permet de retrouver un brouillon après rechargement, même
@@ -1160,7 +1199,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const rowSpan = presentation
           ? mosaicLayersLayout.filter(layer => { const index = layers.findIndex(item => item.id === layer.id); return index >= sourceRowIndex && index < sourceRowIndex + sourceRowSpan; }).length
           : sourceRowSpan;
-        return <div className="mosaic-domain" key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
+        return <div className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
           aria-label={presentation ? `Carte ${domain.name}` : `Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
           style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}
           onPointerDown={event => {
@@ -1553,6 +1592,36 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </div>
                   <button type="button" className="capability-diagnostic-shortcut" data-testid="capability-diagnostic-shortcut"
                     onClick={openBusinessDiagnosis}>Examiner les écarts</button>
+                  <div className="presentation-director">
+                    <button type="button" className="presentation-director-toggle" data-testid="presentation-director-toggle"
+                      aria-expanded={presentationDirectorOpen} onClick={() => setPresentationDirectorOpen(value => !value)}>Piloter la présentation</button>
+                    {presentationDirectorOpen && <div className="presentation-director-panel" data-testid="presentation-director-panel">
+                      <strong>Écran de restitution</strong>
+                      <p>Commandes envoyées à l'onglet de présentation ouvert dans ce navigateur.</p>
+                      <div className="presentation-director-readings" role="group" aria-label="Lecture sur l'écran de présentation">
+                        {PRESENTATION_READING_OPTIONS.map(option => <button key={option.id} type="button"
+                          data-testid={`director-reading-${option.id}`} aria-pressed={directorView.readingMode === option.id}
+                          className={directorView.readingMode === option.id ? 'is-active' : ''}
+                          onClick={() => updateDirectorView({ readingMode: option.id })}>{option.label}</button>)}
+                      </div>
+                      <label className="presentation-director-checkbox"><input type="checkbox" data-testid="director-show-applications"
+                        checked={directorView.showApplications} onChange={event => updateDirectorView({ showApplications: event.target.checked })} />
+                        Afficher les applications</label>
+                      <label className="presentation-director-domain-label">Mettre en avant un domaine N0
+                        <select data-testid="presentation-director-domain" value={directorView.focusedDomainId ?? ''}
+                          onChange={event => updateDirectorView({ focusedDomainId: event.target.value || null })}>
+                          <option value="">Tous les domaines</option>
+                          {model.domains.map(domain => <option key={domain.id} value={domain.id}>{domain.name}</option>)}
+                        </select>
+                      </label>
+                      <div className="presentation-director-navigation">
+                        <button type="button" data-testid="presentation-director-prev" disabled={!model.domains.length}
+                          onClick={() => stepDirectorDomain(-1)}>← Précédent</button>
+                        <button type="button" data-testid="presentation-director-next" disabled={!model.domains.length}
+                          onClick={() => stepDirectorDomain(1)}>Suivant →</button>
+                      </div>
+                    </div>}
+                  </div>
                 </section>
               )}
               {capabilityMap}
@@ -1570,12 +1639,15 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             <button key={option.id} type="button" data-testid={`presentation-reading-${option.id}`}
               aria-pressed={presentationReadingMode === option.id}
               className={presentationReadingMode === option.id ? 'is-active' : ''}
-              onClick={() => setPresentationReadingMode(option.id)}>{option.label}</button>
+              onClick={() => { setPresentationReadingMode(option.id); publishLocalPresentationView({ readingMode: option.id }); }}>{option.label}</button>
           ))}
         </div>
         <label className="presentation-app-toggle">
           <input type="checkbox" data-testid="presentation-show-applications" checked={presentationShowApplications}
-            disabled={depth !== 2} onChange={event => setPresentationShowApplications(event.target.checked)} />Applications
+            disabled={depth !== 2} onChange={event => {
+              setPresentationShowApplications(event.target.checked);
+              publishLocalPresentationView({ showApplications: event.target.checked });
+            }} />Applications
         </label>
         {presentationReadingMode !== 'identity' && <div className="presentation-reading-legend" data-testid="presentation-legend" aria-label="Légende de la coloration">
           {(['covered', 'gap', 'high', 'critical', 'neutral'] as const).map(tone => (
