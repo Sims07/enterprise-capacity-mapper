@@ -77,7 +77,7 @@ test.describe('Playwright regression — application and navigation', () => {
     });
     const contrast = ({ background, foreground }: { background: string; foreground: string }) => {
       const luminance = (rgb: string) => {
-        const channels = rgb.match(/[\\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+        const channels = rgb.match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
         if (channels.length !== 3) throw new Error('Couleur RGB invalide : ' + rgb);
         const linear = channels.map(channel => {
           const normalized = channel / 255;
