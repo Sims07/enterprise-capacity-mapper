@@ -39,3 +39,9 @@ La barre de restitution permet de choisir **Carte** (couleurs N0 habituelles), *
 - Écarts : affiche les signaux existants ; les teintes servent à guider la lecture et non à attribuer une criticité métier calculée.
 
 Les couleurs sont issues des tokens `--status-*` du design system (clair et sombre). La barre reste temporaire comme le switch de sortie, accessible au clavier.
+
+## Applications rattachées (lot 2)
+
+L'option **Applications** de la barre de présentation affiche jusqu'à deux noms par N1, puis un compteur de relations supplémentaires. Les applications cibles sont identifiées et ne prouvent pas une couverture actuelle. L'option est désactivée en cartographie à un seul niveau.
+
+Une N1 activée au clic ou au clavier (Entrée/Espace) ouvre une fiche de restitution présentant couverture, maturité, signaux et **toutes** les applications actuelles et cibles. Échap ferme d'abord la fiche, puis quitte la présentation au second appui. Aucune modification métier n'est possible dans cette vue.
