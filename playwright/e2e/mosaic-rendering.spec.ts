@@ -621,9 +621,9 @@ test.describe('Cartographie unifiée', () => {
     };
 
     await checkAllCapabilitiesFit();
-    // Sélectionner le N0 (impact) ne doit pas faire disparaître les N1.
-    await domain.getByTestId('map-domain-select').click();
-    await expect(domain.locator('.domain-card')).toHaveClass(/impact-selected/);
+    // La sélection d'une N1 ne doit pas faire disparaître les autres tuiles.
+    await domain.getByTestId('map-cap-select').first().click();
+    await expect(domain.locator('.cap.impact-selected')).toHaveCount(1);
     await checkAllCapabilitiesFit();
   });
 
