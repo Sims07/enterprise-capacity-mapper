@@ -81,3 +81,45 @@
 @media (prefers-reduced-motion: reduce) {
   .capability-reading-detail, .capability-open-sheet { transition: none !important; }
 }
+
+/* Parcours continu de la cartographie au diagnostic puis à l'évaluation. */
+.capability-reading-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 11px; color: var(--color-text-muted); }
+.capability-reading-summary > span { display: inline-flex; align-items: baseline; gap: 4px; }
+.capability-reading-summary strong { color: var(--color-text); font-size: 12px; }
+.app .capability-diagnostic-shortcut {
+  border: 1px solid var(--color-accent-border);
+  border-radius: 8px; background: var(--color-accent-soft); color: var(--color-accent-text);
+  padding: 8px 10px; cursor: pointer; font-size: 11px; font-weight: 700;
+}
+.app .capability-diagnostic-shortcut:hover { border-color: var(--color-focus); }
+.app .capability-diagnostic-item {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px; border: 1px solid var(--color-border);
+  border-radius: 10px; background: var(--color-surface);
+}
+.app .capability-diagnostic-facts {
+  display: flex; flex: 1 1 220px; flex-direction: column; align-items: flex-start; gap: 5px;
+  min-width: 0; color: var(--color-text);
+}
+.app .capability-diagnostic-facts > span,
+.app .capability-diagnostic-facts small { color: var(--color-text-muted); font-size: 11px; line-height: 1.45; }
+.app .capability-diagnostic-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.app .capability-diagnostic-actions button {
+  border: 1px solid var(--color-border); border-radius: 8px;
+  background: var(--color-surface); color: var(--color-text);
+  padding: 7px 10px; min-height: 32px; cursor: pointer; font-size: 11px;
+}
+.app .capability-diagnostic-actions .capability-diagnostic-edit {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft); color: var(--color-accent-text); font-weight: 700;
+}
+.app .capability-diagnostic-actions .capability-diagnostic-relations {
+  border-color: transparent; color: var(--color-text-muted);
+}
+.app .capability-diagnostic-actions button:hover { border-color: var(--color-focus); }
+.app .capability-diagnostic-actions button:focus-visible,
+.app .capability-diagnostic-shortcut:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (max-width: 700px) {
+  .app .capability-diagnostic-actions { width: 100%; }
+  .app .capability-diagnostic-shortcut { flex-grow: 1; }
+}

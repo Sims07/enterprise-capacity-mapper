@@ -162,3 +162,31 @@ test.describe('Parcours de lecture métier depuis la cartographie', () => {
     await expect(page.getByTestId('capability-reading-toolbar')).toHaveCount(0);
   });
 });
+
+test('du constat sur la carte à la fiche puis au même constat dans le diagnostic', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByTestId('capability-reading-summary')).toContainText('à qualifier');
+  await page.getByTestId('capability-diagnostic-shortcut').click();
+  await expect(page.getByTestId('capability-diagnostic')).toBeVisible();
+
+  const finding = page.getByTestId('capability-diagnostic-item').first();
+  const capabilityName = (await finding.locator('.capability-diagnostic-facts strong').innerText()).trim();
+  await finding.getByTestId('capability-diagnostic-edit').click();
+  const sheet = page.getByRole('dialog', { name: 'Fiche de capacité N1' });
+  await expect(sheet).toBeVisible();
+  await sheet.getByTestId('capability-functional-coverage').selectOption('partial');
+  await sheet.getByTestId('capability-current-maturity').selectOption('2');
+  await sheet.getByTestId('capability-target-maturity').selectOption('4');
+  await sheet.getByTestId('capability-assessment-rationale').fill('Vérification métier demandée.');
+  await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+
+  const reviewed = page.getByTestId('capability-diagnostic-item').filter({ hasText: capabilityName });
+  await expect(reviewed).toContainText('Couverture fonctionnelle déclarée partielle');
+  await expect(reviewed).toContainText('Écart de maturité');
+  await reviewed.getByTestId('capability-diagnostic-map').click();
+  await expect(page.getByTestId('nav-cartography')).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByTestId('map-reading-gaps')).toHaveAttribute('aria-pressed', 'true');
+  const capability = page.locator('.cap:visible').filter({ hasText: capabilityName });
+  await expect(capability.getByTestId('capability-qualification')).toContainText('Partielle');
+  await expect(capability.getByTestId('capability-reading-detail')).toContainText('Écart de maturité');
+});

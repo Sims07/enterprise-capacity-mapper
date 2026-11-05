@@ -56,3 +56,6 @@ Storybook et les tests visuels complètent Vitest et les parcours E2E existants.
 ### Lecture métier N1
 
 La story « Application / Capacity Mapper » exerce les quatre lectures métier sur le composant réel. Les tests visuels vérifient désormais, sur l'interface réelle en thèmes clair et sombre, la présence des commandes « Lecture métier », le rendu des constats et l'accès direct à la fiche N1. Le mode présentation n'affiche aucune de ces actions d'édition.
+
+
+La story de l'application vérifie le parcours Cartographie → Diagnostic métier → action de qualification, avec navigation réelle plutôt que captures statiques simulées.

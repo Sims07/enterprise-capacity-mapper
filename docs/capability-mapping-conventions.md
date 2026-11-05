@@ -120,3 +120,10 @@ Depuis la cartographie N0/N1, le bandeau **Lecture métier** permet de basculer 
 - **Écarts** : signaux issus du diagnostic déterministe, avec « à qualifier » si la couverture n'a pas été évaluée.
 
 Chaque carte N1 présente toujours l'état de couverture fonctionnelle, et le bouton **Fiche** ouvre directement l'édition de ses propriétés métier. La sélection d'impact et les actions de relation restent indépendantes de la lecture choisie. Le mode présentation reste exempt de contrôles d'édition. Les cartographies N0 seules n'affichent pas une maturité N1 fictive.
+
+
+## 13. Parcours depuis le constat jusqu'à la qualification
+
+La cartographie présente deux compteurs métiers : **capacités à qualifier** (couverture fonctionnelle inconnue) et **capacités avec signaux d'écart**. Le bouton « Examiner les écarts » ouvre directement la vue d'attention du Dashboard, sans étape de navigation intermédiaire.
+
+Dans les constats, « Qualifier la capacité » / « Modifier l'évaluation » ouvre la **même fiche N1** sans passer par la gestion des relations. L'utilisateur peut enregistrer et relire immédiatement les signaux recalculés dans le diagnostic, revenir à la capacité dans la lecture « Écarts » sur la carte, ou examiner séparément les relations applicatives. Les compteurs et constats utilisent les règles métier existantes et ne créent pas de données fictives.

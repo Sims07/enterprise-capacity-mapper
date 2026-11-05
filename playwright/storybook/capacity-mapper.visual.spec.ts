@@ -208,3 +208,12 @@ test('story réelle — accès aux nouvelles lectures métier, thème clair et s
   await page.getByTestId('map-reading-maturity').click();
   await expect(page.locator('.cap:visible').first().getByTestId('capability-reading-detail')).toContainText('Actuelle');
 });
+
+test('story réelle — la cartographie ouvre directement le diagnostic métier', async ({ page }) => {
+  await openCapacityMapper(page, 1440, 900, 'light');
+  await expect(page.getByTestId('capability-reading-summary')).toContainText('à qualifier');
+  await page.getByTestId('capability-diagnostic-shortcut').click();
+  await expect(page.getByTestId('capability-diagnostic')).toBeVisible();
+  const item = page.getByTestId('capability-diagnostic-item').first();
+  await expect(item.getByTestId('capability-diagnostic-edit')).toBeVisible();
+});
