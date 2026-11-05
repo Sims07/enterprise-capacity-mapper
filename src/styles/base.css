@@ -2676,18 +2676,52 @@ body::-webkit-scrollbar,
 .mosaic-domain .domain{height:100%;min-height:0;margin:0;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(15,23,42,.07)}
 .mosaic-domain .domain-desc,.mosaic-domain .domain-relations,.mosaic-domain .caps-list{overflow:auto;min-height:0}
 
-/* En édition, la grille grandit selon le contenu N1 plutôt que de rogner
-   la liste dans une hauteur de ligne fixe (notamment dès le 4e N1).
-   Le défilement reste celui de l'espace de travail, pas celui des cartes. */
-.app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain {
-  height: auto;
-  min-height: 100%;
+/* Une carte N0 doit contribuer sa hauteur réelle au calcul des pistes CSS Grid.
+   Sinon, la liste N1 peut grandir hors de la cellule sans agrandir sa ligne :
+   le quatrième N1 existe mais déborde sous la cartographie. */
+.app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain {
+  min-height: max-content;
+  container-type: inline-size;
+  container-name: mosaic-editor-card;
+}
+.app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain > .domain {
+  height: 100%;
+  min-height: max-content;
 }
 .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .caps-list,
 .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain-desc,
 .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain-relations {
   flex-shrink: 0;
   overflow: visible;
+}
+
+/* En présence de nombreuses colonnes, les actions ne doivent pas réduire
+   le titre à une lettre par ligne. La grille garde ses huit colonnes :
+   seul le contenu de la carte étroite s'organise verticalement. */
+@container mosaic-editor-card (max-width: 190px) {
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain-actions {
+    justify-content: flex-end;
+  }
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .domain-banner h3,
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .map-domain-select,
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .map-cap-select {
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .cap-head {
+    flex-wrap: wrap;
+  }
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .map-cap-select {
+    flex-basis: 100%;
+    min-width: 100%;
+  }
+  .app:not(.mosaic-presentation-mode) .map-mosaic .mosaic-domain .capability-card-actions {
+    margin-left: auto;
+  }
 }
 
 .mosaic-domain .domain-banner-title{min-width:0}
