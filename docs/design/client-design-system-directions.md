@@ -133,3 +133,38 @@ Ce **placement de démonstration est illustratif**, sans revendiquer les coordon
 - Sur les petites cartes, la densité de texte est adaptée sans masquer un N1 ; les labels restent lisibles et les interactions devront être testées au clavier et en mode présentation.
 
 **Vérification de fidélité à ajouter lors de l'implémentation :** un E2E Playwright doit comparer les coordonnées/colSpan/rowSpan des quatre N0 avant/après le basculement vers les vues applications, couverture, maturité, écarts et présentation. Ajouter les captures des trois systèmes dans Storybook lors du choix final, avec un scénario N0 ≥ 4 N1 pour éviter les anciennes régressions de visibilité.
+
+## Décision client affinée — SIGNAL sans perte fonctionnelle (05/11/2026)
+
+**Retour validé :** la direction SIGNAL est la préférée, mais sa première proposition de navigation latérale n'est **pas retenue**. Le client exige le maintien intégral de la mosaïque, du mode présentation et de la gestion applicative. La nouvelle maquette de 10 diapositives **SIGNAL — Un nouveau style, les mêmes capacités** matérialise l'arbitrage. Elle ne constitue pas une implémentation ; ce document décrit l'objectif qui devra être testé.
+
+### Architecture d'interaction retenue
+
+1. **Navigation principale horizontale**, dans l'en-tête comme dans la version actuelle : Cartographie, Analyse, Bibliothèque, Outils, statut d'enregistrement et switch Présentation. Pas de navigation latérale permanente, y compris sur les vues d'édition et de couverture.
+2. **La mosaïque est le centre de l'écran**, sans reflow artificiel : N0 multi-colonnes/multi-lignes et tous les N1 toujours visibles. Les modes Applications / Couverture / Maturité / Écarts changent la lecture, pas les placements.
+3. **Ajouter une application** doit être une action repérable directement depuis l'éditeur, en complément du bouton existant dans l'inventaire SI. Un contrôle « Inventaire SI » ouvre à la demande un panneau temporaire (superposition refermable), sans largeur réservée quand il est fermé. Le panneau contient recherche, états, édition et « Relier à… » ; sur petits écrans, il devient un panneau adapté au viewport.
+4. **La création et le rattachement sont distincts et continus**. Le formulaire conserve les champs du modèle actuel (nom obligatoire, code, éditeur, type, statut, description et liens selon le parcours en place). Une action de liaison explicite mène à la sélection des N1. À aucun moment, la présence d'un lien n'implique une couverture fonctionnelle « suffisante ».
+5. **Mode présentation maintenu à l'identique fonctionnellement** : nouvelle fenêtre `?view=presentation`, synchronisation des données, du thème et des filtres de lecture, contrôle depuis l'éditeur, affichage multi-lignes à pleine largeur, lecture seule, aucun drag-and-drop, choix Carte / Couverture / Maturité / Écarts et affichage éventuel des applications. En cas de popup bloquée, afficher le message déjà prévu.
+6. **Le thème SIGNAL est une couche de design**, créée par tokens sémantiques, variantes de surface, typographie et composants Storybook. Il ne modifie ni `CatalogModel`, ni `schemaVersion: 3`, ni les cas d'usage de domaine/application, ni la persistance locale, ni le runtime GitHub Pages/PWA.
+
+### Constat de code actuel à préserver
+
+Dans `src/App.tsx`, la barre haute contient déjà la navigation principale et le switch `presentation-switch-toolbar`. La fonction `togglePresentation` ouvre déjà une fenêtre dédiée en lecture `?view=presentation`. Les événements passent par `subscribeToPresentationUpdates` (modèle, thème, mode de lecture). L'inventaire `#app-inventory` contient déjà un bouton `+ Application`, une recherche, l'édition d'application et `Relier à…`. Les use cases `createApplication`, `updateApplication` et `prepareLinkedApplications` doivent rester inchangés par la refonte. Le panneau superposé et le bouton d'ajout en haut sont **des cibles nouvelles de présentation**, et non des comportements déjà livrés.
+
+### Tests d'acceptation minimaux à ajouter/adapter au lot d'implémentation
+
+| Parcours | Vérification Playwright attendue |
+|---|---|
+| Navigation / largeur | Header toujours accessible ; aucun rail de navigation à largeur fixe ; ouvrir/fermer Inventaire SI sans casser les positions N0 ; scroll bureau et mobile conservé |
+| Catalogue applicatif | Depuis « + Application » : validation du nom, création, présence dans l'inventaire, persistance ; modification discrète par crayon ; recherche |
+| Relations | Depuis l'inventaire « Relier à… » et depuis une capacité : associer/dissocier N1 et application, vérifier les deux sens et l'impact sur les gaps applicatifs |
+| Mosaïque | Afficher au moins 4 N1 dans un N0 ; insérer N0 dans une cartographie existante ; étirer un N0 sur des colonnes et des lignes, aperçu dynamique, maintien des spans après sauvegarde et changement de mode |
+| Présentation | Switch ouvre fenêtre distincte ; ne peut pas modifier ; pas de drag ; dimensions/spans et N1 inchangés ; thèmes et dimension de lecture synchronisés ; sortie contrôlée ; comportement popup bloquée |
+| Couverture métier | Afficher les quatre états indépendants du nombre d'applications ; matrice géométriquement stable en passant d'Applications à Couverture, Maturité, Écarts |
+| Données / plateforme | Autosave et Ctrl/Cmd+S, annuler/rétablir, bibliothèque, JSON import/export versionné, GitHub Pages base path, offline/PWA ; thème clair et sombre, accessibilité clavier |
+
+Validation obligatoire de la PR d'implémentation : `npm run typecheck`, `npm run test:unit`, `npm run build`, `npm run test:e2e`, Storybook (états et snapshots), seuils de couverture et tous les checks GitHub Actions au vert. Toute régression relevée doit être analysée à partir du test en échec avant correction. **Aucune fusion sans approbation explicite.**
+
+### Scénario de démonstration approuvé pour la prochaine revue
+
+**Cartographie multi-lignes** → **Inventaire SI à la demande** → **Créer une application** → **Relier à CRM-02** → **Lire la couverture sur la même mosaïque** → **Projeter dans une nouvelle fenêtre synchronisée**. Les éléments visuels sont illustratifs ; la version en production n'est pas encore modifiée.
