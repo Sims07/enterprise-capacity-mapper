@@ -103,6 +103,28 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     await presentationPage.screenshot({ path: 'playwright/storybook/__screenshots__/unified-map-presentation-landscape-dark.png', animations: 'disabled' });
     await presentationPage.screenshot({ path: 'test-results-storybook/unified-map-presentation-landscape-dark.png', animations: 'disabled' });
   });
+  for (const theme of ['light', 'dark'] as const) {
+    test(`présentation — focus N0 sans transparence de carte, thème ${theme}`, async ({ page }) => {
+      const presentationPage = await openUnifiedMapPresentation(page, theme);
+      await page.getByTestId('presentation-director-toggle').click();
+      await page.getByTestId('presentation-director-domain').selectOption({ index: 1 });
+      const focused = presentationPage.locator('.mosaic-domain.is-presentation-focused');
+      const dimmed = presentationPage.locator('.mosaic-domain.is-presentation-dimmed');
+      await expect(focused).toHaveCount(1);
+      await expect(dimmed.first()).toHaveCSS('opacity', '1');
+      await mkdir('playwright/storybook/__screenshots__', { recursive: true });
+      await mkdir('test-results-storybook', { recursive: true });
+      await presentationPage.screenshot({
+        path: `playwright/storybook/__screenshots__/unified-map-presentation-landscape-n0-focus-${theme}.png`,
+        animations: 'disabled',
+      });
+      await presentationPage.screenshot({
+        path: `test-results-storybook/unified-map-presentation-landscape-n0-focus-${theme}.png`,
+        animations: 'disabled',
+      });
+    });
+  }
+
   test('desktop — thème clair', async ({ page }) => {
     await openCapacityMapper(page, 1440, 900, 'light');
     const map = page.getByTestId('capability-map');
