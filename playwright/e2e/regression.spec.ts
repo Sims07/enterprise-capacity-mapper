@@ -101,6 +101,7 @@ test.describe('Playwright regression — application and navigation', () => {
     await openTools(page);
     await page.getByTestId('theme-toggle').click();
     await expect(page.locator('.companion-root')).toHaveClass(/theme-dark/);
+    await expect.poll(async () => contrast(await appearance())).toBeGreaterThanOrEqual(4.5);
     const dark = await appearance();
     expect(dark.background).not.toBe(light.background);
     expect(dark.foreground).not.toBe(light.foreground);
@@ -369,13 +370,13 @@ test.describe('Playwright regression — companion', () => {
         };
         return {
           surface: resolveToken('--companion-bg'),
-          accent: resolveToken('--companion-accent'),
-          accentHover: resolveToken('--color-accent-hover'),
+          launcherBorder: resolveToken('--color-accent-border'),
+          launcherOpenSurface: resolveToken('--color-accent-soft'),
         };
       });
-      expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(expected.surface);
-      expect(await launcher.evaluate((element) => getComputedStyle(element).borderColor)).toBe(expected.accent);
-      await expect(launcher).toHaveCSS('background-color', expected.accentHover);
+      await expect(panel).toHaveCSS('background-color', expected.surface);
+      await expect(launcher).toHaveCSS('border-color', expected.launcherBorder);
+      await expect(launcher).toHaveCSS('background-color', expected.launcherOpenSurface);
     };
 
     await expect(panel).toBeVisible();
