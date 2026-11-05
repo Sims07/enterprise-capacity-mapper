@@ -1,9 +1,10 @@
 import { Catalog } from '../domain/catalog.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
-export type { Application, Capability, CatalogModel, Domain, Layout } from '../domain/catalogModel.ts';
+export type { Application, Capability, CatalogModel, Domain, Layout, CapabilityAssessment } from '../domain/catalogModel.ts';
+import type { CapabilityAssessment } from '../domain/catalogModel.ts';
 
 export type DomainForm = { code?: string; name: string; description?: string; color?: string; columnId?: string; layerId?: string; columnSpan?: string | number };
-export type CapabilityForm = { domainId: string; code?: string; name: string; description?: string; priority?: string };
+export type CapabilityForm = { domainId: string; code?: string; name: string; description?: string; priority?: string; assessment?: CapabilityAssessment };
 export type ApplicationForm = { name: string; code?: string; type?: string; status?: string; vendor?: string; capabilityIds?: string[]; description?: string };
 
 const catalogWith = (model: CatalogModel): Catalog => Catalog.fromModel(model);
@@ -44,6 +45,7 @@ export const createCapability = ({ capabilities, form, id, domains = [] }: {
 }): Capability[] => catalogWith({ domains, capabilities, applications: [] }).createCapability({
   id, domainId: form.domainId, code: form.code || 'CAP-01', name: form.name,
   description: form.description, priority: form.priority || 'unqualified',
+  ...(form.assessment === undefined ? {} : { assessment: form.assessment }),
 }).toModel().capabilities;
 
 export const updateCapability = ({ capabilities, capabilityId, form, domains = [] }: {
@@ -55,6 +57,7 @@ export const updateCapability = ({ capabilities, capabilityId, form, domains = [
     name: form.name,
     description: form.description,
     priority: form.priority || 'unqualified',
+    ...(form.assessment === undefined ? {} : { assessment: form.assessment }),
   }).toModel().capabilities;
 };
 

@@ -139,3 +139,14 @@ test('Catalog treats removing an unknown domain as an idempotent no-op', () => {
   const catalog = Catalog.fromModel(model);
   assert.equal(catalog.removeDomain('missing'), catalog);
 });
+
+test('Catalog validates and retains qualified capability assessments', () => {
+  const catalog = Catalog.fromModel(model);
+  const assessment = { functionalCoverage: 'partial' as const, currentMaturity: 2, targetMaturity: 4 };
+  const updated = catalog.updateCapability('c1', { assessment });
+  assert.deepEqual(updated.toModel().capabilities[0].assessment, assessment);
+  assert.equal(catalog.toModel().capabilities[0].assessment, undefined);
+  assert.throws(() => catalog.updateCapability('c1', { assessment: { currentMaturity: 7 } }), /maturité/i);
+  assert.throws(() => catalog.createCapability({ id: 'c2', domainId: 'd1', name: 'New', assessment: { targetMaturity: 0 } }), /maturité/i);
+  assert.deepEqual(catalog.createCapability({ id: 'c2', domainId: 'd1', name: 'New', assessment }).toModel().capabilities[1].assessment, assessment);
+});

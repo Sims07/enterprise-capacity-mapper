@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEMO_MODEL } from './data/demoData.ts';
+import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
+import type { CapabilityAssessment } from './domain/catalogModel.ts';
 import { createFrontendApplication } from './adapters/react/architecture.ts';
 import {
   addLayoutDraftItem,
@@ -67,7 +69,7 @@ const mixDomainColor = (foreground, background, amount) => {
   });
   return `#${channels.join('')}`;
 };
-const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified' };
+const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified', assessment: { functionalCoverage: 'unknown' as CapabilityAssessment['functionalCoverage'], currentMaturity: undefined as number | undefined, targetMaturity: undefined as number | undefined, rationale: '' } };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
 
 function Modal({ title, children, onClose }) {
@@ -656,7 +658,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const openEditCapability = c => {
     setEditingCapabilityId(c.id);
     setFormErrors({});
-    setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '', priority: c.priority || 'unqualified' });
+    setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '', priority: c.priority || 'unqualified', assessment: { ...emptyForm.assessment, ...c.assessment } });
     setModal('edit-capability');
   };
 
@@ -1568,6 +1570,45 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               </select>
               <small>Qualifiez la criticité métier ; un gap n’est pas automatiquement un risque élevé.</small>
             </label>
+          )}
+
+          {(modal === 'capability' || modal === 'edit-capability') && (
+            <section className="capability-assessment-fields" aria-label="Évaluation métier de la capacité">
+              <h3>Évaluation métier <small>(facultative)</small></h3>
+              <p className="structure-hint">Qualifiez la couverture réelle, indépendamment du nombre d'applications reliées. Une valeur non renseignée reste inconnue.</p>
+              <label className="field">
+                <span>Couverture fonctionnelle</span>
+                <select data-testid="capability-functional-coverage" value={form.assessment.functionalCoverage || 'unknown'}
+                  onChange={event => setForm({ ...form, assessment: { ...form.assessment, functionalCoverage: event.target.value as CapabilityAssessment['functionalCoverage'] } })}>
+                  <option value="unknown">Non évaluée</option>
+                  <option value="none">Non couverte</option>
+                  <option value="partial">Partiellement couverte</option>
+                  <option value="sufficient">Suffisamment couverte</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Maturité actuelle</span>
+                <select data-testid="capability-current-maturity" value={form.assessment.currentMaturity ?? ''}
+                  onChange={event => setForm({ ...form, assessment: { ...form.assessment, currentMaturity: event.target.value ? Number(event.target.value) : undefined } })}>
+                  <option value="">Non évaluée</option>
+                  {MATURITY_LEVELS.map(level => <option key={level} value={level}>{level} / {MATURITY_LEVELS.length}</option>)}
+                </select>
+              </label>
+              <label className="field">
+                <span>Maturité cible</span>
+                <select data-testid="capability-target-maturity" value={form.assessment.targetMaturity ?? ''}
+                  onChange={event => setForm({ ...form, assessment: { ...form.assessment, targetMaturity: event.target.value ? Number(event.target.value) : undefined } })}>
+                  <option value="">Non définie</option>
+                  {MATURITY_LEVELS.map(level => <option key={level} value={level}>{level} / {MATURITY_LEVELS.length}</option>)}
+                </select>
+              </label>
+              <label className="field">
+                <span>Justification de l'évaluation</span>
+                <textarea data-testid="capability-assessment-rationale" rows={2} value={form.assessment.rationale || ''}
+                  onChange={event => setForm({ ...form, assessment: { ...form.assessment, rationale: event.target.value } })}
+                  placeholder="Faits métier vérifiés, limites ou hypothèses" />
+              </label>
+            </section>
           )}
 
           {(modal === 'domain' || modal === 'edit-domain') && (

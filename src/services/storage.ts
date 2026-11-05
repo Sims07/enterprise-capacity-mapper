@@ -1,4 +1,5 @@
 import type { CatalogModel } from '../domain/catalogModel.ts';
+import { validateCapabilityAssessment } from '../domain/capabilityAssessment.ts';
 
 export const ACTIVE_MODEL_STORAGE_KEY = 'enterprise-capacity-mapper:model:v3';
 const KEY = ACTIVE_MODEL_STORAGE_KEY;
@@ -140,6 +141,9 @@ export function validateModel(model: CatalogModel): CatalogModel {
       if (ids.has(item.id)) throw new Error(`Identifiant de ${label} dupliqué : ${item.id}.`);
       ids.add(item.id);
     }
+  }
+  for (const capability of model.capabilities) {
+    if (capability.assessment !== undefined) validateCapabilityAssessment(capability.assessment);
   }
   if (model.applications.some(app => app.capabilityIds !== undefined && !Array.isArray(app.capabilityIds))) {
     throw new Error('Les relations applicatives doivent être une liste.');

@@ -173,3 +173,12 @@ test('rejects duplicate entity IDs and invalid application relation structures',
   (malformed.applications[0] as unknown as { capabilityIds: unknown }).capabilityIds = 'cap-1';
   assert.throws(() => validateModel(malformed), /relations applicatives/);
 });
+
+test('accepts optional capability assessments in v3 and rejects invalid maturity during import', async () => {
+  const assessed = validModel();
+  assessed.capabilities[0].assessment = { functionalCoverage: 'partial', currentMaturity: 2, targetMaturity: 4 };
+  assert.deepEqual(validateModel(assessed).capabilities[0].assessment, assessed.capabilities[0].assessment);
+  const invalid = validModel();
+  invalid.capabilities[0].assessment = { targetMaturity: 99 };
+  assert.throws(() => validateModel(invalid), /maturité/i);
+});

@@ -186,3 +186,14 @@ test('catalog use cases preserve multiple domains in the same matrix cell', () =
   });
   assert.equal(updated.find(domain => domain.id === 'domain-2')?.layout?.columnId, 'c1');
 });
+
+test('capability use cases persist optional assessment without losing earlier values', () => {
+  const domains = [{ id: 'domain-1', name: 'Domain', code: 'D1' }];
+  const assessment = { functionalCoverage: 'partial' as const, currentMaturity: 2, targetMaturity: 4, rationale: 'Revue de capacité' };
+  const created = createCapability({ domains, capabilities: [], id: 'cap-a', form: { domainId: 'domain-1', name: 'Contrats', assessment } });
+  assert.deepEqual(created[0].assessment, assessment);
+  const updated = updateCapability({ domains, capabilities: created, capabilityId: 'cap-a', form: { domainId: 'domain-1', name: 'Contrats 2026', assessment: { functionalCoverage: 'sufficient' } } });
+  assert.deepEqual(updated[0].assessment, { functionalCoverage: 'sufficient' });
+  const retained = updateCapability({ domains, capabilities: created, capabilityId: 'cap-a', form: { domainId: 'domain-1', name: 'Contrats revus' } });
+  assert.deepEqual(retained[0].assessment, assessment);
+});

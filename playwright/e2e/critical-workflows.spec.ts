@@ -87,3 +87,25 @@ test.describe('Playwright POC — critical browser workflows', () => {
     await expect(page.getByTestId('saved-maps-list')).toContainText('POC Playwright local');
   });
 });
+
+test('qualifie la couverture et la maturité d’une capacité puis conserve la saisie après rechargement', async ({ page }) => {
+  await page.goto('/');
+  const capability = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
+  await capability.getByRole('button', { name: 'Renommer Gestion des Prospects & Leads' }).click();
+  await page.locator('.context-menu').getByRole('button', { name: 'Renommer' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Modifier la capacité N1' });
+  await dialog.getByTestId('capability-functional-coverage').selectOption('partial');
+  await dialog.getByTestId('capability-current-maturity').selectOption('2');
+  await dialog.getByTestId('capability-target-maturity').selectOption('4');
+  await dialog.getByTestId('capability-assessment-rationale').fill('Couverture partielle confirmée par les métiers');
+  await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.reload();
+  const updated = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
+  await updated.getByRole('button', { name: 'Renommer Gestion des Prospects & Leads' }).click();
+  await page.locator('.context-menu').getByRole('button', { name: 'Renommer' }).click();
+  const restored = page.getByRole('dialog', { name: 'Modifier la capacité N1' });
+  await expect(restored.getByTestId('capability-functional-coverage')).toHaveValue('partial');
+  await expect(restored.getByTestId('capability-current-maturity')).toHaveValue('2');
+  await expect(restored.getByTestId('capability-target-maturity')).toHaveValue('4');
+  await expect(restored.getByTestId('capability-assessment-rationale')).toHaveValue('Couverture partielle confirmée par les métiers');
+});
