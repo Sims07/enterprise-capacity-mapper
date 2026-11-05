@@ -711,6 +711,10 @@ test.describe('Cartographie unifiée', () => {
     await page.keyboard.press('Escape');
     await expect(sheet).toHaveCount(0);
     await expect(page.locator('.app.mosaic-presentation-mode')).toBeVisible();
+    await capabilities.first().click();
+    await expect(sheet).toBeVisible();
+    await page.getByTestId('presentation-focus-close').click();
+    await expect(sheet).toHaveCount(0);
     await page.mouse.move(160, 160);
     await page.getByTestId('presentation-show-applications').uncheck();
     await expect(page.locator('.presentation-app-preview')).toHaveCount(0);
