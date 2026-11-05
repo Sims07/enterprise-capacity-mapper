@@ -435,6 +435,7 @@ test.describe('Diagnostic métier des capacités', () => {
       name: 'reference.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(reference)),
     });
     await expect(page.getByTestId('reference-missing-capabilities')).toContainText('Gestion des abonnements');
+    await page.getByTestId('dashboard-view-overview').click();
     await expect(page.getByTestId('dashboard-coverage-rate')).toBeVisible();
     await page.getByRole('button', { name: 'Retirer la référence' }).click();
     await expect(page.getByTestId('reference-missing-capabilities')).toHaveCount(0);
