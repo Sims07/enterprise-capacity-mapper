@@ -504,3 +504,36 @@
 .app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="high"] { background: var(--status-high-bg); border-color: var(--status-high-text); }
 .app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="critical"] { background: var(--status-critical-bg); border-color: var(--status-critical-text); }
 .app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="neutral"] { background: var(--status-neutral-bg); border-color: var(--status-neutral-text); }
+
+/* Restitution applicative : progressive et sans déformation des cellules N1. */
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] { flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; }
+.app.mosaic-presentation-mode .mosaic-domain .cap[role="button"] { cursor: zoom-in; }
+.app.mosaic-presentation-mode .mosaic-domain .cap[role="button"]:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: -3px; }
+.app.mosaic-presentation-mode .presentation-app-preview { display: flex; min-width: 0; max-width: 100%; flex-wrap: wrap; gap: 3px; overflow: hidden; align-items: center; font-size: clamp(9px,1.35cqi,11px); }
+.app.mosaic-presentation-mode .presentation-app-chip { display: inline-flex; align-items: center; min-width: 0; max-width: 100%; gap: 3px; border: 1px solid var(--map-capability-border); border-radius: var(--radius-control); background: color-mix(in srgb,var(--map-card-surface) 76%,transparent); color: var(--map-capability-text); padding: 2px 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app.mosaic-presentation-mode .presentation-app-chip.is-target { border-style: dashed; }
+.app.mosaic-presentation-mode .presentation-app-chip em { font-size: 9px; font-style: normal; font-weight: 700; }
+.app.mosaic-presentation-mode .presentation-app-more,.app.mosaic-presentation-mode .presentation-app-empty { font-size: 10px; color: var(--map-capability-muted); }
+.app.mosaic-presentation-mode .presentation-app-toggle { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; font-size: 11px; font-weight: 700; }
+.app.mosaic-presentation-mode .presentation-app-toggle input { accent-color: var(--color-accent); }
+.app.mosaic-presentation-mode .presentation-app-toggle:has(input:disabled) { opacity: .45; cursor: not-allowed; }
+.app.mosaic-presentation-mode .presentation-focus-overlay { position: fixed; z-index: 90; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgb(10 15 24 / 68%); }
+.app.mosaic-presentation-mode .presentation-focus-sheet { display: flex; flex-direction: column; gap: 18px; width: min(760px,100%); max-height: calc(100dvh - 40px); overflow-y: auto; padding: clamp(18px,3vw,30px); border: 1px solid var(--color-border-strong); border-radius: var(--radius-panel); background: var(--color-surface-raised); color: var(--color-text); box-shadow: var(--shadow-overlay); }
+.app.mosaic-presentation-mode .presentation-focus-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.app.mosaic-presentation-mode .presentation-focus-header > div { min-width: 0; }
+.app.mosaic-presentation-mode .presentation-focus-header span { font-size: 11px; color: var(--color-text-muted); }
+.app.mosaic-presentation-mode .presentation-focus-header h2 { margin: 5px 0 0; font-size: clamp(21px,2.7vw,30px); line-height: 1.2; overflow-wrap: anywhere; }
+.app.mosaic-presentation-mode .presentation-focus-header button { flex: 0 0 auto; width: 34px; height: 34px; padding: 0; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text); font-size: 24px; cursor: pointer; }
+.app.mosaic-presentation-mode .presentation-focus-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.app.mosaic-presentation-mode .presentation-focus-metrics > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface-muted); }
+.app.mosaic-presentation-mode .presentation-focus-metrics span,.app.mosaic-presentation-mode .presentation-focus-metrics small { color: var(--color-text-muted); font-size: 11px; }
+.app.mosaic-presentation-mode .presentation-focus-metrics strong { font-size: 14px; overflow-wrap: anywhere; }
+.app.mosaic-presentation-mode .presentation-focus-application-groups { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.app.mosaic-presentation-mode .presentation-focus-application-groups section { min-width: 0; }
+.app.mosaic-presentation-mode .presentation-focus-application-groups h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; }
+.app.mosaic-presentation-mode .presentation-focus-application-groups h3 span { color: var(--color-text-muted); }
+.app.mosaic-presentation-mode .presentation-focus-application-groups ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 5px; }
+.app.mosaic-presentation-mode .presentation-focus-application-groups li { padding: 9px; border-radius: var(--radius-control); border: 1px solid var(--color-border); background: var(--color-surface-muted); display: flex; flex-direction: column; gap: 3px; overflow-wrap: anywhere; }
+.app.mosaic-presentation-mode .presentation-focus-application-groups li strong { font-size: 12px; }
+.app.mosaic-presentation-mode .presentation-focus-application-groups li small,.app.mosaic-presentation-mode .presentation-focus-application-groups p { color: var(--color-text-muted); font-size: 11px; }
+@media(max-width:600px) { .app.mosaic-presentation-mode .presentation-focus-metrics,.app.mosaic-presentation-mode .presentation-focus-application-groups { grid-template-columns: 1fr; } }
