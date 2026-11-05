@@ -49,5 +49,6 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Sombre: Story = {
+  globals: { theme: 'dark' },
   args: { darkMode: true },
 };

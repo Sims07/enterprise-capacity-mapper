@@ -68,6 +68,54 @@ test.describe('Playwright regression — application and navigation', () => {
     await expect(page.getByTestId('tools-menu-toggle')).toBeFocused();
   });
 
+  test('adapte le compagnon et son bouton aux thèmes clair et sombre', async ({ page }) => {
+    const launcher = page.getByTestId('companion-launcher');
+    const panel = page.getByTestId('companion-panel');
+    const appearance = async () => launcher.evaluate(element => {
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, foreground: style.color, border: style.borderColor };
+    });
+    const contrast = ({ background, foreground }: { background: string; foreground: string }) => {
+      const luminance = (rgb: string) => {
+        const channels = rgb.match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
+        if (channels.length !== 3) throw new Error('Couleur RGB invalide : ' + rgb);
+        const linear = channels.map(channel => {
+          const normalized = channel / 255;
+          return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+        });
+        return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+      };
+      const lightness = [luminance(background), luminance(foreground)].sort((a, b) => b - a);
+      return (lightness[0] + 0.05) / (lightness[1] + 0.05);
+    };
+
+    const light = await appearance();
+    expect(contrast(light)).toBeGreaterThanOrEqual(4.5);
+    await launcher.click();
+    await expect(panel).toBeVisible();
+    const lightPanel = await panel.evaluate(element => getComputedStyle(element).backgroundColor);
+    await expect(launcher).toHaveAttribute('aria-expanded', 'true');
+    await page.getByTestId('companion-close').click();
+    await expect(launcher).toBeFocused();
+
+    await openTools(page);
+    await page.getByTestId('theme-toggle').click();
+    await expect(page.locator('.companion-root')).toHaveClass(/theme-dark/);
+    await expect.poll(async () => contrast(await appearance())).toBeGreaterThanOrEqual(4.5);
+    const dark = await appearance();
+    expect(dark.background).not.toBe(light.background);
+    expect(dark.foreground).not.toBe(light.foreground);
+    expect(contrast(dark)).toBeGreaterThanOrEqual(4.5);
+
+    await launcher.click();
+    await expect(panel).toBeVisible();
+    const darkPanel = await panel.evaluate(element => getComputedStyle(element).backgroundColor);
+    expect(darkPanel).not.toBe(lightPanel);
+    await expect(panel.getByTestId('companion-mode-guided')).toBeVisible();
+    await page.getByTestId('companion-close').click();
+    await expect(launcher).toHaveAttribute('aria-expanded', 'false');
+  });
+
   test('affiche les outils et l’éditeur de structure', async ({ page }) => {
     await page.getByRole('button', { name: 'Structure' }).click();
     await expect(page.locator('.modal h2')).toContainText('Personnaliser la structure');
@@ -322,13 +370,13 @@ test.describe('Playwright regression — companion', () => {
         };
         return {
           surface: resolveToken('--companion-bg'),
-          accent: resolveToken('--companion-accent'),
-          accentHover: resolveToken('--color-accent-hover'),
+          launcherBorder: resolveToken('--color-accent-border'),
+          launcherOpenSurface: resolveToken('--color-accent-soft'),
         };
       });
-      expect(await panel.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(expected.surface);
-      expect(await launcher.evaluate((element) => getComputedStyle(element).borderColor)).toBe(expected.accent);
-      await expect(launcher).toHaveCSS('background-color', expected.accentHover);
+      await expect(panel).toHaveCSS('background-color', expected.surface);
+      await expect(launcher).toHaveCSS('border-color', expected.launcherBorder);
+      await expect(launcher).toHaveCSS('background-color', expected.launcherOpenSurface);
     };
 
     await expect(panel).toBeVisible();

@@ -145,3 +145,121 @@
 .companion-root .companion-composer {
   border-color: var(--color-border);
 }
+
+/* Companion workspace: same semantic surfaces and interaction states as the app.
+   These rules intentionally live in the DS bridge, not in a second theme palette. */
+.companion-root {
+  --companion-launcher-surface: var(--color-surface-raised);
+  --companion-launcher-foreground: var(--color-text);
+  --companion-on-accent: var(--palette-neutral-0);
+}
+
+.companion-root.theme-dark {
+  --companion-on-accent: var(--palette-neutral-900);
+}
+
+.companion-root .companion-launcher {
+  border-color: var(--color-accent-border);
+  border-radius: var(--radius-panel);
+  background: var(--companion-launcher-surface);
+  color: var(--companion-launcher-foreground);
+  box-shadow: var(--shadow-panel);
+}
+
+.companion-root .companion-launcher:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--companion-launcher-foreground);
+  box-shadow: var(--shadow-panel), 0 0 0 2px var(--color-accent-soft);
+}
+
+.companion-root .companion-launcher.is-open {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--companion-launcher-foreground);
+}
+
+.companion-root .companion-launcher-icon {
+  border-color: var(--color-accent-border);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.companion-root .companion-panel {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.companion-root .companion-header {
+  gap: 9px;
+  padding: 12px 14px;
+  background: var(--color-surface-muted);
+}
+
+.companion-root .companion-heading h2 {
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.companion-root .companion-mode-note {
+  gap: 9px;
+  padding: 8px 14px;
+  background: var(--color-surface);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.companion-root .companion-mode-switch {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+}
+
+.companion-root .companion-mode-switch button.is-active {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.companion-root .companion-mode-switch button:not(.is-active):hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.companion-root .companion-guided-section {
+  background: var(--color-surface);
+}
+
+.companion-root .companion-guided-section .companion-prompt {
+  border-radius: var(--radius-card);
+}
+
+.companion-root .companion-assistant-message,
+.companion-root .companion-observation {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+}
+
+.companion-root .companion-composer {
+  background: var(--color-surface);
+}
+
+.companion-root .companion-composer textarea,
+.companion-root .companion-provider-field input,
+.companion-root .companion-provider-field select {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.companion-root .companion-composer button {
+  color: var(--companion-on-accent);
+}
+
+.companion-root .companion-close:hover,
+.companion-root .companion-mascot-toggle:hover,
+.companion-root .companion-settings-toggle:hover {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
