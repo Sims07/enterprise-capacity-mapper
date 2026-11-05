@@ -313,7 +313,7 @@
 /* La règle héritée Linear Black fixe border: 1px !important pour les N1.
    La spécificité tient compte du domaine parent pour garantir les contours
    de la présentation, sans modifier les couleurs de l'éditeur. */
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain-card:not(.impact-selected) .cap:not(.impact-selected):not([data-presentation-tone]) {
   border: 2px solid color-mix(in srgb, var(--domain-color, var(--color-accent)) 25%, var(--map-capability-muted)) !important;
 }
 
