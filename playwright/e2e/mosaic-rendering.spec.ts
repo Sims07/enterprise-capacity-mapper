@@ -516,6 +516,7 @@ test.describe('Cartographie unifiée', () => {
     await page.goto('/');
     const domain = page.getByTestId('capability-map').locator('.mosaic-domain')
       .filter({ hasText: 'Relation & Engagement Client' });
+    await expect(domain).toBeVisible();
     const initialCount = await domain.locator('.cap').count();
     const minimumCapabilities = 4;
     for (let index = initialCount; index < minimumCapabilities; index += 1) {
