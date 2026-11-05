@@ -71,6 +71,7 @@ const withLocalStorage = async (run: (storage: { getItem(key: string): string | 
     setItem: (key: string, value: string) => { values.set(key, String(value)); },
     removeItem: (key: string) => { values.delete(key); },
     clear: () => values.clear(),
+    entries: () => [...values.entries()],
   };
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage });
@@ -116,6 +117,9 @@ test('recovers from syntactically corrupted or structurally invalid local map co
     assert.deepEqual(loadRecentMaps(), []);
     assert.equal(storage.getItem('enterprise-capacity-mapper:recent-maps:v1'), null);
     assert.deepEqual(consumeStorageRecoveryWarnings(), ['historique des récents']);
+    const snapshots = (storage as typeof storage & { entries(): [string, string][] }).entries();
+    assert.equal(snapshots.some(([key, value]) => key.startsWith('enterprise-capacity-mapper:local-maps:v1:recovery:') && value === '{invalid json'), true);
+    assert.equal(snapshots.some(([key, value]) => key.startsWith('enterprise-capacity-mapper:recent-maps:v1:recovery:') && value === JSON.stringify({ not: 'an array' })), true);
   });
 });
 
@@ -141,4 +145,31 @@ test('recent maps are de-duplicated and capped at ten entries', async () => {
     assert.equal(recent[0].id, 'map-5');
     assert.equal(recent.filter(entry => entry.id === 'map-5').length, 1);
   });
+});
+
+test('salvages valid maps and preserves the original collection when one entry is damaged', async () => {
+  await withLocalStorage(storage => {
+    const key = 'enterprise-capacity-mapper:local-maps:v1';
+    const payload = JSON.stringify([
+      { id: 'valid', name: 'Carte exploitable', model: validModel() },
+      { id: 'invalid', name: 'Carte cassée', model: { schemaVersion: 1 } },
+    ]);
+    storage.setItem(key, payload);
+    const loaded = loadLocalMaps();
+    assert.deepEqual(loaded.map(entry => entry.id), ['valid']);
+    assert.equal(loadLocalMaps().length, 1);
+    assert.deepEqual(consumeStorageRecoveryWarnings(), ['bibliothèque locale']);
+    assert.equal((storage as typeof storage & { entries(): [string, string][] }).entries().some(([name, value]) =>
+      name.startsWith(key + ':recovery:') && value === payload), true);
+  });
+});
+
+test('rejects duplicate entity IDs and invalid application relation structures', () => {
+  const duplicates = validModel();
+  duplicates.domains.push({ ...duplicates.domains[0] });
+  assert.throws(() => validateModel(duplicates), /dupliqué/);
+
+  const malformed = validModel();
+  (malformed.applications[0] as unknown as { capabilityIds: unknown }).capabilityIds = 'cap-1';
+  assert.throws(() => validateModel(malformed), /relations applicatives/);
 });

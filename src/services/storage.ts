@@ -85,18 +85,41 @@ export function updateRecentMap({ id, name, model }: { id: string; name: string;
   const recent = { ...entries[index], name: name.trim() || metadata.name || 'Cartographie sans nom', model: validateModel(model) }; entries[index] = recent;
   localStorage.setItem(RECENT_MAPS_KEY, JSON.stringify(entries)); return recent;
 }
+/** Keep the exact damaged payload before any repair. Never discard the only recoverable copy. */
+function preserveCorruptedCollection(key: string, raw: string): void {
+  const recoveryKey = `${key}:recovery:${new Date().toISOString()}-${Math.random().toString(36).slice(2)}`;
+  localStorage.setItem(recoveryKey, raw);
+}
+
 function loadMapCollection(key: string, label: string): MapEntry[] {
   const raw = localStorage.getItem(key);
   if (!raw) return [];
   try {
-    const entries = JSON.parse(raw) as unknown;
+    const entries: unknown = JSON.parse(raw);
     if (!Array.isArray(entries)) throw new Error('Invalid map collection');
-    return entries.map(entry => {
-      const candidate = entry as Partial<MapEntry>;
-      if (!candidate || typeof candidate.id !== 'string' || typeof candidate.name !== 'string' || !candidate.name.trim() || !candidate.model) throw new Error('Invalid map entry');
-      return { ...candidate, model: validateModel(candidate.model as CatalogModel) } as MapEntry;
-    });
+    const valid: MapEntry[] = [];
+    let hasInvalidEntry = false;
+    for (const entry of entries) {
+      try {
+        const candidate = entry as Partial<MapEntry> | null;
+        if (!candidate || typeof candidate.id !== 'string' || !candidate.id.trim()
+          || typeof candidate.name !== 'string' || !candidate.name.trim() || !candidate.model) {
+          throw new Error('Invalid map entry');
+        }
+        valid.push({ ...candidate, model: validateModel(candidate.model) } as MapEntry);
+      } catch {
+        hasInvalidEntry = true;
+      }
+    }
+    if (hasInvalidEntry) {
+      preserveCorruptedCollection(key, raw);
+      localStorage.setItem(key, JSON.stringify(valid));
+      recoveryWarnings.add(label);
+    }
+    return valid;
   } catch {
+    // Keep the original intact if the browser cannot allocate a recovery copy.
+    preserveCorruptedCollection(key, raw);
     localStorage.removeItem(key);
     recoveryWarnings.add(label);
     return [];
@@ -107,6 +130,20 @@ export function validateModel(model: CatalogModel): CatalogModel {
   const candidate = model as (CatalogModel & { schemaVersion?: number }) | null | undefined;
   if (!candidate || candidate.schemaVersion !== 3 || !Array.isArray(candidate.domains) || !Array.isArray(candidate.capabilities) || !Array.isArray(candidate.applications)) throw new Error('Format de cartographie invalide ou version non supportée.');
   model = normalizeModel(candidate as CatalogModel);
+  for (const [label, items] of [['domaine', model.domains], ['capacité', model.capabilities], ['application', model.applications]] as const) {
+    const ids = new Set<string>();
+    for (const item of items) {
+      if (!item || typeof item.id !== 'string' || !item.id.trim()
+        || typeof item.name !== 'string' || !item.name.trim()) {
+        throw new Error(`Chaque ${label} doit avoir un identifiant et un nom non vides.`);
+      }
+      if (ids.has(item.id)) throw new Error(`Identifiant de ${label} dupliqué : ${item.id}.`);
+      ids.add(item.id);
+    }
+  }
+  if (model.applications.some(app => app.capabilityIds !== undefined && !Array.isArray(app.capabilityIds))) {
+    throw new Error('Les relations applicatives doivent être une liste.');
+  }
   const domainIds = new Set(model.domains.map(x => x.id)); const capIds = new Set(model.capabilities.map(x => x.id));
   if (model.capabilities.some(x => !domainIds.has(x.domainId))) throw new Error('Une capacité référence un domaine inexistant.');
   const relationTargetIds = (model.layout as { depth?: number } | undefined)?.depth === 1 ? domainIds : capIds;
