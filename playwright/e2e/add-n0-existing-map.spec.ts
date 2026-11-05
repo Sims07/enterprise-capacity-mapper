@@ -53,3 +53,26 @@ test('ajoute un N0 à une cartographie existante même quand la grille est compl
   await expect(page.getByTestId('capability-map').locator('.mosaic-domain')).toHaveCount(2);
   await expect(page.getByTestId('capability-map')).toContainText('Second domaine');
 });
+
+test('insère un N0 avant un domaine existant sans perdre ses capacités et relations', async ({ page }) => {
+  await page.goto('/');
+  const mosaic = page.getByTestId('capability-map');
+  const existing = mosaic.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' });
+  await expect(existing).toContainText('Salesforce CRM');
+  await page.getByTestId('map-add-domain').click();
+  const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+  await dialog.getByTestId('domain-insertion-target')
+    .selectOption({ label: 'Insérer avant « Relation & Engagement Client »' });
+  await expect(dialog.getByTestId('domain-insertion-hint')).toBeVisible();
+  await dialog.getByLabel('Nom').fill('Domaine inséré');
+  await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('DOM-INS');
+  await dialog.getByRole('button', { name: 'Créer' }).click();
+
+  await expect(mosaic.locator('.mosaic-domain')).toHaveCount(5);
+  await expect(mosaic).toContainText('Domaine inséré');
+  await expect(existing).toContainText('Salesforce CRM');
+  await page.reload();
+  await expect(mosaic.locator('.mosaic-domain')).toHaveCount(5);
+  await expect(mosaic).toContainText('Domaine inséré');
+  await expect(mosaic.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' })).toContainText('Salesforce CRM');
+});
