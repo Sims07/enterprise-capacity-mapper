@@ -310,10 +310,11 @@
   color: var(--map-card-text);
 }
 
-/* La règle héritée Linear Black fixe border: 1px !important pour les N1 :
-   relever uniquement l'épaisseur en présentation, sans casser les états de survol. */
-.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap:not(.impact-selected) {
-  border-width: 1.5px !important;
+/* La règle héritée Linear Black fixe border: 1px !important pour les N1.
+   La spécificité tient compte du domaine parent pour garantir les contours
+   de la présentation, sans modifier les couleurs de l'éditeur. */
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain > .domain-card:not(.impact-selected) .cap:not(.impact-selected) {
+  border: 1.5px solid color-mix(in srgb, var(--domain-color, var(--color-accent)) 25%, var(--map-capability-muted)) !important;
 }
 
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap-head b,
