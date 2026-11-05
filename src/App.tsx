@@ -216,6 +216,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     setMode(nextMode);
   };
 
+  const openBusinessDiagnosis = () => {
+    navigateToMode('dashboard');
+    window.history.replaceState(
+      { ...(window.history.state || {}), capacityMapperMode: 'dashboard', capacityMapperDashboardView: 'attention' },
+      '', window.location.href,
+    );
+  };
+  const showCapabilityOnMap = capabilityId => {
+    setMapReadingMode('gaps');
+    setPendingCompanionEvidence({ id: capabilityId, type: 'capability' });
+    navigateToMode('editor');
+  };
+
   const navigateToCompanionEvidence = evidence => {
     if (!evidence?.id) return;
     setPendingCompanionEvidence({ id: evidence.id, type: evidence.type });
@@ -1425,6 +1438,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               }}
               onExportReview={downloadDecisionReview}
               onExploreTarget={exploreDashboardTarget}
+              onEditCapability={capabilityId => {
+                const capability = model.capabilities.find(item => item.id === capabilityId);
+                if (capability) openEditCapability(capability);
+              }}
+              onShowOnMap={showCapabilityOnMap}
               onLinkApp={openLinkForApp}
               onUpdatePriority={updateCapabilityPriority}
               selected={selected}
@@ -1484,6 +1502,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     <strong>Lecture métier</strong>
                     <span>{MAP_READING_MODES.find(reading => reading.id === mapReadingMode)?.help}</span>
                   </div>
+                  <div className="capability-reading-summary" data-testid="capability-reading-summary">
+                    <span><strong>{[...capabilityFindings.values()].filter(finding => finding.needsQualification).length}</strong> à qualifier</span>
+                    <span><strong>{[...capabilityFindings.values()].filter(finding => finding.signals.length > 0).length}</strong> avec écarts</span>
+                  </div>
                   <div className="capability-reading-options" role="group" aria-label="Mode de lecture des capacités">
                     {MAP_READING_MODES.map(reading => (
                       <button type="button" key={reading.id} data-testid={`map-reading-${reading.id}`}
@@ -1492,6 +1514,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                         onClick={() => setMapReadingMode(reading.id)}>{reading.label}</button>
                     ))}
                   </div>
+                  <button type="button" className="capability-diagnostic-shortcut" data-testid="capability-diagnostic-shortcut"
+                    onClick={openBusinessDiagnosis}>Examiner les écarts</button>
                 </section>
               )}
               {capabilityMap}

@@ -15,7 +15,7 @@ const resetDashboardScroll = () => {
   });
 };
 
-export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference, onLoadReferenceUrl, onExportReview }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference, onLoadReferenceUrl, onExportReview, onEditCapability, onShowOnMap }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -414,11 +414,25 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
             <>
               <p data-testid="capability-diagnostic-summary">{diagnosedGaps.length} capacités avec un signal, {diagnostics.filter(finding => finding.needsQualification).length} à qualifier sur la couverture fonctionnelle.</p>
               {diagnosedGaps.length ? <div className="dashboard-target-list">
-                {diagnosedGaps.slice(0, 8).map(finding => <button type="button" className="dashboard-target" key={finding.id} onClick={() => onExploreTarget(finding.id)}>
-                  <strong>{finding.name}</strong>
-                  <span>{finding.signals.map(signal => signal.description).join(' · ')}</span>
-                  <small>{finding.currentApplications.length} application(s) actuelle(s) · {finding.targetApplications.length} cible(s)</small>
-                </button>)}
+                {diagnosedGaps.slice(0, 8).map(finding => (
+                  <article className="capability-diagnostic-item" data-testid="capability-diagnostic-item" key={finding.id}>
+                    <div className="capability-diagnostic-facts">
+                      <strong>{finding.name}</strong>
+                      <span>{finding.signals.map(signal => signal.description).join(' · ')}</span>
+                      <small>{finding.currentApplications.length} application(s) actuelle(s) · {finding.targetApplications.length} cible(s)</small>
+                      {finding.needsQualification && <small>Couverture fonctionnelle à qualifier</small>}
+                    </div>
+                    <div className="capability-diagnostic-actions">
+                      <button type="button" className="capability-diagnostic-edit" data-testid="capability-diagnostic-edit"
+                        onClick={() => onEditCapability?.(finding.id)}>
+                        {finding.needsQualification ? 'Qualifier la capacité' : 'Modifier l’évaluation'}
+                      </button>
+                      <button type="button" className="capability-diagnostic-map" data-testid="capability-diagnostic-map"
+                        onClick={() => onShowOnMap?.(finding.id)}>Voir sur la carte</button>
+                      <button type="button" className="capability-diagnostic-relations" onClick={() => onExploreTarget(finding.id)}>Relations</button>
+                    </div>
+                  </article>
+                ))}
                 {diagnosedGaps.length > 8 && <p>+ {diagnosedGaps.length - 8} autres capacités à examiner</p>}
               </div> : <p>Aucun écart déclaré ou absence d'application actuelle détecté. Les évaluations inconnues restent à qualifier.</p>}
               <div className="field">
@@ -457,7 +471,10 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                   <strong>{item.title}</strong> · {item.priority === 'unqualified' ? 'À qualifier' : item.priority}
                   <p>{item.evidence}</p>
                   <p><b>Question :</b> {item.question}</p>
-                  {item.capabilityId && <button type="button" className="secondary" onClick={() => onExploreTarget(item.capabilityId)}>Examiner la capacité</button>}
+                  {item.capabilityId && <div className="capability-diagnostic-actions">
+                    <button type="button" className="capability-diagnostic-edit" onClick={() => onEditCapability?.(item.capabilityId)}>Ouvrir la fiche</button>
+                    <button type="button" className="capability-diagnostic-relations" onClick={() => onExploreTarget(item.capabilityId)}>Voir les relations</button>
+                  </div>}
                 </li>
               ))}
               {decisionReview.items.length > DECISION_REVIEW_DISPLAY_LIMIT && <li>+ {decisionReview.items.length - DECISION_REVIEW_DISPLAY_LIMIT} autres points dans l'export</li>}
