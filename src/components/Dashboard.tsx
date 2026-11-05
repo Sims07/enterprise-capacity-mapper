@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { analyzeCapabilityGaps, findMissingReferenceCapabilities } from '../domain/capabilityGaps.ts';
+import { createDecisionReview, formatDecisionReviewMarkdown, simulateApplicationRetirement, DECISION_REVIEW_DISPLAY_LIMIT } from '../application/decisionReview.ts';
 
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
@@ -13,7 +14,7 @@ const resetDashboardScroll = () => {
   });
 };
 
-export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference, onLoadReferenceUrl, onExportReview }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -25,6 +26,26 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const [domainFilter, setDomainFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [referenceError, setReferenceError] = useState('');
+  const [referenceUrl, setReferenceUrl] = useState('');
+  const [referenceLoading, setReferenceLoading] = useState(false);
+  const [retirementApplicationId, setRetirementApplicationId] = useState('');
+  const decisionReview = useMemo(() => createDecisionReview(model, capabilityReference), [model, capabilityReference]);
+  const retirementScenario = useMemo(() => retirementApplicationId ? simulateApplicationRetirement(model, retirementApplicationId) : null, [model, retirementApplicationId]);
+  const loadReferenceUrl = async () => {
+    if (!onLoadReferenceUrl || !referenceUrl.trim()) {
+      setReferenceError('Renseignez une URL de référence JSON.');
+      return;
+    }
+    setReferenceLoading(true);
+    setReferenceError('');
+    try {
+      await onLoadReferenceUrl(referenceUrl.trim());
+    } catch (error) {
+      setReferenceError(error instanceof Error ? error.message : 'Impossible de charger la référence distante.');
+    } finally {
+      setReferenceLoading(false);
+    }
+  };
   const diagnostics = useMemo(() => analyzeCapabilityGaps(model), [model]);
   const diagnosedGaps = diagnostics.filter(finding => finding.signals.length > 0);
   const expectedMissing = useMemo(() => capabilityReference ? findMissingReferenceCapabilities(model, capabilityReference) : [], [model, capabilityReference]);
@@ -403,12 +424,60 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                 <input id="capability-reference-import" data-testid="capability-reference-import" type="file" accept=".json,application/json" onChange={importReference} />
                 <small>Le fichier de référence est lu localement, validé et ne remplace pas la cartographie active. Correspondances par codes ou noms normalisés dans un même domaine.</small>
               </div>
+              <div className="field">
+                <label htmlFor="capability-reference-url">Ou charger un JSON de référence depuis un dépôt GitHub public</label>
+                <input id="capability-reference-url" data-testid="capability-reference-url" type="url" value={referenceUrl}
+                  onChange={event => setReferenceUrl(event.target.value)} placeholder="https://github.com/…/blob/main/reference.json" />
+                <button type="button" className="secondary" data-testid="capability-reference-load-url" disabled={referenceLoading} onClick={loadReferenceUrl}>
+                  {referenceLoading ? 'Chargement…' : 'Charger la référence'}
+                </button>
+              </div>
               {referenceError && <p role="alert">{referenceError}</p>}
               {capabilityReference && <section data-testid="reference-missing-capabilities">
                 <div className="dashboard-panel-heading"><strong>{expectedMissing.length} capacité(s) absente(s) de la carte actuelle</strong><button type="button" className="secondary" onClick={() => { onClearReference?.(); setReferenceError(''); }}>Retirer la référence</button></div>
                 {expectedMissing.length ? <ul>{expectedMissing.map((capability, index) => <li key={capability.id + ':' + index}>{capability.domainName} · {capability.code ? capability.code + ' — ' : ''}{capability.name}</li>)}</ul> : <p>Les capacités attendues de cette référence sont présentes dans la cartographie.</p>}
               </section>}
             </>
+          )}
+        </section>
+      )}
+      {activeView === 'attention' && depth !== 1 && (
+        <section className="dashboard-panel" data-testid="capability-decision-review" aria-label="Préparer les décisions d’architecture">
+          <div className="dashboard-panel-heading">
+            <div><h3>Préparer une revue de décisions</h3><p>Questions de revue dérivées des constats. Rien n'est décidé ni modifié automatiquement.</p></div>
+            <button type="button" className="secondary" data-testid="download-decision-review" onClick={() => onExportReview?.(formatDecisionReviewMarkdown(decisionReview))}>Exporter la revue (.md)</button>
+          </div>
+          <p>{decisionReview.items.length} point(s) à examiner, dont {decisionReview.unqualifiedCoverage} capacités à qualifier.</p>
+          {decisionReview.items.length ? (
+            <ol className="dashboard-target-list" data-testid="decision-review-items">
+              {decisionReview.items.slice(0, DECISION_REVIEW_DISPLAY_LIMIT).map((item, index) => (
+                <li key={item.title + ':' + item.evidence + ':' + index}>
+                  <strong>{item.title}</strong> · {item.priority === 'unqualified' ? 'À qualifier' : item.priority}
+                  <p>{item.evidence}</p>
+                  <p><b>Question :</b> {item.question}</p>
+                  {item.capabilityId && <button type="button" className="secondary" onClick={() => onExploreTarget(item.capabilityId)}>Examiner la capacité</button>}
+                </li>
+              ))}
+              {decisionReview.items.length > DECISION_REVIEW_DISPLAY_LIMIT && <li>+ {decisionReview.items.length - DECISION_REVIEW_DISPLAY_LIMIT} autres points dans l'export</li>}
+            </ol>
+          ) : <p>Aucun signal déterministe prioritaire. Une validation métier reste nécessaire.</p>}
+          <div className="field">
+            <label htmlFor="retirement-application">Simuler le retrait d'une application (sans modifier les relations)</label>
+            <select id="retirement-application" data-testid="retirement-application" value={retirementApplicationId}
+              onChange={event => setRetirementApplicationId(event.target.value)}>
+              <option value="">Choisir une application</option>
+              {apps.map(app => <option key={app.id} value={app.id}>{app.name} · {app.status || 'Statut non défini'}</option>)}
+            </select>
+          </div>
+          {retirementScenario && (
+            <div data-testid="retirement-scenario">
+              <p><strong>{retirementScenario.applicationName}</strong> : {retirementScenario.touchedCapabilityIds.length} capacité(s) concernée(s).</p>
+              <p>{retirementScenario.lostLastCurrentSupport.length} perdraient leur dernière application actuelle ; {retirementScenario.reducedCurrentSupport.length} auraient moins de supports actuels ; {retirementScenario.lostTargetSupport.length} perdraient un support cible.</p>
+              {retirementScenario.lostLastCurrentSupport.length > 0 && <ul>{retirementScenario.lostLastCurrentSupport.map(capability => (
+                <li key={capability.id}><button className="secondary" type="button" onClick={() => onExploreTarget(capability.id)}>{capability.name}</button></li>
+              ))}</ul>}
+              <small>Simulation locale indicative : le rôle fonctionnel de chaque application doit être vérifié avant toute décision.</small>
+            </div>
           )}
         </section>
       )}

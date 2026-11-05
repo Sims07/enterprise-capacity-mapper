@@ -23,6 +23,9 @@ export interface ModelRepository {
   updateRecentMap(input: { id: string; name: string; model: CatalogModel }): LocalMapEntry;
   removeRecentMap(id: string): LocalMapEntry[];
   importModel(source: { text(): Promise<string> }): Promise<CatalogModel>;
+  /** Optional remote reference source for GitHub Pages clients. */
+  loadRemoteModel?(url: string): Promise<CatalogModel>;
+  normalizeJsonUrl?(value: string): string;
   exportModel(model: CatalogModel): void;
 }
 
