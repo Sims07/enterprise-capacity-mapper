@@ -168,7 +168,7 @@ Keep PRs focused. Do not mix unrelated refactors with product changes.
 For functional changes:
 
 - run the existing build;
-- run the Cypress E2E suite;
+- run the Playwright E2E suite;
 - add or update E2E coverage for important user-visible behaviour.
 
 Tests should verify actual UI behaviour, not merely that the application technically loads.
@@ -246,3 +246,7 @@ When choosing between two technically valid implementations, prefer the one that
 7. is covered by an appropriate test.
 
 This document is intentionally opinionated. If a future change needs to violate one of these rules, explain the reason in the PR rather than silently changing the convention.
+
+## Current implementation note (2026-11)
+
+The actual source uses React + TypeScript (`src/App.tsx`, `src/domain/`, `src/application/`, `src/adapters/`), Vitest unit tests and Playwright browser tests. For new changes, follow `docs/architecture/current-state.md` when the older directory sketch above differs from the code.
