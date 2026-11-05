@@ -528,6 +528,90 @@ test.describe('Playwright regression — companion', () => {
     expect(values.focusWidth).toBe('2px');
   });
 });
+test.describe('Diagnostic métier — expérience design system', () => {
+  test('navigation entre écarts et capacités à qualifier, sans perdre les actions métier', async ({ page }) => {
+    await fresh(page);
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    const panel = page.getByTestId('capability-diagnostic');
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId('attention-filter-signals')).toHaveAttribute('aria-pressed', 'true');
+    await expect(panel.getByTestId('capability-diagnostic-summary')).toContainText('Avec signal');
+    await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(3);
+    await panel.getByTestId('attention-filter-qualification').click();
+    await expect(panel.getByTestId('attention-filter-qualification')).toHaveAttribute('aria-pressed', 'true');
+    await expect(panel.getByTestId('capability-diagnostic-summary')).toContainText('À qualifier');
+    await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(6);
+    await panel.getByTestId('attention-show-all').click();
+    await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(18);
+    await panel.getByTestId('attention-show-all').click();
+    await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(6);
+    const first = panel.getByTestId('capability-diagnostic-item').first();
+    await expect(first.getByTestId('capability-diagnostic-edit')).toBeVisible();
+    await first.getByTestId('capability-diagnostic-edit').click();
+    await expect(page.getByRole('dialog', { name: 'Fiche de capacité N1' })).toBeVisible();
+    await page.getByRole('dialog', { name: 'Fiche de capacité N1' }).getByRole('button', { name: '×' }).click();
+    await panel.getByTestId('attention-filter-signals').click();
+    await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(3);
+  });
+
+  test('comparaison optionnelle repliée, puis erreurs et résultats visuellement distincts', async ({ page }) => {
+    await fresh(page);
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    const toggle = page.getByTestId('attention-reference-toggle');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByTestId('capability-reference-url')).toHaveCount(0);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await page.getByTestId('capability-reference-load-url').click();
+    await expect(page.getByRole('alert')).toContainText('Renseignez une URL de référence JSON');
+    const reference = {
+      schemaVersion: 3,
+      domains: [{ id: 'r-domain', code: 'CAP-CRM', name: 'Relation & Engagement Client' }],
+      capabilities: [{ id: 'r-cap', domainId: 'r-domain', code: 'CRM-99', name: 'Gestion des abonnements' }],
+      applications: [],
+    };
+    await page.getByTestId('capability-reference-import').setInputFiles({
+      name: 'reference.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(reference)),
+    });
+    await expect(page.getByTestId('reference-missing-capabilities')).toContainText('Gestion des abonnements');
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await toggle.click();
+    await expect(page.getByTestId('capability-reference-url')).toHaveCount(0);
+    await expect(page.getByTestId('reference-missing-capabilities')).toBeVisible();
+    await page.getByRole('button', { name: 'Retirer la référence' }).click();
+    await expect(page.getByTestId('reference-missing-capabilities')).toHaveCount(0);
+  });
+
+  test('design system : surfaces sémantiques en clair et sombre et contrôle accessible sur mobile', async ({ page }) => {
+    await fresh(page);
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    const card = page.getByTestId('capability-diagnostic-item').first();
+    const inspect = () => card.evaluate((element) => {
+      const surfaceProbe = document.createElement('div');
+      surfaceProbe.style.backgroundColor = 'var(--color-surface)';
+      element.appendChild(surfaceProbe);
+      const expected = getComputedStyle(surfaceProbe).backgroundColor;
+      surfaceProbe.remove();
+      return { actual: getComputedStyle(element).backgroundColor, expected };
+    });
+    expect(await inspect()).toEqual(expect.objectContaining({ actual: (await inspect()).expected }));
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('theme-toggle').click();
+    await expect(page.locator('.app.theme-dark')).toBeVisible();
+    const dark = await inspect();
+    expect(dark.actual).toBe(dark.expected);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByTestId('attention-filter-qualification')).toBeVisible();
+    await page.getByTestId('attention-filter-qualification').click();
+    await expect(page.getByTestId('capability-diagnostic-item').first()).toBeVisible();
+    const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(horizontalOverflow).toBeLessThanOrEqual(1);
+  });
+});
+
 test.describe('Diagnostic métier des capacités', () => {
   test('sépare les applications cibles et les applications obsolètes dans les signaux', async ({ page }) => {
     await fresh(page);
@@ -595,6 +679,7 @@ test.describe('Revue de décisions et scénarios de transformation', () => {
       route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(reference) }));
     await page.getByTestId('nav-analysis').click();
     await page.getByTestId('dashboard-view-attention').click();
+    await page.getByTestId('attention-reference-toggle').click();
     await page.getByTestId('capability-reference-url').fill('https://github.com/Sims07/test-capabilities/blob/main/reference.json');
     await page.getByTestId('capability-reference-load-url').click();
     const referenceError = page.getByTestId('capability-diagnostic').getByRole('alert');
