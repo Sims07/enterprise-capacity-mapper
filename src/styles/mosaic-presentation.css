@@ -538,9 +538,31 @@
 .app.mosaic-presentation-mode .presentation-focus-application-groups li small,.app.mosaic-presentation-mode .presentation-focus-application-groups p { color: var(--color-text-muted); font-size: 11px; }
 @media(max-width:600px) { .app.mosaic-presentation-mode .presentation-focus-metrics,.app.mosaic-presentation-mode .presentation-focus-application-groups { grid-template-columns: 1fr; } }
 
-/* Lot 3 : focalisation N0 sans changement de grille ; commandes côté éditeur. */
-.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed { opacity: .22; }
+/* Focus N0 : ne jamais rendre une carte entière transparente.
+   L'opacité du conteneur laissait apparaître les titres des N0 placés derrière,
+   d'où un texte doublé en présence de cartes superposées dans la mosaïque.
+   Atténuer seulement la décoration, tout en conservant des surfaces et textes opaques. */
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed {
+  opacity: 1;
+  z-index: 1;
+  border-color: var(--map-capability-border);
+  box-shadow: inset 0 0 0 1px var(--map-capability-border);
+}
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain > .domain-banner,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain.mosaic-presentation-empty,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed > .domain.mosaic-presentation-empty > .domain-banner {
+  background: color-mix(in srgb, var(--presentation-domain-color, var(--map-card-surface)) 22%, var(--map-card-surface)) !important;
+  background-color: color-mix(in srgb, var(--presentation-domain-color, var(--map-card-surface)) 22%, var(--map-card-surface)) !important;
+  color: var(--map-card-text) !important;
+}
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed .domain-banner h3,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed .domain-banner .map-domain-select,
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-dimmed .domain-banner .domain-meta {
+  color: var(--map-card-text) !important;
+}
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-focused {
+  z-index: 2;
+  opacity: 1;
   border-color: var(--color-focus);
   box-shadow: 0 0 0 3px var(--color-accent-border);
 }
