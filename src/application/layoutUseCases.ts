@@ -128,7 +128,7 @@ export const prepareNewDomainSlot = <T extends Domain>({
   if (ordered.some(item => item.column < 0 || item.layer < 0)) return null;
 
   const original = ordered[insertionIndex];
-  const placed = ordered.slice(0, insertionIndex).map(item => item.domain);
+  const placed: Domain[] = ordered.slice(0, insertionIndex).map(item => item.domain);
   const repositioned = new Map<string, T>();
   let workingLayout = layout;
   let workingLayers = layers;
