@@ -1,0 +1,109 @@
+# Trois directions de design system — revue client (novembre 2026)
+
+## Objectif et statut
+
+Document de conception accompagnant la présentation client de 15 diapositives « Trois façons de voir les capacités ». **Ce document et les maquettes ne remplacent pas l'UI de production.** Ils définissent trois cibles visuelles réalisables sur l'architecture actuelle ; une seule direction sera sélectionnée avant les changements d'interface.
+
+Le contrat métier reste strictement : `Domaine N0 → Capacité N1 → Application`, avec les cartographies à un ou deux niveaux, la mosaïque, la bibliothèque locale, la présentation synchronisée et l'analyse des écarts. Aucune API, base de données, synchronisation serveur ou changement du schéma JSON v3 n'est nécessaire.
+
+## Comparabilité et données
+
+Les trois directions reprennent le modèle de démonstration existant (`src/data/demoData.ts`) :
+
+- 4 domaines N0 : Relation client, Finance, Supply chain, Ressources humaines ;
+- 10 capacités N1 ;
+- 7 capacités disposant d'au moins une application **actuelle**, 3 sans application actuelle : Offres & devis, Achats fournisseurs, Congés & temps ;
+- sur les écrans de qualification et de couverture, des **évaluations fonctionnelles illustratives**, identiques entre les trois directions, sont ajoutées : 4 « suffisante », 3 « partielle », 2 « non couverte », 1 « à évaluer » ;
+- l'exemple de capacité sélectionnée est « CRM-02 — Gestion des offres & devis » : couverture fonctionnelle non couverte, maturité actuelle 1/5, cible 4/5, aucune application actuelle.
+
+Ce jeu d'évaluations est une **simulation de maquette** et ne représente pas l'état réel de l'entreprise ni l'état initial de `DEMO_MODEL`. Il ne doit pas être présenté comme une mesure issue des données du client.
+
+La lecture « applications actuelles » (7/10) ne constitue **pas** la couverture fonctionnelle. Le nombre d'applications n'infère ni maturité ni qualité de couverture ; les règles de calcul existantes restent seules sources de vérité.
+
+## Parcours unique de comparaison
+
+1. **Cartographier** : afficher les quatre N0 et leurs N1, basculer la grille entre applications, couverture, maturité et écarts, ouvrir un N0 ou une N1, conserver les positions et relations.
+2. **Qualifier** : sélectionner CRM-02 ; saisir séparément couverture fonctionnelle, maturité actuelle, maturité cible ; observer le rattachement applicatif sans calcul de faux score.
+3. **Décider** : lire les quatre états fonctionnels ; identifier les trois points d'attention ; revenir à la capacité sélectionnée, sans perdre le contexte.
+
+La présentation montre pour chaque option ces trois écrans dans une cible desktop 1440 × 900.
+
+## Direction A — ÉVIDENCE / clarté exécutive
+
+**Audience prioritaire :** direction métier, comité d'architecture, client non spécialiste.
+
+- Surface principale claire presque neutre ; navigation latérale visible et textes denses mais lisibles.
+- Cartes N0 avec un bandeau supérieur de couleur métier ; N1 à hauteur cohérente et indication explicite du nombre d'applications.
+- Qualification en deux zones, liste des N1 à gauche et fiche de saisie à droite.
+- Couverture comme synthèse : quatre KPI, heatmap par domaine et liste de points d'attention.
+
+Palette de référence : `--color-bg: #F7F8F6`, `--color-surface: #FFFFFF`, `--color-text: #1B2930`, `--color-text-muted: #6E7D86`, `--color-border: #DBE4E2`, `--color-accent: #116B62`, `--color-accent-soft: #E0F3EF`.
+
+**Atout :** meilleure lecture projetée et appropriation rapide par une audience mixte. **Contrainte :** un peu moins d'informations simultanées.
+
+## Direction B — SIGNAL / cockpit analytique
+
+**Audience prioritaire :** architectes d'entreprise, responsables urbanisation et SI.
+
+- Thème sombre graphite, densité plus élevée, bordures de capacités visibles.
+- Navigation et filtres compacts, bandeaux de N0 identifiables par couleur métier.
+- Qualification à contraste fort ; les statuts métier emploient toujours leur couleur sémantique, sans faire passer « non couverte » pour une réussite.
+- Couverture dense par domaines avec statuts écrits en toutes lettres, et jamais uniquement des aplats de couleur.
+
+Palette : `--color-bg: #0D1219`, `--color-surface: #19222D`, `--color-text: #EDF3FA`, `--color-text-muted: #A6B3C3`, `--color-border: #344151`, `--color-accent: #92A8FF`, `--color-accent-soft: #293754`.
+
+**Atout :** excellent espace analytique, continuité avec le thème sombre existant. **Contrainte :** visuel plus chargé pour un public non expert, à contrôler sur vidéoprojecteur.
+
+## Direction C — ATELIER / co-construction
+
+**Audience prioritaire :** ateliers de conception métiers, équipes pluridisciplinaires, mobile.
+
+- Surfaces lavande très claires, accent violet, cartes plus souples et davantage d'air.
+- Navigation horizontale de progression « Cartographie → Qualifier → Couverture ».
+- Qualification explicite et guidée, cartes sélectionnées très visibles.
+- Synthèse de couverture disposée comme un tableau de travail partageable.
+
+Palette : `--color-bg: #F6F3FF`, `--color-surface: #FFFFFF`, `--color-text: #27243B`, `--color-text-muted: #77718E`, `--color-border: #E5E1F1`, `--color-accent: #704DDD`, `--color-accent-soft: #EDE8FF`.
+
+**Atout :** accessible en atelier et adaptable aux petits écrans. **Contrainte :** plus de travail de navigation et de composants responsives.
+
+## Propriétés visuelles transverses à reproduire
+
+Pour éviter une divergence entre validation client et implémentation :
+
+- **Grille et typographie** : espace basé sur une échelle nommée de 4/8/12/16/24/32 px ; adapter les densités à un mode `comfortable` ou `compact` documenté ; utiliser Inter pour ÉVIDENCE et SIGNAL, Lato ou une alternative redistribuable de même métrique pour ATELIER.
+- **Surface desktop de référence** : viewport 1440 × 900 ; sidebar approx. 248 px sur ÉVIDENCE/SIGNAL, menu de progression horizontal sur ATELIER ; grille N0 de quatre colonnes pour le jeu de données de revue, avec réagencement explicite sur mobile.
+- **Formulaires** : labels permanents, statuts sélectionnés avec libellé, focus visible, confirmation ou autosauvegarde réutilisant les règles existantes.
+- **Bords, ombres, rayons** : composants fondés sur les tokens sémantiques existants dans `src/styles/tokens.css`; valeurs de rayon et densité définies par direction dans une couche de thème, pas dans les composants métier.
+- **Couleurs métier** : identifier N0 par la palette domaine ; ne jamais utiliser la même coloration pour identité de domaine et sémantique de couverture sans légende.
+- **Statuts** : « suffisante », « partielle », « non couverte », « à évaluer » affichés comme texte, icône/forme et couleur ; ne jamais dériver leur état du simple nombre d'applications.
+- **Présentation** : mêmes données, même thème dynamique, vue read-only, sans drag and drop ; la différence des systèmes reste principalement visuelle.
+
+## Évaluation (jugement expert à valider)
+
+Notes indicatives sur cinq (pas un résultat d'étude utilisateur) :
+
+| Critère | ÉVIDENCE | SIGNAL | ATELIER |
+|---|---:|---:|---:|
+| Lisibilité en comité | 5 | 4 | 5 |
+| Lecture des écarts | 4 | 5 | 4 |
+| Simplicité de prise en main | 5 | 3 | 5 |
+| Densité d'information | 3 | 5 | 3 |
+| Adaptation mobile | 4 | 3 | 5 |
+| Effort de réalisation (5 = plus simple) | 4 | 5 | 3 |
+
+**Recommandation conditionnelle :** ÉVIDENCE pour une adoption client mixte et des restitutions ; SIGNAL pour les profils d'architecture technique et un effort initial plus faible ; ATELIER si la co-construction est prioritaire. Ne pas sélectionner une direction sans validation des trois tâches du parcours.
+
+## Plan d'implémentation après sélection
+
+1. Formaliser les tokens de la direction choisie (couleurs, densité, typographie, rayons, focus, surfaces) et leurs variantes light/dark dans le design system, sans casser les tokens et modes existants.
+2. Produire les composants et états de Storybook nécessaires : N0, N1, filtres de lecture, fiche de qualification, KPI, heatmap, points d'attention, placeholders et états vides.
+3. Implémenter les écrans du parcours en réutilisant les cas d'usage `src/application/` et les contrats du domaine ; aucun calcul de couverture dans la seule UI.
+4. Tester le parcours métier complet avec Playwright (desktop + mobile, navigation, relations, persistance, états de couverture, thème dynamique et présentation read-only), et les règles pures avec Vitest.
+5. Vérifier `npm run typecheck`, `npm run test:unit`, `npm run build`, `npm run test:e2e` et la CI GitHub avant une éventuelle fusion.
+
+## Limites et décisions ouvertes
+
+- Les maquettes sont **éditables** et réalisables par React/CSS, mais ne sont pas encore des captures du produit implémenté. Le rendu responsive mobile, le contrôle clavier et les états de chargement doivent être spécifiés avant la livraison.
+- Le contenu est fictif, contrairement à la structure du modèle de démonstration utilisée.
+- Ce document de décision ne modifie pas l'application ni les tests ; les changements fonctionnels seront proposés dans des PR distinctes **après choix explicite**. Aucune PR ne doit être fusionnée sans l'autorisation explicite du propriétaire.
