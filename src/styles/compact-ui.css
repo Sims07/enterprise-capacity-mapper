@@ -558,3 +558,60 @@
   cursor: pointer;
 }
 .domain-actions .domain-add-capability:hover { background: rgba(255,255,255,.28); }
+
+
+/* Sauvegarde : retour discret, accessible et cohérent avec les tokens clair/sombre. */
+.autosave-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 4px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
+}
+.autosave-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.autosave-indicator {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+.autosave-control--saving .autosave-indicator { background: var(--color-accent); }
+.autosave-control--saved .autosave-indicator { background: var(--color-success); }
+.autosave-control--error { border-color: var(--color-danger); }
+.autosave-control--error .autosave-status { color: var(--color-danger); }
+.autosave-control--error .autosave-indicator { background: var(--color-danger); }
+.toolbar-actions .autosave-action {
+  padding: 4px 7px;
+  min-height: 27px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 11px;
+  line-height: 1.2;
+  box-shadow: none;
+}
+.toolbar-actions .autosave-action:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent-border);
+}
+.toolbar-actions .autosave-action:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+@media (max-width: 720px) {
+  .autosave-control { flex-wrap: wrap; max-width: 100%; }
+  .autosave-status { white-space: normal; }
+}
