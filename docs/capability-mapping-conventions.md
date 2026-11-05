@@ -89,3 +89,13 @@ Une capacité peut maintenant porter `assessment` dans le même JSON V3, sans mi
 - `rationale` : justification factuelle de l'évaluation.
 
 Les champs absents restent **non évalués**. Aucun nombre d'applications reliées ne doit déterminer automatiquement la maturité ou la qualité de couverture. La priorité P1/P2/P3 reste un indicateur différent de la maturité. Les données N0-only ne reçoivent pas automatiquement d'évaluations N1 fictives.
+
+## 9. Diagnostic des écarts
+
+Dans « Analyse > Examiner les points d'attention », le diagnostic N1 distingue :
+- les applications actuelles (hors statut `Cible`) des applications cibles ;
+- l'absence de relation actuelle et la qualité de couverture **déclarée** (`none`, `partial`, `sufficient` ou `unknown`) ;
+- les différences positives de maturité cible/actuelle lorsque les deux valeurs existent ;
+- les supports applicatifs déclarés obsolètes, qui constituent un signal à revoir et non une déduction de défaillance.
+
+L'import facultatif d'une cartographie de référence JSON V3 permet d'identifier les capacités attendues absentes du modèle actif : comparaison stricte des codes normalisés, ou des noms normalisés dans leur domaine si les codes sont absents. Cette comparaison n'effectue aucun appariement flou et ne modifie pas les données actives. Une absence de déclaration n'est **pas** assimilée à une absence de capacité métier.
