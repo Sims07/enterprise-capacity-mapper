@@ -508,16 +508,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   };
   const confirmLoadLocalMap = () => {
     if (!pendingLocalMap) return;
-    const saved = pendingLocalMap;
     try {
+      if (!flushCurrentLocalMap()) return;
+
+      // La bibliothèque peut avoir changé depuis l'affichage de la liste.
+      // Ne pas restaurer un ancien snapshot sur celui qu'on vient de sauvegarder.
+      const latestInLibrary = repository.loadLocalMaps().find(entry => entry.id === pendingLocalMap.id);
+      const saved = latestInLibrary || pendingLocalMap;
       if (!saved.model || !Array.isArray(saved.model.domains) || !Array.isArray(saved.model.capabilities)) {
         throw new Error('le modèle enregistré est incomplet ou invalide');
       }
 
-      if (!flushCurrentLocalMap()) return;
-
       // Une entrée « récente » peut être un brouillon, sans sauvegarde en bibliothèque.
-      const savedInLibrary = repository.loadLocalMaps().some(entry => entry.id === saved.id);
+      const savedInLibrary = Boolean(latestInLibrary);
       lastSavedLocalSnapshotRef.current = savedInLibrary ? { id: saved.id, json: JSON.stringify(saved.model) } : null;
       replaceModel(saved.model);
       setSelected([]);
