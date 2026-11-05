@@ -310,6 +310,12 @@
   color: var(--map-card-text);
 }
 
+/* La règle héritée Linear Black fixe border: 1px !important pour les N1 :
+   relever uniquement l'épaisseur en présentation, sans casser les états de survol. */
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap:not(.impact-selected) {
+  border-width: 1.5px !important;
+}
+
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap-head b,
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .map-cap-select {
   color: var(--map-capability-text) !important;
