@@ -174,6 +174,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       return undefined;
     }
     const revealControls = () => {
+      // Les N1 sont rendus par DomainCard, recréé à chaque rendu de App :
+      // conserver le focus du clavier plutôt que le perdre en réveillant la barre.
+      if (document.activeElement?.closest('.mosaic-domain .cap[role="button"]')) return;
       setPresentationControlsVisible(true);
       setPresentationActivity(value => value + 1);
     };
