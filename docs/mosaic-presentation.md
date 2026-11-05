@@ -45,3 +45,9 @@ Les couleurs sont issues des tokens `--status-*` du design system (clair et somb
 L'option **Applications** de la barre de présentation affiche jusqu'à deux noms par N1, puis un compteur de relations supplémentaires. Les applications cibles sont identifiées et ne prouvent pas une couverture actuelle. L'option est désactivée en cartographie à un seul niveau.
 
 Une N1 activée au clic ou au clavier (Entrée/Espace) ouvre une fiche de restitution présentant couverture, maturité, signaux et **toutes** les applications actuelles et cibles. Échap ferme d'abord la fiche, puis quitte la présentation au second appui. Aucune modification métier n'est possible dans cette vue.
+
+## Piloter l'écran projeté depuis l'éditeur (lot 3)
+
+Le panneau **Piloter la présentation**, dans la barre de lecture métier de l'éditeur (cartographie 2 niveaux), contrôle l'onglet de présentation ouvert **dans le même navigateur et sur la même origine**. Il permet de choisir la lecture Carte/Couverture/Maturité/Écarts, d'afficher ou masquer les applications, et de mettre en avant un domaine N0. Les boutons Précédent/Suivant parcourent les domaines dans l'ordre du catalogue ; « Tous les domaines » rétablit le rendu normal.
+
+Les options sont transmises par `BroadcastChannel` sous forme de messages typés et validés. Le JSON métier n'est ni modifié ni dupliqué. Les commandes restent disponibles directement sur l'écran de présentation ; un changement effectué dans cet écran peut mettre à jour le panneau de pilotage de l'éditeur. La mise en avant N0 assombrit uniquement les autres domaines sans toucher aux placements ni au niveau de détail des N1. Pour un écran situé sur un autre appareil ou navigateur, ce pilotage local n'est pas disponible.
