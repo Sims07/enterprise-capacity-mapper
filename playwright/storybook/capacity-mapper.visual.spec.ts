@@ -217,3 +217,61 @@ test('story réelle — la cartographie ouvre directement le diagnostic métier'
   const item = page.getByTestId('capability-diagnostic-item').first();
   await expect(item.getByTestId('capability-diagnostic-edit')).toBeVisible();
 });
+
+test.describe('Design system — Points d’attention', () => {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`diagnostic et revue · thème ${theme}`, async ({ page }) => {
+      await openCapacityMapper(page, 1440, 900, theme);
+      await page.getByTestId('nav-analysis').click();
+      await page.getByTestId('dashboard-view-attention').click();
+      const diagnosis = page.getByTestId('capability-diagnostic');
+      const review = page.getByTestId('capability-decision-review');
+      await expect(diagnosis).toBeVisible();
+      await expect(review).toBeVisible();
+      await expect(diagnosis.getByTestId('capability-diagnostic-item').first()).toBeVisible();
+      await expect(diagnosis.getByTestId('attention-filter-signals')).toHaveAttribute('aria-pressed', 'true');
+      const themedSurface = await diagnosis.getByTestId('capability-diagnostic-item').first().evaluate(element => {
+        const probe = document.createElement('div');
+        probe.style.background = 'var(--color-surface)';
+        element.appendChild(probe);
+        const expected = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return { actual: getComputedStyle(element).backgroundColor, expected };
+      });
+      expect(themedSurface.actual).toBe(themedSurface.expected);
+      await mkdir('test-results-storybook', { recursive: true });
+      await page.screenshot({
+        path: `test-results-storybook/attention-diagnostic-${theme}.png`,
+        animations: 'disabled',
+      });
+      await diagnosis.getByTestId('attention-filter-qualification').click();
+      await expect(diagnosis.getByTestId('attention-filter-qualification')).toHaveAttribute('aria-pressed', 'true');
+      await diagnosis.getByTestId('attention-reference-toggle').click();
+      await expect(diagnosis.getByTestId('capability-reference-url')).toBeVisible();
+      await page.screenshot({
+        path: `test-results-storybook/attention-reference-${theme}.png`,
+        animations: 'disabled',
+      });
+      await review.getByTestId('retirement-application').selectOption('app-1');
+      await expect(review.getByTestId('retirement-scenario')).toBeVisible();
+      await review.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `test-results-storybook/attention-review-${theme}.png`,
+        animations: 'disabled',
+      });
+    });
+  }
+
+  test('mobile 390×844 · vue attention sans défilement horizontal', async ({ page }) => {
+    await openCapacityMapper(page, 390, 844, 'light');
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-attention').click();
+    await expect(page.getByTestId('attention-filter-qualification')).toBeVisible();
+    await page.getByTestId('attention-filter-qualification').click();
+    await expect(page.getByTestId('capability-diagnostic-item').first()).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await mkdir('test-results-storybook', { recursive: true });
+    await page.screenshot({ path: 'test-results-storybook/attention-mobile-light.png', animations: 'disabled' });
+  });
+});

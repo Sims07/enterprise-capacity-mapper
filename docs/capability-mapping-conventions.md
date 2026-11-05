@@ -127,3 +127,14 @@ Chaque carte N1 présente toujours l'état de couverture fonctionnelle, et le bo
 La cartographie présente deux compteurs métiers : **capacités à qualifier** (couverture fonctionnelle inconnue) et **capacités avec signaux d'écart**. Le bouton « Examiner les écarts » ouvre directement la vue d'attention du Dashboard, sans étape de navigation intermédiaire.
 
 Dans les constats, « Qualifier la capacité » / « Modifier l'évaluation » ouvre la **même fiche N1** sans passer par la gestion des relations. L'utilisateur peut enregistrer et relire immédiatement les signaux recalculés dans le diagnostic, revenir à la capacité dans la lecture « Écarts » sur la carte, ou examiner séparément les relations applicatives. Les compteurs et constats utilisent les règles métier existantes et ne créent pas de données fictives.
+
+
+## 14. Diagnostic métier — expérience de revue
+
+L'intention **Examiner les points d'attention** utilise les tokens du design system et conserve ses règles métier. La synthèse comporte deux vues sélectionnables : **Avec signal** (constats issus des liens applicatifs, obsolescence, couverture déclarée et maturité) et **À qualifier** (couverture fonctionnelle inconnue). Cette seconde vue rend accessibles les capacités sans signal mais non évaluées.
+
+Chaque résultat présente le contexte de domaine N0, les signaux, les nombres d'applications actuelles et cibles, puis les actions **Qualifier / Modifier l'évaluation**, **Voir sur la carte**, **Relations**. La liste peut s'étendre sans troncature silencieuse.
+
+La comparaison à une référence est optionnelle et repliée par défaut. Elle propose un import local JSON V3 ou un lien GitHub public ; la référence ne remplace pas la carte active. Les résultats de comparaison, erreurs de validation et bouton de retrait restent visibles une fois une référence chargée.
+
+La revue de décisions distingue les preuves, les questions à instruire et les actions. L'export Markdown inclut l'ensemble des éléments. La simulation de retrait ne modifie jamais les données.

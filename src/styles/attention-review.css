@@ -1,0 +1,240 @@
+/* Attention & décision — composants contextualisés, valeurs exclusivement tirées des tokens DS.
+   Styles volontairement scoped : ne modifie aucune autre intention du Dashboard. */
+.app .dashboard-attention,
+.app .dashboard-attention-review {
+  display: flex; flex-direction: column; gap: 20px; padding: 22px;
+  background: var(--color-surface-raised); color: var(--color-text);
+}
+.app .attention-section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 22px; min-width: 0; }
+.app .attention-heading-copy { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.app .attention-eyebrow { color: var(--color-accent-text); font-size: 10px; font-weight: 800; letter-spacing: .09em; line-height: 1.4; }
+.app .attention-heading-copy h2 { margin: 0; color: var(--color-text); font-size: clamp(19px, 2vw, 24px); letter-spacing: -.035em; line-height: 1.25; }
+.app .attention-heading-copy p { margin: 0; color: var(--color-text-muted); font-size: 12px; line-height: 1.55; max-width: 690px; }
+.app .attention-section-icon {
+  display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0;
+  border: 1px solid var(--color-accent-border); border-radius: var(--radius-card);
+  color: var(--color-accent-text); background: var(--color-accent-soft); font-size: 28px;
+}
+.app .attention-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.app .attention-metric {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+  min-width: 0; min-height: 105px; padding: 15px 16px;
+  text-align: left; color: var(--color-text); background: var(--color-surface-muted);
+  border: 1px solid var(--color-border); border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.app button.attention-metric { cursor: pointer; }
+.app .attention-metric.is-active { background: var(--color-accent-soft); border-color: var(--color-accent-border); box-shadow: inset 0 0 0 1px var(--color-accent-border); }
+.app .attention-metric:not(.is-active):hover { border-color: var(--color-border-strong); background: var(--color-surface-hover); }
+.app .attention-metric-label { color: var(--color-text-muted); font-size: 11px; font-weight: 650; line-height: 1.4; }
+.app .attention-metric strong { color: var(--color-text); font-size: 28px; line-height: 1.05; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.app .attention-metric.is-active strong { color: var(--color-accent-text); }
+.app .attention-metric small { display: flex; justify-content: space-between; gap: 8px; width: 100%; color: var(--color-text-muted); font-size: 10px; line-height: 1.4; }
+.app .attention-metric small span { color: var(--color-accent-text); font-size: 14px; }
+.app .attention-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--color-border); }
+.app .attention-list-heading h3 { margin: 0 0 5px; color: var(--color-text); font-size: 15px; letter-spacing: -.02em; }
+.app .attention-list-heading p { margin: 0; color: var(--color-text-muted); font-size: 11px; line-height: 1.5; }
+.app .attention-list-count { flex: 0 0 auto; color: var(--color-text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.app .attention-findings-list { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.app .dashboard-attention .capability-diagnostic-item {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 18px; padding: 16px; border-color: var(--color-border); border-radius: var(--radius-card);
+  background: var(--color-surface); box-shadow: var(--shadow-panel);
+}
+.app .dashboard-attention .capability-diagnostic-facts { gap: 11px; min-width: 0; flex: 1 1 360px; }
+.app .attention-finding-heading { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.app .attention-finding-monogram {
+  display: grid; place-items: center; flex: 0 0 auto; width: 34px; height: 34px;
+  color: var(--color-accent-text); background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border); border-radius: 9px;
+  font-size: 10px; font-weight: 850; letter-spacing: -.02em;
+}
+.app .attention-finding-heading > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.app .dashboard-attention .attention-finding-heading strong { font-size: 13px; color: var(--color-text); line-height: 1.4; overflow-wrap: anywhere; }
+.app .attention-finding-heading small { color: var(--color-text-muted); font-size: 10px; line-height: 1.4; }
+.app .attention-finding-signals { display: flex; flex-wrap: wrap; gap: 5px; }
+.app .attention-signal {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 4px 8px;
+  border-radius: 7px; color: var(--status-gap-text); background: var(--status-gap-bg);
+  font-size: 10px; line-height: 1.4; font-weight: 650; overflow-wrap: anywhere;
+}
+.app .attention-signal.is-unqualified { color: var(--status-neutral-text); background: var(--status-neutral-bg); }
+.app .attention-finding-links { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--color-text-muted); font-size: 10px; }
+.app .attention-finding-links b { color: var(--color-text); font-variant-numeric: tabular-nums; }
+.app .dashboard-attention .capability-diagnostic-actions { justify-content: flex-end; gap: 7px; flex: 0 1 auto; }
+.app .dashboard-attention .capability-diagnostic-actions button,
+.app .dashboard-attention-review .capability-diagnostic-actions button {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 8px 11px;
+  font-size: 11px; font-weight: 650; white-space: normal;
+  color: var(--color-text); background: var(--color-surface);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-control);
+}
+.app .dashboard-attention .capability-diagnostic-actions .capability-diagnostic-edit,
+.app .dashboard-attention-review .capability-diagnostic-actions .capability-diagnostic-edit {
+  color: var(--color-accent-text); background: var(--color-accent-soft);
+  border-color: var(--color-accent-border); font-weight: 750;
+}
+.app .dashboard-attention .capability-diagnostic-actions .capability-diagnostic-relations,
+.app .dashboard-attention-review .capability-diagnostic-actions .capability-diagnostic-relations {
+  color: var(--color-text-muted); background: transparent; border-color: transparent;
+}
+.app .dashboard-attention .capability-diagnostic-actions button:hover,
+.app .dashboard-attention-review .capability-diagnostic-actions button:hover {
+  border-color: var(--color-focus); background: var(--color-surface-hover);
+}
+.app .dashboard-attention .capability-diagnostic-actions .capability-diagnostic-edit:hover,
+.app .dashboard-attention-review .capability-diagnostic-actions .capability-diagnostic-edit:hover {
+  background: var(--color-accent-soft); border-color: var(--color-focus);
+}
+.app .attention-show-more {
+  display: flex; align-items: center; justify-content: center; width: 100%;
+  min-height: 38px; padding: 8px 12px; border-radius: var(--radius-control);
+  border: 1px dashed var(--color-border-strong); background: var(--color-surface-muted);
+  color: var(--color-accent-text); font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.app .attention-show-more:hover { border-style: solid; background: var(--color-accent-soft); }
+.app .attention-empty { display: flex; flex-direction: column; gap: 5px; padding: 22px; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-muted); color: var(--color-text-muted); font-size: 12px; line-height: 1.5; }
+.app .attention-empty strong { color: var(--color-text); }
+.app .attention-empty p { margin: 0; }
+.app .attention-reference,
+.app .attention-simulation {
+  padding: 16px; background: var(--color-surface-muted); color: var(--color-text);
+  border: 1px solid var(--color-border); border-radius: var(--radius-card);
+}
+.app .attention-reference-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.app .attention-reference-title { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 730px; }
+.app .attention-reference-title h3,
+.app .attention-simulation-heading h3 { margin: 0; color: var(--color-text); font-size: 14px; line-height: 1.3; letter-spacing: -.02em; }
+.app .attention-reference-title p,
+.app .attention-reference-source p { margin: 0; color: var(--color-text-muted); font-size: 11px; line-height: 1.5; }
+.app .attention-reference-toggle,
+.app .attention-reference-result-heading button {
+  min-height: 34px; padding: 7px 11px; border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control); background: var(--color-surface);
+  color: var(--color-text); font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.app .attention-reference-toggle span { padding-left: 4px; color: var(--color-accent-text); }
+.app .attention-reference-options {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-border);
+}
+.app .attention-reference-source { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; min-width: 0; }
+.app .attention-reference-source > strong,
+.app .attention-reference-source > label:not(.attention-file-picker) { font-size: 12px; color: var(--color-text); font-weight: 750; }
+.app .attention-file-picker {
+  display: inline-flex; position: relative; align-items: center; gap: 6px;
+  padding: 9px 12px; min-height: 38px; cursor: pointer;
+  border: 1px solid var(--color-accent-border); border-radius: var(--radius-control);
+  background: var(--color-accent-soft); color: var(--color-accent-text);
+  font-size: 11px; font-weight: 750;
+}
+.app .attention-file-picker span { font-size: 16px; }
+.app .attention-file-input {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.app .attention-file-picker:focus-within { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.app .attention-url-actions { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; width: 100%; }
+.app .attention-url-actions input,
+.app .attention-simulation select {
+  display: block; min-width: 0; min-height: 38px; padding: 8px 10px; flex: 1 1 200px;
+  font: inherit; font-size: 11px; color: var(--color-text); background: var(--color-surface);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-control);
+}
+.app .attention-url-actions input::placeholder { color: var(--color-text-muted); opacity: .75; }
+.app .attention-url-actions button {
+  border: 1px solid var(--color-accent-border); border-radius: var(--radius-control);
+  background: var(--color-accent-soft); color: var(--color-accent-text); font-size: 11px; font-weight: 750;
+  min-height: 38px; padding: 8px 12px; cursor: pointer;
+}
+.app .attention-url-actions button:disabled { opacity: .65; cursor: progress; }
+.app .attention-reference-note { grid-column: 1 / -1; color: var(--color-text-muted); font-size: 10px; line-height: 1.55; margin: 0; }
+.app .attention-feedback { margin: 12px 0 0; border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 12px; font-size: 11px; line-height: 1.5; }
+.app .attention-feedback.is-error { border-color: var(--status-critical-text); background: var(--status-critical-bg); color: var(--status-critical-text); }
+.app .attention-reference-result { margin-top: 14px; border: 1px solid var(--color-border); border-radius: 10px; padding: 13px; background: var(--color-surface); }
+.app .attention-reference-result-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.app .attention-reference-result-heading > div { display: flex; flex-direction: column; gap: 4px; }
+.app .attention-reference-result-heading strong { font-size: 12px; color: var(--color-text); }
+.app .attention-reference-result-heading span { font-size: 10px; color: var(--color-text-muted); }
+.app .attention-reference-result ul { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.app .attention-reference-result li { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 11px; }
+.app .attention-reference-result li span { color: var(--color-text-muted); }
+.app .attention-reference-result li strong { color: var(--color-text); }
+.app .attention-reference-result > p { margin: 10px 0 0; color: var(--color-text-muted); font-size: 11px; }
+.app .attention-export-button {
+  display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 38px;
+  border: 1px solid var(--color-accent-border); border-radius: var(--radius-control);
+  background: var(--color-accent-soft); color: var(--color-accent-text);
+  padding: 9px 12px; font-size: 11px; font-weight: 750; cursor: pointer;
+}
+.app .attention-export-button > span { font-size: 17px; line-height: 1; }
+.app .attention-export-button small { color: inherit; opacity: .75; }
+.app .attention-review-overview { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--color-text-muted); font-size: 12px; }
+.app .attention-review-overview strong { color: var(--color-text); font-size: 18px; font-variant-numeric: tabular-nums; margin-right: 4px; }
+.app .attention-review-list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+  list-style: none; margin: 0; padding: 0; gap: 10px; align-items: stretch;
+}
+.app .attention-review-card {
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-card); padding: 15px;
+}
+.app .attention-review-card-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.app .attention-review-card-title strong { font-size: 12px; line-height: 1.45; color: var(--color-text); overflow-wrap: anywhere; }
+.app .attention-review-evidence { margin: 0; font-size: 11px; color: var(--color-text-muted); line-height: 1.55; }
+.app .attention-review-question {
+  display: flex; flex-direction: column; gap: 5px; margin: 0; padding: 11px;
+  background: var(--color-surface-muted); border: 1px solid var(--color-border);
+  border-radius: 8px; font-size: 11px; line-height: 1.55; color: var(--color-text);
+}
+.app .attention-review-question span { font-size: 10px; font-weight: 800; color: var(--color-accent-text); }
+.app .attention-review-card .capability-diagnostic-actions { margin-top: auto; }
+.app .attention-simulation { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+.app .attention-simulation-heading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.app .attention-simulation-heading > div { display: flex; flex-direction: column; gap: 4px; }
+.app .attention-simulation-heading > span { color: var(--color-text-muted); font-size: 10px; }
+.app .attention-simulation > label { color: var(--color-text); font-size: 11px; font-weight: 750; }
+.app .attention-simulation select { width: 100%; flex: auto; }
+.app .attention-simulation-results { padding: 14px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px; }
+.app .attention-simulation-results h4 { margin: 0 0 12px; color: var(--color-text); font-size: 13px; }
+.app .attention-simulation-results h4 small { color: var(--color-text-muted); font-size: 11px; font-weight: 500; }
+.app .attention-simulation-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.app .attention-simulation-metrics > div { display: flex; flex-direction: column; gap: 4px; padding: 12px; background: var(--color-surface-muted); border: 1px solid var(--color-border); border-radius: 9px; }
+.app .attention-simulation-metrics strong { color: var(--color-text); font-size: 23px; font-variant-numeric: tabular-nums; }
+.app .attention-simulation-metrics .is-gap strong { color: var(--status-gap-text); }
+.app .attention-simulation-metrics span { color: var(--color-text-muted); font-size: 10px; line-height: 1.4; }
+.app .attention-simulation-links { display: flex; flex-wrap: wrap; gap: 7px; list-style: none; margin: 12px 0 0; padding: 0; }
+.app .attention-simulation-links button { padding: 7px 10px; border: 1px solid var(--color-accent-border); background: var(--color-accent-soft); color: var(--color-accent-text); border-radius: 7px; cursor: pointer; font-size: 11px; }
+.app .attention-simulation-results > p { margin: 12px 0 0; color: var(--color-text-muted); font-size: 10px; line-height: 1.5; }
+.app .dashboard-attention button:focus-visible,
+.app .dashboard-attention-review button:focus-visible,
+.app .dashboard-attention select:focus-visible,
+.app .dashboard-attention-review select:focus-visible,
+.app .dashboard-attention input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: var(--focus-ring-offset);
+}
+@media (max-width: 1100px) {
+  .app .dashboard-attention .capability-diagnostic-actions { width: 100%; justify-content: flex-start; }
+}
+@media (max-width: 760px) {
+  .app .dashboard-attention, .app .dashboard-attention-review { padding: 15px; gap: 16px; }
+  .app .attention-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app .attention-metric.is-context { grid-column: 1 / -1; min-height: 76px; }
+  .app .attention-reference-options { grid-template-columns: 1fr; }
+  .app .attention-section-heading { flex-wrap: wrap; }
+  .app .attention-review-list { grid-template-columns: 1fr; }
+  .app .attention-simulation-metrics { grid-template-columns: 1fr; }
+}
+@media (max-width: 440px) {
+  .app .attention-metrics { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .app .attention-metric { padding: 12px; }
+  .app .attention-metric strong { font-size: 24px; }
+  .app .attention-metric small { font-size: 9px; }
+  .app .dashboard-attention .capability-diagnostic-actions button { flex: 1 1 100%; }
+  .app .attention-reference-toggle, .app .attention-export-button { width: 100%; justify-content: center; }
+  .app .attention-url-actions button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app .dashboard-attention *, .app .dashboard-attention-review * { transition: none !important; animation: none !important; }
+}
