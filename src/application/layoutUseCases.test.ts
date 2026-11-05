@@ -187,3 +187,50 @@ test('stages a new grid row only for a full existing N0 map, preserving metadata
   assert.equal(prepared.layout.zones.find(zone => zone.id === 'c1:l2').name, 'Business support');
   assert.equal(prepareNewDomainSlot({ layout: { columns: [], layers: [] }, domains, newLayerId: 'row' }), null);
 });
+
+test('inserts an N0 before another one, shifts following domains and respects multi-cell spans', () => {
+  const source = { ...draft(), mode: 'mosaic' };
+  const before = JSON.stringify(source);
+  const domains = [
+    { id: 'd1', name: 'First', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, custom: true } },
+    { id: 'd2', name: 'Second', layout: { columnId: 'c1', layerId: 'l2' } },
+    { id: 'd3', name: 'Third', layout: { columnId: 'c2', layerId: 'l2' } },
+  ];
+  const planned = prepareNewDomainSlot({
+    layout: source, domains, beforeDomainId: 'd2', newLayerId: 'extra',
+  });
+
+  assert.equal(JSON.stringify(source), before, 'the dialog must not mutate the saved layout');
+  assert.deepEqual(domains[1].layout, { columnId: 'c1', layerId: 'l2' }, 'source domain stays intact');
+  assert.equal(planned.expanded, true);
+  assert.equal(planned.shiftedCount, 2);
+  assert.deepEqual(planned.placement, { columnId: 'c1', layerId: 'l2' });
+  assert.deepEqual(planned.domains.map(domain => domain.id), ['d1', 'd2', 'd3']);
+  assert.equal(planned.domains[0], domains[0], 'the N0 preceding the insertion is not moved');
+  assert.equal(planned.domains[0].layout.custom, true);
+  assert.deepEqual(planned.domains[1].layout, { columnId: 'c2', layerId: 'l2' });
+  assert.deepEqual(planned.domains[2].layout, { columnId: 'c1', layerId: 'extra-0' });
+  const placed = [{ id: 'new', layout: planned.placement }, ...planned.domains];
+  placed.forEach((domain, index) => assert.equal(isDomainPlacementAvailable({
+    domains: placed.slice(0, index), columns: planned.layout.columns, layers: planned.layout.layers,
+    columnId: domain.layout.columnId, layerId: domain.layout.layerId,
+    columnSpan: domain.layout.columnSpan || 1, rowSpan: domain.layout.rowSpan || 1, allowExactOverlap: false,
+  }), true));
+});
+
+test('inserts before a spanning N0 without changing its dimensions', () => {
+  const source = draft();
+  const domains = [
+    { id: 'spanning', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2, custom: 'saved' } },
+  ];
+  const planned = prepareNewDomainSlot({
+    layout: source, domains, beforeDomainId: 'spanning', newLayerId: 'extension',
+  });
+  assert.deepEqual(planned.placement, { columnId: 'c1', layerId: 'l1' });
+  assert.equal(planned.expanded, true);
+  assert.deepEqual(planned.domains[0].layout, {
+    columnId: 'c1', layerId: 'l2', columnSpan: 2, rowSpan: 2, custom: 'saved',
+  });
+  assert.equal(planned.layout.layers.length, 3);
+  assert.equal(prepareNewDomainSlot({ layout: source, domains, beforeDomainId: 'missing', newLayerId: 'extension' }), null);
+});
