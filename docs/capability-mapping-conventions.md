@@ -138,3 +138,10 @@ Chaque résultat présente le contexte de domaine N0, les signaux, les nombres d
 La comparaison à une référence est optionnelle et repliée par défaut. Elle propose un import local JSON V3 ou un lien GitHub public ; la référence ne remplace pas la carte active. Les résultats de comparaison, erreurs de validation et bouton de retrait restent visibles une fois une référence chargée.
 
 La revue de décisions distingue les preuves, les questions à instruire et les actions. L'export Markdown inclut l'ensemble des éléments. La simulation de retrait ne modifie jamais les données.
+
+
+## 14. SIGNAL Professionnel — légendes et densité (lot 2)
+
+La légende est propre à la lecture choisie : **Applications** explicite les liens SI actuels/cibles, **Couverture** distingue les quatre états fonctionnels déclarés, **Maturité** décrit actuel/cible et inconnue, **Écarts** signale les cas à instruire. Le bandeau N0 exprime uniquement l'identité du domaine. Les pastilles N1 distinguent explicitement « Non couverte », « Partielle », « Suffisante » et « À évaluer », sans inférence depuis le nombre d'applications.
+
+**Densité : Confortable/Compacte** est une préférence d'affichage locale : elle n'agit que sur les espacements, jamais sur les identifiants, lignes, colonnes, spans ou relations. Aucun N1 n'est masqué. Le mode présentation possède sa propre composition indépendante.
