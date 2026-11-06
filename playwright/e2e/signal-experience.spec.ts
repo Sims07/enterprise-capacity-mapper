@@ -15,6 +15,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     const inventory = page.locator('#app-inventory');
     await expect(inventory).toBeHidden();
 
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     await expect(inventory).toBeVisible();
     await expect(inventory).toHaveCSS('position', 'fixed');
@@ -25,6 +26,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
 
     await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
     await expect(inventory).toBeHidden();
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     await expect(inventory).toBeVisible();
     await page.keyboard.press('Escape');
@@ -45,6 +47,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     await dialog.getByRole('button', { name: 'Créer' }).click();
     await expect(dialog).toBeHidden();
 
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     const app = page.locator('#app-inventory .app-item').filter({ hasText: 'Outil devis SIGNAL' });
     await expect(app).toBeVisible();
@@ -183,4 +186,60 @@ test('Affichage ouvre la légende au clavier, puis Escape la referme sans change
   await expect(disclosure).not.toHaveAttribute('open', '');
   await expect(summary).toBeFocused();
   await expect(page.getByTestId('map-reading-applications')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('la commande de carte unifiée donne priorité à la carte et préserve les opérations métier', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const toolbar = page.getByTestId('map-unified-controls');
+  const map = page.getByTestId('capability-map');
+  await expect(toolbar).toBeVisible();
+  await expect(toolbar.getByTestId('map-filter')).toBeVisible();
+  await expect(toolbar.getByTestId('map-reading-applications')).toBeVisible();
+  await expect(toolbar.getByTestId('signal-add-application')).toBeVisible();
+  await expect(toolbar.getByTestId('map-add-domain')).toBeVisible();
+  await expect(toolbar.locator('.canvas-actions > button')).toHaveCount(2);
+  await expect(toolbar.getByTestId('capability-diagnostic-shortcut')).toBeHidden();
+  await expect(map.locator('.mosaic-domain')).not.toHaveCount(0);
+
+  const geometry = () => map.locator('.mosaic-domain').evaluateAll(nodes => nodes.map(node => ({
+    id: node.querySelector('[data-entity-id]')?.getAttribute('data-entity-id'),
+    column: (node as HTMLElement).style.gridColumn,
+    row: (node as HTMLElement).style.gridRow,
+    caps: node.querySelectorAll('.cap').length,
+  })));
+  const initial = await geometry();
+  await toolbar.getByTestId('map-reading-coverage').click();
+  await expect(toolbar.getByTestId('map-reading-coverage')).toHaveAttribute('aria-pressed', 'true');
+  expect(await geometry()).toEqual(initial);
+
+  const menu = toolbar.getByTestId('map-more-actions');
+  const trigger = menu.locator('summary');
+  await trigger.click();
+  await expect(menu.getByTestId('capability-diagnostic-shortcut')).toBeVisible();
+  await menu.getByTestId('capability-diagnostic-shortcut').click();
+  await expect(menu).not.toHaveAttribute('open', '');
+  await expect(page.getByTestId('capability-diagnostic')).toBeVisible();
+  await page.getByTestId('nav-cartography').click();
+  await expect(toolbar).toBeVisible();
+
+  await trigger.click();
+  await menu.getByTestId('map-inventory-toggle').click();
+  await expect(page.locator('#app-inventory')).toBeVisible();
+  await expect(menu).not.toHaveAttribute('open', '');
+  await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
+  expect(await geometry()).toEqual(initial);
+});
+
+test('les commandes secondaires restent accessibles en affichage mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.getByTestId('map-unified-controls')).toBeVisible();
+  const menu = page.getByTestId('map-more-actions');
+  await menu.locator('summary').click();
+  await expect(menu.getByRole('button', { name: 'Structure' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(menu).not.toHaveAttribute('open', '');
+  await expect(menu.locator('summary')).toBeFocused();
+  await expect(page.getByTestId('signal-add-application')).toBeVisible();
 });

@@ -111,6 +111,7 @@ test.describe('Playwright mobile regression', () => {
 
   test('garde la feuille Structure dans le viewport mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByRole('button', { name: 'Structure' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
