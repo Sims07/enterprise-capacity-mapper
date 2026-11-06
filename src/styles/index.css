@@ -29,3 +29,6 @@
 /* Signal client skin: always last, preserving behavior/layout from legacy styles. */
 @import './signal-experience.css';
 @import './design-system-controls.css';
+
+/* Carte prioritaire et commandes contextuelles : dernière couche scoped SIGNAL. */
+@import './map-command-hierarchy.css';

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
 import type { MapDensity } from './adapters/browser/appPreferences.ts';
-import MapReadingLegend from './components/MapReadingLegend.tsx';
+import MapReadingDisclosure from './components/MapReadingDisclosure.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
@@ -1598,12 +1598,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </label>
                   <span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span>
                 </div>
-                <div className="canvas-actions">
-                  <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
-                  <button type="button" className="secondary" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer l’inventaire' : `Inventaire SI (${apps.length})`}</button>
+                <div className="canvas-actions map-primary-actions">
                   <button type="button" className="primary signal-add-application" data-testid="signal-add-application" onClick={() => openNew('app')}>＋ Application</button>
-                  <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
-                  <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
+                  <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
+                  <button type="button" className="secondary map-quiet-action" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer l’inventaire' : `Inventaire SI (${apps.length})`}</button>
+                  <button type="button" className="secondary map-quiet-action" onClick={openLayoutEditor}>⚙ Structure</button>
+                  <button type="button" className="help-icon map-quiet-action" aria-label="Aide TOGAF" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
               </div>
 
@@ -1615,7 +1615,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </div>
                   <div className="capability-reading-summary" data-testid="capability-reading-summary">
                     <span><strong>{[...capabilityFindings.values()].filter(finding => finding.needsQualification).length}</strong> à qualifier</span>
-                    <span><strong>{[...capabilityFindings.values()].filter(finding => finding.signals.length > 0).length}</strong> avec écarts</span>
                   </div>
                   <div className="capability-reading-options" role="group" aria-label="Mode de lecture des capacités">
                     {MAP_READING_MODES.map(reading => (
@@ -1625,18 +1624,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                         onClick={() => setMapReadingMode(reading.id)}>{reading.label}</button>
                     ))}
                   </div>
-                  <label className="map-density-control">Densité
-                    <select data-testid="map-density" value={mapDensity} onChange={event => {
-                      const nextDensity = event.target.value === 'compact' ? 'compact' : 'comfortable';
+                  <MapReadingDisclosure mode={mapReadingMode} density={mapDensity}
+                    onDensityChange={nextDensity => {
                       setMapDensity(nextDensity);
                       preferences.writeMapDensity(nextDensity);
-                    }}>
-                      <option value="comfortable">Confortable</option>
-                      <option value="compact">Compacte</option>
-                    </select>
-                  </label>
+                    }} />
                   <button type="button" className="capability-diagnostic-shortcut" data-testid="capability-diagnostic-shortcut"
-                    onClick={openBusinessDiagnosis}>Examiner les écarts</button>
+                    onClick={openBusinessDiagnosis}>{[...capabilityFindings.values()].filter(finding => finding.signals.length > 0).length} écarts à examiner</button>
                   <div className="presentation-director">
                     <button type="button" className="presentation-director-toggle" data-testid="presentation-director-toggle"
                       aria-expanded={presentationDirectorOpen} onClick={() => setPresentationDirectorOpen(value => !value)}>Piloter la présentation</button>
@@ -1669,7 +1663,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </div>
                 </section>
               )}
-              {!presentation && depth === 2 && <MapReadingLegend mode={mapReadingMode} />}
               {capabilityMap}
             </>
           )}

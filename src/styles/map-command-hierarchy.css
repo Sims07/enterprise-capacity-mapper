@@ -1,0 +1,183 @@
+/* SIGNAL — hiérarchie des commandes de cartographie.
+   Le contenu métier prime sur les contrôles ; la mosaïque et ses spans ne changent pas.
+   Les commandes contextuelles restent accessibles au clavier et sur écran tactile. */
+.app.signal-experience {
+  --map-display-panel-width: 30rem;
+}
+
+.app.signal-experience:not(.mosaic-presentation-mode) .map-controls-row .map-primary-actions {
+  gap: var(--signal-space-2);
+  align-items: center;
+}
+
+/* Seuls les ajouts créent un vrai bouton visuel ; les utilitaires sont des liens discrets. */
+.app.signal-experience:not(.mosaic-presentation-mode) .map-primary-actions .map-quiet-action {
+  color: var(--color-text-muted) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .map-primary-actions .map-quiet-action:hover,
+.app.signal-experience:not(.mosaic-presentation-mode) .map-primary-actions .map-quiet-action:focus-visible,
+.app.signal-experience:not(.mosaic-presentation-mode) .map-primary-actions .map-quiet-action[aria-expanded="true"] {
+  background: var(--color-surface-hover) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+/* Une seule barre de lecture : la légende et la densité deviennent une aide à la demande. */
+.app.signal-experience:not(.mosaic-presentation-mode) .capability-reading-toolbar {
+  position: relative;
+  z-index: 3;
+  box-shadow: none;
+  border-radius: var(--radius-control);
+  padding: var(--signal-space-2) var(--signal-space-3);
+  gap: var(--signal-space-3);
+}
+.app.signal-experience .capability-reading-summary {
+  white-space: nowrap;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .capability-diagnostic-shortcut,
+.app.signal-experience:not(.mosaic-presentation-mode) .presentation-director-toggle {
+  background: transparent;
+  border-color: transparent;
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  padding: var(--signal-space-2);
+  box-shadow: none;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .capability-diagnostic-shortcut:hover,
+.app.signal-experience:not(.mosaic-presentation-mode) .presentation-director-toggle:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.app.signal-experience .map-reading-disclosure {
+  position: relative;
+  z-index: 4;
+  min-width: max-content;
+  color: var(--color-text-muted);
+}
+.app.signal-experience .map-reading-disclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--signal-space-1);
+  min-height: var(--control-target-size);
+  padding: var(--signal-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  list-style: none;
+}
+.app.signal-experience .map-reading-disclosure > summary::-webkit-details-marker { display: none; }
+.app.signal-experience .map-reading-disclosure > summary:hover,
+.app.signal-experience .map-reading-disclosure[open] > summary {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+}
+.app.signal-experience .map-reading-disclosure > summary:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience .map-reading-disclosure[open] > summary span { transform: rotate(180deg); }
+.app.signal-experience .map-reading-disclosure-panel {
+  position: absolute;
+  top: calc(100% + var(--signal-space-1));
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--signal-space-3);
+  width: min(var(--map-display-panel-width), calc(100vw - 2 * var(--signal-space-4)));
+  max-width: calc(100vw - 2 * var(--signal-space-4));
+  padding: var(--signal-space-4);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  color: var(--color-text);
+  box-shadow: var(--shadow-overlay);
+}
+.app.signal-experience .map-reading-disclosure-panel .map-density-control {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--signal-space-2);
+}
+.app.signal-experience .map-reading-disclosure-panel .map-reading-legend {
+  margin: 0;
+  padding: var(--signal-space-2) 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.app.signal-experience .map-reading-disclosure-panel .map-reading-legend-heading {
+  width: 100%;
+}
+
+/* Cartes : garder les intitulés et les statuts lisibles avant les actions secondaires. */
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .capability-open-sheet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-muted);
+  box-shadow: none;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .capability-open-sheet:hover,
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .capability-open-sheet:focus-visible {
+  color: var(--color-accent-text);
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .domain-add-capability {
+  box-shadow: none;
+}
+
+/* Les zones de dépôt restent des cibles via .cap / .domain-card, sans boîte répétée.
+   Elles réapparaissent visuellement pendant le glisser-déposer d'une application. */
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .drop {
+  height: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain :is(.cap.drop-over, .domain-card.drop-over) .drop {
+  height: auto;
+  min-height: var(--control-target-size);
+  margin-top: var(--signal-space-1);
+  padding: var(--signal-space-1);
+  border: 1px dashed var(--color-focus);
+  opacity: 1;
+}
+
+/* Desktop : les opérations secondaires se découvrent au survol ou au focus.
+   Sur tactile elles restent visibles, puisqu'il n'y a pas de hover. */
+@media (hover: hover) and (pointer: fine) {
+  .app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .capability-card-actions,
+  .app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .domain-actions .mini-action-trigger {
+    opacity: 0;
+    transition: opacity var(--motion-duration-fast, 150ms) ease;
+  }
+  .app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap:is(:hover, :focus-within) .capability-card-actions,
+  .app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .domain-card:is(:hover, :focus-within) .domain-actions .mini-action-trigger {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .capability-card-actions,
+  .app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .domain-actions .mini-action-trigger {
+    transition: none;
+  }
+}
+@media (max-width: 700px) {
+  .app.signal-experience .map-reading-disclosure-panel {
+    right: auto;
+    left: 0;
+  }
+  .app.signal-experience .map-reading-disclosure-panel .map-reading-legend { align-items: flex-start; }
+}

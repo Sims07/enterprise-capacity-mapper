@@ -89,6 +89,10 @@ test('la légende suit les quatre lectures sans modifier les spans et la densit�
   })));
   const initial = await geometry();
   expect(initial.length).toBeGreaterThan(0);
+  const display = page.getByTestId('map-reading-disclosure');
+  await expect(page.getByTestId('map-reading-legend')).toBeHidden();
+  await display.locator('summary').click();
+  await expect(page.getByTestId('map-reading-legend')).toBeVisible();
   for (const [mode, label] of [
     ['applications', 'Nombre de supports applicatifs actuels'],
     ['coverage', 'Non couverte'],
@@ -104,6 +108,8 @@ test('la légende suit les quatre lectures sans modifier les spans et la densit�
   await expect(map).toHaveAttribute('data-density', 'compact');
   expect(await geometry()).toEqual(initial);
   await page.reload();
+  await expect(page.getByTestId('map-reading-legend')).toBeHidden();
+  await page.getByTestId('map-reading-disclosure').locator('summary').click();
   await expect(page.getByTestId('map-density')).toHaveValue('compact');
   await expect(page.getByTestId('capability-map')).toHaveAttribute('data-density', 'compact');
   expect(await geometry()).toEqual(initial);
@@ -139,4 +145,42 @@ test('la restitution distingue chaque légende, imprime sans contrôles et expli
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.presentation-exit-bar')).toBeHidden();
   await expect(page.getByTestId('capability-map')).toBeVisible();
+});
+
+test('la carte conserve les actions secondaires au survol et au clavier sans barres de dépôt répétées', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expect(page.getByTestId('signal-add-application')).toBeVisible();
+  await expect(page.getByTestId('map-add-domain')).toBeVisible();
+  await expect(page.getByTestId('capability-reading-toolbar')).toBeVisible();
+
+  const capability = page.getByTestId('capability-map').locator('.mosaic-domain .cap').first();
+  const actions = capability.locator('.capability-card-actions');
+  await expect(capability.locator('.drop')).toHaveCSS('height', '0px');
+  await page.mouse.move(0, 0);
+  await expect(actions).toHaveCSS('opacity', '0');
+  await capability.hover();
+  await expect(actions).toHaveCSS('opacity', '1');
+  const sheet = capability.getByTestId('capability-open-sheet');
+  await sheet.focus();
+  await expect(actions).toHaveCSS('opacity', '1');
+  await sheet.click();
+  await expect(page.getByRole('dialog', { name: 'Fiche de capacité N1' })).toBeVisible();
+  await page.getByRole('dialog', { name: 'Fiche de capacité N1' })
+    .getByRole('button', { name: 'Fermer la fenêtre' }).click();
+});
+
+test('Affichage ouvre la légende au clavier, puis Escape la referme sans changer la lecture', async ({ page }) => {
+  await page.goto('/');
+  const disclosure = page.getByTestId('map-reading-disclosure');
+  const summary = disclosure.locator('summary');
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(disclosure).toHaveAttribute('open', '');
+  await expect(page.getByTestId('map-reading-legend')).toBeVisible();
+  await disclosure.getByTestId('map-density').selectOption('compact');
+  await page.keyboard.press('Escape');
+  await expect(disclosure).not.toHaveAttribute('open', '');
+  await expect(summary).toBeFocused();
+  await expect(page.getByTestId('map-reading-applications')).toHaveAttribute('aria-pressed', 'true');
 });

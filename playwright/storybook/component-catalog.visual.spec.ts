@@ -102,3 +102,20 @@ test('la légende de restitution explique la couverture et les écarts dans les 
   await page.goto(story('design-system-legende-de-presentation--ecarts'));
   await expect(page.getByTestId('presentation-legend')).toContainText('Aucun signal détecté');
 });
+
+test('le panneau Affichage Signal n’ajoute pas de barre permanente et reste pilotable au clavier', async ({ page }) => {
+  await page.goto(story('design-system-affichage-cartographie--couverture', 'dark'));
+  const disclosure = page.getByTestId('map-reading-disclosure');
+  const legend = page.getByTestId('map-reading-legend');
+  await expect(disclosure).toBeVisible();
+  await expect(legend).toBeHidden();
+  await disclosure.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(legend).toBeVisible();
+  await expect(legend).toContainText('Non couverte');
+  await disclosure.getByTestId('map-density').selectOption('compact');
+  await expect(page.getByRole('status')).toContainText('compact');
+  await page.keyboard.press('Escape');
+  await expect(legend).toBeHidden();
+  await expect(disclosure.locator('summary')).toBeFocused();
+});
