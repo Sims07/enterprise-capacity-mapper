@@ -3,7 +3,7 @@ import type { Application, Capability, CatalogModel, Domain } from '../domain/ca
 export type { Application, Capability, CatalogModel, Domain, Layout, CapabilityAssessment } from '../domain/catalogModel.ts';
 import type { CapabilityAssessment } from '../domain/catalogModel.ts';
 
-export type DomainForm = { code?: string; name: string; description?: string; color?: string; columnId?: string; layerId?: string; columnSpan?: string | number };
+export type DomainForm = { code?: string; name: string; description?: string; color?: string; columnId?: string; layerId?: string; columnSpan?: string | number; rowSpan?: string | number };
 export type CapabilityForm = { domainId: string; code?: string; name: string; description?: string; priority?: string; assessment?: CapabilityAssessment };
 export type ApplicationForm = { name: string; code?: string; type?: string; status?: string; vendor?: string; capabilityIds?: string[]; description?: string };
 
@@ -16,7 +16,9 @@ export const createDomain = ({ domains, form, id, defaultColumnId, defaultLayerI
   .createDomain({
     id, code: form.code || 'CAP', name: form.name, description: form.description,
     color: resolveColor(form.color),
-    layout: { columnId: form.columnId || defaultColumnId, layerId: form.layerId || defaultLayerId, columnSpan: Number(form.columnSpan) || 1 },
+    layout: { columnId: form.columnId || defaultColumnId, layerId: form.layerId || defaultLayerId, columnSpan: Number(form.columnSpan) || 1,
+      ...(Number(form.rowSpan) > 1 ? { rowSpan: Number(form.rowSpan) } : {}),
+    },
   }).toModel().domains;
 
 export const updateDomain = ({ domains, domainId, form, defaultColumnId, defaultLayerId, resolveColor, capabilities = [], applications = [], layout }: {

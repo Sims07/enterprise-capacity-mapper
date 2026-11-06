@@ -69,6 +69,9 @@
   background-size: 18px 18px;
 }
 
+.app.mosaic-presentation-mode .mosaic-domain-slot { min-height: 0; overflow: hidden; }
+.app.mosaic-presentation-mode .mosaic-domain-slot > .mosaic-domain { flex: 1 1 0; min-height: 0; }
+
 .app.mosaic-presentation-mode .mosaic-domain {
   container-type: inline-size;
   container-name: mosaic-card;

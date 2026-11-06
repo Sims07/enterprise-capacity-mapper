@@ -16,6 +16,7 @@ import {
   addLayoutDraftItem,
   type Layout,
   isDomainPlacementAvailable,
+  groupDomainsByPlacement,
   prepareNewDomainSlot,
   prepareLayoutForSave,
   prepareDomainPlacement,
@@ -85,7 +86,7 @@ const mixDomainColor = (foreground, background, amount) => {
   });
   return `#${channels.join('')}`;
 };
-const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified', assessment: { functionalCoverage: 'unknown' as CapabilityAssessment['functionalCoverage'], currentMaturity: undefined as number | undefined, targetMaturity: undefined as number | undefined, rationale: '' } };
+const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', rowSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified', assessment: { functionalCoverage: 'unknown' as CapabilityAssessment['functionalCoverage'], currentMaturity: undefined as number | undefined, targetMaturity: undefined as number | undefined, rationale: '' } };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
 
 function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mobile' } = {}) {
@@ -753,7 +754,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     columnId,
     layerId,
     columnSpan,
-    allowExactOverlap: false,
+    rowSpan: modal === 'edit-domain' ? model.domains.find(domain => domain.id === domainId)?.layout?.rowSpan ?? 1 : form.rowSpan,
+    allowExactOverlap: true,
   });
 
   const placeDomain = (domainId, columnId, layerId) => {
@@ -765,7 +767,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       domainId,
       columnId,
       layerId,
-      allowExactOverlap: false,
+      allowExactOverlap: true,
     });
     if (!patch) {
       if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
@@ -817,7 +819,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       capabilityIds: parent ? [parent] : [],
       columnId: initialPlace?.columnId || columns[0].id,
       layerId: initialPlace?.layerId || layers[0].id,
-      columnSpan: '1'
+      columnSpan: String(place?.columnSpan || 1),
+      rowSpan: String(place?.rowSpan || 1),
     });
     setModal(kind);
   };
@@ -834,7 +837,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     setPendingDomainPlan(plan);
     setDomainInsertionTarget(beforeDomainId);
     setForm(current => ({
-      ...current, columnId: plan.placement.columnId, layerId: plan.placement.layerId, columnSpan: '1',
+      ...current, columnId: plan.placement.columnId, layerId: plan.placement.layerId, columnSpan: '1', rowSpan: '1',
     }));
     setFormErrors({});
   };
@@ -851,7 +854,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       color: resolveDomainColor(d.color),
       columnId: d.layout?.columnId || columns[0].id,
       layerId: d.layout?.layerId || layers[0].id,
-      columnSpan: String(d.layout?.columnSpan || 1)
+      columnSpan: String(d.layout?.columnSpan || 1),
+      rowSpan: String(d.layout?.rowSpan || 1),
     });
     setModal('edit-domain');
   };
@@ -877,7 +881,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     if (modal === 'capability' && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
     if (['app', 'edit-app'].includes(modal) && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
     if ((modal === 'domain' || modal === 'edit-domain') && !/^#[\da-f]{6}$/i.test(form.color)) errors.color = 'Saisissez une couleur hexadécimale au format #RRGGBB.';
-    if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue chevauche un autre domaine.';
+    if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue croise partiellement un autre N0. Pour empiler deux domaines, utilisez la même position et la même étendue.';
 
     if (Object.keys(errors).length) {
       setFormErrors(errors);
@@ -887,16 +891,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
     setFormErrors({});
     if (modal === 'domain') {
-      const creationLayout = pendingDomainPlan?.layout || layout;
+      // A staged extra layer is discarded when the user selects an existing occupied one.
+      const usePlannedLayout = Boolean(pendingDomainPlan?.expanded && (insertingN0 || !layers.some(layer => layer.id === form.layerId)));
+      const creationLayout = usePlannedLayout ? pendingDomainPlan!.layout : layout;
       update({
-        ...(pendingDomainPlan?.expanded ? { layout: creationLayout } : {}),
+        ...(usePlannedLayout ? { layout: creationLayout } : {}),
         domains: createDomain({ domains: (pendingDomainPlan?.domains || model.domains) as CatalogModel['domains'], capabilities: model.capabilities, applications: apps, layout: creationLayout, form, id: uid('l0'), defaultColumnId: domainFormColumns[0].id, defaultLayerId: domainFormLayers[0].id, resolveColor: resolveDomainColor }),
       });
       setPendingDomainPlan(null);
       setMapQuery('');
       notify(pendingDomainPlan?.shiftedCount
         ? `Domaine N0 inséré · ${pendingDomainPlan.shiftedCount} domaine(s) repositionné(s)`
-        : pendingDomainPlan?.expanded ? 'Domaine N0 créé · ligne ajoutée' : 'Domaine N0 créé');
+        : usePlannedLayout ? 'Domaine N0 créé · ligne ajoutée' : 'Domaine N0 créé');
     }
     if (modal === 'edit-domain') {
       update({ domains: updateDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
@@ -1218,7 +1224,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           {!occupied && <button type="button" className="cell-add empty" aria-label={`Ajouter un domaine dans ${zone?.name || column.name}`} onClick={() => openNew('domain', null, { columnId: column.id, layerId: layer.id })}>＋ Domaine N0</button>}
         </div>;
       }))}
-      {model.domains.filter(domain => (domain.name + ' ' + domain.code + ' ' + (domain.description || '')).toLowerCase().includes(mapQuery.toLowerCase())).map(domain => {
+      {groupDomainsByPlacement({ domains: model.domains.filter(domain => (domain.name + ' ' + domain.code + ' ' + (domain.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), columns, layers }).map(group => {
+        const domain = group[0];
         const sourceColumnIndex = resolveTrackIndex(columns, domain.layout?.columnId || columns[0].id);
         const sourceRowIndex = resolveTrackIndex(layers, domain.layout?.layerId || layers[0].id);
         if (sourceColumnIndex < 0 || sourceRowIndex < 0) return null;
@@ -1233,9 +1240,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const rowSpan = presentation
           ? mosaicLayersLayout.filter(layer => { const index = layers.findIndex(item => item.id === layer.id); return index >= sourceRowIndex && index < sourceRowIndex + sourceRowSpan; }).length
           : sourceRowSpan;
-        return <div className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
+        return <div className="mosaic-domain-slot" data-testid="mosaic-domain-stack" data-stack-size={group.length} key={domain.id}
+          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}>
+          {group.map(domain => <div className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
           aria-label={presentation ? `Carte ${domain.name}` : `Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
-          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}
           onPointerDown={event => {
             if (presentation) return;
             const bounds = event.currentTarget.getBoundingClientRect();
@@ -1262,8 +1270,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             event.currentTarget.dataset.resizeCellHeight = String(cellBounds?.height || 0);
             event.currentTarget.dataset.resizeColumn = String(resizeColumn);
             event.currentTarget.dataset.resizeRow = String(resizeRow);
-            event.currentTarget.dataset.resizeOriginalColumn = event.currentTarget.style.gridColumn;
-            event.currentTarget.dataset.resizeOriginalRow = event.currentTarget.style.gridRow;
+            const gridSlot = event.currentTarget.parentElement as HTMLElement;
+            event.currentTarget.dataset.resizeOriginalColumn = gridSlot.style.gridColumn;
+            event.currentTarget.dataset.resizeOriginalRow = gridSlot.style.gridRow;
           }}
           onPointerMove={event => {
             const card = event.currentTarget;
@@ -1278,8 +1287,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
             const previewColumnSpan = Math.max(1, Math.min(columns.length - sourceColumnIndex, columnSpan + columnDelta));
             const previewRowSpan = Math.max(1, Math.min(layers.length - sourceRowIndex, rowSpan + rowDelta));
-            card.style.gridColumn = `${columnIndex + mosaicColumnOffset} / span ${previewColumnSpan}`;
-            card.style.gridRow = `${rowIndex + mosaicRowOffset} / span ${previewRowSpan}`;
+            const gridSlot = card.parentElement as HTMLElement;
+            gridSlot.style.gridColumn = `${columnIndex + mosaicColumnOffset} / span ${previewColumnSpan}`;
+            gridSlot.style.gridRow = `${rowIndex + mosaicRowOffset} / span ${previewRowSpan}`;
           }}
           onPointerUp={event => {
             const card = event.currentTarget;
@@ -1291,8 +1301,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const columnDelta = card.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
             const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
             if (columnDelta || rowDelta) resizeDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
-            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
-            card.style.gridRow = card.dataset.resizeOriginalRow || '';
+            const gridSlot = card.parentElement as HTMLElement;
+            gridSlot.style.gridColumn = card.dataset.resizeOriginalColumn || '';
+            gridSlot.style.gridRow = card.dataset.resizeOriginalRow || '';
             ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
             const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
@@ -1300,8 +1311,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           }}
           onPointerCancel={event => {
             const card = event.currentTarget;
-            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
-            card.style.gridRow = card.dataset.resizeOriginalRow || '';
+            const gridSlot = card.parentElement as HTMLElement;
+            gridSlot.style.gridColumn = card.dataset.resizeOriginalColumn || '';
+            gridSlot.style.gridRow = card.dataset.resizeOriginalRow || '';
             ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
             const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
             if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
@@ -1319,7 +1331,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             resizeDomain(domain, columnSpan + change[0], rowSpan + change[1]);
           }}>
           <DomainCard d={domain} />
-        </div>;
+        </div>)}
+      </div>;
       })}
     </div>
   );
@@ -1744,6 +1757,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         >
           {contextMenu.type === 'domain' && (
             <>
+              <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('domain', null, {
+                columnId: contextMenu.item.layout?.columnId || columns[0].id,
+                layerId: contextMenu.item.layout?.layerId || layers[0].id,
+                columnSpan: Number(contextMenu.item.layout?.columnSpan || 1),
+                rowSpan: Number(contextMenu.item.layout?.rowSpan || 1),
+              }); }}>＋ Ajouter un N0 en dessous</button>
               <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('domain', null, null, contextMenu.item.id); }}>＋ Insérer N0 avant</button>
               {depth === 2 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openNew('capability', contextMenu.item.id); }}>＋ Ajouter N1</button>}
               {depth === 1 && <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>}
@@ -1903,8 +1922,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               </select>
             </label>
           )}
-          {modal === 'domain' && pendingDomainPlan?.expanded && <p className="structure-hint" data-testid="domain-auto-expand-hint">L’espace actuel ne suffit pas. {domainInsertionTarget === 'auto' ? 'Une nouvelle ligne sera ajoutée.' : 'Les domaines suivants seront décalés et une ligne supplémentaire sera créée.'} La carte ne change que lorsque vous confirmez la création.</p>}
+          {modal === 'domain' && pendingDomainPlan?.expanded && (insertingN0 || !layers.some(layer => layer.id === form.layerId)) && <p className="structure-hint" data-testid="domain-auto-expand-hint">L’espace actuel ne suffit pas. {domainInsertionTarget === 'auto' ? 'Une nouvelle ligne sera ajoutée.' : 'Les domaines suivants seront décalés et une ligne supplémentaire sera créée.'} La carte ne change que lorsque vous confirmez la création.</p>}
           {insertingN0 && <p className="structure-hint" data-testid="domain-insertion-hint">Les domaines sont réorganisés à partir de cette position, sans changer leurs capacités ou applications. La position est calculée automatiquement.</p>}
+          {modal === 'domain' && !insertingN0 && <p className="structure-hint">Plusieurs N0 peuvent partager exactement la même colonne, la même ligne et la même étendue : ils seront empilés verticalement. Les intersections partielles restent refusées.</p>}
           {(modal === 'capability' || modal === 'edit-capability') && <div className="field-guidance"><b>N1 — Capacité</b><span>Décrit ce que l’entreprise sait faire.</span></div>}
           {modal === 'edit-capability' && (
             <div className="capability-sheet-context" data-testid="capability-sheet-context">
