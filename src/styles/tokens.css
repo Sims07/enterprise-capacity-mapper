@@ -82,6 +82,9 @@
 .theme-dark {
   color-scheme: dark;
 
+  /* Contraste explicite des messages d'erreur sur une surface graphite. */
+  --color-danger: #fca5a5;
+
   --color-bg: #0b1220;
   --color-surface: #111c2e;
   --color-surface-muted: #172438;

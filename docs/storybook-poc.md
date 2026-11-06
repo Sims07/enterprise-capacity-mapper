@@ -79,3 +79,10 @@ La story de l'application vérifie le parcours Cartographie → Diagnostic méti
 ### Attention et décisions — revue visuelle
 
 La story applicative réelle ouvre l'intention « Examiner les points d'attention » en thème clair et sombre. La CI enregistre les captures de ces deux états dans les artefacts Storybook, puis vérifie l'usage des surfaces et bordures issues des tokens du thème, le basculement entre signaux et capacités à qualifier, l'accordéon de référence et la simulation. Ce contrôle visuel cible spécifiquement le rendu HTML brut autrefois présent dans cet écran.
+
+
+## Fondations d'interaction — lot 1 (novembre 2026)
+
+Les contrôles de production et les stories partagent `src/components/ui/Fields.tsx`, `Modal.tsx`, `src/styles/design-system-controls.css` et les tokens de thème. Les fenêtres conservent le focus dans le dialogue, ferment par Échap et rendent le focus au déclencheur. La présence d'une erreur est communiquée par texte, `aria-invalid` et `aria-describedby`, en plus du contour de couleur. Les thèmes disposent chacun d'un contraste d'erreur explicite.
+
+Les tests `playwright/storybook/component-catalog.visual.spec.ts` doivent rester exécutables en CI. Vérifier manuellement la navigation clavier, la lecture d'écran et le rendu des formulaires à forte densité après toute modification des primitives. Ne pas recopier la maquette en HTML hors des composants de production.
