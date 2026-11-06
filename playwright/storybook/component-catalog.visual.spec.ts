@@ -91,3 +91,14 @@ test('la validation reste lisible et identifiée en thème sombre', async ({ pag
   await expect(page.locator('.app.signal-experience.theme-dark')).toHaveCSS('color-scheme', 'dark');
   await expect(page.getByText('Le nom de la capacité est obligatoire.')).toBeVisible();
 });
+
+test('la légende de restitution explique la couverture et les écarts dans les deux thèmes', async ({ page }) => {
+  await page.goto(story('design-system-legende-de-presentation--couverture', 'dark'));
+  await expect(page.locator('.app.signal-experience.theme-dark')).toBeVisible();
+  const legend = page.getByTestId('presentation-legend');
+  await expect(legend).toContainText('Non couverte');
+  await expect(legend).toContainText('Partielle');
+  await expect(legend).not.toContainText('Intermédiaire');
+  await page.goto(story('design-system-legende-de-presentation--ecarts'));
+  await expect(page.getByTestId('presentation-legend')).toContainText('Aucun signal détecté');
+});
