@@ -16,6 +16,7 @@ import type { CapabilityAssessment, CatalogModel } from './domain/catalogModel.t
 import { createFrontendApplication } from './adapters/react/architecture.ts';
 import {
   addLayoutDraftItem,
+  collapseLayoutAfterDomainRemoval,
   type Layout,
   isDomainPlacementAvailable,
   prepareNewDomainSlot,
@@ -924,7 +925,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   };
 
   const removeDomain = id => {
-    update(removeDomainAndDependents({ model, domainId: id, depth }));
+    const remaining = removeDomainAndDependents({ model, domainId: id, depth });
+    update({ ...remaining, layout: collapseLayoutAfterDomainRemoval(layout, remaining.domains) });
     notify('Domaine et dépendances supprimés');
   };
 
