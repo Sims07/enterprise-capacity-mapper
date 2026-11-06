@@ -524,6 +524,11 @@
   .app.signal-experience:not(.mosaic-presentation-mode) .map-unified-controls .canvas-actions { order: 2; }
 }
 @media (max-width: 900px) {
+  /* Les onglets et le menu conservent la cible tactile documentée par les E2E mobile. */
+  .app.signal-experience .toolbar-switch.primary-navigation > button,
+  .app.signal-experience .primary-navigation .toolbar-tools > .toolbar-tools-toggle {
+    min-height: 42px;
+  }
   .app.signal-experience:not(.mosaic-presentation-mode) > header {
     flex-direction: column;
     align-items: stretch;
