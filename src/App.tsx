@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
+import type { MapDensity } from './adapters/browser/appPreferences.ts';
+import MapReadingLegend from './components/MapReadingLegend.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
@@ -112,6 +114,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapReadingMode, setMapReadingMode] = useState<MapReadingMode>('applications');
+  const [mapDensity, setMapDensity] = useState<MapDensity>(() => preferences.readMapDensity());
   const [presentationReadingMode, setPresentationReadingMode] = useState<PresentationReadingMode>('identity');
   const [presentationShowApplications, setPresentationShowApplications] = useState(false);
   const [presentationFocusedCapabilityId, setPresentationFocusedCapabilityId] = useState<string | null>(null);
@@ -1189,7 +1192,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     ? mosaicLayersLayout.map(layer => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')
     : `${showColumnHeadings ? '44px ' : ''}${layers.map(() => 'minmax(180px, auto)').join(' ')}`;
   const capabilityMap = (
-    <div className="map map-mosaic" data-testid="capability-map" style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
+    <div className="map map-mosaic" data-testid="capability-map" data-density={!presentation ? mapDensity : undefined} style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
       {!presentation && showColumnHeadings && columns.map(column => <div className="mosaic-column-heading" key={column.id} style={{ gridColumn: columns.indexOf(column) + mosaicColumnOffset, gridRow: 1 }}>{column.name}</div>)}
       {!presentation && showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + mosaicRowOffset }}>{layer.name}</div>)}
@@ -1621,6 +1624,16 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                         onClick={() => setMapReadingMode(reading.id)}>{reading.label}</button>
                     ))}
                   </div>
+                  <label className="map-density-control">Densité
+                    <select data-testid="map-density" value={mapDensity} onChange={event => {
+                      const nextDensity = event.target.value === 'compact' ? 'compact' : 'comfortable';
+                      setMapDensity(nextDensity);
+                      preferences.writeMapDensity(nextDensity);
+                    }}>
+                      <option value="comfortable">Confortable</option>
+                      <option value="compact">Compacte</option>
+                    </select>
+                  </label>
                   <button type="button" className="capability-diagnostic-shortcut" data-testid="capability-diagnostic-shortcut"
                     onClick={openBusinessDiagnosis}>Examiner les écarts</button>
                   <div className="presentation-director">
@@ -1655,6 +1668,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </div>
                 </section>
               )}
+              {!presentation && depth === 2 && <MapReadingLegend mode={mapReadingMode} />}
               {capabilityMap}
             </>
           )}

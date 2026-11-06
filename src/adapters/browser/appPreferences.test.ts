@@ -26,6 +26,8 @@ test('app preferences read and write theme and active map ids through injected s
   assert.equal(preferences.readActiveLocalMapId(), 'local-1');
   assert.equal(preferences.readActiveRecentMapId('fallback'), 'recent-1');
   preferences.writeTheme('light');
+  preferences.writeMapDensity('compact');
+  assert.equal(preferences.readMapDensity(), 'compact');
   preferences.writeActiveLocalMapId('local-2');
   preferences.writeActiveRecentMapId('recent-2');
   preferences.clearActiveLocalMapId();
@@ -40,10 +42,12 @@ test('app preferences use safe defaults for optional values', () => {
   const preferences = createAppPreferences({ storage });
 
   assert.equal(preferences.readTheme(), 'light');
+  assert.equal(preferences.readMapDensity(), 'comfortable');
   assert.equal(preferences.readActiveLocalMapId(), '');
   assert.equal(preferences.readActiveRecentMapId('recent-fallback'), 'recent-fallback');
   assert.deepEqual(storage.calls, [
     ['get', 'enterprise-capacity-mapper:theme'],
+    ['get', 'enterprise-capacity-mapper:map-density'],
     ['get', 'enterprise-capacity-mapper:active-local-map'],
     ['get', 'enterprise-capacity-mapper:active-recent-map'],
   ]);

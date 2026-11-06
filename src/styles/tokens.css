@@ -54,6 +54,7 @@
   --map-presentation-muted-domain-share: 22%;
 
   /* Shared geometry and motion */
+  --control-target-size: 36px;
   --radius-control: 7px;
   --radius-card: 12px;
   --radius-panel: 14px;
