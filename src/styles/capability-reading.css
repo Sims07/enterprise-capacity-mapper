@@ -52,7 +52,7 @@
   padding: 2px 7px; border-radius: 999px;
   background: var(--status-neutral-bg); color: var(--status-neutral-text);
 }
-.capability-qualification.is-none,
+.capability-qualification.is-none { background: var(--status-critical-bg); color: var(--status-critical-text); }
 .capability-qualification.is-partial { background: var(--status-gap-bg); color: var(--status-gap-text); }
 .capability-qualification.is-sufficient { background: var(--status-covered-bg); color: var(--status-covered-text); }
 .capability-reading-detail {
@@ -123,3 +123,42 @@
   .app .capability-diagnostic-actions { width: 100%; }
   .app .capability-diagnostic-shortcut { flex-grow: 1; }
 }
+
+/* Légende contextuelle, indépendante de la couleur libre des domaines N0. */
+.app.signal-experience .map-reading-legend {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: var(--signal-space-2) var(--signal-space-4);
+  margin-bottom: var(--signal-space-3);
+  padding: var(--signal-space-2) var(--signal-space-3);
+  border: 1px solid var(--color-border); border-radius: var(--radius-control);
+  background: var(--color-surface-muted); color: var(--color-text-muted);
+  font-size: 11px; line-height: 1.5;
+}
+.app.signal-experience .map-reading-legend-heading { color: var(--color-text); font-size: 11px; }
+.app.signal-experience .map-reading-legend-item { display: inline-flex; gap: var(--signal-space-1); align-items: center; }
+.app.signal-experience .map-reading-legend-key {
+  display: inline-block; width: var(--signal-space-3); height: var(--signal-space-3);
+  flex-shrink: 0; border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control); background: var(--status-neutral-bg);
+}
+.app.signal-experience .map-reading-legend-key.is-domain { background: var(--color-accent-soft); border-color: var(--color-accent-border); }
+.app.signal-experience .map-reading-legend-key.is-none { background: var(--status-critical-bg); border-color: var(--status-critical-text); }
+.app.signal-experience .map-reading-legend-key.is-partial { background: var(--status-gap-bg); border-color: var(--status-gap-text); }
+.app.signal-experience .map-reading-legend-key.is-sufficient { background: var(--status-covered-bg); border-color: var(--status-covered-text); }
+.app.signal-experience .map-density-control {
+  display: flex; flex-direction: column; gap: var(--signal-space-1);
+  color: var(--color-text-muted); font-size: 11px;
+}
+.app.signal-experience .map-density-control select {
+  min-height: var(--control-target-size);
+  padding: var(--signal-space-1) var(--signal-space-2);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-control);
+  background: var(--color-surface); color: var(--color-text); font: inherit;
+}
+.app.signal-experience .map-density-control select:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: var(--focus-ring-offset); }
+/* Densité = uniquement les espacements ; ne modifie pas les spans, ne masque aucun N1. */
+.app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic[data-density="compact"] { gap: var(--signal-space-1); }
+.app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic[data-density="compact"] .mosaic-domain,
+.app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic[data-density="compact"] .caps-list { padding: var(--signal-space-1); }
+.app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic[data-density="compact"] .caps-list { gap: var(--signal-space-1); }
+.app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic[data-density="compact"] .cap { padding: var(--signal-space-2); }
