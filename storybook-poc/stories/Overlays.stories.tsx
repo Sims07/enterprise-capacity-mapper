@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from '../../src/components/ui/Button.tsx';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Modal } from '../../src/components/ui/Modal.tsx';
 import { Field, SelectField } from '../../src/components/ui/Fields.tsx';
@@ -17,13 +18,13 @@ function ConfirmationDemo() {
   const [result, setResult] = useState('');
   const close = () => setOpen(false);
   return <section style={storyPanel}>
-    <button type="button" className="secondary" onClick={() => setOpen(true)}>Ouvrir la confirmation</button>
+    <Button type="button" variant="secondary" onClick={() => setOpen(true)}>Ouvrir la confirmation</Button>
     <p role="status" style={storyHelp}>{result}</p>
     {open && <Modal title="Ouvrir une cartographie" onClose={close}>
       <p>Ouvrir « Cartographie métier » remplacera la cartographie actuellement affichée.</p>
       <div className="modal-actions">
-        <button type="button" onClick={() => { setResult('Annulé'); close(); }}>Annuler</button>
-        <button type="button" className="primary" onClick={() => { setResult('Confirmation reçue'); close(); }}>Ouvrir la cartographie</button>
+        <Button type="button" onClick={() => { setResult('Annulé'); close(); }}>Annuler</Button>
+        <Button type="button" variant="primary" onClick={() => { setResult('Confirmation reçue'); close(); }}>Ouvrir la cartographie</Button>
       </div>
     </Modal>}
   </section>;
@@ -36,18 +37,18 @@ function FormDialogDemo() {
   const [type, setType] = useState('SaaS');
   const [error, setError] = useState('');
   return <div style={storyPanel}>
-    <button type="button" onClick={() => setOpen(true)}>＋ Nouvelle application</button>
+    <Button type="button" onClick={() => setOpen(true)}>＋ Nouvelle application</Button>
     {open && <Modal title="Nouvelle application" onClose={() => setOpen(false)}>
       <Field label="Nom" required value={name} onChange={event => { setName(event.target.value); setError(''); }}
         error={error} placeholder="Portail client" />
       <SelectField label="Type" value={type} onChange={event => setType(event.target.value)}
         options={[{ value: 'SaaS', label: 'SaaS' }, { value: 'ERP', label: 'ERP' }, { value: 'On-Premise', label: 'On-Premise' }]} />
       <div className="modal-actions">
-        <button type="button" onClick={() => setOpen(false)}>Annuler</button>
-        <button type="button" className="primary" onClick={() => {
+        <Button type="button" onClick={() => setOpen(false)}>Annuler</Button>
+        <Button type="button" variant="primary" onClick={() => {
           if (!name.trim()) setError('Le nom est obligatoire.');
           else setOpen(false);
-        }}>Enregistrer</button>
+        }}>Enregistrer</Button>
       </div>
     </Modal>}
   </div>;
@@ -71,7 +72,7 @@ function ToastDemo() {
   return <div style={storyPanel}>
     <h3>Notification non bloquante</h3>
     <p style={storyHelp}>Même classe de notification que l'éditeur. Le message reste neutre en cas de succès.</p>
-    <button type="button" onClick={() => setMessage('Cartographie sauvegardée en local')}>Déclencher une notification</button>
+    <Button type="button" onClick={() => setMessage('Cartographie sauvegardée en local')}>Déclencher une notification</Button>
     {message && <div className="toast" role="status" aria-live="polite">{message}</div>}
   </div>;
 }
