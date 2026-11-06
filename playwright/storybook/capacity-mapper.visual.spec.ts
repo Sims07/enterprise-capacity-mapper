@@ -177,12 +177,14 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
         gridDot: styles.getPropertyValue('--map-canvas-dot').trim(),
         cardSurface: styles.getPropertyValue('--map-card-surface').trim(),
         capabilityText: styles.getPropertyValue('--map-capability-text').trim(),
+        signalSurface: styles.getPropertyValue('--signal-map-surface').trim(),
+        signalText: styles.getPropertyValue('--color-text').trim(),
       };
     });
     expect(mapTokens.canvas).not.toBe('');
     expect(mapTokens.gridDot).toContain('9%');
-    expect(mapTokens.cardSurface).toBe('#20232b');
-    expect(mapTokens.capabilityText).toBe('#f3f4f6');
+    expect(mapTokens.cardSurface).toBe(mapTokens.signalSurface);
+    expect(mapTokens.capabilityText).toBe(mapTokens.signalText);
     const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
     const colorChannels = zoneSurface.match(/[\d.]+/g)?.map(Number) ?? [];
     const alpha = colorChannels.length === 4 ? colorChannels[3] : 1;
