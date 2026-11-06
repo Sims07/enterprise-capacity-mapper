@@ -30,3 +30,24 @@ Le composant `MapReadingDisclosure` sert la production et le catalogue Storybook
 - À valider en atelier : équilibre de visibilité sur écran tactile, usage clavier, lisibilité d'une carte de 6–8 colonnes et de N0 ayant plus de 4 N1.
 
 La PR reste ouverte jusqu'à une revue utilisateur explicite : elle ne doit pas être fusionnée automatiquement.
+
+
+## Lot de finition — barre de commandes unifiée (#250)
+
+La cartographie ne doit pas présenter deux bandes successives (Filtrer/Créer puis Lecture métier). L'éditeur SIGNAL dispose désormais d'**une seule surface de commandes**, contenant :
+
+- **Filtrer les domaines** (champ de recherche accessible par son label), avec nombre de domaines visibles.
+- **Applications / Couverture / Maturité / Écarts** (modes de lecture explicites et inchangés).
+- **À qualifier** (information compacte) et **Affichage** (densité locale et légende à la demande).
+- **+ Application** et **+ Domaine N0**, les deux commandes principales immédiatement visibles.
+- **Options** (menu temporaire) regroupant Inventaire SI, Structure, Aide TOGAF, Examiner les écarts et Piloter la présentation. Le pilotage reste disponible depuis la fenêtre de l'éditeur lorsque la fenêtre de présentation est ouverte ; les commandes de projection et le focus N0 restent inchangés.
+
+Le composant réutilisable `MapActionsMenu` est documenté dans Storybook. Son `<details>` natif conserve navigation clavier, activation avec Entrée/Espace, fermeture Escape avec restitution du focus et fermeture au clic en dehors. Un sous-panneau de pilotage peut rester ouvert dans le menu ; l'ouverture d'une autre interface ferme le menu. Les écrans tactiles conservent des surfaces cliquables.
+
+La même surface peut occuper deux rangées internes aux résolutions intermédiaires et petites (sans créer un deuxième bloc visuel). Ce repli est contrôlé par les breakpoints de la feuille `map-unified-controls.css`, ajoutée après les styles SIGNAL existants.
+
+**Non-régression :** le modèle N0/N1, la géométrie spatiale, les relations, les états de maturité/couverture, la PWA, le stockage local et la présentation plein écran sont inchangés. Les tests Playwright existants ouvrent explicitement « Options » avant d'utiliser une commande secondaire ; cela vérifie un **parcours utilisateur réel**, sans rendre les fonctions accessibles uniquement aux tests.
+
+### Critère de validation utilisateur
+
+Sur une cartographie comportant 6–8 colonnes et 4 N1 ou plus par N0, vérifier que la mosaïque commence plus haut, que les commandes métier se retrouvent facilement et que le focus de toutes les commandes reste visible. La refonte n'est réussie que si elle allège l'interface sans compliquer l'ajout d'applications ni l'accès à la Structure et aux relations.
