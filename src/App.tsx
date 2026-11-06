@@ -128,7 +128,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [presentation, setPresentation] = useState(isPresentationWindow);
   const [presentationControlsVisible, setPresentationControlsVisible] = useState(true);
   const [presentationActivity, setPresentationActivity] = useState(0);
-  const [darkMode, setDarkMode] = useState(() => preferences.readTheme() === 'dark');
+  const [darkMode, setDarkMode] = useState(() => new URLSearchParams(window.location.search).get('theme') === 'dark' || preferences.readTheme() === 'dark');
   const toolsMenuRef = useRef(null);
   const toolsMenuToggleRef = useRef(null);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
@@ -167,6 +167,20 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [pendingDomainPlan, setPendingDomainPlan] = useState<NonNullable<ReturnType<typeof prepareNewDomainSlot>> | null>(null);
   const [domainInsertionTarget, setDomainInsertionTarget] = useState('auto');
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
+
+  // La présentation Signal conserve toute la largeur de la grille : l’inventaire est temporaire.
+  useEffect(() => {
+    if (mode !== 'editor' && showMosaicInventory) setShowMosaicInventory(false);
+  }, [mode, showMosaicInventory]);
+
+  useEffect(() => {
+    if (!showMosaicInventory) return undefined;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !modal) setShowMosaicInventory(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [showMosaicInventory, modal]);
 
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
@@ -1329,7 +1343,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
 
   return (
-    <div className={'app' + (presentation ? ' presentation-mode' : '') + (presentation ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind} data-presentation-reading={presentation ? presentationReadingMode : undefined}>
+    <div className={'app signal-experience' + (presentation ? ' presentation-mode' : '') + (presentation ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind} data-presentation-reading={presentation ? presentationReadingMode : undefined}>
       <header>
         <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
         <div className="toolbar">
@@ -1372,7 +1386,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-display">
                   <h3 id="tools-group-display" className="toolbar-menu-heading">Affichage</h3>
-                  <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Dark Linear'}</button>
+                  <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Thème sombre Signal'}</button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group toolbar-menu-version" aria-labelledby="tools-group-version">
@@ -1505,10 +1519,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </section>
       ) : (
       <div className={'workspace' + ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}`}>
-        <aside id="app-inventory">
+        <aside id="app-inventory" aria-label="Inventaire des applications">
           <div className="panel-title">
             <span>Inventaire SI <em>{apps.length}</em></span>
             <button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button>
+            {showMosaicInventory && <button type="button" className="signal-inventory-close" aria-label="Fermer l’inventaire SI" onClick={() => setShowMosaicInventory(false)}>×</button>}
           </div>
           <input className="search" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} />
           <div className="hint">Glissez une application vers une capacité, ou cochez-en plusieurs puis utilisez « Relier ici » dans l’onglet Relations. Le bouton « Relier à… » permet de relier sans glisser-déposer.</div>
@@ -1603,7 +1618,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 </div>
                 <div className="canvas-actions">
                   <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
-                  <button type="button" className="secondary" data-testid="map-inventory-toggle" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer les applications' : `Applications (${apps.length})`}</button>
+                  <button type="button" className="secondary" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer l’inventaire' : `Inventaire SI (${apps.length})`}</button>
+                  <button type="button" className="primary signal-add-application" data-testid="signal-add-application" onClick={() => openNew('app')}>＋ Application</button>
                   <button type="button" className="secondary" onClick={openLayoutEditor}>⚙ Structure</button>
                   <button type="button" className="help-icon" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
                 </div>
