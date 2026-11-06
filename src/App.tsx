@@ -1922,8 +1922,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               </select>
             </label>
           )}
-          {modal === 'domain' && pendingDomainPlan?.expanded && <p className="structure-hint" data-testid="domain-auto-expand-hint">L’espace actuel ne suffit pas. {domainInsertionTarget === 'auto' ? 'Une nouvelle ligne sera ajoutée.' : 'Les domaines suivants seront décalés et une ligne supplémentaire sera créée.'} La carte ne change que lorsque vous confirmez la création.</p>}
+          {modal === 'domain' && pendingDomainPlan?.expanded && (insertingN0 || !layers.some(layer => layer.id === form.layerId)) && <p className="structure-hint" data-testid="domain-auto-expand-hint">L’espace actuel ne suffit pas. {domainInsertionTarget === 'auto' ? 'Une nouvelle ligne sera ajoutée.' : 'Les domaines suivants seront décalés et une ligne supplémentaire sera créée.'} La carte ne change que lorsque vous confirmez la création.</p>}
           {insertingN0 && <p className="structure-hint" data-testid="domain-insertion-hint">Les domaines sont réorganisés à partir de cette position, sans changer leurs capacités ou applications. La position est calculée automatiquement.</p>}
+          {modal === 'domain' && !insertingN0 && <p className="structure-hint">Plusieurs N0 peuvent partager exactement la même colonne, la même ligne et la même étendue : ils seront empilés verticalement. Les intersections partielles restent refusées.</p>}
           {(modal === 'capability' || modal === 'edit-capability') && <div className="field-guidance"><b>N1 — Capacité</b><span>Décrit ce que l’entreprise sait faire.</span></div>}
           {modal === 'edit-capability' && (
             <div className="capability-sheet-context" data-testid="capability-sheet-context">
