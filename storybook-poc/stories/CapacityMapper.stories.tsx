@@ -27,11 +27,11 @@ export const UnifiedMapPresentation: Story = {
   },
 };
 
-/** Version candidate Signal de la PR : même application, navigation haute et mosaïque intacte. */
+/** Atelier SIGNAL : navigation documentaire, commandes métier et mosaïque inchangée. */
 export const SignalCartography: Story = {
   parameters: {
     viewport: { defaultViewport: 'desktop' },
-    docs: { description: { story: 'Signal client : la navigation reste horizontale, les domaines N0 gardent leurs spans et « + Application » ouvre la création.' } },
+    docs: { description: { story: 'SIGNAL document-first : titre de cartographie et sauvegarde associés, onglets sobres, historique au niveau des commandes de carte. Les N0/N1 gardent leur géométrie et « + Application » reste immédiatement accessible.' } },
   },
 };
 
@@ -40,5 +40,13 @@ export const SignalApplications: Story = {
   parameters: {
     viewport: { defaultViewport: 'desktop' },
     docs: { description: { story: 'Cliquer sur « Inventaire SI », ouvrir une application, utiliser « Relier à… », puis refermer sans réduire la mosaïque.' } },
+  },
+};
+
+/** Inspection dédiée de la hiérarchie : une vraie instance du shell, aucun duplicata de markup. */
+export const DocumentFirstHeader: Story = {
+  parameters: {
+    viewport: { defaultViewport: 'desktop' },
+    docs: { description: { story: 'Vérifier sur 1920, 1440 et mobile : nom du document actif à gauche, état local discret (et erreur visible), navigation horizontale distincte, commandes de lecture et Annuler/Rétablir dans la barre contextuelle, présentation toujours accessible.' } },
   },
 };
