@@ -27,6 +27,7 @@ test.describe('Playwright POC — critical browser workflows', () => {
 
   test('modifie les propriétés d’une application depuis son crayon discret', async ({ page }) => {
     await page.goto('/');
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     const application = page.locator('.app-item').filter({ hasText: 'Salesforce CRM' });
     await expect(application).toHaveCount(1);
@@ -166,6 +167,7 @@ test.describe('Parcours de lecture métier depuis la cartographie', () => {
 test('du constat sur la carte à la fiche puis au même constat dans le diagnostic', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('capability-reading-summary')).toContainText('à qualifier');
+  await page.getByTestId('map-more-actions').locator('summary').click();
   await page.getByTestId('capability-diagnostic-shortcut').click();
   await expect(page.getByTestId('capability-diagnostic')).toBeVisible();
 
