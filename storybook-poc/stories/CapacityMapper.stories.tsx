@@ -26,3 +26,19 @@ export const UnifiedMapPresentation: Story = {
     docs: { description: { story: 'Basculer vers Mosaïque puis activer Présentation pour examiner une cartographie paysage, en thème clair ou sombre.' } },
   },
 };
+
+/** Version candidate Signal de la PR : même application, navigation haute et mosaïque intacte. */
+export const SignalCartography: Story = {
+  parameters: {
+    viewport: { defaultViewport: 'desktop' },
+    docs: { description: { story: 'Signal client : la navigation reste horizontale, les domaines N0 gardent leurs spans et « + Application » ouvre la création.' } },
+  },
+};
+
+/** Vérifier dans Storybook : inventaire SI sur demande, puis « Relier à… ». */
+export const SignalApplications: Story = {
+  parameters: {
+    viewport: { defaultViewport: 'desktop' },
+    docs: { description: { story: 'Cliquer sur « Inventaire SI », ouvrir une application, utiliser « Relier à… », puis refermer sans réduire la mosaïque.' } },
+  },
+};
