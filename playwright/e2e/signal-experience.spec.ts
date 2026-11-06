@@ -15,6 +15,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     const inventory = page.locator('#app-inventory');
     await expect(inventory).toBeHidden();
 
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     await expect(inventory).toBeVisible();
     await expect(inventory).toHaveCSS('position', 'fixed');
@@ -25,6 +26,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
 
     await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
     await expect(inventory).toBeHidden();
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     await expect(inventory).toBeVisible();
     await page.keyboard.press('Escape');
@@ -45,6 +47,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     await dialog.getByRole('button', { name: 'Créer' }).click();
     await expect(dialog).toBeHidden();
 
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     const app = page.locator('#app-inventory .app-item').filter({ hasText: 'Outil devis SIGNAL' });
     await expect(app).toBeVisible();
