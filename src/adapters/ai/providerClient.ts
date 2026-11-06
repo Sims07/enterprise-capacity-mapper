@@ -54,38 +54,41 @@ async function readResponse(response) {
   return response.json();
 }
 
-async function readOllamaStream(response, onChunk) {
+async function readOllamaStream(response, onChunk, onThinkingChunk) {
   if (!response.ok) throw new Error(`Le fournisseur a répondu avec le statut HTTP ${response.status}.`);
+
+  let answer = '';
+  const consume = payload => {
+    if (payload?.error) throw new Error('Ollama a signalé une erreur pendant la génération.');
+    const thinking = payload?.message?.thinking;
+    if (typeof thinking === 'string' && thinking) onThinkingChunk?.(thinking);
+    const content = payload?.message?.content;
+    if (typeof content === 'string' && content) {
+      answer += content;
+      onChunk?.(content);
+    }
+  };
+  const consumeLine = line => {
+    if (!line.trim()) return;
+    let payload;
+    try { payload = JSON.parse(line); }
+    catch { throw new Error('Ollama a renvoyé un flux JSON invalide.'); }
+    consume(payload);
+  };
+
   if (!response.body?.getReader) {
     if (typeof response.text === 'function') {
       const text = await response.text();
-      const lines = text.split(/\r?\n/).filter(line => line.trim());
-      if (lines.length <= 1) {
-        const data = lines.length ? JSON.parse(lines[0]) : null;
-        const answer = data?.message?.content;
-        if (typeof answer === 'string' && answer) onChunk?.(answer);
-        return answer;
-      }
-      let answer = '';
-      for (const line of lines) {
-        let payload;
-        try { payload = JSON.parse(line); } catch { throw new Error('Ollama a renvoyé un flux JSON invalide.'); }
-        if (payload.error) throw new Error('Ollama a signalé une erreur pendant la génération.');
-        const chunk = payload?.message?.content;
-        if (typeof chunk === 'string' && chunk) { answer += chunk; onChunk?.(chunk); }
-      }
-      return answer;
+      for (const line of text.split(/\r?\n/)) consumeLine(line);
+    } else {
+      consume(await response.json());
     }
-    const data = await response.json();
-    const answer = data?.message?.content;
-    if (typeof answer === 'string' && answer) onChunk?.(answer);
     return answer;
   }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
-  let answer = '';
   try {
     while (true) {
       const { value, done } = await reader.read();
@@ -93,29 +96,17 @@ async function readOllamaStream(response, onChunk) {
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        let payload;
-        try { payload = JSON.parse(line); } catch { continue; }
-        if (payload.error) throw new Error('Ollama a signalé une erreur pendant la génération.');
-        const chunk = payload?.message?.content;
-        if (typeof chunk === 'string' && chunk) { answer += chunk; onChunk?.(chunk); }
-      }
+      for (const line of lines) consumeLine(line);
     }
     buffer += decoder.decode();
-    if (buffer.trim()) {
-      const payload = JSON.parse(buffer);
-      if (payload.error) throw new Error('Ollama a signalé une erreur pendant la génération.');
-      const chunk = payload?.message?.content;
-      if (typeof chunk === 'string' && chunk) { answer += chunk; onChunk?.(chunk); }
-    }
+    consumeLine(buffer);
   } finally {
     reader.releaseLock?.();
   }
   return answer;
 }
 
-export async function sendCompanionRequest({ provider, model, endpoint, apiKey = '', question, cartography, history = [], personaInstructions = '', fetchImpl = fetch, onChunk }) {
+export async function sendCompanionRequest({ provider, model, endpoint, apiKey = '', question, cartography, history = [], personaInstructions = '', fetchImpl = fetch, onChunk, onThinkingChunk }) {
   if (!Object.hasOwn(PROVIDER_DEFAULTS, provider)) throw new Error('Choisis un fournisseur reconnu.');
   if (!String(model || '').trim()) throw new Error('Renseigne le nom du modèle.');
   if (provider !== 'ollama' && !String(apiKey).trim()) throw new Error('Renseigne ta clé API dans les paramètres du compagnon. Elle ne sera pas enregistrée.');
@@ -159,7 +150,7 @@ export async function sendCompanionRequest({ provider, model, endpoint, apiKey =
       response = await fetchImpl(url, { ...options, headers: { ...options.headers, 'x-goog-api-key': apiKey.trim() }, body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.2 } }) });
     }
 
-    const data = provider === 'ollama' ? await readOllamaStream(response, onChunk) : await readResponse(response);
+    const data = provider === 'ollama' ? await readOllamaStream(response, onChunk, onThinkingChunk) : await readResponse(response);
     const answer = provider === 'ollama'
       ? data
       : provider === 'openai'

@@ -71,6 +71,74 @@ test('Ollama diffuse les fragments reçus et les expose au fil de la lecture', a
   assert.deepEqual(received, ['Bonjour', ' !', ' Comment puis-je aider ?']);
 });
 
+test('Ollama montre la réflexion Qwen avant le premier fragment de réponse, sans la mélanger au résultat', async () => {
+  const ndjson = [
+    JSON.stringify({ message: { thinking: 'Je vérifie les capacités…' }, done: false }),
+    JSON.stringify({ message: { thinking: ' puis les relations.' }, done: false }),
+    JSON.stringify({ message: { content: 'La capacité Finance' }, done: false }),
+    JSON.stringify({ message: { content: ' est couverte.' }, done: true }),
+  ].join('\n') + '\n';
+  const encoded = new TextEncoder().encode(ndjson);
+  const chunks = [encoded.slice(0, 37), encoded.slice(37, 54), encoded.slice(54, 122), encoded.slice(122)];
+  const events = [];
+  let index = 0;
+  const answer = await sendCompanionRequest({
+    provider: 'ollama', model: 'qwen3.5:4b', question: 'La capacité est-elle couverte ?', cartography,
+    onThinkingChunk: chunk => events.push(['thinking', chunk]),
+    onChunk: chunk => events.push(['answer', chunk]),
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      body: { getReader: () => ({
+        read: async () => index < chunks.length
+          ? { value: chunks[index++], done: false }
+          : { value: undefined, done: true },
+        releaseLock() {},
+      }) },
+    }),
+  });
+  assert.equal(answer, 'La capacité Finance est couverte.');
+  assert.deepEqual(events, [
+    ['thinking', 'Je vérifie les capacités…'],
+    ['thinking', ' puis les relations.'],
+    ['answer', 'La capacité Finance'],
+    ['answer', ' est couverte.'],
+  ]);
+});
+
+test('Ollama conserve la réflexion lors du repli JSON non-streamé', async () => {
+  const events = [];
+  const answer = await sendCompanionRequest({
+    provider: 'ollama', model: 'qwen3.5:4b', question: 'Examine la carte', cartography,
+    onThinkingChunk: chunk => events.push(['thinking', chunk]),
+    onChunk: chunk => events.push(['answer', chunk]),
+    fetchImpl: async () => response({ message: { thinking: 'Analyse.', content: 'Résultat.' }, done: true }),
+  });
+  assert.equal(answer, 'Résultat.');
+  assert.deepEqual(events, [['thinking', 'Analyse.'], ['answer', 'Résultat.']]);
+});
+
+test('Ollama signale une ligne de flux invalide au lieu de masquer silencieusement des fragments', async () => {
+  await assert.rejects(sendCompanionRequest({
+    provider: 'ollama', model: 'qwen3.5:4b', question: 'Examine la carte', cartography,
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      body: { getReader: () => {
+        let read = false;
+        return {
+          read: async () => {
+            if (read) return { done: true };
+            read = true;
+            return { value: new TextEncoder().encode('texte invalide\n'), done: false };
+          },
+          releaseLock() {},
+        };
+      } },
+    }),
+  }), /flux JSON invalide/);
+});
+
 test('Ollama analyse les lignes JSON du flux même sans lecteur streaming', async () => {
   const chunks = [
     { message: { content: 'Bonjour' }, done: false },

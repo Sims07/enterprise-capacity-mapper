@@ -480,6 +480,33 @@
   margin-top: 4px;
   font-size: 9px;
 }
+
+/* Ollama peut émettre message.thinking avant message.content.
+   Son flux reste consultable, sans être confondu avec la réponse métier. */
+.companion-root .companion-model-thinking {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+.companion-root .companion-model-thinking summary {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+.companion-root .companion-model-thinking-content {
+  max-height: min(40vh, 18rem);
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.companion-root .companion-model-thinking-content .companion-answer-text {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
 @keyframes companion-thinking-spin {
   to { transform: rotate(360deg); }
 }
