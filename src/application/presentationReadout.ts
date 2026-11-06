@@ -16,6 +16,31 @@ const MATURITY_STRONG_MIN = 4;
 const MATURITY_INTERMEDIATE_MIN = 3;
 const MATURITY_EMERGING_MIN = 2;
 
+/** Contrat sémantique des couleurs affichées en comité, sans score ni preuve inventés. */
+export const PRESENTATION_READING_LEGENDS: Record<PresentationReadingMode, ReadonlyArray<{ tone: PresentationTone; label: string }>> = {
+  identity: [],
+  coverage: [
+    { tone: 'covered', label: 'Suffisante' },
+    { tone: 'high', label: 'Partielle' },
+    { tone: 'critical', label: 'Non couverte' },
+    { tone: 'neutral', label: 'À évaluer' },
+  ],
+  maturity: [
+    { tone: 'covered', label: `${MATURITY_STRONG_MIN}–${MATURITY_LEVELS.length}/${MATURITY_LEVELS.length}` },
+    { tone: 'gap', label: `${MATURITY_INTERMEDIATE_MIN}/${MATURITY_LEVELS.length}` },
+    { tone: 'high', label: `${MATURITY_EMERGING_MIN}/${MATURITY_LEVELS.length}` },
+    { tone: 'critical', label: `${MATURITY_LEVELS[0]}/${MATURITY_LEVELS.length}` },
+    { tone: 'neutral', label: 'Non évaluée' },
+  ],
+  gaps: [
+    { tone: 'covered', label: 'Aucun signal détecté' },
+    { tone: 'gap', label: 'Écart de maturité' },
+    { tone: 'high', label: 'Partielle / obsolète' },
+    { tone: 'critical', label: 'Sans support / non couverte' },
+    { tone: 'neutral', label: 'Non évalué / à qualifier' },
+  ],
+};
+
 /** Visual classification of known facts, never a computed business health score. */
 export function presentationCapabilitySignal(
   capability: Capability,
