@@ -83,7 +83,16 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     const presentationPage = await openUnifiedMapPresentation(page, 'dark');
     const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
-    await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', 'rgb(32, 35, 43)');
+    // Le thème de présentation doit reprendre le token SIGNAL, pas l'ancien graphite.
+    const signalPresentationSurface = await mosaic.evaluate(element => {
+      const probe = document.createElement('span');
+      probe.style.background = 'var(--map-card-surface)';
+      element.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', signalPresentationSurface);
     const contrastRatios = await mosaic.locator('.domain-banner').evaluateAll(elements => elements.map(element => {
       const heading = element.querySelector('h3')!;
       const luminance = (color: string) => {
