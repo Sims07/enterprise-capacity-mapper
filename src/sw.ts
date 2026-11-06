@@ -1,6 +1,6 @@
 import { fetchFreshNavigation } from './services/pwaNavigation.ts';
 
-const CACHE = 'ecm-v2.0.136';
+const CACHE = 'ecm-v2.0.137';
 const PRECACHE = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg'];
 
 interface ExtendableEventLike extends Event {
