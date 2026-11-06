@@ -56,3 +56,14 @@ Les options sont transmises par `BroadcastChannel` sous forme de messages typés
 ### Non-régression du focus N0
 
 Le rendu ne doit jamais utiliser `opacity` sur un conteneur `mosaic-domain` atténué : la transparence globale rendait visibles plusieurs titres superposés dans des cartographies à étendues de lignes/colonnes. Le domaine sélectionné reste au premier plan ; les autres conservent une surface opaque et un texte contrasté, avec un bandeau discrètement neutralisé par le token `--map-presentation-muted-domain-share`. Les scénarios E2E et les captures Storybook couvrent le focus en clair/sombre, sa navigation et sa désactivation.
+
+
+## Restitution métier et impression (lot 3, novembre 2026)
+
+Les quatre modes Carte / Couverture / Maturité / Écarts conservent les mêmes positions N0/N1, sans glisser-déposer. La légende contextuelle du mode présentation emploie les **libellés réellement associés aux signaux** : « Suffisante/Partielle/Non couverte/À évaluer » en couverture, échelle actuelle 1–5 en maturité, signaux déclarés en écarts. « Aucun signal détecté » n'est pas une preuve de qualité de couverture fonctionnelle.
+
+Le bouton **Imprimer / PDF**, dans les contrôles de la fenêtre de présentation, lance l'impression native du navigateur (qui peut proposer « Enregistrer en PDF »). En impression, les commandes et la fiche de focus sont masquées, le rendu conserve les couleurs sémantiques et demande une orientation paysage. Selon le navigateur et l'imprimante, vérifier les marges, l'échelle et l'option d'impression des arrière-plans avant diffusion ; ce n'est pas un export PDF programmatique.
+
+Les indicateurs du Dashboard sont des **relations à des applications actuelles** : ils ne prouvent pas la maturité ni la couverture fonctionnelle. Cette distinction est visible sous les cartes de KPI.
+
+Les tests unitaires protègent les associations mode/tonalité/libellé ; Playwright vérifie changement des légendes, appel à l'impression, styles d'impression et note de définition des KPI. La PWA reste statique, locale et compatible GitHub Pages.
