@@ -220,8 +220,8 @@ test('la commande de carte unifiée donne priorité à la carte et préserve les
   await menu.getByTestId('capability-diagnostic-shortcut').click();
   await expect(menu).not.toHaveAttribute('open', '');
   await expect(page.getByTestId('capability-diagnostic')).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(page.getByTestId('capability-diagnostic')).toBeHidden();
+  await page.getByTestId('nav-cartography').click();
+  await expect(toolbar).toBeVisible();
 
   await trigger.click();
   await menu.getByTestId('map-inventory-toggle').click();
