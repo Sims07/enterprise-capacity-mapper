@@ -360,7 +360,8 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
     await page.reload();
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads — import vérifié' })).toBeVisible();
-    await expect(page.locator('.mosaic-domain:visible').filter({ hasText: 'Relation & Engagement Client' })).toHaveCSS('grid-column-end', 'span 2');
+    // Grid coordinates belong to the slot; one or more N0 cards sit inside it.
+    await expect(page.locator('.mosaic-domain-slot:visible').filter({ hasText: 'Relation & Engagement Client' })).toHaveCSS('grid-column-end', 'span 2');
   });
 
   test('migre un ancien modèle local vers le schéma actuel', async ({ page }) => {
