@@ -4,6 +4,7 @@ import { withSignalTheme } from './storyFrame.tsx';
 
 const meta = {
   title: 'Design system/Légende de présentation',
+  id: 'design-system-legende-de-presentation',
   component: PresentationReadingLegend,
   decorators: [withSignalTheme],
   parameters: { layout: 'fullscreen' },
