@@ -26,3 +26,5 @@
 @import './mosaic-presentation.css';
 @import './capability-reading.css';
 @import './attention-review.css';
+/* Signal client skin: always last, preserving behavior/layout from legacy styles. */
+@import './signal-experience.css';

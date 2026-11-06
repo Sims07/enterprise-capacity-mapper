@@ -224,10 +224,18 @@ test.describe('Cartographie unifiée', () => {
         await page.goto('/?view=presentation');
     await expect(page.locator('.mosaic-domain .domain-banner').first()).toBeVisible();
     const darkCanvas = page.locator('.app.theme-dark.mosaic-presentation-mode');
-    await expect(darkCanvas).toHaveCSS('background-color', 'rgb(17, 19, 24)');
-    await expect(darkCanvas.locator('.workspace.mosaic-workspace')).toHaveCSS('background-color', 'rgb(17, 19, 24)');
-    await expect(darkCanvas.locator('main')).toHaveCSS('background-color', 'rgb(17, 19, 24)');
-    await expect(darkCanvas.locator('.map-mosaic')).toHaveCSS('background-color', 'rgb(17, 19, 24)');
+    const signalPresentationCanvas = await darkCanvas.evaluate(element => {
+      const probe = document.createElement('span');
+      probe.style.background = 'var(--map-canvas-bg)';
+      element.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    await expect(darkCanvas).toHaveCSS('background-color', signalPresentationCanvas);
+    await expect(darkCanvas.locator('.workspace.mosaic-workspace')).toHaveCSS('background-color', signalPresentationCanvas);
+    await expect(darkCanvas.locator('main')).toHaveCSS('background-color', signalPresentationCanvas);
+    await expect(darkCanvas.locator('.map-mosaic')).toHaveCSS('background-color', signalPresentationCanvas);
     await expect(darkCanvas.locator('.map-mosaic')).toHaveCSS('background-image', 'none');
 
     const contrastRatios = await page.locator('.mosaic-domain .domain-banner').evaluateAll(elements => {

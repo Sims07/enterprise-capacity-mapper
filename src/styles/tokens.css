@@ -138,3 +138,88 @@
     --motion-duration-normal: 0ms;
   }
 }
+
+
+/* SIGNAL — palette client (PR dédiée). Les états métier restent sémantiques :
+   la couleur d'un N0 identifie un domaine, jamais sa couverture fonctionnelle. */
+.app.signal-experience {
+  --signal-space-1: 4px;
+  --signal-space-2: 8px;
+  --signal-space-3: 12px;
+  --signal-space-4: 16px;
+  --signal-space-5: 24px;
+  --signal-space-6: 32px;
+  --signal-panel-width: clamp(280px, 30vw, 380px);
+  --signal-panel-top: 15.5rem;
+  --signal-panel-gap: 1rem;
+  --signal-header-bg: #ffffff;
+  --signal-card-raised: #f0f3fa;
+  --signal-card-soft: #f8faff;
+  --signal-card-border: #cfdaeb;
+  --signal-map-surface: #ffffff;
+  --signal-map-panel: #f7f9fd;
+  --color-bg: #f3f6fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f3fa;
+  --color-surface-hover: #eef2fb;
+  --color-surface-raised: #ffffff;
+  --color-text: #233146;
+  --color-text-muted: #596d87;
+  --color-border: #d2dbea;
+  --color-border-strong: #b8c6da;
+  --color-accent: #425bc7;
+  --color-accent-hover: #344bb1;
+  --color-accent-soft: #e8ecff;
+  --color-accent-text: #3349a5;
+  --color-accent-border: #8ca1f0;
+  --color-accent-on: #ffffff;
+  --color-focus: #425bc7;
+  --radius-control: 7px;
+  --radius-card: 10px;
+  --radius-panel: 12px;
+  --shadow-panel: 0 8px 25px rgb(19 31 56 / 7%);
+}
+.app.signal-experience.theme-dark {
+  --signal-header-bg: #131b27;
+  --signal-card-raised: #253142;
+  --signal-card-soft: #1e2a3a;
+  --signal-card-border: #43546b;
+  --signal-map-surface: #19222d;
+  --signal-map-panel: #253142;
+  --color-bg: #0d1219;
+  --color-surface: #19222d;
+  --color-surface-muted: #1e2a3a;
+  --color-surface-hover: #2a394c;
+  --color-surface-raised: #253142;
+  --color-text: #edf3fa;
+  --color-text-muted: #a6b3c3;
+  --color-border: #344151;
+  --color-border-strong: #536378;
+  --color-accent: #92a8ff;
+  --color-accent-hover: #b3c1ff;
+  --color-accent-soft: #293754;
+  --color-accent-text: #cad3ff;
+  --color-accent-border: #6479bf;
+  --color-accent-on: #0d1219;
+  --color-focus: #b3c1ff;
+  /* Présentation : mêmes surfaces graphite que l'éditeur SIGNAL, sans modifier la mosaïque. */
+  --map-canvas-bg: var(--color-bg);
+  --map-card-surface: var(--signal-map-surface);
+  --map-card-text: var(--color-text);
+  --map-capability-text: var(--color-text);
+  --map-capability-muted: var(--color-text-muted);
+  --map-capability-border: var(--color-border);
+  --map-presentation-control-bg: var(--color-surface-raised);
+  --map-presentation-control-border: var(--color-border-strong);
+  --map-presentation-control-text: var(--color-text);
+  --dl-bg: #0d1219;
+  --dl-surface: #19222d;
+  --dl-surface-raised: #253142;
+  --dl-surface-hover: #2a394c;
+  --dl-border: #344151;
+  --dl-text: #edf3fa;
+  --dl-muted: #a6b3c3;
+  --dl-accent: #92a8ff;
+  --dl-accent-bg: #293754;
+  --shadow-panel: 0 8px 26px rgb(0 0 0 / 21%);
+}

@@ -51,3 +51,36 @@ export const Palette: Story = {
     </main>
   ),
 };
+
+
+/** Deux variantes de Signal affichées ensemble pour contrôler l'harmonie des tokens. */
+export const SignalPalette: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, padding: 24 }}>
+      {(['light', 'dark'] as const).map(theme => (
+        <section key={theme} className={`app signal-experience ${theme === 'dark' ? 'theme-dark' : ''}`}
+          style={{ padding: 24, border: '1px solid var(--color-border)', borderRadius: 'var(--radius-panel)', background: 'var(--color-bg)', color: 'var(--color-text)' }}>
+          <h2 style={{ marginTop: 0 }}>SIGNAL · {theme === 'dark' ? 'Sombre' : 'Clair'}</h2>
+          <p style={{ color: 'var(--color-text-muted)' }}>Identité visuelle distincte de la sémantique métier.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
+            {[
+              ['Fond', '--color-bg'],
+              ['Surface', '--color-surface'],
+              ['Surface élevée', '--color-surface-raised'],
+              ['Bordure', '--color-border'],
+              ['Accent', '--color-accent'],
+              ['Accent doux', '--color-accent-soft'],
+              ['Carte N0', '--signal-map-surface'],
+              ['Carte N1', '--signal-map-panel'],
+            ].map(([label, token]) => (
+              <div key={token} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', padding: 9, borderRadius: 'var(--radius-card)' }}>
+                <div style={{ height: 36, background: `var(${token})`, border: '1px solid var(--color-border)' }} />
+                <div style={{ fontSize: 12, marginTop: 8 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  ),
+};

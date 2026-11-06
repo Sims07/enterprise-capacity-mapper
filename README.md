@@ -11,6 +11,18 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 
 Consultez le catalogue des composants UI et du design system dans le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/).
 
+## Design system Signal
+
+L'interface Signal conserve la **navigation haute**, la cartographie matricielle N0/N1 avec ses spans de lignes et de colonnes, et toutes les fonctions de gestion des applications. L'inventaire SI s'ouvre à la demande sans réduire la mosaïque ; le bouton « + Application » donne accès au formulaire existant, et « Relier à… » associe les applications aux capacités.
+
+Le **mode présentation** est une fenêtre distincte en lecture seule, synchronisée avec l'éditeur. Les surfaces de la présentation reprennent les tokens du thème Signal.
+
+- [Application sur GitHub Pages](https://sims07.github.io/enterprise-capacity-mapper/)
+- [Catalogue Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/)
+- [Choix de conception et scénarios de non-régression](docs/design/client-design-system-directions.md)
+
+Pour vérifier les couleurs, utiliser **Outils → Thème sombre Signal** ; le thème clair reste disponible. La PWA fonctionne avec les données locales et le JSON versionné, sans service tiers.
+
 ## Architecture
 
 L'application est conçue pour rester statique, déployable sur GitHub Pages et utilisable hors ligne comme PWA. Le modèle métier et les contrats de données sont indépendants du runtime React et de la persistance navigateur.

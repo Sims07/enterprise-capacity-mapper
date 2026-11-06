@@ -83,7 +83,16 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     const presentationPage = await openUnifiedMapPresentation(page, 'dark');
     const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
     await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
-    await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', 'rgb(32, 35, 43)');
+    // Le thème de présentation doit reprendre le token SIGNAL, pas l'ancien graphite.
+    const signalPresentationSurface = await mosaic.evaluate(element => {
+      const probe = document.createElement('span');
+      probe.style.background = 'var(--map-card-surface)';
+      element.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    await expect(mosaic.locator('.mosaic-domain .domain').first()).toHaveCSS('background-color', signalPresentationSurface);
     const contrastRatios = await mosaic.locator('.domain-banner').evaluateAll(elements => elements.map(element => {
       const heading = element.querySelector('h3')!;
       const luminance = (color: string) => {
@@ -168,12 +177,14 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
         gridDot: styles.getPropertyValue('--map-canvas-dot').trim(),
         cardSurface: styles.getPropertyValue('--map-card-surface').trim(),
         capabilityText: styles.getPropertyValue('--map-capability-text').trim(),
+        signalSurface: styles.getPropertyValue('--signal-map-surface').trim(),
+        signalText: styles.getPropertyValue('--color-text').trim(),
       };
     });
     expect(mapTokens.canvas).not.toBe('');
     expect(mapTokens.gridDot).toContain('9%');
-    expect(mapTokens.cardSurface).toBe('#20232b');
-    expect(mapTokens.capabilityText).toBe('#f3f4f6');
+    expect(mapTokens.cardSurface).toBe(mapTokens.signalSurface);
+    expect(mapTokens.capabilityText).toBe(mapTokens.signalText);
     const zoneSurface = await map.locator('.mosaic-zone').first().evaluate(element => getComputedStyle(element).backgroundColor);
     const colorChannels = zoneSurface.match(/[\d.]+/g)?.map(Number) ?? [];
     const alpha = colorChannels.length === 4 ? colorChannels[3] : 1;

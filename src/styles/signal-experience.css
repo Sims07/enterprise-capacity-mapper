@@ -1,0 +1,306 @@
+/* SIGNAL — expérience client. Une seule couche de finition sur les composants
+ * existants : aucune modification des coordonnées, des spans ou du modèle métier.
+ * Les palettes proviennent des tokens sémantiques dans tokens.css.
+ */
+.app.signal-experience {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.app.signal-experience > header {
+  background: var(--signal-header-bg) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  box-shadow: 0 2px 14px rgb(8 15 27 / 8%);
+}
+.app.signal-experience > header h1 {
+  color: var(--color-text);
+  font-weight: 790;
+  letter-spacing: -.045em;
+}
+.app.signal-experience > header .eyebrow {
+  color: var(--color-accent-text);
+  letter-spacing: .15em;
+}
+.app.signal-experience .toolbar-switch.primary-navigation {
+  background: var(--color-surface-muted) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-control);
+  box-shadow: none;
+}
+.app.signal-experience .toolbar-switch.primary-navigation > button {
+  color: var(--color-text-muted) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: calc(var(--radius-control) - 2px) !important;
+}
+.app.signal-experience .toolbar-switch.primary-navigation > button.active {
+  color: var(--color-accent-text) !important;
+  background: var(--color-accent-soft) !important;
+  box-shadow: inset 0 0 0 1px var(--color-accent-border) !important;
+}
+.app.signal-experience .toolbar-switch.primary-navigation > button:hover,
+.app.signal-experience .toolbar-switch.primary-navigation > button:focus-visible {
+  color: var(--color-accent-text) !important;
+  background: var(--color-accent-soft) !important;
+}
+.app.signal-experience .toolbar .primary,
+.app.signal-experience .canvas-actions .primary,
+.app.signal-experience .modal-actions .primary {
+  color: var(--color-accent-on) !important;
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: none;
+}
+.app.signal-experience .toolbar .primary:hover,
+.app.signal-experience .canvas-actions .primary:hover,
+.app.signal-experience .modal-actions .primary:hover {
+  background: var(--color-accent-hover) !important;
+  border-color: var(--color-accent-hover) !important;
+}
+.app.signal-experience .toolbar .secondary,
+.app.signal-experience .canvas-actions button.secondary,
+.app.signal-experience .toolbar-history button,
+.app.signal-experience .toolbar-tools-toggle,
+.app.signal-experience .presentation-switch {
+  color: var(--color-text) !important;
+  background: var(--color-surface-raised) !important;
+  border-color: var(--color-border-strong) !important;
+}
+.app.signal-experience .presentation-switch {
+  border-radius: var(--radius-control);
+  white-space: nowrap;
+}
+.app.signal-experience .presentation-switch input:focus-visible + .presentation-switch-track {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience .presentation-switch input:checked + .presentation-switch-track {
+  background: var(--color-accent);
+}
+.app.signal-experience .toolbar-tools-panel {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-overlay);
+}
+.app.signal-experience .toolbar-menu-heading {
+  color: var(--color-text-muted);
+}
+.app.signal-experience .autosave-control,
+.app.signal-experience .toolbar-history {
+  border-color: var(--color-border);
+}
+.app.signal-experience .workspace,
+.app.signal-experience .workspace > main,
+.app.signal-experience .standalone-page {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+.app.signal-experience .canvas-head h2,
+.app.signal-experience .canvas-title h2,
+.app.signal-experience .dashboard h2,
+.app.signal-experience .library-page h2 {
+  color: var(--color-text);
+  letter-spacing: -.028em;
+}
+.app.signal-experience .canvas-head p,
+.app.signal-experience .map-filter-control,
+.app.signal-experience .filter-count {
+  color: var(--color-text-muted);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic {
+  background-color: var(--color-bg);
+  border-color: var(--color-border);
+  border-radius: var(--radius-panel);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain {
+  border-radius: var(--radius-card);
+  border-color: var(--signal-card-border);
+  box-shadow: 0 3px 13px rgb(8 15 27 / 7%);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain > .domain {
+  background: var(--signal-map-surface) !important;
+  color: var(--color-text);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .caps-list {
+  background: var(--signal-map-surface);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap {
+  background: var(--signal-map-panel) !important;
+  border-color: var(--signal-card-border);
+  color: var(--color-text);
+  border-radius: calc(var(--radius-card) - 3px);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap-head b,
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .map-cap-select,
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap-desc {
+  color: var(--color-text) !important;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap:hover {
+  border-color: var(--color-accent-border);
+  background: var(--color-surface-hover) !important;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .capability-reading-toolbar,
+.app.signal-experience .dashboard-kpi,
+.app.signal-experience .dashboard-panel,
+.app.signal-experience .library-section,
+.app.signal-experience .coverage-tree {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+.app.signal-experience .dashboard-kpi > span,
+.app.signal-experience .dashboard-panel-heading p {
+  color: var(--color-text-muted);
+}
+.app.signal-experience .capability-reading-options button[aria-pressed="true"],
+.app.signal-experience .capability-reading-options button.active {
+  background: var(--color-accent-soft) !important;
+  color: var(--color-accent-text) !important;
+  border-color: var(--color-accent-border) !important;
+}
+.app.signal-experience .modal {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-overlay);
+  max-height: calc(100dvh - 2 * var(--signal-space-5));
+  overflow-y: auto;
+}
+.app.signal-experience .modal h2,
+.app.signal-experience .modal h3 {
+  color: var(--color-text);
+}
+.app.signal-experience .field input,
+.app.signal-experience .field select,
+.app.signal-experience .field textarea,
+.app.signal-experience #app-inventory .search {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  border-radius: var(--radius-control);
+}
+.app.signal-experience .field input:focus-visible,
+.app.signal-experience .field select:focus-visible,
+.app.signal-experience .field textarea:focus-visible,
+.app.signal-experience #app-inventory .search:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience .signal-add-application {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--signal-space-1);
+  white-space: nowrap;
+  font-weight: 750;
+}
+/* Inventaire à la demande : ne rétrécit JAMAIS la grille de cartographie. */
+.app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > main {
+  min-width: 0;
+  width: 100%;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
+  display: block !important;
+  position: fixed !important;
+  inset-block: var(--signal-panel-top) var(--signal-panel-gap);
+  inset-inline: auto var(--signal-panel-gap);
+  z-index: 12;
+  width: var(--signal-panel-width);
+  max-height: calc(100dvh - var(--signal-panel-top) - var(--signal-panel-gap));
+  padding: var(--signal-space-4);
+  overflow: auto;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-overlay);
+}
+.app.signal-experience .workspace.mosaic-workspace #app-inventory .panel-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--signal-space-2);
+}
+.app.signal-experience .workspace.mosaic-workspace #app-inventory .panel-title > span {
+  flex: 1 1 auto;
+  color: var(--color-text);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 13px;
+}
+.app.signal-experience #app-inventory .side-add {
+  color: var(--color-accent-on);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  border-radius: var(--radius-control);
+}
+.app.signal-experience #app-inventory .signal-inventory-close {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+  cursor: pointer;
+}
+.app.signal-experience #app-inventory .signal-inventory-close:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience #app-inventory .app-item {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-radius: var(--radius-control);
+}
+.app.signal-experience #app-inventory .app-item:hover {
+  background: var(--color-surface-hover);
+}
+.app.signal-experience #app-inventory .app-main b {
+  color: var(--color-text);
+}
+.app.signal-experience #app-inventory .app-main small,
+.app.signal-experience #app-inventory .hint {
+  color: var(--color-text-muted);
+}
+.app.signal-experience.mosaic-presentation-mode .presentation-exit-bar,
+.app.signal-experience.mosaic-presentation-mode .presentation-reading-controls {
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+@media (max-width: 900px) {
+  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
+    inset-block-start: max(env(safe-area-inset-top), var(--signal-space-4));
+    inset-block-end: var(--signal-space-4);
+    inset-inline-end: var(--signal-space-4);
+    width: min(var(--signal-panel-width), calc(100vw - 2 * var(--signal-space-4)));
+    max-height: calc(100dvh - 2 * var(--signal-space-4));
+  }
+  .app.signal-experience .canvas-actions { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .app.signal-experience .signal-add-application { flex: 1 1 auto; }
+  .app.signal-experience .canvas-actions [data-testid="map-inventory-toggle"] { flex: 1 1 auto; }
+  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
+    inset-inline: var(--signal-space-2);
+    width: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app.signal-experience .toolbar button,
+  .app.signal-experience .cap { transition: none !important; }
+}
