@@ -471,6 +471,8 @@ test.describe('Cartographie unifiée', () => {
     await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeVisible();
     await expect(page.locator('#app-inventory')).toContainText('Inventaire SI');
     await expect(inventoryToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('map-more-actions')).not.toHaveAttribute('open', '');
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await inventoryToggle.click();
     await expect(page.locator('.workspace.mosaic-workspace > aside')).toBeHidden();
   });
