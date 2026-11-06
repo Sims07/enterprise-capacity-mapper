@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Button } from './ui/Button.tsx';
 
 export const newId = prefix => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
@@ -152,7 +153,7 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
   return (
     <div className="modal-backdrop">
       <div className="modal wizard" role="dialog" aria-modal="true" aria-labelledby="wizard-title">
-        <div className="modal-head"><h2 id="wizard-title">Nouvelle cartographie</h2><button type="button" aria-label="Fermer l’assistant" onClick={onCancel}>×</button></div>
+        <div className="modal-head"><h2 id="wizard-title">Nouvelle cartographie</h2><Button variant="icon" aria-label="Fermer l’assistant" onClick={onCancel}>×</Button></div>
         <ol className="wizard-steps">{STEPS.map((label, i) => <li key={label} className={i === step ? 'current' : i < step ? 'done' : ''} aria-current={i === step ? 'step' : undefined}><b>{i + 1}</b>{label}</li>)}</ol>
 
         {step === 0 && (
@@ -192,9 +193,9 @@ export default function NewMapWizard({ model, onCancel, onCreate }) {
         )}
         {error && <p className="wizard-error" role="alert" data-testid="wizard-error">{error}</p>}
         <div className="modal-actions wizard-footer">
-          {step > 0 && <button type="button" onClick={previous}>Précédent</button>}
-          <button type="button" onClick={onCancel}>Annuler</button>
-          {step < 2 ? <button type="button" className="primary" onClick={next}>Suivant</button> : <button type="button" className="primary" data-testid="wizard-create" onClick={create}>Créer la cartographie</button>}
+          {step > 0 && <Button onClick={previous}>Précédent</Button>}
+          <Button onClick={onCancel}>Annuler</Button>
+          {step < 2 ? <Button variant="primary" onClick={next}>Suivant</Button> : <Button variant="primary" data-testid="wizard-create" onClick={create}>Créer la cartographie</Button>}
         </div>
       </div>
     </div>
