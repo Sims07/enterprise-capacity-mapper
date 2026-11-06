@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
 import type { MapDensity } from './adapters/browser/appPreferences.ts';
-import MapReadingLegend from './components/MapReadingLegend.tsx';
+import MapReadingDisclosure from './components/MapReadingDisclosure.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
@@ -1624,29 +1624,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                         onClick={() => setMapReadingMode(reading.id)}>{reading.label}</button>
                     ))}
                   </div>
-                  <details className="map-reading-disclosure" data-testid="map-reading-disclosure"
-                    onKeyDown={event => {
-                      if (event.key !== 'Escape') return;
-                      event.preventDefault();
-                      event.stopPropagation();
-                      event.currentTarget.open = false;
-                      event.currentTarget.querySelector('summary')?.focus();
-                    }}>
-                    <summary aria-label="Afficher les options d’affichage et la légende">Affichage <span aria-hidden="true">⌄</span></summary>
-                    <div className="map-reading-disclosure-panel" role="group" aria-label="Options d’affichage de la cartographie">
-                      <label className="map-density-control">Densité
-                        <select data-testid="map-density" value={mapDensity} onChange={event => {
-                          const nextDensity = event.target.value === 'compact' ? 'compact' : 'comfortable';
-                          setMapDensity(nextDensity);
-                          preferences.writeMapDensity(nextDensity);
-                        }}>
-                          <option value="comfortable">Confortable</option>
-                          <option value="compact">Compacte</option>
-                        </select>
-                      </label>
-                      <MapReadingLegend mode={mapReadingMode} />
-                    </div>
-                  </details>
+                  <MapReadingDisclosure mode={mapReadingMode} density={mapDensity}
+                    onDensityChange={nextDensity => {
+                      setMapDensity(nextDensity);
+                      preferences.writeMapDensity(nextDensity);
+                    }} />
                   <button type="button" className="capability-diagnostic-shortcut" data-testid="capability-diagnostic-shortcut"
                     onClick={openBusinessDiagnosis}>{[...capabilityFindings.values()].filter(finding => finding.signals.length > 0).length} écarts à examiner</button>
                   <div className="presentation-director">
