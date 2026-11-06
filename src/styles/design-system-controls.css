@@ -119,6 +119,6 @@
   background: var(--color-surface-muted);
 }
 .app.signal-experience .modal-head button {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: var(--control-target-size);
+  min-height: var(--control-target-size);
 }
