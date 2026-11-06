@@ -119,3 +119,27 @@ test('le panneau Affichage Signal n’ajoute pas de barre permanente et reste pi
   await expect(legend).toBeHidden();
   await expect(disclosure.locator('summary')).toBeFocused();
 });
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`le menu des actions de carte reste accessible au clavier (${theme})`, async ({ page }) => {
+    await page.goto(story('design-system-map-actions--options', theme));
+    const menu = page.getByTestId('map-more-actions');
+    const trigger = menu.locator('summary');
+    await expect(trigger).toBeVisible();
+    await expect(menu.getByRole('button', { name: 'Structure' })).toBeHidden();
+
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(menu).toHaveAttribute('open', '');
+    await menu.getByRole('button', { name: 'Structure' }).click();
+    await expect(menu).not.toHaveAttribute('open', '');
+    await expect(page.getByRole('status')).toContainText('Structure');
+    await expect(trigger).toBeFocused();
+
+    await page.keyboard.press('Enter');
+    await expect(menu.getByRole('button', { name: 'Inventaire SI (20)' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(menu).not.toHaveAttribute('open', '');
+    await expect(trigger).toBeFocused();
+  });
+}
