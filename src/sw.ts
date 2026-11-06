@@ -66,21 +66,28 @@ worker.addEventListener('fetch', event => {
           }
           return response;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.open(CACHE).then(cache => cache.match('./index.html')))
     );
     return;
   }
 
-  fetchEvent.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) return cached;
-      return fetch(request).then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          void caches.open(CACHE).then(cache => cache.put(request, copy));
-        }
-        return response;
-      });
-    })
-  );
+  fetchEvent.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+
+    // Only versioned JS/CSS may need a previous release's cache after
+    // GitHub Pages has removed its hashed filename from the current deploy.
+    const isHashedAsset = /\/assets\/[a-zA-Z0-9_.-]+-[a-zA-Z0-9_-]+\.(?:js|css)$/.test(url.pathname);
+    if (isHashedAsset) {
+      const previous = await caches.match(request);
+      if (previous) return previous;
+    }
+
+    const response = await fetch(request);
+    if (response.ok) {
+      fetchEvent.waitUntil(cache.put(request, response.clone()));
+    }
+    return response;
+  })());
 });
