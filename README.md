@@ -11,17 +11,17 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 
 Consultez le catalogue des composants UI et du design system dans le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/).
 
-## Comparer la version stable et le design Signal (PR #241)
+## Design system Signal
 
-Deux versions peuvent être présentées **en parallèle**, sans fusionner la PR :
+L'interface Signal conserve la **navigation haute**, la cartographie matricielle N0/N1 avec ses spans de lignes et de colonnes, et toutes les fonctions de gestion des applications. L'inventaire SI s'ouvre à la demande sans réduire la mosaïque ; le bouton « + Application » donne accès au formulaire existant, et « Relier à… » associe les applications aux capacités.
 
-- [Version stable — GitHub Pages (branche `main`)](https://sims07.github.io/enterprise-capacity-mapper/)
-- [Version Signal — lancement interactif StackBlitz depuis la branche de PR](https://stackblitz.com/github/Sims07/enterprise-capacity-mapper/tree/docs/client-design-system-directions?startScript=dev)
-- [PR #241 — code, retours et validations](https://github.com/Sims07/enterprise-capacity-mapper/pull/241)
+Le **mode présentation** est une fenêtre distincte en lecture seule, synchronisée avec l'éditeur. Les surfaces de la présentation reprennent les tokens du thème Signal.
 
-StackBlitz importe la branche publique et exécute le serveur Vite dans le navigateur : ouvrir l'aperçu de l'application à droite, puis **Outils → Thème sombre Signal** pour retrouver la variante graphite. Les données de la démonstration sont initialement fictives et enregistrées dans le stockage local de **chaque** environnement de navigateur ; ne pas importer de données confidentielles dans le service de prévisualisation externe. Cette prévisualisation n'est pas le déploiement de production et ne valide pas à elle seule les comportements PWA hors ligne.
+- [Application sur GitHub Pages](https://sims07.github.io/enterprise-capacity-mapper/)
+- [Catalogue Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/)
+- [Choix de conception et scénarios de non-régression](docs/design/client-design-system-directions.md)
 
-La version Signal **conserve** la navigation supérieure, les cartes N0 multi-lignes et multi-colonnes, tous les N1, l'inventaire et les relations applicatives, l'édition, la couverture, la bibliothèque et la fenêtre de présentation synchronisée. Les tests de non-régression restent indispensables avant une éventuelle fusion.
+Pour vérifier les couleurs, utiliser **Outils → Thème sombre Signal** ; le thème clair reste disponible. La PWA fonctionne avec les données locales et le JSON versionné, sans service tiers.
 
 ## Architecture
 
