@@ -150,7 +150,7 @@
   --signal-space-5: 24px;
   --signal-space-6: 32px;
   --signal-panel-width: clamp(280px, 30vw, 380px);
-  --signal-panel-top: 12.5rem;
+  --signal-panel-top: 15.5rem;
   --signal-panel-gap: 1rem;
   --signal-header-bg: #ffffff;
   --signal-card-raised: #f0f3fa;
