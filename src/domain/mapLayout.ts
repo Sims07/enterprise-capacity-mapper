@@ -27,6 +27,8 @@ const cloneValue = <T>(value: T): T => {
 
 const cloneDraft = (draft: LayoutDraft): LayoutDraft => cloneValue(draft);
 
+const GENERATED_LAYER_NAME = /^Ligne [1-9]\d*$/;
+
 const normalizedSpan = (value: string | number | undefined): number | null => {
   const span = value === undefined ? 1 : Number(value);
   return Number.isInteger(span) && span >= 1 ? span : null;
@@ -50,6 +52,46 @@ export class MapLayout {
 
   static completeZones(columns: LayoutAxis[], layers: LayoutAxis[], zones: LayoutZone[]): LayoutZone[] {
     return completeZones(columns, layers, zones).map(zone => cloneValue(zone));
+  }
+
+  /**
+   * Remove only unused, automatically named grid rows after deleting a N0.
+   * Explicit business layers and named zones are structural information: keep them,
+   * even when empty. A row crossed by a vertical span is still occupied.
+   */
+  static collapseUnusedGeneratedLayers(layout: MapLayoutData, domains: DomainPlacement[]): MapLayoutData {
+    const columns = layout.columns ?? [];
+    const layers = layout.layers ?? [];
+    if (!columns.length || layers.length <= 1) return layout;
+
+    const occupiedLayerIds = new Set<string>();
+    for (const domain of domains) {
+      const layerId = domain.layout?.layerId || layers[0].id;
+      const start = layers.findIndex(layer => layer.id === layerId);
+      const span = normalizedSpan(domain.layout?.rowSpan);
+      // Do not silently alter the geometry of an invalid imported placement.
+      if (start < 0 || span === null || start + span > layers.length) return layout;
+      for (let index = start; index < start + span; index += 1) {
+        occupiedLayerIds.add(layers[index].id);
+      }
+    }
+
+    const zones = layout.zones ?? [];
+    const retainedLayers = layers.filter(layer => {
+      if (occupiedLayerIds.has(layer.id) || !GENERATED_LAYER_NAME.test(layer.name)) return true;
+      // A custom zone title is a deliberate part of the business layout.
+      return zones.some(zone => zone.layerId === layer.id &&
+        zone.name !== columns.find(column => column.id === zone.columnId)?.name);
+    });
+    // The editor must always retain an insertion row for an empty map.
+    if (!retainedLayers.length) retainedLayers.push(layers[0]);
+    if (retainedLayers.length === layers.length) return layout;
+
+    return cloneValue({
+      ...layout,
+      layers: retainedLayers.map((layer, index) => ({ ...layer, order: index })),
+      zones: completeZones(columns, retainedLayers, zones),
+    });
   }
 
   renameItem(kind: 'columns' | 'layers', id: string, name: string): MapLayout {
