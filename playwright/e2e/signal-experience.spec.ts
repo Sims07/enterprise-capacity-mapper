@@ -76,3 +76,35 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     await presentation.close();
   });
 });
+
+test('la légende suit les quatre lectures sans modifier les spans et la densité reste locale', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const map = page.getByTestId('capability-map');
+  const geometry = () => map.locator('.mosaic-domain').evaluateAll(elements => elements.map(element => ({
+    name: element.getAttribute('aria-label'),
+    column: (element as HTMLElement).style.gridColumn,
+    row: (element as HTMLElement).style.gridRow,
+    capabilities: element.querySelectorAll('.cap').length,
+  })));
+  const initial = await geometry();
+  expect(initial.length).toBeGreaterThan(0);
+  for (const [mode, label] of [
+    ['applications', 'Nombre de supports applicatifs actuels'],
+    ['coverage', 'Non couverte'],
+    ['maturity', 'Maturité actuelle /5 déclarée'],
+    ['gaps', 'Signal à examiner'],
+  ] as const) {
+    await page.getByTestId('map-reading-' + mode).click();
+    await expect(page.getByTestId('map-reading-legend')).toHaveAttribute('data-reading', mode);
+    await expect(page.getByTestId('map-reading-legend')).toContainText(label);
+    expect(await geometry()).toEqual(initial);
+  }
+  await page.getByTestId('map-density').selectOption('compact');
+  await expect(map).toHaveAttribute('data-density', 'compact');
+  expect(await geometry()).toEqual(initial);
+  await page.reload();
+  await expect(page.getByTestId('map-density')).toHaveValue('compact');
+  await expect(page.getByTestId('capability-map')).toHaveAttribute('data-density', 'compact');
+  expect(await geometry()).toEqual(initial);
+});
