@@ -1325,10 +1325,50 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   );
 
 
+  const historyControls = (
+            <div className="toolbar-history" role="group" aria-label="Historique des modifications">
+              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
+              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
+            </div>
+  );
+
   return (
     <div className={'app signal-experience' + (presentation ? ' presentation-mode' : '') + (presentation ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind} data-presentation-reading={presentation ? presentationReadingMode : undefined}>
       <header>
-        <div><div className="eyebrow">ENTERPRISE ARCHITECTURE</div><h1>Capacity Mapper</h1></div>
+        <div className="shell-identity" data-testid="document-context">
+          <div className="shell-product-name">Enterprise Architecture · Capacity Mapper</div>
+          <div className="shell-document-name" data-testid="active-map-name" title={model.metadata?.name || 'Cartographie sans nom'}>{model.metadata?.name || 'Cartographie sans nom'}</div>
+            {!isPresentationWindow && (
+              <div
+                className={`autosave-control autosave-control--${workingCopySaveError ? 'error' : autoSaveState}`}
+                data-testid="autosave-control"
+                title={workingCopySaveError || autoSaveState === 'error'
+                  ? 'Échec de l’enregistrement local. Vérifiez l’espace disponible ou les autorisations du navigateur.'
+                  : 'Conservée dans ce navigateur, pas sur un serveur. Un export JSON permet de garder une copie externe.'}
+              >
+                <span className="autosave-status" data-testid="autosave-status" role="status" aria-live="polite">
+                  <span className="autosave-indicator" aria-hidden="true" />
+                  {workingCopySaveError || autoSaveState === 'error' ? 'Sauvegarde échouée'
+                    : autoSaveState === 'saving' ? 'Enregistrement…'
+                      : autoSaveState === 'saved' ? 'Enregistrée sur cet appareil' : 'Brouillon local'}
+                </span>
+                {(workingCopySaveError || autoSaveState === 'error' || !localMapId) && (
+                  <button type="button" className="autosave-action" data-testid="autosave-action" onClick={() => {
+                    if (workingCopySaveError) {
+                      const recovered = persistWorkingCopy();
+                      if (!recovered) {
+                        notify('Stockage local indisponible. Exportez votre cartographie en JSON pour la conserver.');
+                        return;
+                      }
+                    }
+                    saveCurrentLocalMap();
+                  }}>
+                    {workingCopySaveError || autoSaveState === 'error' ? 'Réessayer' : 'Enregistrer'}
+                  </button>
+                )}
+              </div>
+            )}
+        </div>
         <div className="toolbar">
           <nav className="toolbar-switch primary-navigation" aria-label="Navigation principale">
             <button type="button" className={mode === 'editor' ? 'active' : ''} data-testid="nav-cartography" aria-current={mode === 'editor' ? 'page' : undefined} onClick={() => { navigateToMode('editor'); setMapQuery(''); }}>▦ Cartographie</button>
@@ -1380,40 +1420,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             </div>
           </nav>
           <div className="toolbar-actions">
-            {!isPresentationWindow && (
-              <div
-                className={`autosave-control autosave-control--${workingCopySaveError ? 'error' : autoSaveState}`}
-                data-testid="autosave-control"
-                title={workingCopySaveError || autoSaveState === 'error'
-                  ? 'Échec de l’enregistrement local. Vérifiez l’espace disponible ou les autorisations du navigateur.'
-                  : 'Conservée dans ce navigateur, pas sur un serveur. Un export JSON permet de garder une copie externe.'}
-              >
-                <span className="autosave-status" data-testid="autosave-status" role="status" aria-live="polite">
-                  <span className="autosave-indicator" aria-hidden="true" />
-                  {workingCopySaveError || autoSaveState === 'error' ? 'Sauvegarde échouée'
-                    : autoSaveState === 'saving' ? 'Enregistrement…'
-                      : autoSaveState === 'saved' ? 'Enregistrée sur cet appareil' : 'Brouillon local'}
-                </span>
-                {(workingCopySaveError || autoSaveState === 'error' || !localMapId) && (
-                  <button type="button" className="autosave-action" data-testid="autosave-action" onClick={() => {
-                    if (workingCopySaveError) {
-                      const recovered = persistWorkingCopy();
-                      if (!recovered) {
-                        notify('Stockage local indisponible. Exportez votre cartographie en JSON pour la conserver.');
-                        return;
-                      }
-                    }
-                    saveCurrentLocalMap();
-                  }}>
-                    {workingCopySaveError || autoSaveState === 'error' ? 'Réessayer' : 'Enregistrer'}
-                  </button>
-                )}
-              </div>
-            )}
-            <div className="toolbar-history" role="group" aria-label="Historique des modifications">
-              <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
-              <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
-            </div>
+            {mode !== 'editor' && historyControls}
             <label className="presentation-switch">
               <span>Présentation</span>
               <input type="checkbox" data-testid="presentation-switch-toolbar" aria-label="Mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />
@@ -1624,6 +1631,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </section>
                 )}
                 <div className="canvas-actions map-primary-actions">
+                  {historyControls}
                   <button type="button" className="primary signal-add-application" data-testid="signal-add-application" onClick={() => openNew('app')}>＋ Application</button>
                   <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
                   <MapActionsMenu onDismiss={() => setPresentationDirectorOpen(false)}>
