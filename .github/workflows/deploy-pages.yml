@@ -99,6 +99,9 @@ jobs:
       - name: Build production application
         run: npm run build
 
+      - name: Verify PWA release bundles and precache manifest
+        run: node scripts/verify-pwa-bundles.mjs dist
+
       - name: Install Storybook dependencies
         run: npm install --prefix storybook-poc
 
@@ -117,6 +120,9 @@ jobs:
         run: npm run build -- --outDir dist-coverage
         env:
           COVERAGE: 'true'
+
+      - name: Verify instrumented PWA release bundles
+        run: node scripts/verify-pwa-bundles.mjs dist-coverage
 
       - name: Run Playwright E2E suite and collect browser coverage
         run: npm run test:e2e:playwright
