@@ -210,3 +210,21 @@ export const prepareDomainPlacement = ({
   MapLayout.fromDraft({ columns, layers, zones: layout.zones || [] }).prepareDomainPlacement({
     domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
   });
+
+/** Exact shared placements render as vertically stacked N0 cards in one business layer.
+ * No new persistence property is needed; MapLayout still rejects partial intersections.
+ */
+export const groupDomainsByPlacement = <T extends Domain>({
+  domains, columns, layers,
+}: { domains: T[]; columns: LayoutAxis[]; layers: LayoutAxis[] }): T[][] => {
+  const groups = new Map<string, T[]>();
+  for (const domain of domains) {
+    const columnIndex = Math.max(0, columns.findIndex(column => column.id === domain.layout?.columnId));
+    const layerIndex = Math.max(0, layers.findIndex(layer => layer.id === domain.layout?.layerId));
+    const key = JSON.stringify([columnIndex, layerIndex, Number(domain.layout?.columnSpan ?? 1), Number(domain.layout?.rowSpan ?? 1)]);
+    const group = groups.get(key);
+    if (group) group.push(domain);
+    else groups.set(key, [domain]);
+  }
+  return Array.from(groups.values());
+};
