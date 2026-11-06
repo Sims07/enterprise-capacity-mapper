@@ -243,3 +243,55 @@ test('les commandes secondaires restent accessibles en affichage mobile', async 
   await expect(menu.locator('summary')).toBeFocused();
   await expect(page.getByTestId('signal-add-application')).toBeVisible();
 });
+
+
+test.describe('SIGNAL — hiérarchie document-first de l’éditeur', () => {
+  test('rapproche identité et navigation et déplace l’historique dans les commandes de carte', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 900 });
+    await page.goto('/');
+    const document = page.getByTestId('document-context');
+    const navigation = page.getByRole('navigation', { name: 'Navigation principale' });
+    const toolbar = page.getByTestId('map-unified-controls');
+
+    await expect(document).toBeVisible();
+    await expect(document.getByTestId('active-map-name')).not.toBeEmpty();
+    await expect(document.getByTestId('autosave-status')).toBeVisible();
+    await expect(navigation).toBeVisible();
+    const documentBounds = await document.boundingBox();
+    const navBounds = await navigation.boundingBox();
+    expect(documentBounds).not.toBeNull();
+    expect(navBounds).not.toBeNull();
+    expect(navBounds!.x - (documentBounds!.x + documentBounds!.width)).toBeLessThan(70);
+
+    const history = toolbar.getByRole('group', { name: 'Historique des modifications' });
+    await expect(history).toBeVisible();
+    await expect(history.getByTestId('undo-button')).toBeVisible();
+    await expect(history.getByTestId('redo-button')).toBeVisible();
+    await expect(page.locator('header').getByTestId('undo-button')).toHaveCount(0);
+    await expect(toolbar.getByTestId('signal-add-application')).toBeVisible();
+    await expect(toolbar.getByTestId('map-add-domain')).toBeVisible();
+    await expect(toolbar.getByTestId('map-reading-applications')).toBeVisible();
+    await expect(toolbar).toHaveCSS('border-top-style', 'none');
+    await expect(navigation).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+
+    await page.getByTestId('nav-analysis').click();
+    await expect(page.locator('header').getByTestId('undo-button')).toBeVisible();
+    await page.getByTestId('nav-cartography').click();
+    await expect(toolbar.getByTestId('undo-button')).toBeVisible();
+  });
+
+  test('garde les commandes accessibles en mode mobile sans faire disparaître le statut local', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await expect(page.getByTestId('active-map-name')).toBeVisible();
+    await expect(page.getByTestId('autosave-status')).toBeVisible();
+    await expect(page.getByTestId('tools-menu-toggle')).toBeVisible();
+    await expect(page.getByTestId('presentation-switch-toolbar')).toBeVisible();
+    const toolbar = page.getByTestId('map-unified-controls');
+    await expect(toolbar.getByTestId('undo-button')).toBeVisible();
+    await expect(toolbar.getByTestId('map-add-domain')).toBeVisible();
+    await expect(toolbar.getByTestId('signal-add-application')).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+});
