@@ -76,3 +76,50 @@ test('insère un N0 avant un domaine existant sans perdre ses capacités et rela
   await expect(mosaic).toContainText('Domaine inséré');
   await expect(mosaic.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' })).toContainText('Salesforce CRM');
 });
+
+test('empile messages et notifications dans la ligne Support sans créer de couche supplémentaire', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('tools-menu-toggle').click();
+  await page.getByTestId('new-map-button').click();
+  await page.getByTestId('template-blank').click();
+  await page.getByTestId('wizard-name').fill('Support - N0 empilés');
+  await page.getByRole('button', { name: 'Suivant' }).click();
+  await page.getByTestId('structure-layers-input').fill('Support');
+  await page.getByRole('button', { name: 'Suivant' }).click();
+  await page.getByTestId('wizard-backup').uncheck();
+  await page.getByRole('button', { name: 'Créer la cartographie' }).click();
+
+  await createN0(page, 'Gestion des messages', 'MSG');
+  await page.getByTestId('map-add-domain').click();
+  const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+  await expect(dialog.getByTestId('domain-auto-expand-hint')).toBeVisible();
+  await dialog.getByLabel('Ligne (layer)').selectOption({ label: 'Support' });
+  await dialog.getByLabel('Nom').fill('Gestion des notifications');
+  await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill('NOTIF');
+  await dialog.getByRole('button', { name: 'Créer' }).click();
+
+  const mosaic = page.getByTestId('capability-map');
+  await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(1);
+  await expect(mosaic.locator('.mosaic-domain')).toHaveCount(2);
+  await expect(mosaic.getByTestId('mosaic-domain-stack')).toHaveAttribute('data-stack-size', '2');
+  const first = await mosaic.locator('.mosaic-domain').filter({ hasText: 'Gestion des messages' }).boundingBox();
+  const second = await mosaic.locator('.mosaic-domain').filter({ hasText: 'Gestion des notifications' }).boundingBox();
+  expect(first).not.toBeNull();
+  expect(second).not.toBeNull();
+  expect(second!.y).toBeGreaterThan(first!.y + first!.height - 2);
+  expect(second!.x).toBe(first!.x);
+
+  await mosaic.getByRole('button', { name: 'Actions pour Gestion des messages' }).click();
+  await page.getByRole('button', { name: '＋ Ajouter un N0 en dessous' }).click();
+  const next = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+  await expect(next.getByLabel('Ligne (layer)')).toHaveValue('default');
+  await next.getByLabel('Nom').fill('Support technique');
+  await next.getByRole('textbox', { name: 'Code', exact: true }).fill('SUP');
+  await next.getByRole('button', { name: 'Créer' }).click();
+  await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(1);
+  await expect(mosaic.locator('.mosaic-domain')).toHaveCount(3);
+  await expect(mosaic.getByTestId('mosaic-domain-stack')).toHaveAttribute('data-stack-size', '3');
+  await page.reload();
+  await expect(page.getByTestId('capability-map').locator('.mosaic-row-heading')).toHaveCount(1);
+  await expect(page.getByTestId('capability-map').locator('.mosaic-domain')).toHaveCount(3);
+});
