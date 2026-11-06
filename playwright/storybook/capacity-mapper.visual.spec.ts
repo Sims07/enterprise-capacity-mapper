@@ -115,6 +115,7 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
   for (const theme of ['light', 'dark'] as const) {
     test(`présentation — focus N0 sans transparence de carte, thème ${theme}`, async ({ page }) => {
       const presentationPage = await openUnifiedMapPresentation(page, theme);
+      await page.getByTestId('map-more-actions').locator('summary').click();
       await page.getByTestId('presentation-director-toggle').click();
       await page.getByTestId('presentation-director-domain').selectOption({ index: 1 });
       const focused = presentationPage.locator('.mosaic-domain.is-presentation-focused');
@@ -245,6 +246,7 @@ test('story réelle — accès aux nouvelles lectures métier, thème clair et s
 test('story réelle — la cartographie ouvre directement le diagnostic métier', async ({ page }) => {
   await openCapacityMapper(page, 1440, 900, 'light');
   await expect(page.getByTestId('capability-reading-summary')).toContainText('à qualifier');
+  await page.getByTestId('map-more-actions').locator('summary').click();
   await page.getByTestId('capability-diagnostic-shortcut').click();
   await expect(page.getByTestId('capability-diagnostic')).toBeVisible();
   const item = page.getByTestId('capability-diagnostic-item').first();
