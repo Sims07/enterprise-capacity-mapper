@@ -342,16 +342,19 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
 
       <div className="dashboard-kpis" aria-label="Indicateurs de couverture">
         <article className="dashboard-kpi dashboard-kpi-primary">
-          <span>Relations applicatives actuelles</span>
+          <span>Avec support applicatif actuel</span>
           <strong data-testid="dashboard-coverage-rate">{stats.coverage}%</strong>
-          <div className="dashboard-progress" role="progressbar" aria-label="Relations applicatives actuelles" aria-valuemin={0} aria-valuemax={100} aria-valuenow={stats.coverage}><span style={{ width: `${stats.coverage}%` }} /></div>
-          <small>{stats.covered} sur {targets.length} {targetLabel} couverts</small>
+          <div className="dashboard-progress" role="progressbar" aria-label="Avec support applicatif actuel" aria-describedby="dashboard-coverage-definition" aria-valuemin={0} aria-valuemax={100} aria-valuenow={stats.coverage}><span style={{ width: `${stats.coverage}%` }} /></div>
+          <small>{stats.covered} sur {targets.length} {targetLabel} avec une application actuelle</small>
         </article>
         <article className="dashboard-kpi"><span>{targetLabel.charAt(0).toUpperCase() + targetLabel.slice(1)}</span><strong>{targets.length}</strong><small>dans la cartographie active</small></article>
-        <article className="dashboard-kpi dashboard-kpi-gap"><span>Gaps de couverture</span><strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong><small>{stats.gaps.filter(target => target.priority === 'P1').length} P1 · {stats.gaps.filter(target => target.priority === 'P2').length} P2 · {stats.gaps.filter(target => target.priority === 'P3').length} P3</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-gaps" onClick={() => focusCoverageState('gap')}>Afficher les gaps <span aria-hidden="true">↗</span></button></article>
+        <article className="dashboard-kpi dashboard-kpi-gap"><span>Sans support actuel</span><strong data-testid="dashboard-gap-count">{stats.gaps.length}</strong><small>{stats.gaps.filter(target => target.priority === 'P1').length} P1 · {stats.gaps.filter(target => target.priority === 'P2').length} P2 · {stats.gaps.filter(target => target.priority === 'P3').length} P3</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-gaps" onClick={() => focusCoverageState('gap')}>Afficher les gaps <span aria-hidden="true">↗</span></button></article>
         <article className="dashboard-kpi dashboard-kpi-redundancy"><span>Redondances</span><strong data-testid="dashboard-redundancy-count">{stats.redundancies.length}</strong><small>{stats.redundancies.length ? 'Plusieurs applications sur un même élément' : 'Aucune couverture multiple'}</small><button type="button" className="dashboard-kpi-action" data-testid="dashboard-focus-redundancies" onClick={() => focusCoverageState('redundant')}>Voir les couvertures multiples <span aria-hidden="true">↗</span></button></article>
         <article className="dashboard-kpi"><span>Applications</span><strong>{apps.length}</strong><small>{stats.unlinkedApps.length} sans relation à une {targetSingular}</small></article>
       </div>
+      <p className="dashboard-coverage-definition" id="dashboard-coverage-definition" data-testid="dashboard-coverage-definition" role="note">
+        Ces indicateurs mesurent les <strong>liens avec des applications actuelles</strong>. Ils ne démontrent ni la qualité de couverture fonctionnelle, ni la maturité d'une capacité.
+      </p>
 
       {(activeView === 'coverage' || activeView === 'impact') && <section className="dashboard-panel dashboard-heatmap" data-testid="dashboard-coverage-heatmap" aria-label="Heatmap de couverture">
         <div className="dashboard-panel-heading">

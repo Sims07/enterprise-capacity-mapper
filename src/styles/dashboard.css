@@ -368,3 +368,15 @@
 .dashboard-impact-select-list > button > span { margin-left: auto; flex: 0 0 auto; color: var(--muted, var(--color-text-muted)); font-size: 11px; }
 .app.theme-dark .dashboard-impact-select-list > button { background: var(--color-surface-raised); border-color: var(--color-border); color: #e5e7eb; }
 .app.theme-dark .dashboard-impact-select-list > button.is-selected { background: #27243f; border-color: #6256a6; color: #c7d2fe; }
+
+/* Note de provenance des indicateurs SI : visible dans toutes les vues du dashboard. */
+.app.signal-experience .dashboard-coverage-definition {
+  margin: 0 0 var(--signal-space-4);
+  padding: var(--signal-space-2) var(--signal-space-3);
+  border-left: var(--focus-ring-width) solid var(--color-border-strong);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.app.signal-experience .dashboard-coverage-definition strong { color: var(--color-text); }

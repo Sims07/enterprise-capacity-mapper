@@ -45,6 +45,7 @@ import CoverageTree from './components/CoverageTree.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
+import PresentationReadingLegend from './components/PresentationReadingLegend.tsx';
 import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
@@ -1694,11 +1695,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               publishLocalPresentationView({ showApplications: event.target.checked });
             }} />Applications
         </label>
-        {presentationReadingMode !== 'identity' && <div className="presentation-reading-legend" data-testid="presentation-legend" aria-label="Légende de la coloration">
-          {(['covered', 'gap', 'high', 'critical', 'neutral'] as const).map(tone => (
-            <span key={tone}><i data-tone={tone} aria-hidden="true" />{({ covered: 'Satisfaisant', gap: 'Intermédiaire', high: 'Attention', critical: 'Écart important', neutral: 'Non évalué' })[tone]}</span>
-          ))}
-        </div>}
+        <PresentationReadingLegend mode={presentationReadingMode} />
+        <button type="button" className="presentation-print-button" data-testid="print-presentation"
+          aria-label="Imprimer la cartographie ou enregistrer en PDF" onClick={() => window.print()}>
+          Imprimer / PDF
+        </button>
         <label className="presentation-switch">
           <span>Active</span>
           <input type="checkbox" data-testid="presentation-switch-exit" aria-label="Désactiver le mode présentation" checked={presentation} onChange={event => togglePresentation(event.target.checked)} />

@@ -108,3 +108,35 @@ test('la légende suit les quatre lectures sans modifier les spans et la densit�
   await expect(page.getByTestId('capability-map')).toHaveAttribute('data-density', 'compact');
   expect(await geometry()).toEqual(initial);
 });
+
+test('la restitution distingue chaque légende, imprime sans contrôles et explicite les métriques SI', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('nav-analysis').click();
+  const definition = page.getByTestId('dashboard-coverage-definition');
+  await expect(definition).toBeVisible();
+  await expect(definition).toContainText('liens avec des applications actuelles');
+  await expect(definition).toContainText('ne démontrent ni la qualité de couverture fonctionnelle');
+
+  await page.goto('/?view=presentation');
+  await expect(page.getByTestId('capability-map')).toBeVisible();
+  await page.evaluate(() => { window.print = () => { document.documentElement.dataset.printCalled = 'true'; }; });
+  await page.mouse.move(10, 10);
+  const printButton = page.getByTestId('print-presentation');
+  await expect(printButton).toBeVisible();
+  await printButton.click();
+  await expect(page.locator('html')).toHaveAttribute('data-print-called', 'true');
+
+  for (const [mode, text] of [
+    ['coverage', 'Non couverte'],
+    ['maturity', 'Non évaluée'],
+    ['gaps', 'Aucun signal détecté'],
+  ] as const) {
+    await page.mouse.move(10, 10);
+    await page.getByTestId('presentation-reading-' + mode).click();
+    await expect(page.getByTestId('presentation-legend')).toHaveAttribute('data-reading', mode);
+    await expect(page.getByTestId('presentation-legend')).toContainText(text);
+  }
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.presentation-exit-bar')).toBeHidden();
+  await expect(page.getByTestId('capability-map')).toBeVisible();
+});
