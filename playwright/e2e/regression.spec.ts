@@ -550,7 +550,7 @@ test.describe('Diagnostic métier — expérience design system', () => {
     await expect(first.getByTestId('capability-diagnostic-edit')).toBeVisible();
     await first.getByTestId('capability-diagnostic-edit').click();
     await expect(page.getByRole('dialog', { name: 'Fiche de capacité N1' })).toBeVisible();
-    await page.getByRole('dialog', { name: 'Fiche de capacité N1' }).getByRole('button', { name: '×' }).click();
+    await page.getByRole('dialog', { name: 'Fiche de capacité N1' }).getByRole('button', { name: 'Fermer la fenêtre' }).click();
     await panel.getByTestId('attention-filter-signals').click();
     await expect(panel.getByTestId('capability-diagnostic-item')).toHaveCount(3);
   });
