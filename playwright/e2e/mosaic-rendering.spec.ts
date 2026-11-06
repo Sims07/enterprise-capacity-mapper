@@ -278,10 +278,8 @@ test.describe('Cartographie unifiée', () => {
 
     const presentationExitSwitch = presentationPage.getByTestId('presentation-switch-exit');
     await expect(presentationExitSwitch).toBeChecked();
-    const closed = presentationPage.waitForEvent('close').then(() => 'closed');
-    const returnedToEditor = presentationPage.waitForURL(/\/$|index\.html(?:\?.*)?$/).then(() => 'returned');
     await presentationExitSwitch.evaluate((input: HTMLInputElement) => input.click());
-    await Promise.any([closed, returnedToEditor]);
+    await expect.poll(() => presentationPage.isClosed() || !new URL(presentationPage.url()).searchParams.has('view')).toBe(true);
     if (!presentationPage.isClosed()) await presentationPage.close();
   });
 
@@ -363,11 +361,12 @@ test.describe('Cartographie unifiée', () => {
     await page.goto('/');
     
     const firstDomain = page.locator('.mosaic-domain').first();
+    const firstDomainSlot = firstDomain.locator('xpath=..');
     await expect(firstDomain).toBeVisible();
     // Les bords de la carte sont les zones de redimensionnement.
     await firstDomain.scrollIntoViewIfNeeded();
     await expect(firstDomain).toBeInViewport();
-    const placement = await firstDomain.evaluate(element => {
+    const placement = await firstDomainSlot.evaluate(element => {
       const style = getComputedStyle(element);
       return { column: style.gridColumnStart, row: style.gridRowStart };
     });
@@ -388,13 +387,13 @@ test.describe('Cartographie unifiée', () => {
     await page.mouse.down();
     await page.mouse.move(rightEdgeX + cellBounds!.width * 1.1, middleY);
     // La grille doit déjà refléter la nouvelle taille avant le relâchement.
-    await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+    await expect(firstDomainSlot).toHaveCSS('grid-column', /span 2/);
     const livePreviewBounds = await firstDomain.boundingBox();
     expect(livePreviewBounds).not.toBeNull();
     expect(livePreviewBounds!.width).toBeGreaterThan(domainBounds!.width);
     await page.mouse.up();
 
-    await expect(firstDomain).toHaveCSS('grid-column', /span 2/);
+    await expect(firstDomainSlot).toHaveCSS('grid-column', /span 2/);
     await firstDomain.scrollIntoViewIfNeeded();
     const resizedDomainBounds = await firstDomain.boundingBox();
     const resizedCellBounds = await zone.boundingBox();
@@ -406,7 +405,7 @@ test.describe('Cartographie unifiée', () => {
     await page.mouse.down();
     await page.mouse.move(middleX, bottomEdgeY + resizedCellBounds!.height * 0.6);
     await page.mouse.up();
-    await expect(firstDomain).toHaveCSS('grid-row', /span 2/);
+    await expect(firstDomainSlot).toHaveCSS('grid-row', /span 2/);
 
     const mosaicBounds = await page.getByTestId('capability-map').boundingBox();
     const expandedBounds = await firstDomain.boundingBox();
@@ -416,13 +415,14 @@ test.describe('Cartographie unifiée', () => {
 
     await page.reload();
         const persistedDomain = page.locator('.mosaic-domain').first();
-    await expect(persistedDomain).toHaveCSS('grid-column', /span 2/);
-    await expect(persistedDomain).toHaveCSS('grid-row', /span 2/);
+    const persistedDomainSlot = persistedDomain.locator('xpath=..');
+    await expect(persistedDomainSlot).toHaveCSS('grid-column', /span 2/);
+    await expect(persistedDomainSlot).toHaveCSS('grid-row', /span 2/);
     await persistedDomain.focus();
     await page.keyboard.press('ArrowLeft');
-    await expect(persistedDomain).toHaveCSS('grid-column', /span 1/);
+    await expect(persistedDomainSlot).toHaveCSS('grid-column', /span 1/);
     await page.keyboard.press('ArrowUp');
-    await expect(persistedDomain).toHaveCSS('grid-row', /span 1/);
+    await expect(persistedDomainSlot).toHaveCSS('grid-row', /span 1/);
   });
 
   test('permet de masquer indépendamment les intitulés des axes dans Structure', async ({ page }) => {
