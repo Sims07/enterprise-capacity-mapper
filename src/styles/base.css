@@ -2674,6 +2674,11 @@ body::-webkit-scrollbar,
 .mosaic-zone-label{position:absolute;left:9px;top:7px;color:var(--color-text-muted);font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;pointer-events:none}
 .mosaic-domain{z-index:1;min-width:0;min-height:0;padding:7px}
 .mosaic-domain .domain{height:100%;min-height:0;margin:0;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(15,23,42,.07)}
+/* Each grid footprint is a slot that holds one or more N0 cards without overlay. */
+.map-mosaic > .mosaic-domain-slot{display:flex;flex-direction:column;min-width:0;min-height:0;z-index:1}
+.map-mosaic > .mosaic-domain-slot > .mosaic-domain{flex:1 1 auto;min-width:0}
+.app:not(.mosaic-presentation-mode) .map-mosaic > .mosaic-domain-slot{min-height:max-content}
+.app:not(.mosaic-presentation-mode) .map-mosaic > .mosaic-domain-slot > .mosaic-domain{flex:1 0 auto}
 .mosaic-domain .domain-desc,.mosaic-domain .domain-relations,.mosaic-domain .caps-list{overflow:auto;min-height:0}
 
 /* Une carte N0 doit contribuer sa hauteur réelle au calcul des pistes CSS Grid.
@@ -2843,6 +2848,7 @@ body::-webkit-scrollbar,
     align-content:start;
   }
   .mosaic-corner,.mosaic-column-heading,.mosaic-row-heading{display:none!important}
+  .mosaic-domain-slot{grid-column:1!important;grid-row:auto!important}
   .mosaic-zone[data-occupied="true"]{display:none}
   .mosaic-zone{
     grid-column:1!important;
