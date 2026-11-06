@@ -193,7 +193,7 @@
 }
 .app.signal-experience .ds-button--danger:hover:not(:disabled) {
   border-color: var(--color-danger);
-  filter: brightness(1.06);
+  background: var(--status-critical-bg);
 }
 .app.signal-experience .ds-button:focus-visible,
 .app.signal-experience .ds-file-trigger:focus-within {
