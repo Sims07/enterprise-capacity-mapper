@@ -38,7 +38,7 @@ function TabsDemo() {
   return <section style={storyPanel}>
     <div className="analysis-view-switch" aria-label="Vues d'analyse" role="group" style={{ padding: 0, borderBottom: 0 }}>
       {([{ id: 'overview', title: 'Vue d’ensemble' }, { id: 'coverage', title: 'Couverture' }, { id: 'impact', title: 'Impact' }] as const).map(item =>
-        <Button key={item.id} type="button" aria-pressed={selected === item.id} className={selected === item.id ? 'active' : ''}
+        <Button key={item.id} type="button" variant="quiet" aria-pressed={selected === item.id} className={selected === item.id ? 'active' : ''}
           onClick={() => setSelected(item.id)}>{item.title}</Button>)}
     </div>
     <p aria-live="polite" style={storyHelp}>Vue sélectionnée : {selected}</p>
@@ -61,7 +61,7 @@ function MenuDemo() {
   return <section style={storyPanel}>
     <h3>Menu Outils</h3>
     <div ref={ref} className="toolbar" style={{ position: 'relative', display: 'inline-flex' }}>
-      <Button type="button" className="secondary toolbar-tools-toggle" aria-expanded={open}
+      <Button type="button" variant="quiet" className="toolbar-tools-toggle" aria-expanded={open}
         aria-controls="storybook-tools-panel" onClick={() => setOpen(value => !value)}>⋯ Outils</Button>
       {open && <div className="toolbar-tools-panel" id="storybook-tools-panel">
         <section className="toolbar-menu-group" aria-label="Données">
@@ -87,7 +87,7 @@ function ChoiceDemo() {
     <Button type="button" variant="quiet" className="template-card" aria-pressed={value === '1'} onClick={() => setValue('1')}>
       <b>Vue synthétique</b><p>Domaines N0 sans détail des capacités.</p><small>1 niveau</small>
     </Button>
-    <Button type="button" className="template-card" aria-pressed={value === '2'} onClick={() => setValue('2')}>
+    <Button type="button" variant="quiet" className="template-card" aria-pressed={value === '2'} onClick={() => setValue('2')}>
       <b>Vue détaillée</b><p>Domaines N0 et capacités N1 pour l'analyse.</p><small>2 niveaux · Recommandé</small>
     </Button>
   </div>;
