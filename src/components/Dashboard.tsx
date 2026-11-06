@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { FilePicker } from './ui/FilePicker.tsx';
+import { Button } from './ui/Button.tsx';
 import { analyzeCapabilityGaps, findMissingReferenceCapabilities } from '../domain/capabilityGaps.ts';
 import { createDecisionReview, formatDecisionReviewMarkdown, simulateApplicationRetirement, DECISION_REVIEW_DISPLAY_LIMIT } from '../application/decisionReview.ts';
 import { isCurrentApplication } from '../application/coverageUseCases.ts';
@@ -531,11 +533,8 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                     <div className="attention-reference-source">
                       <strong>Depuis un fichier JSON V3</strong>
                       <p>Import local et temporaire, sans remplacer la cartographie.</p>
-                      <label className="attention-file-picker">
-                        <span aria-hidden="true">↥</span> Choisir un fichier JSON
-                        <input id="capability-reference-import" data-testid="capability-reference-import"
-                          className="attention-file-input" type="file" accept=".json,application/json" onChange={importReference} />
-                      </label>
+                      <FilePicker label="Choisir un fichier JSON" id="capability-reference-import"
+                        data-testid="capability-reference-import" accept=".json,application/json" onChange={importReference} />
                     </div>
                     <div className="attention-reference-source">
                       <label htmlFor="capability-reference-url">Depuis un dépôt GitHub public</label>
@@ -543,9 +542,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                       <div className="attention-url-actions">
                         <input id="capability-reference-url" data-testid="capability-reference-url" type="url" value={referenceUrl}
                           onChange={event => setReferenceUrl(event.target.value)} placeholder="https://github.com/…/blob/main/reference.json" />
-                        <button type="button" data-testid="capability-reference-load-url" disabled={referenceLoading} onClick={loadReferenceUrl}>
+                        <Button variant="secondary" data-testid="capability-reference-load-url" disabled={referenceLoading} onClick={loadReferenceUrl}>
                           {referenceLoading ? 'Chargement…' : 'Charger'}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     <p className="attention-reference-note">Correspondances strictes par code ou nom normalisé au sein d’un même domaine.</p>
@@ -555,7 +554,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
                 {capabilityReference && <section className="attention-reference-result" data-testid="reference-missing-capabilities">
                   <div className="attention-reference-result-heading">
                     <div><strong>{expectedMissing.length} capacité{expectedMissing.length > 1 ? 's' : ''} absente{expectedMissing.length > 1 ? 's' : ''}</strong><span>Comparaison terminée · référence active</span></div>
-                    <button type="button" onClick={() => { onClearReference?.(); setReferenceError(''); }}>Retirer la référence</button>
+                    <Button variant="quiet" onClick={() => { onClearReference?.(); setReferenceError(''); }}>Retirer la référence</Button>
                   </div>
                   {expectedMissing.length
                     ? <ul>{expectedMissing.map((capability, index) => (
