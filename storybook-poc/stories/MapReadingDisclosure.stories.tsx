@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from '../../src/components/ui/Button.tsx';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { MapDensity } from '../../src/adapters/browser/appPreferences.ts';
 import type { MapReadingMode } from '../../src/application/capabilityMapReadout.ts';
@@ -21,7 +22,7 @@ function Example({ mode }: { mode: MapReadingMode }) {
   return <section className="capability-reading-toolbar" aria-label="Exemple de contrôle de lecture">
     <strong>Lecture métier</strong>
     <div className="capability-reading-options" role="group" aria-label="Mode de lecture">
-      <button type="button" aria-pressed="true">{mode}</button>
+      <Button type="button" variant="quiet" aria-pressed="true" disabled>{mode}</Button>
     </div>
     <MapReadingDisclosure mode={mode} density={density} onDensityChange={setDensity} />
     <p style={storyHelp} role="status">Densité choisie : {density}</p>
