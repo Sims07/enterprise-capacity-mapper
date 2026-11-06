@@ -12,6 +12,65 @@
 </head>
 <body>
   <div id="root"></div>
+  <!-- A classic inline bootstrap must run before Vite's external app-<hash>.js.
+       Putting recovery in a module would bundle it into the very JS that can 404. -->
+  <script>
+    (() => {
+      const BUNDLE_RETRY_KEY = 'ecm:missing-bundle-retry';
+      const BUNDLE_REFRESH_PARAM = 'ecm_refresh';
+      const isMissingModule = error =>
+        /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk .* failed|ChunkLoadError|Failed to load module script/i
+          .test(String(error?.message ?? error));
+      const isHashedScript = source => /\/assets\/[a-zA-Z0-9_.-]+-[a-zA-Z0-9_-]+\.js$/.test(new URL(source, window.location.href).pathname);
+
+      const showRecoveryError = () => {
+        const root = document.getElementById('root');
+        if (!root) return;
+        const message = document.createElement('p');
+        message.textContent = "Une ressource de l'application n'est plus disponible. Rechargez la page pour récupérer la dernière version.";
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Recharger l’application';
+        button.addEventListener('click', () => {
+          sessionStorage.removeItem(BUNDLE_RETRY_KEY);
+          window.location.reload();
+        });
+        root.replaceChildren(message, button);
+      };
+      const recover = () => {
+        if (sessionStorage.getItem(BUNDLE_RETRY_KEY)) {
+          showRecoveryError();
+          return;
+        }
+        sessionStorage.setItem(BUNDLE_RETRY_KEY, '1');
+        const url = new URL(window.location.href);
+        url.searchParams.set(BUNDLE_REFRESH_PARAM, String(Date.now()));
+        window.location.replace(url.href);
+      };
+      // The production entry is a Vite-generated <script type=module src=...>.
+      // If it returns 404, no code inside that module can execute.
+      window.addEventListener('error', event => {
+        if (event.target instanceof HTMLScriptElement && isHashedScript(event.target.src)) recover();
+      }, true);
+      window.addEventListener('unhandledrejection', event => {
+        if (isMissingModule(event.reason)) {
+          event.preventDefault();
+          recover();
+        }
+      });
+      window.addEventListener('ecm:module-error', event => {
+        if (isMissingModule(event.detail)) recover();
+      });
+      window.addEventListener('ecm:app-ready', () => {
+        sessionStorage.removeItem(BUNDLE_RETRY_KEY);
+        const url = new URL(window.location.href);
+        if (url.searchParams.has(BUNDLE_REFRESH_PARAM)) {
+          url.searchParams.delete(BUNDLE_REFRESH_PARAM);
+          window.history.replaceState(window.history.state, '', url.href);
+        }
+      });
+    })();
+  </script>
   <script type="module">
     const startApplication = async () => {
       if (import.meta.env.DEV && 'serviceWorker' in navigator) {
@@ -26,7 +85,12 @@
       }
       await import('./src/main.tsx');
     };
-    startApplication().catch(console.error);
+    startApplication()
+      .then(() => window.dispatchEvent(new Event('ecm:app-ready')))
+      .catch(error => {
+        window.dispatchEvent(new CustomEvent('ecm:module-error', { detail: String(error?.message ?? error) }));
+        console.error(error);
+      });
   </script>
 </body>
 </html>

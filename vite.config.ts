@@ -4,7 +4,24 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(async () => {
   const coverageMode = process.env.COVERAGE === 'true';
-  const plugins: PluginOption[] = [react()];
+  const plugins: PluginOption[] = [react(), {
+    name: 'ecm-pwa-release-assets',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      const assets = Object.keys(bundle)
+        .filter(filename => /^assets\/[a-zA-Z0-9_./-]+\.(?:js|css)$/.test(filename))
+        .sort()
+        .map(filename => './' + filename);
+      if (!assets.some(filename => filename.endsWith('.js'))) {
+        this.error('PWA build produced no JavaScript bundle');
+      }
+      this.emitFile({
+        type: 'asset',
+        fileName: 'pwa-assets.json',
+        source: JSON.stringify({ assets }, null, 2),
+      });
+    },
+  }];
 
   if (coverageMode) {
     const { createInstrumenter } = await import('istanbul-lib-instrument');
