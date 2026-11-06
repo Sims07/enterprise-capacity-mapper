@@ -234,7 +234,7 @@ test('story réelle — accès aux nouvelles lectures métier, thème clair et s
   await expect(capability.getByTestId('capability-reading-detail')).toContainText('Couverture métier');
   await capability.getByTestId('capability-open-sheet').click();
   await expect(page.getByRole('dialog', { name: 'Fiche de capacité N1' })).toBeVisible();
-  await page.getByRole('dialog', { name: 'Fiche de capacité N1' }).getByRole('button', { name: '×' }).click();
+  await page.getByRole('dialog', { name: 'Fiche de capacité N1' }).getByRole('button', { name: 'Fermer la fenêtre' }).click();
   await page.getByTestId('tools-menu-toggle').click();
   await page.getByTestId('theme-toggle').click();
   await expect(page.locator('.app.theme-dark')).toBeVisible();

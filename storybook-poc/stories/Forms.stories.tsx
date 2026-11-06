@@ -90,7 +90,7 @@ function CompleteForm() {
   const [enabled, setEnabled] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const invalid = submitted && !name.trim();
-  return <form style={{ ...storyPanel, maxWidth: 600 }} onSubmit={event => { event.preventDefault(); setSubmitted(true); }}>
+  return <form noValidate style={{ ...storyPanel, maxWidth: 600 }} onSubmit={event => { event.preventDefault(); setSubmitted(true); }}>
     <h3>Nouvelle application · exemple interactif</h3>
     <Field label="Nom" required value={name} onChange={event => setName(event.target.value)}
       placeholder="Ex. : Portail client" error={invalid ? 'Ce nom est obligatoire.' : undefined} />

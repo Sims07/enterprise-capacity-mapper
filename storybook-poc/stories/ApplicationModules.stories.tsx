@@ -8,6 +8,7 @@ import { withSignalTheme } from './storyFrame.tsx';
 
 const meta = {
   title: 'Application/Modules métier',
+  id: 'application-modules-metier',
   decorators: [withSignalTheme],
   parameters: { layout: 'fullscreen' },
 } satisfies Meta;
