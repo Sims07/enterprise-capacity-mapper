@@ -58,8 +58,7 @@ export default defineConfig(async () => {
       host: '0.0.0.0',
       port: 5173,
       strictPort: true,
-      // PR preview in StackBlitz WebContainers, without exposing arbitrary hosts.
-      allowedHosts: ['.app.github.dev', '.webcontainer.io'],
+      allowedHosts: ['.app.github.dev'],
       hmr: {
         protocol: 'wss',
         clientPort: 443,
