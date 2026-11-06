@@ -66,7 +66,10 @@ test('le vrai assistant permet de parcourir les étapes sans modifier les donné
 
 test('la fenêtre garde le focus et le rend au déclencheur après Escape', async ({ page }) => {
   await page.goto(story('design-system-superpositions-et-messages--confirmation'));
+  const initialDialog = page.getByRole('dialog', { name: 'Ouvrir une cartographie' });
+  await expect(initialDialog).toBeVisible();
   await page.keyboard.press('Escape');
+  await expect(initialDialog).toHaveCount(0);
   const trigger = page.getByRole('button', { name: 'Ouvrir la confirmation' });
   await trigger.focus();
   await trigger.click();
