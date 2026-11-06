@@ -62,3 +62,32 @@ test('le vrai assistant permet de parcourir les étapes sans modifier les donné
   await page.getByRole('button', { name: 'Précédent' }).click();
   await expect(page.getByTestId('wizard-name')).toHaveValue('Cartographie de référence');
 });
+
+
+test('la fenêtre garde le focus et le rend au déclencheur après Escape', async ({ page }) => {
+  await page.goto(story('design-system-superpositions-et-messages--confirmation'));
+  const initialDialog = page.getByRole('dialog', { name: 'Ouvrir une cartographie' });
+  await expect(initialDialog).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(initialDialog).toHaveCount(0);
+  const trigger = page.getByRole('button', { name: 'Ouvrir la confirmation' });
+  await trigger.focus();
+  await trigger.click();
+  const dialog = page.getByRole('dialog', { name: 'Ouvrir une cartographie' });
+  await expect(dialog).toBeVisible();
+  const close = dialog.getByRole('button', { name: 'Fermer la fenêtre' });
+  await close.focus();
+  await page.keyboard.press('Tab');
+  await expect(dialog.getByRole('button', { name: 'Annuler' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
+test('la validation reste lisible et identifiée en thème sombre', async ({ page }) => {
+  await page.goto(story('design-system-formulaires--validation', 'dark'));
+  const input = page.getByRole('textbox', { name: /Nom de la capacité/ });
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('.app.signal-experience.theme-dark')).toHaveCSS('color-scheme', 'dark');
+  await expect(page.getByText('Le nom de la capacité est obligatoire.')).toBeVisible();
+});

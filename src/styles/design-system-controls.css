@@ -104,3 +104,21 @@
   color: var(--color-text);
   border-color: var(--color-border-strong);
 }
+
+/* Le focus n'est jamais perdu dans les fenêtres et les champs du parcours métier. */
+.app.signal-experience .modal :is(button, a[href], [tabindex]):focus-visible,
+.app.signal-experience .ds-check input:focus-visible,
+.app.signal-experience .presentation-switch input:focus-visible + .presentation-switch-track {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience .field > :is(input, select, textarea)[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+.app.signal-experience .field > :is(input, select, textarea):read-only:not(select) {
+  background: var(--color-surface-muted);
+}
+.app.signal-experience .modal-head button {
+  min-width: 36px;
+  min-height: 36px;
+}
