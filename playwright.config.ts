@@ -15,7 +15,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testMatch: /(?:critical-workflows|regression|mosaic-rendering)\.spec\.ts/,
+      testMatch: /(?:critical-workflows|regression|mosaic-rendering|add-n0-existing-map)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
