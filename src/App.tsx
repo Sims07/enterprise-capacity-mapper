@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
+import { Button } from './components/ui/Button.tsx';
+import { FilePicker } from './components/ui/FilePicker.tsx';
 import type { MapDensity } from './adapters/browser/appPreferences.ts';
 import MapReadingDisclosure from './components/MapReadingDisclosure.tsx';
 import MapActionsMenu from './components/MapActionsMenu.tsx';
@@ -1394,22 +1396,22 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               {toolsMenuOpen && <div className="toolbar-tools-panel" aria-label="Outils et actions">
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-maps">
                   <h3 id="tools-group-maps" className="toolbar-menu-heading">Cartographie</h3>
-                  <button type="button" className="secondary new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
+                  <Button variant="secondary" className="new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
                     <span className="new-map-button-mark" aria-hidden="true">+</span>
                     <span>Nouvelle cartographie</span>
-                  </button>
-                  <button type="button" className="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</button>
+                  </Button>
+                  <Button variant="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</Button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-data">
                   <h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3>
-                  <button type="button" className="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>↓ Exporter en JSON</button>
-                  <label className="button secondary toolbar-import">↑ Importer depuis JSON<input data-testid="import-model" hidden type="file" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} /></label>
+                  <Button variant="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>↓ Exporter en JSON</Button>
+                  <FilePicker label="Importer depuis JSON" variant="quiet" className="toolbar-import" data-testid="import-model" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} />
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-display">
                   <h3 id="tools-group-display" className="toolbar-menu-heading">Affichage</h3>
-                  <button type="button" className="secondary theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Thème sombre Signal'}</button>
+                  <Button variant="secondary" className="theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Thème sombre Signal'}</Button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group toolbar-menu-version" aria-labelledby="tools-group-version">
@@ -1784,8 +1786,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             onKeyDown={event => { if (event.key === 'Enter' && localMapName.trim()) saveNamedLocalMap(); }}
           />
           <div className="modal-actions">
-            <button type="button" onClick={() => setModal(null)}>Annuler</button>
-            <button type="button" className="primary" disabled={!localMapName.trim()} onClick={saveNamedLocalMap}>Enregistrer</button>
+            <Button onClick={() => setModal(null)}>Annuler</Button>
+            <Button variant="primary" disabled={!localMapName.trim()} onClick={saveNamedLocalMap}>Enregistrer</Button>
           </div>
         </Modal>
       )}
@@ -1821,7 +1823,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             </div>
           ) : <p className="local-map-empty">Aucune sauvegarde nommée. Utilisez « Sauvegarder » pour en ajouter une.</p>}
           <div className="modal-actions">
-            <button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button>
+            <Button variant="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</Button>
           </div>
         </Modal>
       )}
@@ -1830,8 +1832,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         <Modal title="Ouvrir une cartographie" onClose={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>
           <p>Ouvrir « {pendingLocalMap.name} » remplacera la cartographie actuellement affichée. Enregistrez vos dernières modifications avant de continuer si nécessaire.</p>
           <div className="modal-actions">
-            <button type="button" onClick={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>Annuler</button>
-            <button type="button" className="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</button>
+            <Button onClick={() => { setModal(mode === 'library' ? null : 'local-maps'); setPendingLocalMap(null); }}>Annuler</Button>
+            <Button variant="primary" data-testid="confirm-load-local-map" onClick={confirmLoadLocalMap}>Ouvrir la cartographie</Button>
           </div>
         </Modal>
       )}
@@ -1847,8 +1849,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             {linkOptions}
           </div>
           <div className="modal-actions">
-            <button type="button" onClick={closeLink}>Annuler</button>
-            <button type="button" className="primary" data-testid="link-save" onClick={saveLink}>Enregistrer</button>
+            <Button onClick={closeLink}>Annuler</Button>
+            <Button variant="primary" data-testid="link-save" onClick={saveLink}>Enregistrer</Button>
           </div>
         </Modal>
       )}
@@ -1890,8 +1892,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             })}
           </section>
           <div className="modal-actions">
-            <button type="button" onClick={() => setModal(null)}>Annuler</button>
-            <button type="button" className="primary" onClick={saveLayout}>Enregistrer</button>
+            <Button onClick={() => setModal(null)}>Annuler</Button>
+            <Button variant="primary" onClick={saveLayout}>Enregistrer</Button>
           </div>
         </Modal>
       )}
@@ -2095,8 +2097,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           )}
 
           <div className="modal-actions">
-            <button type="button" onClick={() => setModal(null)}>Annuler</button>
-            <button type="button" className="primary" onClick={save}>{['edit-domain', 'edit-capability', 'edit-app'].includes(modal) ? 'Enregistrer' : 'Créer'}</button>
+            <Button onClick={() => setModal(null)}>Annuler</Button>
+            <Button variant="primary" onClick={save}>{['edit-domain', 'edit-capability', 'edit-app'].includes(modal) ? 'Enregistrer' : 'Créer'}</Button>
           </div>
         </Modal>
       )}
