@@ -428,12 +428,14 @@ test.describe('Cartographie unifiée', () => {
   test('permet de masquer indépendamment les intitulés des axes dans Structure', async ({ page }) => {
     await page.goto('/');
     const map = page.getByTestId('capability-map');
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByRole('button', { name: /Structure/ }).click();
     let options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').uncheck();
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
     await expect(map.locator('.mosaic-column-heading')).toHaveCount(0);
     await expect(map.locator('.mosaic-row-heading')).toHaveCount(3);
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByRole('button', { name: /Structure/ }).click();
     options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').check();
@@ -441,6 +443,7 @@ test.describe('Cartographie unifiée', () => {
     await page.getByRole('button', { name: 'Enregistrer' }).last().click();
     await expect(map.locator('.mosaic-column-heading')).toHaveCount(4);
     await expect(map.locator('.mosaic-row-heading')).toHaveCount(0);
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByRole('button', { name: /Structure/ }).click();
     options = page.getByTestId('axis-heading-options');
     await options.getByLabel('Afficher les titres des colonnes').uncheck();
@@ -461,6 +464,7 @@ test.describe('Cartographie unifiée', () => {
     expect(mosaic).not.toBeNull();
     expect(mosaic!.width).toBeGreaterThan(workspace!.width * 0.85);
 
+    await page.getByTestId('map-more-actions').locator('summary').click();
     const inventoryToggle = page.getByTestId('map-inventory-toggle');
     await expect(inventoryToggle).toHaveAttribute('aria-expanded', 'false');
     await inventoryToggle.click();
@@ -473,6 +477,7 @@ test.describe('Cartographie unifiée', () => {
 
   test('conserve huit colonnes dans la largeur de la zone de travail', async ({ page }) => {
     await page.goto('/');
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByRole('button', { name: /Structure/ }).click();
     const addColumn = page.getByRole('button', { name: /Ajouter une colonne/ });
     for (let index = 0; index < 4; index += 1) await addColumn.click();
@@ -652,6 +657,7 @@ test.describe('Cartographie unifiée', () => {
 
     // Les axes à huit colonnes restent compacts, mais ne doivent ni écraser
     // les titres contre les actions ni éjecter le quatrième N1 hors de la grille.
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByRole('button', { name: /Structure/ }).click();
     const addColumn = page.getByRole('button', { name: /Ajouter une colonne/ });
     for (let index = 0; index < 4; index += 1) await addColumn.click();
@@ -814,6 +820,7 @@ test.describe('Cartographie unifiée', () => {
     const presentationPage = await presentationPromise;
     await presentationPage.waitForLoadState();
     await expect(presentationPage.locator('.mosaic-domain .cap').first()).toBeVisible();
+    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('presentation-director-toggle').click();
     const panel = page.getByTestId('presentation-director-panel');
     await expect(panel).toBeVisible();
@@ -850,6 +857,7 @@ test.describe('Cartographie unifiée', () => {
       const presentationPage = await presentationPromise;
       await presentationPage.waitForLoadState();
       await expect(presentationPage.locator('.mosaic-domain .cap').first()).toBeVisible();
+      await page.getByTestId('map-more-actions').locator('summary').click();
       await page.getByTestId('presentation-director-toggle').click();
       const domainSelect = page.getByTestId('presentation-director-domain');
       await domainSelect.selectOption({ index: 1 });
