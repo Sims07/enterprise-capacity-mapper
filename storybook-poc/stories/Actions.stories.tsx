@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Button } from '../../src/components/ui/Button.tsx';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { withSignalTheme, storyGrid, storyPanel, storyHelp } from './storyFrame.tsx';
 
@@ -15,18 +16,18 @@ export const Boutons: Story = {
     <section style={storyPanel}>
       <h3>Actions principales et secondaires</h3>
       <div className="canvas-actions" style={{ flexWrap: 'wrap', marginLeft: 0 }}>
-        <button type="button" className="primary">＋ Application</button>
-        <button type="button" className="secondary">Inventaire SI</button>
-        <button type="button" disabled>Indisponible</button>
+        <Button type="button" variant="primary">＋ Application</Button>
+        <Button type="button" variant="secondary">Inventaire SI</Button>
+        <Button type="button" disabled>Indisponible</Button>
       </div>
     </section>
     <section style={storyPanel}>
       <h3>Actions iconographiques</h3>
       <div style={{ display: 'flex', gap: 'var(--signal-space-2)' }}>
-        <button type="button" className="icon-btn" aria-label="Monter">↑</button>
-        <button type="button" className="icon-btn" aria-label="Descendre">↓</button>
-        <button type="button" className="icon-btn danger" aria-label="Supprimer">×</button>
-        <button type="button" className="icon-btn" disabled aria-label="Indisponible">↷</button>
+        <Button type="button" variant="icon" className="icon-btn" aria-label="Monter">↑</Button>
+        <Button type="button" variant="icon" className="icon-btn" aria-label="Descendre">↓</Button>
+        <Button type="button" variant="danger" className="icon-btn" aria-label="Supprimer">×</Button>
+        <Button type="button" variant="icon" className="icon-btn" disabled aria-label="Indisponible">↷</Button>
       </div>
     </section>
   </div>,
@@ -37,8 +38,8 @@ function TabsDemo() {
   return <section style={storyPanel}>
     <div className="analysis-view-switch" aria-label="Vues d'analyse" role="group" style={{ padding: 0, borderBottom: 0 }}>
       {([{ id: 'overview', title: 'Vue d’ensemble' }, { id: 'coverage', title: 'Couverture' }, { id: 'impact', title: 'Impact' }] as const).map(item =>
-        <button key={item.id} type="button" aria-pressed={selected === item.id} className={selected === item.id ? 'active' : ''}
-          onClick={() => setSelected(item.id)}>{item.title}</button>)}
+        <Button key={item.id} type="button" aria-pressed={selected === item.id} className={selected === item.id ? 'active' : ''}
+          onClick={() => setSelected(item.id)}>{item.title}</Button>)}
     </div>
     <p aria-live="polite" style={storyHelp}>Vue sélectionnée : {selected}</p>
   </section>;
@@ -60,18 +61,18 @@ function MenuDemo() {
   return <section style={storyPanel}>
     <h3>Menu Outils</h3>
     <div ref={ref} className="toolbar" style={{ position: 'relative', display: 'inline-flex' }}>
-      <button type="button" className="secondary toolbar-tools-toggle" aria-expanded={open}
-        aria-controls="storybook-tools-panel" onClick={() => setOpen(value => !value)}>⋯ Outils</button>
+      <Button type="button" className="secondary toolbar-tools-toggle" aria-expanded={open}
+        aria-controls="storybook-tools-panel" onClick={() => setOpen(value => !value)}>⋯ Outils</Button>
       {open && <div className="toolbar-tools-panel" id="storybook-tools-panel">
         <section className="toolbar-menu-group" aria-label="Données">
           <h3 className="toolbar-menu-heading">Données</h3>
-          <button type="button" onClick={() => choose('Export JSON')}>Exporter en JSON</button>
-          <button type="button" onClick={() => choose('Import JSON')}>Importer depuis JSON</button>
+          <Button type="button" variant="quiet" onClick={() => choose('Export JSON')}>Exporter en JSON</Button>
+          <Button type="button" variant="quiet" onClick={() => choose('Import JSON')}>Importer depuis JSON</Button>
         </section>
         <div className="toolbar-menu-divider" role="separator" />
         <section className="toolbar-menu-group" aria-label="Affichage">
           <h3 className="toolbar-menu-heading">Affichage</h3>
-          <button type="button" onClick={() => choose('Thème sombre')}>Thème sombre</button>
+          <Button type="button" variant="quiet" onClick={() => choose('Thème sombre')}>Thème sombre</Button>
         </section>
       </div>}
     </div>
@@ -83,12 +84,12 @@ export const MenuDeroulant: Story = { render: () => <MenuDemo /> };
 function ChoiceDemo() {
   const [value, setValue] = useState('2');
   return <div className="template-grid depth-choice" style={{ maxWidth: 680 }}>
-    <button type="button" className="template-card" aria-pressed={value === '1'} onClick={() => setValue('1')}>
+    <Button type="button" variant="quiet" className="template-card" aria-pressed={value === '1'} onClick={() => setValue('1')}>
       <b>Vue synthétique</b><p>Domaines N0 sans détail des capacités.</p><small>1 niveau</small>
-    </button>
-    <button type="button" className="template-card" aria-pressed={value === '2'} onClick={() => setValue('2')}>
+    </Button>
+    <Button type="button" className="template-card" aria-pressed={value === '2'} onClick={() => setValue('2')}>
       <b>Vue détaillée</b><p>Domaines N0 et capacités N1 pour l'analyse.</p><small>2 niveaux · Recommandé</small>
-    </button>
+    </Button>
   </div>;
 }
 export const CartesDeSelection: Story = { render: () => <ChoiceDemo /> };
