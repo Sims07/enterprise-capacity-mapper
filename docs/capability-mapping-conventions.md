@@ -145,3 +145,10 @@ La revue de décisions distingue les preuves, les questions à instruire et les 
 La légende est propre à la lecture choisie : **Applications** explicite les liens SI actuels/cibles, **Couverture** distingue les quatre états fonctionnels déclarés, **Maturité** décrit actuel/cible et inconnue, **Écarts** signale les cas à instruire. Le bandeau N0 exprime uniquement l'identité du domaine. Les pastilles N1 distinguent explicitement « Non couverte », « Partielle », « Suffisante » et « À évaluer », sans inférence depuis le nombre d'applications.
 
 **Densité : Confortable/Compacte** est une préférence d'affichage locale : elle n'agit que sur les espacements, jamais sur les identifiants, lignes, colonnes, spans ou relations. Aucun N1 n'est masqué. Le mode présentation possède sa propre composition indépendante.
+
+## Repli de la grille après suppression d'un domaine N0
+
+La suppression d'un domaine retire ses N1 et nettoie les relations applicatives selon les règles du catalogue. L'affichage de la cartographie se **replie automatiquement** sur les lignes de grille libérées, lorsque celles-ci ont été créées automatiquement sous le nom `Ligne N` et ne sont plus occupées par aucun N0.
+
+Une ligne traversée par le `rowSpan` d'un N0 reste occupée. Les lignes métier explicitement nommées (par exemple « Support »), les lignes contenant une zone personnalisée et au moins une ligne d'insertion sont conservées, même si elles sont vides. Les colonnes, les identifiants des N0 restants, leurs spans, leurs relations et les préférences de présentation ne changent pas. Une nouvelle insertion peut à nouveau étendre la grille si nécessaire. L'opération est enregistrée avec le modèle et reste compatible avec l'historique Annuler/Rétablir.
+
