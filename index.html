@@ -13,6 +13,43 @@
 <body>
   <div id="root"></div>
   <script type="module">
+    // This bootstrap is intentionally inline: it must still run if the hashed
+    // application bundle no longer exists after a GitHub Pages deployment.
+    const BUNDLE_RETRY_KEY = 'ecm:missing-bundle-retry';
+    const BUNDLE_REFRESH_PARAM = 'ecm_refresh';
+    const isMissingBundle = error =>
+      /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk .* failed|ChunkLoadError|Failed to load module script/i
+        .test(String(error?.message ?? error));
+
+    const showRecoveryError = () => {
+      const root = document.getElementById('root');
+      if (!root) return;
+      const message = document.createElement('p');
+      message.textContent = "Une ressource de l'application n'est plus disponible. Rechargez la page pour récupérer la dernière version.";
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Recharger l’application';
+      button.addEventListener('click', () => {
+        sessionStorage.removeItem(BUNDLE_RETRY_KEY);
+        window.location.reload();
+      });
+      root.replaceChildren(message, button);
+    };
+    const recoverMissingBundle = error => {
+      if (!isMissingBundle(error)) return false;
+      if (sessionStorage.getItem(BUNDLE_RETRY_KEY)) {
+        showRecoveryError();
+        return true;
+      }
+      sessionStorage.setItem(BUNDLE_RETRY_KEY, '1');
+      const url = new URL(window.location.href);
+      url.searchParams.set(BUNDLE_REFRESH_PARAM, String(Date.now()));
+      window.location.replace(url.href);
+      return true;
+    };
+    window.addEventListener('unhandledrejection', event => {
+      if (recoverMissingBundle(event.reason)) event.preventDefault();
+    });
     const startApplication = async () => {
       if (import.meta.env.DEV && 'serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -26,7 +63,16 @@
       }
       await import('./src/main.tsx');
     };
-    startApplication().catch(console.error);
+    startApplication().then(() => {
+      sessionStorage.removeItem(BUNDLE_RETRY_KEY);
+      const url = new URL(window.location.href);
+      if (url.searchParams.has(BUNDLE_REFRESH_PARAM)) {
+        url.searchParams.delete(BUNDLE_REFRESH_PARAM);
+        window.history.replaceState(window.history.state, '', url.href);
+      }
+    }).catch(error => {
+      if (!recoverMissingBundle(error)) console.error(error);
+    });
   </script>
 </body>
 </html>
