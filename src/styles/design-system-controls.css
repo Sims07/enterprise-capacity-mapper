@@ -1,0 +1,106 @@
+/* Primitives Signal : production et catalogue Storybook utilisent les mêmes classes/tokens. */
+.app.signal-experience .field > span {
+  color: var(--color-text);
+}
+.app.signal-experience .field > input,
+.app.signal-experience .field > select,
+.app.signal-experience .field > textarea {
+  min-height: 38px;
+  width: 100%;
+  padding: var(--signal-space-2) var(--signal-space-3);
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+}
+.app.signal-experience .field > textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+.app.signal-experience .field :is(input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: .55;
+  background: var(--color-surface-muted);
+}
+.app.signal-experience .field :is(input, select, textarea):focus-visible,
+.app.signal-experience .ds-check input:focus-visible,
+.app.signal-experience .modal-head button:focus-visible,
+.app.signal-experience .context-menu button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience .field.has-error > :is(input, select, textarea) {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 1px var(--color-danger);
+}
+.app.signal-experience .field-error { color: var(--color-danger); }
+.app.signal-experience .ds-field-hint {
+  display: block;
+  margin-top: var(--signal-space-1);
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.app.signal-experience .ds-check {
+  display: inline-flex;
+  gap: var(--signal-space-2);
+  align-items: flex-start;
+  color: var(--color-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.app.signal-experience .ds-check input { accent-color: var(--color-accent); }
+.app.signal-experience .ds-check small {
+  display: block;
+  margin-top: var(--signal-space-1);
+  color: var(--color-text-muted);
+}
+.app.signal-experience .ds-check:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+.app.signal-experience .context-menu {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-overlay);
+}
+.app.signal-experience .context-menu button {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+.app.signal-experience .context-menu button:hover {
+  background: var(--color-surface-hover);
+}
+.app.signal-experience .modal-head button { color: var(--color-text); }
+.app.signal-experience .modal-actions button:disabled,
+.app.signal-experience .canvas-actions button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.app.signal-experience .ds-feedback {
+  padding: var(--signal-space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+  font-size: 12px;
+}
+.app.signal-experience .ds-feedback[data-tone="success"] {
+  color: var(--status-covered-text);
+  border-color: var(--status-covered-bg);
+  background: var(--status-covered-bg);
+}
+.app.signal-experience .ds-feedback[data-tone="warning"] {
+  color: var(--status-gap-text);
+  border-color: var(--status-gap-bg);
+  background: var(--status-gap-bg);
+}
+.app.signal-experience .ds-feedback[data-tone="error"] {
+  color: var(--status-critical-text);
+  border-color: var(--status-critical-bg);
+  background: var(--status-critical-bg);
+}
+.app.signal-experience.theme-dark .ds-feedback[data-tone] {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
