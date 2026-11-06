@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   addLayoutDraftItem,
   completeLayoutZones,
+  groupDomainsByPlacement,
   isDomainPlacementAvailable,
   prepareLayoutForSave,
   prepareDomainPlacement,
@@ -233,4 +234,43 @@ test('inserts before a spanning N0 without changing its dimensions', () => {
   });
   assert.equal(planned.layout.layers.length, 3);
   assert.equal(prepareNewDomainSlot({ layout: source, domains, beforeDomainId: 'missing', newLayerId: 'extension' }), null);
+});
+
+test('stacks N0 with identical cell coordinates in reading order and rejects partial intersections', () => {
+  const columns = draft().columns;
+  const layers = draft().layers;
+  const domains = [
+    { id: 'messages', layout: { columnId: 'c2', layerId: 'l2' } },
+    { id: 'finance', layout: { columnId: 'c1', layerId: 'l1' } },
+    { id: 'notifications', layout: { columnId: 'c2', layerId: 'l2' } },
+  ];
+  assert.deepEqual(groupDomainsByPlacement({ domains, columns, layers }).map(group => group.map(item => item.id)),
+    [['messages', 'notifications'], ['finance']]);
+  assert.equal(isDomainPlacementAvailable({
+    domains: domains.slice(0, 2), columns, layers, columnId: 'c2', layerId: 'l2',
+    columnSpan: 1, allowExactOverlap: true,
+  }), true);
+  assert.equal(isDomainPlacementAvailable({
+    domains: domains.slice(0, 2), columns, layers, columnId: 'c1', layerId: 'l2',
+    columnSpan: 2, allowExactOverlap: true,
+  }), false);
+  assert.equal(prepareLayoutForSave(draft(), { mode: 'mosaic' }, domains)?.domains.length, 3);
+});
+
+test('same multi-row footprint is stackable but a partial span remains forbidden', () => {
+  const source = draft();
+  const domains = [{ id: 'messages', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2 } }];
+  assert.equal(isDomainPlacementAvailable({
+    domains, columns: source.columns, layers: source.layers, columnId: 'c1', layerId: 'l1',
+    columnSpan: 2, rowSpan: 2, allowExactOverlap: true,
+  }), true);
+  assert.equal(isDomainPlacementAvailable({
+    domains, columns: source.columns, layers: source.layers, columnId: 'c1', layerId: 'l1',
+    columnSpan: 2, rowSpan: 1, allowExactOverlap: true,
+  }), false);
+  assert.notEqual(prepareDomainPlacement({
+    domains: [...domains, { id: 'notifications', layout: { columnId: 'c1', layerId: 'l2', columnSpan: 2 } }],
+    layout: source, columns: source.columns, layers: source.layers, domainId: 'notifications',
+    columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2, allowExactOverlap: true,
+  }), null);
 });
