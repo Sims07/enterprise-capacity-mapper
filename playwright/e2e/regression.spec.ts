@@ -710,3 +710,36 @@ test('ne compte pas une application uniquement cible dans la couverture actuelle
   await expect(capability).toContainText('Gap');
   await expect(capability).toContainText('1 cible(s)');
 });
+
+
+test.describe('PWA — disparition de bundles hashés après déploiement', () => {
+  test('récupère automatiquement un nouvel index si le bundle applicatif répond 404 une fois', async ({ page }) => {
+    let missingBundleCount = 0;
+    await page.route('**/assets/app-*.js', async route => {
+      if (missingBundleCount === 0) {
+        missingBundleCount++;
+        await route.fulfill({ status: 404, contentType: 'text/plain', body: 'Previous release bundle removed' });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await expect(page.getByTestId('capability-map')).toBeVisible({ timeout: 20000 });
+    expect(missingBundleCount).toBe(1);
+    await expect.poll(() => page.evaluate(() => sessionStorage.getItem('ecm:missing-bundle-retry'))).toBeNull();
+    await expect.poll(() => page.url()).not.toContain('ecm_refresh');
+  });
+
+  test('arrête la relance automatique si la ressource reste absente et propose une reprise manuelle', async ({ page }) => {
+    let missingBundleCount = 0;
+    await page.route('**/assets/app-*.js', async route => {
+      missingBundleCount++;
+      await route.fulfill({ status: 404, contentType: 'text/plain', body: 'Missing release bundle' });
+    });
+    await page.goto('/');
+    await expect(page.getByText(/Une ressource de l'application n'est plus disponible/)).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole('button', { name: 'Recharger l’application' })).toBeVisible();
+    expect(missingBundleCount).toBe(2);
+  });
+});
