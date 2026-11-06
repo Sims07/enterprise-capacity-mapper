@@ -51,3 +51,21 @@ La même surface peut occuper deux rangées internes aux résolutions intermédi
 ### Critère de validation utilisateur
 
 Sur une cartographie comportant 6–8 colonnes et 4 N1 ou plus par N0, vérifier que la mosaïque commence plus haut, que les commandes métier se retrouvent facilement et que le focus de toutes les commandes reste visible. La refonte n'est réussie que si elle allège l'interface sans compliquer l'ajout d'applications ni l'accès à la Structure et aux relations.
+
+## Lot document-first — hiérarchie de l'en-tête (06/11/2026)
+
+La réduction de commandes à une seule barre de carte n'avait pas suffi : la navigation, les retours de sauvegarde et les actions d'édition restaient mélangés dans l'en-tête, tandis que la seconde barre reproduisait une série de boutons encadrés.
+
+**Comportement implémenté :**
+- **Titre réel du document** affiché à gauche sous l'identité discrète Capacity Mapper ; titre élidé avec `title` complet quand il est trop long. L'enregistrement automatique reste explicite (local seulement), avec erreur et action de récupération conservées.
+- **Navigation horizontale** Cartographie / Analyse / Bibliothèque visuellement distinguée des autres commandes par un état sélectionné souligné et un fond transparent. Outils demeure dans le rail de navigation pour garantir les parcours mobiles existants, mais est stylé comme commande de menu.
+- **Historique** dans la barre de travail de la cartographie (actions accessibles au clavier, icônes avec noms accessibles) ; reste dans le bandeau global sur les autres pages afin de ne pas supprimer une capacité fonctionnelle.
+- **Présentation** toujours un switch dans le bandeau ouvrant sa fenêtre indépendante, sans changement de synchronisation.
+- **Lecture métier**, recherche et créations séparées par leur langage visuel : onglets de lecture, champ de recherche et commandes de création ; seule « + Application » est fortement accentuée. « + Domaine N0 » et l'accès aux options restent visibles.
+- **Responsive** : sur petits écrans, la navigation garde ses trois destinations et l'emplacement Outils ; les contrôles de la carte se replient sans retirer de fonctions.
+
+**Invariants :** N0/N1, spans 2D, placements, états d'évaluation, relations, stockage local JSON, PWA, vue présentation et raccourcis clavier inchangés. Design tokens SIGNAL existants employés.
+
+**Vérifications :** `playwright/e2e/signal-experience.spec.ts` valide l'association nom/statut, l'absence d'espace perdu entre identité et navigation, le placement de l'historique, la barre de commandes, les transitions Analyse/Cartographie et un viewport mobile. Storybook expose `DocumentFirstHeader` depuis la vraie application.
+
+**Attention :** cette refonte découle d'un retour illustré et d'un audit du code, pas d'une mesure utilisateur. Les scénarios comparatifs sont documentés dans `docs/ux/header-hierarchy-audit-2026-11-06.md`. Les retours de comité/atelier doivent confirmer la lisibilité et la rapidité de découverte des commandes.
