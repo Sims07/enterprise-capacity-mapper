@@ -1326,10 +1326,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
 
   const historyControls = (
-            <div className="toolbar-history" role="group" aria-label="Historique des modifications">
+    <div className="toolbar-history" role="group" aria-label="Historique des modifications">
               <button type="button" data-testid="undo-button" className="secondary history-button" aria-label="Annuler" aria-keyshortcuts="Control+Z Meta+Z" title="Annuler la dernière modification (Ctrl+Z)" disabled={!historyState.canUndo} onClick={undo}><span className="history-button-icon" aria-hidden="true">↶</span><span className="history-button-label">Annuler</span></button>
               <button type="button" data-testid="redo-button" className="secondary history-button" aria-label="Rétablir" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" title="Rétablir la modification (Ctrl+Y ou Ctrl+Maj+Z)" disabled={!historyState.canRedo} onClick={redo}><span className="history-button-icon" aria-hidden="true">↷</span><span className="history-button-label">Rétablir</span></button>
-            </div>
+    </div>
   );
 
   return (
@@ -1337,7 +1337,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       <header>
         <div className="shell-identity" data-testid="document-context">
           <div className="shell-product-name">Enterprise Architecture · Capacity Mapper</div>
-          <div className="shell-document-name" data-testid="active-map-name" title={model.metadata?.name || 'Cartographie sans nom'}>{model.metadata?.name || 'Cartographie sans nom'}</div>
+          <h1 className="shell-document-name" data-testid="active-map-name" title={model.metadata?.name || 'Cartographie sans nom'}>{model.metadata?.name || 'Cartographie sans nom'}</h1>
             {!isPresentationWindow && (
               <div
                 className={`autosave-control autosave-control--${workingCopySaveError ? 'error' : autoSaveState}`}
