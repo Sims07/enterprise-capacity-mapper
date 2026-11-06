@@ -145,3 +145,8 @@ La revue de décisions distingue les preuves, les questions à instruire et les 
 La légende est propre à la lecture choisie : **Applications** explicite les liens SI actuels/cibles, **Couverture** distingue les quatre états fonctionnels déclarés, **Maturité** décrit actuel/cible et inconnue, **Écarts** signale les cas à instruire. Le bandeau N0 exprime uniquement l'identité du domaine. Les pastilles N1 distinguent explicitement « Non couverte », « Partielle », « Suffisante » et « À évaluer », sans inférence depuis le nombre d'applications.
 
 **Densité : Confortable/Compacte** est une préférence d'affichage locale : elle n'agit que sur les espacements, jamais sur les identifiants, lignes, colonnes, spans ou relations. Aucun N1 n'est masqué. Le mode présentation possède sa propre composition indépendante.
+
+
+## Empilement des domaines N0 dans une ligne
+
+Une ligne (layer) est un axe de lecture métier, pas un emplacement réservé à un seul N0. Plusieurs domaines N0 peuvent partager **exactement la même cellule** (colonne, layer et spans identiques) : ils apparaissent verticalement dans leur ordre de création, en édition comme en présentation. Le JSON conserve leurs placements sans sous-ligne artificielle ni nouveau champ. Les intersections partielles de spans restent interdites. Le menu d'actions propose « Ajouter un N0 en dessous » et le formulaire peut sélectionner une cellule déjà occupée.
