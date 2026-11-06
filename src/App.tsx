@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
 import type { MapDensity } from './adapters/browser/appPreferences.ts';
 import MapReadingDisclosure from './components/MapReadingDisclosure.tsx';
+import MapActionsMenu from './components/MapActionsMenu.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
@@ -1584,7 +1585,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             </>
           ) : (
             <>
-              <div className="map-controls-row">
+              <div className="map-controls-row map-unified-controls" data-testid="map-unified-controls">
                 <div className="map-filter-bar">
                   <label className="map-filter-control">
                     <span>Filtrer les domaines</span>
@@ -1598,24 +1599,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </label>
                   <span className="filter-count" aria-live="polite">{visibleDomains.length} / {model.domains.length} domaines</span>
                 </div>
-                <div className="canvas-actions map-primary-actions">
-                  <button type="button" className="primary signal-add-application" data-testid="signal-add-application" onClick={() => openNew('app')}>＋ Application</button>
-                  <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
-                  <button type="button" className="secondary map-quiet-action" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory} onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer l’inventaire' : `Inventaire SI (${apps.length})`}</button>
-                  <button type="button" className="secondary map-quiet-action" onClick={openLayoutEditor}>⚙ Structure</button>
-                  <button type="button" className="help-icon map-quiet-action" aria-label="Aide TOGAF" onClick={() => setGuideOpen(true)} title="Aide TOGAF">?</button>
-                </div>
-              </div>
-
-              {!presentation && depth === 2 && (
-                <section className="capability-reading-toolbar" data-testid="capability-reading-toolbar" aria-label="Lire la cartographie métier">
-                  <div className="capability-reading-intro">
-                    <strong>Lecture métier</strong>
-                    <span>{MAP_READING_MODES.find(reading => reading.id === mapReadingMode)?.help}</span>
-                  </div>
-                  <div className="capability-reading-summary" data-testid="capability-reading-summary">
-                    <span><strong>{[...capabilityFindings.values()].filter(finding => finding.needsQualification).length}</strong> à qualifier</span>
-                  </div>
+                {!presentation && depth === 2 && (
+                  <section className="capability-reading-toolbar" data-testid="capability-reading-toolbar" aria-label="Lire la cartographie métier">
+                    <div className="capability-reading-intro">
+                      <strong>Lecture métier</strong>
+                      <span>{MAP_READING_MODES.find(reading => reading.id === mapReadingMode)?.help}</span>
+                    </div>
                   <div className="capability-reading-options" role="group" aria-label="Mode de lecture des capacités">
                     {MAP_READING_MODES.map(reading => (
                       <button type="button" key={reading.id} data-testid={`map-reading-${reading.id}`}
@@ -1624,13 +1613,29 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                         onClick={() => setMapReadingMode(reading.id)}>{reading.label}</button>
                     ))}
                   </div>
+                  <div className="capability-reading-summary" data-testid="capability-reading-summary">
+                    <span><strong>{[...capabilityFindings.values()].filter(finding => finding.needsQualification).length}</strong> à qualifier</span>
+                  </div>
                   <MapReadingDisclosure mode={mapReadingMode} density={mapDensity}
                     onDensityChange={nextDensity => {
                       setMapDensity(nextDensity);
                       preferences.writeMapDensity(nextDensity);
                     }} />
-                  <button type="button" className="capability-diagnostic-shortcut" data-testid="capability-diagnostic-shortcut"
-                    onClick={openBusinessDiagnosis}>{[...capabilityFindings.values()].filter(finding => finding.signals.length > 0).length} écarts à examiner</button>
+                  </section>
+                )}
+                <div className="canvas-actions map-primary-actions">
+                  <button type="button" className="primary signal-add-application" data-testid="signal-add-application" onClick={() => openNew('app')}>＋ Application</button>
+                  <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
+                  <MapActionsMenu onDismiss={() => setPresentationDirectorOpen(false)}>
+                    <button type="button" data-map-menu-close="true" className="map-actions-menu-item" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory}
+                      onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer l’inventaire' : `Inventaire SI (${apps.length})`}</button>
+                    <button type="button" data-map-menu-close="true" className="map-actions-menu-item" onClick={openLayoutEditor}>Structure de la carte</button>
+                    <button type="button" data-map-menu-close="true" className="map-actions-menu-item" onClick={() => setGuideOpen(true)}>Aide TOGAF</button>
+                    {depth === 2 && <>
+                      <div className="map-actions-menu-divider" role="separator" />
+                      <button type="button" data-map-menu-close="true" className="map-actions-menu-item" data-testid="capability-diagnostic-shortcut" onClick={openBusinessDiagnosis}>
+                        Examiner les écarts ({[...capabilityFindings.values()].filter(finding => finding.signals.length > 0).length})
+                      </button>
                   <div className="presentation-director">
                     <button type="button" className="presentation-director-toggle" data-testid="presentation-director-toggle"
                       aria-expanded={presentationDirectorOpen} onClick={() => setPresentationDirectorOpen(value => !value)}>Piloter la présentation</button>
@@ -1661,8 +1666,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                       </div>
                     </div>}
                   </div>
-                </section>
-              )}
+                    </>}
+                  </MapActionsMenu>
+                </div>
+              </div>
               {capabilityMap}
             </>
           )}
