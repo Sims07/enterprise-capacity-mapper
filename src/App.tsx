@@ -1629,7 +1629,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   <MapActionsMenu onDismiss={() => setPresentationDirectorOpen(false)}>
                     <button type="button" data-map-menu-close="true" className="map-actions-menu-item" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory}
                       onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer l’inventaire' : `Inventaire SI (${apps.length})`}</button>
-                    <button type="button" data-map-menu-close="true" className="map-actions-menu-item" onClick={openLayoutEditor}>Structure de la carte</button>
+                    <button type="button" data-map-menu-close="true" className="map-actions-menu-item" onClick={openLayoutEditor}>Structure</button>
                     <button type="button" data-map-menu-close="true" className="map-actions-menu-item" onClick={() => setGuideOpen(true)}>Aide TOGAF</button>
                     {depth === 2 && <>
                       <div className="map-actions-menu-divider" role="separator" />
