@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Field } from './components/ui/Fields.tsx';
+import { Modal } from './components/ui/Modal.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
 import { analyzeCapabilityGaps } from './domain/capabilityGaps.ts';
@@ -81,30 +83,6 @@ const mixDomainColor = (foreground, background, amount) => {
 };
 const emptyForm = { name: '', code: '', description: '', status: 'Actif', type: 'SaaS', vendor: '', domainId: '', capabilityIds: [], columnId: '', layerId: '', columnSpan: '1', color: DOMAIN_COLORS.indigo, priority: 'unqualified', assessment: { functionalCoverage: 'unknown' as CapabilityAssessment['functionalCoverage'], currentMaturity: undefined as number | undefined, targetMaturity: undefined as number | undefined, rationale: '' } };
 const DEFAULT_LAYOUTS = { columns: [{ id: 'business', name: 'Business', order: 0 }, { id: 'operations', name: 'Operations', order: 1 }, { id: 'support', name: 'Support', order: 2 }], layers: [{ id: 'strategic', name: 'Stratégique', order: 0 }, { id: 'core', name: 'Core / Value', order: 1 }, { id: 'support', name: 'Support', order: 2 }] };
-
-function Modal({ title, children, onClose }) {
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()}>
-        <div className="modal-head">
-          <h2>{title}</h2>
-          <button type="button" onClick={onClose}>×</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, required = false, error = undefined, ...p }) {
-  return (
-    <label className={'field ' + (error ? 'has-error' : '')}>
-      <span>{label}{required && <b className="required" aria-hidden="true"> *</b>}</span>
-      <input aria-required={required} aria-invalid={!!error} {...p} />
-      {error && <small className="field-error">{error}</small>}
-    </label>
-  );
-}
 
 function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mobile' } = {}) {
   const applicationRef = useRef(null);
@@ -1767,7 +1745,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </div>
       )}
 
-      {status && <div className="toast">{status}</div>}
+      {status && <div className="toast" role="status" aria-live="polite">{status}</div>}
       {modal === 'wizard' && <NewMapWizard model={model} onCancel={closeWizard} onCreate={createMap} />}
       {guideOpen && <TogafGuide onClose={() => setGuideOpen(false)} />}
 

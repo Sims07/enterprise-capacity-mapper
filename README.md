@@ -9,7 +9,7 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 
 ## Storybook
 
-Consultez le catalogue des composants UI et du design system dans le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/).
+Consultez le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/) : formulaires, inputs, dropdowns, boutons, navigation, menus, pop-ups, messages, tokens et composants métier en thèmes clair/sombre. [Inventaire et scénarios de test](docs/storybook-poc.md).
 
 ## Design system Signal
 
