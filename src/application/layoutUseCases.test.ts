@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   addLayoutDraftItem,
+  collapseLayoutAfterDomainRemoval,
   completeLayoutZones,
   isDomainPlacementAvailable,
   prepareLayoutForSave,
@@ -233,4 +234,20 @@ test('inserts before a spanning N0 without changing its dimensions', () => {
   });
   assert.equal(planned.layout.layers.length, 3);
   assert.equal(prepareNewDomainSlot({ layout: source, domains, beforeDomainId: 'missing', newLayerId: 'extension' }), null);
+});
+
+test('domain deletion use case collapses an empty generated row, not an authored row', () => {
+  const layout = {
+    columns: [{ id: 'c1', name: 'Business' }],
+    layers: [{ id: 'l1', name: 'Support' }, { id: 'l2', name: 'Ligne 2' }],
+    zones: [],
+  };
+  const kept = [{ id: 'remaining', layout: { columnId: 'c1', layerId: 'l1' } }];
+  const compacted = collapseLayoutAfterDomainRemoval(layout, kept);
+  assert.deepEqual(compacted.layers?.map(layer => layer.id), ['l1']);
+  assert.equal(layout.layers.length, 2);
+  assert.equal(collapseLayoutAfterDomainRemoval(
+    { ...layout, layers: layout.layers.map((layer, index) => index ? { ...layer, name: 'Autre activité' } : layer) },
+    kept,
+  ).layers?.length, 2);
 });

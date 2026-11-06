@@ -169,3 +169,77 @@ test('MapLayout validates persisted rectangle collisions and keeps legacy exact-
     { id: 'd2', layout: { columnId: 'c2', layerId: 'l1' } },
   ]), null, 'partial overlaps are rejected even for legacy matrix data');
 });
+
+test('MapLayout collapses unused generated rows without moving domains or breaking zone metadata', () => {
+  const source = {
+    mode: 'mosaic',
+    showRowHeadings: false,
+    custom: { keep: true },
+    columns: [{ id: 'c1', name: 'Business' }, { id: 'c2', name: 'Operations' }],
+    layers: [
+      { id: 'business', name: 'Support', order: 0 },
+      { id: 'auto-1', name: 'Ligne 2', order: 1 },
+      { id: 'auto-2', name: 'Ligne 3', order: 2 },
+    ],
+    zones: [
+      { id: 'c1:business', columnId: 'c1', layerId: 'business', name: 'Messagerie' },
+      { id: 'c2:auto-2', columnId: 'c2', layerId: 'auto-2', name: 'Operations' },
+    ],
+  };
+  const domains = [
+    { id: 'messages', layout: { columnId: 'c1', layerId: 'business', columnSpan: 2 } },
+    { id: 'notifications', layout: { columnId: 'c1', layerId: 'auto-2', columnSpan: 2 } },
+  ];
+  const serialized = JSON.stringify({ source, domains });
+  const result = MapLayout.collapseUnusedGeneratedLayers(source, domains);
+
+  assert.deepEqual(result.layers?.map(layer => layer.id), ['business', 'auto-2']);
+  assert.deepEqual(result.layers?.map(layer => layer.order), [0, 1]);
+  assert.equal(result.zones?.length, 4);
+  assert.equal(result.zones?.find(zone => zone.id === 'c1:business')?.name, 'Messagerie');
+  assert.equal(result.zones?.some(zone => zone.layerId === 'auto-1'), false);
+  assert.equal(result.showRowHeadings, false);
+  assert.deepEqual(result.custom, { keep: true });
+  assert.equal(JSON.stringify({ source, domains }), serialized, 'the persisted input is not mutated');
+  assert.deepEqual(domains[1].layout, { columnId: 'c1', layerId: 'auto-2', columnSpan: 2 });
+});
+
+test('MapLayout preserves explicit business lines, named zones and rows used by a vertical span', () => {
+  const source = {
+    columns: [{ id: 'c1', name: 'Business' }],
+    layers: [
+      { id: 'business', name: 'Support' },
+      { id: 'middle', name: 'Ligne 2' },
+      { id: 'named', name: 'Exploitation' },
+      { id: 'last', name: 'Ligne 4' },
+    ],
+    zones: [
+      { id: 'c1:middle', columnId: 'c1', layerId: 'middle', name: 'Réservé à la facturation' },
+    ],
+  };
+  const remaining = [{ id: 'domain', layout: { columnId: 'c1', layerId: 'business', rowSpan: 2 } }];
+  const collapsed = MapLayout.collapseUnusedGeneratedLayers(source, remaining);
+  assert.deepEqual(collapsed.layers?.map(layer => layer.id), ['business', 'middle', 'named']);
+  assert.equal(collapsed.zones?.find(zone => zone.layerId === 'middle')?.name, 'Réservé à la facturation');
+
+  const noNamedZone = { ...source, zones: [] };
+  const spanned = MapLayout.collapseUnusedGeneratedLayers(noNamedZone, remaining);
+  assert.deepEqual(spanned.layers?.map(layer => layer.id), ['business', 'middle', 'named']);
+  assert.equal(MapLayout.collapseUnusedGeneratedLayers(noNamedZone, [
+    { id: 'invalid', layout: { columnId: 'c1', layerId: 'missing', rowSpan: 1 } },
+  ]), noNamedZone, 'invalid imported placements must not be silently reflowed');
+});
+
+test('MapLayout keeps an insertion row after the last N0 is deleted and tolerates same-cell stacks', () => {
+  const layout = {
+    columns: [{ id: 'c1', name: 'Business' }],
+    layers: [{ id: 'auto-1', name: 'Ligne 1' }, { id: 'auto-2', name: 'Ligne 2' }],
+    zones: [],
+  };
+  assert.deepEqual(MapLayout.collapseUnusedGeneratedLayers(layout, []).layers?.map(layer => layer.id), ['auto-1']);
+  const stacked = [
+    { id: 'first', layout: { columnId: 'c1', layerId: 'auto-2' } },
+    { id: 'second', layout: { columnId: 'c1', layerId: 'auto-2' } },
+  ];
+  assert.deepEqual(MapLayout.collapseUnusedGeneratedLayers(layout, stacked).layers?.map(layer => layer.id), ['auto-2']);
+});

@@ -899,3 +899,42 @@ test.describe('Cartographie unifiée', () => {
   }
 
 });
+
+test('supprimer un N0 replie la ligne créée automatiquement sans laisser de trou dans la mosaïque', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('tools-menu-toggle').click();
+  await page.getByTestId('new-map-button').click();
+  await page.getByTestId('template-blank').click();
+  await page.getByTestId('wizard-name').fill('Collapse après suppression');
+  await page.getByRole('button', { name: 'Suivant' }).click();
+  await page.getByRole('button', { name: 'Suivant' }).click();
+  await page.getByTestId('wizard-backup').uncheck();
+  await page.getByRole('button', { name: 'Créer la cartographie' }).click();
+
+  const addDomain = async (name: string, code: string) => {
+    await page.getByTestId('map-add-domain').click();
+    const dialog = page.getByRole('dialog', { name: 'Nouveau domaine N0' });
+    await dialog.getByLabel('Nom').fill(name);
+    await dialog.getByRole('textbox', { name: 'Code', exact: true }).fill(code);
+    await dialog.getByRole('button', { name: 'Créer' }).click();
+    await expect(dialog).toHaveCount(0);
+  };
+  const map = page.getByTestId('capability-map');
+  await addDomain('Gestion messagerie', 'GMS');
+  await addDomain('Gestion notifications', 'GN');
+  await expect(map.locator('.mosaic-row-heading')).toHaveCount(2);
+
+  await map.locator('.mosaic-domain').filter({ hasText: 'Gestion notifications' })
+    .locator('.domain-card').click({ button: 'right' });
+  await page.locator('.context-menu').getByRole('button', { name: 'Supprimer', exact: true }).click();
+
+  await expect(map.locator('.mosaic-domain')).toHaveCount(1);
+  await expect(map.locator('.mosaic-domain')).toContainText('Gestion messagerie');
+  await expect(map.locator('.mosaic-row-heading')).toHaveCount(1);
+  const tracks = await map.evaluate(element => getComputedStyle(element).gridTemplateRows.split(' ').length);
+  expect(tracks).toBe(2, 'one heading and one occupied row, no ghost track');
+
+  await addDomain('Gestion incidents', 'GIN');
+  await expect(map.locator('.mosaic-domain')).toHaveCount(2);
+  await expect(map.locator('.mosaic-row-heading')).toHaveCount(2);
+});

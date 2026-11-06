@@ -21,6 +21,10 @@ export const completeLayoutZones = (
   currentZones: LayoutZone[],
 ): LayoutZone[] => MapLayout.completeZones(columns, layers, currentZones);
 
+/** Collapse only empty automatically-created grid lines, preserving business axes. */
+export const collapseLayoutAfterDomainRemoval = (layout: Layout, domains: Domain[]): Layout =>
+  MapLayout.collapseUnusedGeneratedLayers(layout, domains);
+
 export const renameLayoutDraftItem = (
   draft: LayoutDraft,
   kind: 'columns' | 'layers',
