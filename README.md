@@ -11,6 +11,18 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 
 Consultez le catalogue des composants UI et du design system dans le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/).
 
+## Comparer la version stable et le design Signal (PR #241)
+
+Deux versions peuvent être présentées **en parallèle**, sans fusionner la PR :
+
+- [Version stable — GitHub Pages (branche `main`)](https://sims07.github.io/enterprise-capacity-mapper/)
+- [Version Signal — lancement interactif StackBlitz depuis la branche de PR](https://stackblitz.com/github/Sims07/enterprise-capacity-mapper/tree/docs/client-design-system-directions?startScript=dev)
+- [PR #241 — code, retours et validations](https://github.com/Sims07/enterprise-capacity-mapper/pull/241)
+
+StackBlitz importe la branche publique et exécute le serveur Vite dans le navigateur : ouvrir l'aperçu de l'application à droite, puis **Outils → Thème sombre Signal** pour retrouver la variante graphite. Les données de la démonstration sont initialement fictives et enregistrées dans le stockage local de **chaque** environnement de navigateur ; ne pas importer de données confidentielles dans le service de prévisualisation externe. Cette prévisualisation n'est pas le déploiement de production et ne valide pas à elle seule les comportements PWA hors ligne.
+
+La version Signal **conserve** la navigation supérieure, les cartes N0 multi-lignes et multi-colonnes, tous les N1, l'inventaire et les relations applicatives, l'édition, la couverture, la bibliothèque et la fenêtre de présentation synchronisée. Les tests de non-régression restent indispensables avant une éventuelle fusion.
+
 ## Architecture
 
 L'application est conçue pour rester statique, déployable sur GitHub Pages et utilisable hors ligne comme PWA. Le modèle métier et les contrats de données sont indépendants du runtime React et de la persistance navigateur.
