@@ -14,14 +14,29 @@ npm run storybook --prefix storybook-poc
 
 Ouvrir `http://localhost:6006`. Les contrôles Storybook proposent les thèmes clair et sombre et les viewports téléphone (390×844), tablette (768×1024) et bureau (1440×900).
 
-## Catalogue actuel
+## Catalogue de composants
 
-- **Application / Capacity Mapper** : l'application réelle via `ResponsiveApp`, avec ses données de démonstration, pour examiner la cartographie, la navigation, les relations, la barre d'outils et les états d'interface.
-- **Application / Capacity Mapper — Unified Map Presentation** : même application réelle, avec une composition paysage 16:9 dédiée ; les tests capturent les thèmes clair et sombre.
-- **Application / Guide TOGAF** : le vrai composant modal d'aide, avec variantes bureau et mobile.
-- **Design system / Tokens sémantiques** : aperçu des variables CSS définies dans `src/styles/tokens.css`.
+Le catalogue applique les vrais styles `src/styles/index.css`, les tokens Signal et les thèmes clair/sombre. Il référence les composants React réels lorsqu'ils existent et les classes de production lorsqu'une commande est encore native dans l'éditeur.
 
-Ajouter une story à partir du composant de production correspondant. Les états interactifs doivent utiliser des props et des données de test explicites plutôt qu'une imitation du rendu.
+| Rubrique Storybook | Contenu et états couverts | Source de production |
+| --- | --- | --- |
+| **Design system / Tokens sémantiques** | Surfaces, textes, accents, bordures, statuts, clair/sombre | `src/styles/tokens.css` |
+| **Design system / Formulaires** | Texte, recherche, e-mail, URL, nombre, date, couleur, fichier, requis, erreur, désactivé, lecture seule, dropdown, textarea, cases à cocher, boutons radio, switch, formulaire validé | `src/components/ui/Fields.tsx` et styles Signal |
+| **Design system / Actions et navigation** | Actions principales/secondaires, boutons icônes, désactivation, onglets, menu outils, cartes de choix, badges métier | Classes utilisées dans `App.tsx` / `NewMapWizard.tsx` |
+| **Design system / Superpositions et messages** | Modale de confirmation, formulaire en modale, Escape, messages neutre/succès/attention/erreur, notification toast | `src/components/ui/Modal.tsx` et styles Signal |
+| **Application / Modules métier** | Véritable assistant de création, diagnostics N0/N1 et vue relations sur modèle de démonstration | `src/components/NewMapWizard.tsx`, `Dashboard.tsx`, `CoverageTree.tsx` |
+| **Application / Capacity Mapper** | Application complète et navigation Signal, mosaïque, présentation, inventaire SI | `src/adapters/react/ResponsiveApp.tsx` |
+| **Application / Compagnon cartographe** | Composant réel et mode sombre | `src/components/CartographerCompanion.tsx` |
+| **Application / Guide TOGAF** | Modale d'aide réelle, bureau et mobile | `src/components/TogafGuide.tsx` |
+
+Les démonstrations de formulaire et de menus modifient uniquement l'état React de la story, sans enregistrer de cartographie. Les actions métier nécessitant les services de l'application restent testées dans la story **Capacity Mapper** et la suite E2E applicative, pas simulées comme des sauvegardes réussies.
+
+### Principe d'évolution
+
+- Les champs `Field`, `SelectField`, `TextareaField`, `CheckboxField`, `SwitchField` et la modale `Modal` sont les primitives réutilisables ; `App.tsx` emploie désormais les mêmes `Field` et `Modal` que le catalogue.
+- Ne pas créer une nouvelle variante en CSS figé dans une story : changer les tokens et les composants de production d'abord.
+- Documenter les états vide, erreur, désactivé, validation, clavier, mobile et thèmes lorsque c'est applicable.
+- Les écrans volumineux (cartographie, couverture, relations et compagnon) restent des composants métier, pas des primitives du design system.
 
 ## Tests de régression visuelle
 
