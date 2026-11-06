@@ -202,6 +202,16 @@
   --color-accent-border: #6479bf;
   --color-accent-on: #0d1219;
   --color-focus: #b3c1ff;
+  /* Présentation : mêmes surfaces graphite que l'éditeur SIGNAL, sans modifier la mosaïque. */
+  --map-canvas-bg: var(--color-bg);
+  --map-card-surface: var(--signal-map-surface);
+  --map-card-text: var(--color-text);
+  --map-capability-text: var(--color-text);
+  --map-capability-muted: var(--color-text-muted);
+  --map-capability-border: var(--color-border);
+  --map-presentation-control-bg: var(--color-surface-raised);
+  --map-presentation-control-border: var(--color-border-strong);
+  --map-presentation-control-text: var(--color-text);
   --dl-bg: #0d1219;
   --dl-surface: #19222d;
   --dl-surface-raised: #253142;
