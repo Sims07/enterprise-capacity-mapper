@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from 'react';
+import { Button } from './Button.tsx';
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -77,7 +78,7 @@ export function Modal({ title, children, onClose }: { title: string; children: R
       onClick={event => event.stopPropagation()}>
       <div className="modal-head">
         <h2 id={titleId}>{title}</h2>
-        <button type="button" aria-label="Fermer la fenêtre" onClick={onClose}>×</button>
+        <Button variant="icon" aria-label="Fermer la fenêtre" onClick={onClose}>×</Button>
       </div>
       {children}
     </div>

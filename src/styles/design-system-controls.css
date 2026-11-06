@@ -122,3 +122,157 @@
   min-width: var(--control-target-size);
   min-height: var(--control-target-size);
 }
+
+/* Signal : une seule grammaire visuelle pour les boutons et sélecteurs de fichier.
+ * Les classes sont partagées par Button et FilePicker, en production et Storybook.
+ * N'affecte pas les onglets, la carte ou les commandes de déplacement spécialisées.
+ */
+.app.signal-experience .ds-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--signal-space-2);
+  min-height: var(--control-target-size);
+  max-width: 100%;
+  padding: var(--signal-space-2) var(--signal-space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-family: inherit;
+  font-size: var(--ds-control-font-size);
+  font-weight: var(--ds-control-font-weight);
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast, 120ms) ease,
+    border-color var(--motion-duration-fast, 120ms) ease;
+}
+.app.signal-experience .ds-button--primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-on);
+}
+.app.signal-experience .ds-button--secondary {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.app.signal-experience .ds-button--quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-muted);
+}
+.app.signal-experience .ds-button--danger {
+  background: var(--status-critical-bg);
+  border-color: var(--color-danger);
+  color: var(--status-critical-text);
+}
+.app.signal-experience .ds-button--icon {
+  width: var(--control-target-size);
+  min-width: var(--control-target-size);
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text);
+}
+.app.signal-experience .ds-button--primary:hover:not(:disabled) {
+  color: var(--color-accent-on);
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+.app.signal-experience .ds-button--secondary:hover:not(:disabled),
+.app.signal-experience .ds-button--icon:hover:not(:disabled),
+.app.signal-experience .ds-button--quiet:hover:not(:disabled),
+.app.signal-experience .ds-file-trigger:hover:not(.is-disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent-border);
+  color: var(--color-text);
+}
+.app.signal-experience .ds-button--danger:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  background: var(--status-critical-bg);
+}
+.app.signal-experience .ds-button:focus-visible,
+.app.signal-experience .ds-file-trigger:focus-within {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.app.signal-experience .ds-button:disabled,
+.app.signal-experience .ds-file-trigger.is-disabled {
+  opacity: var(--ds-control-disabled-opacity);
+  cursor: not-allowed;
+}
+.app.signal-experience .ds-file-picker {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--signal-space-1);
+  max-width: 100%;
+}
+.app.signal-experience .ds-file-trigger {
+  position: relative;
+  cursor: pointer;
+}
+.app.signal-experience .ds-file-picker-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.app.signal-experience .ds-file-picker-symbol {
+  font-size: 1rem;
+  line-height: 1;
+}
+.app.signal-experience .ds-file-picker-detail {
+  color: var(--color-text-muted);
+  font-size: var(--ds-control-font-size);
+  overflow-wrap: anywhere;
+}
+.app.signal-experience .toolbar-tools-panel .ds-file-picker {
+  display: flex;
+  width: 100%;
+}
+.app.signal-experience .toolbar-tools-panel .ds-file-trigger {
+  width: 100%;
+  justify-content: flex-start;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app.signal-experience .ds-button {
+    transition: none;
+  }
+}
+
+/* Les onglets et cartes de sélection gardent leur structure propre tout en utilisant
+ * le même composant Button ; le style contextuel exprime leur état actif. */
+.app.signal-experience .analysis-view-switch > .ds-button {
+  min-height: var(--control-target-size);
+  border-color: transparent;
+  border-radius: var(--radius-control);
+}
+.app.signal-experience .analysis-view-switch > .ds-button.active {
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+.app.signal-experience .ds-button.template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.app.signal-experience .ds-button.template-card[aria-pressed="true"] {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+}

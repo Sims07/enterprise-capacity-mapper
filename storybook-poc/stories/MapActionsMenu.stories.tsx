@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from '../../src/components/ui/Button.tsx';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import MapActionsMenu from '../../src/components/MapActionsMenu.tsx';
 import { storyHelp, withSignalTheme } from './storyFrame.tsx';
@@ -23,21 +24,21 @@ function Example() {
       <input aria-label="Filtrer les domaines" placeholder="Nom ou code" />
     </label>
     <div className="canvas-actions map-primary-actions">
-      <button type="button" className="primary">+ Application</button>
-      <button type="button" className="secondary">+ Domaine N0</button>
+      <Button type="button" variant="primary" onClick={() => setAction("Nouvelle application")}>+ Application</Button>
+      <Button type="button" variant="secondary" onClick={() => setAction("Nouveau domaine N0")}>+ Domaine N0</Button>
       <MapActionsMenu onDismiss={() => setDirector(false)}>
-        <button type="button" className="map-actions-menu-item" data-map-menu-close="true"
-          onClick={() => setAction('Inventaire SI')}>Inventaire SI (20)</button>
-        <button type="button" className="map-actions-menu-item" data-map-menu-close="true"
-          onClick={() => setAction('Structure')}>Structure</button>
-        <button type="button" className="map-actions-menu-item" data-map-menu-close="true"
-          onClick={() => setAction('Aide TOGAF')}>Aide TOGAF</button>
+        <Button type="button" variant="quiet" className="map-actions-menu-item" data-map-menu-close="true"
+          onClick={() => setAction('Inventaire SI')}>Inventaire SI (20)</Button>
+        <Button type="button" variant="quiet" className="map-actions-menu-item" data-map-menu-close="true"
+          onClick={() => setAction('Structure')}>Structure</Button>
+        <Button type="button" variant="quiet" className="map-actions-menu-item" data-map-menu-close="true"
+          onClick={() => setAction('Aide TOGAF')}>Aide TOGAF</Button>
         <div className="map-actions-menu-divider" role="separator" />
-        <button type="button" className="map-actions-menu-item" data-map-menu-close="true"
-          onClick={() => setAction('Examiner les écarts')}>Examiner les écarts (6)</button>
+        <Button type="button" variant="quiet" className="map-actions-menu-item" data-map-menu-close="true"
+          onClick={() => setAction('Examiner les écarts')}>Examiner les écarts (6)</Button>
         <div className="presentation-director">
-          <button type="button" className="presentation-director-toggle" aria-expanded={director}
-            onClick={() => setDirector(value => !value)}>Piloter la présentation</button>
+          <Button type="button" variant="quiet" className="presentation-director-toggle" aria-expanded={director}
+            onClick={() => setDirector(value => !value)}>Piloter la présentation</Button>
           {director && <div className="presentation-director-panel"><strong>Écran de restitution</strong>
             <p>Choisir la dimension sur l'écran distant.</p></div>}
         </div>

@@ -143,3 +143,41 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(trigger).toBeFocused();
   });
 }
+
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`les boutons Signal remplacent le rendu natif dans les stories de notification (${theme})`, async ({ page }) => {
+    await page.goto(story('design-system-superpositions-et-messages--toast', theme));
+    const button = page.getByRole('button', { name: 'Déclencher une notification' });
+    await expect(button).toHaveClass(/ds-button--secondary/);
+    await expect(button).toHaveCSS('border-style', 'solid');
+    const surface = await button.evaluate(element => {
+      const sample = document.createElement('span');
+      sample.style.background = 'var(--color-surface-raised)';
+      element.parentElement?.append(sample);
+      const value = getComputedStyle(sample).backgroundColor;
+      sample.remove();
+      return value;
+    });
+    await expect(button).toHaveCSS('background-color', surface);
+    await button.click();
+    await expect(page.getByRole('status')).toContainText('Cartographie sauvegardée en local');
+  });
+}
+
+test('le sélecteur de fichier Signal garde un input accessible, annonce le nom choisi et respecte les états', async ({ page }) => {
+  await page.goto(story('design-system-formulaires--fichier'));
+  const input = page.getByTestId('storybook-file-picker');
+  await expect(input).toHaveAttribute('type', 'file');
+  await expect(input).toHaveAttribute('accept', '.json,application/json');
+  await expect(input).toHaveAccessibleName('Choisir un fichier JSON');
+  const trigger = page.locator('.ds-file-trigger');
+  await expect(trigger).toHaveClass(/ds-button--secondary/);
+  await input.focus();
+  await expect(trigger).toHaveCSS('outline-style', 'solid');
+  await input.setInputFiles({ name: 'reference.json', mimeType: 'application/json', buffer: Buffer.from('{"version":3}') });
+  await expect(page.getByRole('status')).toContainText('reference.json');
+  await page.goto(story('design-system-formulaires--fichier-desactive'));
+  await expect(page.locator('input[type="file"]')).toBeDisabled();
+  await expect(page.locator('.ds-file-trigger')).toHaveClass(/is-disabled/);
+});

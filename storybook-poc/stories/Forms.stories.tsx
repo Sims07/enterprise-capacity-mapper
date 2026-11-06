@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Button } from '../../src/components/ui/Button.tsx';
+import { FilePicker } from '../../src/components/ui/FilePicker.tsx';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Field, SelectField, TextareaField, CheckboxField, SwitchField } from '../../src/components/ui/Fields.tsx';
 import { withSignalTheme, storyGrid, storyPanel, storyHelp } from './storyFrame.tsx';
@@ -21,7 +23,19 @@ export const AdresseWeb: Story = { args: { label: 'URL du référentiel', type: 
 export const Nombre: Story = { args: { label: 'Maturité cible', type: 'number', min: 1, max: 5, defaultValue: 3 } };
 export const Date: Story = { args: { label: 'Date de révision', type: 'date' } };
 export const Couleur: Story = { args: { label: 'Couleur du domaine', type: 'color', defaultValue: '#425bc7' } };
-export const Fichier: Story = { args: { label: 'Importer une cartographie JSON', type: 'file', accept: '.json,application/json' } };
+export const Fichier: Story = {
+  render: () => <section style={storyPanel}>
+    <h3>Importer une cartographie</h3>
+    <FilePicker label="Choisir un fichier JSON" accept=".json,application/json"
+      data-testid="storybook-file-picker" hint="Fichier JSON local, aucun envoi sur un serveur." />
+  </section>,
+};
+export const FichierDesactive: Story = {
+  render: () => <section style={storyPanel}>
+    <FilePicker label="Import indisponible" disabled accept=".json,application/json"
+      hint="Import désactivé pendant le chargement." />
+  </section>,
+};
 export const Obligatoire: Story = { args: { label: 'Code N0', required: true, hint: 'Identifiant unique du domaine.' } };
 export const Validation: Story = { args: { label: 'Nom de la capacité', required: true, error: 'Le nom de la capacité est obligatoire.', defaultValue: '' } };
 export const Desactive: Story = { args: { label: 'Structure verrouillée', disabled: true, defaultValue: 'Mode présentation' } };
@@ -99,7 +113,7 @@ function CompleteForm() {
     <TextareaField label="Description" rows={3} value={notes} onChange={event => setNotes(event.target.value)} />
     <CheckboxField label="Application active" checked={enabled} onChange={event => setEnabled(event.target.checked)} />
     {submitted && name.trim() && <p className="ds-feedback" data-tone="success" role="status">Formulaire valide — aperçu uniquement, aucune donnée enregistrée.</p>}
-    <div className="modal-actions"><button type="reset" onClick={() => { setName(''); setKind('SaaS'); setNotes(''); setEnabled(true); setSubmitted(false); }}>Réinitialiser</button><button type="submit" className="primary">Valider</button></div>
+    <div className="modal-actions"><Button type="reset" onClick={() => { setName(''); setKind('SaaS'); setNotes(''); setEnabled(true); setSubmitted(false); }}>Réinitialiser</Button><Button type="submit" variant="primary">Valider</Button></div>
   </form>;
 }
 export const ParcoursDeFormulaire: Story = { render: () => <CompleteForm /> };
