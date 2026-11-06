@@ -21,8 +21,8 @@ Le catalogue applique les vrais styles `src/styles/index.css`, les tokens Signal
 | Rubrique Storybook | Contenu et états couverts | Source de production |
 | --- | --- | --- |
 | **Design system / Tokens sémantiques** | Surfaces, textes, accents, bordures, statuts, clair/sombre | `src/styles/tokens.css` |
-| **Design system / Formulaires** | Texte, recherche, e-mail, URL, nombre, date, couleur, fichier, requis, erreur, désactivé, lecture seule, dropdown, textarea, cases à cocher, boutons radio, switch, formulaire validé | `src/components/ui/Fields.tsx` et styles Signal |
-| **Design system / Actions et navigation** | Actions principales/secondaires, boutons icônes, désactivation, onglets, menu outils, cartes de choix, badges métier | Classes utilisées dans `App.tsx` / `NewMapWizard.tsx` |
+| **Design system / Formulaires** | Texte, recherche, e-mail, URL, nombre, date, couleur, fichier, requis, erreur, désactivé, lecture seule, dropdown, textarea, cases à cocher, boutons radio, switch, formulaire validé | `src/components/ui/Fields.tsx`, `FilePicker.tsx` et styles Signal |
+| **Design system / Actions et navigation** | Actions principales/secondaires, boutons icônes, désactivation, onglets, menu outils, cartes de choix, badges métier | `src/components/ui/Button.tsx` et actions métier spécialisées |
 | **Design system / Superpositions et messages** | Modale de confirmation, formulaire en modale, Escape, messages neutre/succès/attention/erreur, notification toast | `src/components/ui/Modal.tsx` et styles Signal |
 | **Application / Modules métier** | Véritable assistant de création, diagnostics N0/N1 et vue relations sur modèle de démonstration | `src/components/NewMapWizard.tsx`, `Dashboard.tsx`, `CoverageTree.tsx` |
 | **Application / Capacity Mapper** | Application complète et navigation Signal, mosaïque, présentation, inventaire SI | `src/adapters/react/ResponsiveApp.tsx` |
@@ -33,7 +33,7 @@ Les démonstrations de formulaire et de menus modifient uniquement l'état React
 
 ### Principe d'évolution
 
-- Les champs `Field`, `SelectField`, `TextareaField`, `CheckboxField`, `SwitchField` et la modale `Modal` sont les primitives réutilisables ; `App.tsx` emploie désormais les mêmes `Field` et `Modal` que le catalogue.
+- Les champs `Button`, `FilePicker`, `Field`, `SelectField`, `TextareaField`, `CheckboxField`, `SwitchField` et la modale `Modal` sont les primitives réutilisables ; `App.tsx` emploie désormais les mêmes `Field` et `Modal` que le catalogue.
 - Ne pas créer une nouvelle variante en CSS figé dans une story : changer les tokens et les composants de production d'abord.
 - Documenter les états vide, erreur, désactivé, validation, clavier, mobile et thèmes lorsque c'est applicable.
 - Les écrans volumineux (cartographie, couverture, relations et compagnon) restent des composants métier, pas des primitives du design system.
@@ -86,3 +86,18 @@ La story applicative réelle ouvre l'intention « Examiner les points d'attentio
 Les contrôles de production et les stories partagent `src/components/ui/Fields.tsx`, `Modal.tsx`, `src/styles/design-system-controls.css` et les tokens de thème. Les fenêtres conservent le focus dans le dialogue, ferment par Échap et rendent le focus au déclencheur. La présence d'une erreur est communiquée par texte, `aria-invalid` et `aria-describedby`, en plus du contour de couleur. Les thèmes disposent chacun d'un contraste d'erreur explicite.
 
 Les tests `playwright/storybook/component-catalog.visual.spec.ts` doivent rester exécutables en CI. Vérifier manuellement la navigation clavier, la lecture d'écran et le rendu des formulaires à forte densité après toute modification des primitives. Ne pas recopier la maquette en HTML hors des composants de production.
+
+## Lot de cohérence boutons et import de fichiers — novembre 2026
+
+Le catalogue ne doit plus montrer de boutons gris natifs au sein des cartes (ex. déclenchement d'une notification), ni de champ fichier au rendu du navigateur. Les actions standards sont rendues avec la primitive réelle `Button` (`primary`, `secondary`, `quiet`, `danger`, `icon`) ; les surfaces de sélection, onglets et commandes du canevas conservent leur comportement spécialisé.
+
+`FilePicker` est un contrôle d'import **local** associé au même style de commande que `Button`. Il conserve un véritable `input[type=file]` focusable, les attributs `accept`, `disabled` et `onChange` d'origine, l'accès au clavier et l'annonce du nom du fichier sélectionné. Aucun téléchargement vers un serveur n'est introduit. Les deux parcours JSON réels (Outils → Importer depuis JSON et Analyse → Référence JSON) utilisent le même composant. Le champ de référence peut être rechargé et l'import ne modifie pas les règles métier.
+
+Les exemples de boutons, modales, menus, formulaires, notifications et actions de cartographie de Storybook utilisent le composant `Button` au lieu de styliser des actions isolées. La fenêtre `Modal` et l'assistant de création réutilisent également la primitive pour leurs actions standards. Les commandes structurelles de la mosaïque restent des boutons natifs spécialisés, avec les handlers et classes de production existants : leur remplacement arbitraire changerait la géométrie ou les interactions.
+
+### Garde-fous et tests
+
+- Rendu clair/sombre, variantes primaire/secondaire/quiet, focus, états désactivés ; styles fondés sur les tokens Signal dans `src/styles/design-system-controls.css`, non sur des valeurs par story.
+- Storybook Playwright : régression du bouton « Déclencher une notification » et de la sélection d'un fichier JSON (clavier, accept, disabled, nom sélectionné).
+- Playwright applicatif : parcours existants d'import JSON et de référence JSON conservés.
+- Aucun changement de schéma, de PWA, de stockage local ou de géométrie N0/N1 ; GitHub Pages reste statique.
