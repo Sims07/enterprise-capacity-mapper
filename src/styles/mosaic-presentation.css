@@ -521,7 +521,7 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: var(--signal-space-1);
+  gap: calc(var(--signal-space-1) / 2);
 }
 .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .cap-head {
   flex: 0 1 auto;
@@ -604,17 +604,27 @@
   white-space: nowrap;
 }
 
-/* Deux lignes (nom + applications) ne tiennent pas avec les badges borderés
-   sous une hauteur de 3.6rem. Le rendu compact conserve le premier nom
-   d'application, l'état cible et le nombre restant ; le détail N1 donne tout. */
+/* Les N1 courts gardent obligatoirement une information applicative.
+   Le premier nom et le compteur tiennent sur la seconde ligne. */
+.app.mosaic-presentation-mode .presentation-app-inline-count {
+  display: none;
+  flex: 0 0 auto;
+  border: 1px solid var(--map-capability-border);
+  border-radius: var(--radius-control);
+  padding: 0 calc(var(--signal-space-1) / 2);
+  color: var(--map-capability-text);
+  font-size: 9px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
 @container presentation-n1 (max-height: 3.6rem) {
-  .app.mosaic-presentation-mode .mosaic-domain .cap-head {
+  .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .cap-head {
     flex: 0 0 auto;
     min-height: 0;
     width: 100%;
     overflow: hidden;
   }
-  .app.mosaic-presentation-mode .mosaic-domain .map-cap-select {
+  .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .map-cap-select {
     display: block;
     width: 100%;
     white-space: nowrap;
@@ -630,11 +640,23 @@
     display: flex;
   }
 }
-/* Une seule ligne très basse ne peut contenir nom et aperçu sans recouvrement.
-   La fiche détaillée reste disponible au clic/clavier et le titre reste prioritaire. */
-@container presentation-n1 (max-height: 2.2rem) {
+/* Pour une N1 trop basse pour deux lignes, un compteur reste à côté du titre :
+   aucun état de densité ne doit faire disparaître toutes les applications. */
+@container presentation-n1 (max-height: 1.65rem) {
+  .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .cap-head {
+    align-items: center;
+    gap: calc(var(--signal-space-1) / 2);
+  }
+  .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .map-cap-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+  }
   .app.mosaic-presentation-mode .presentation-app-compact {
     display: none;
+  }
+  .app.mosaic-presentation-mode .presentation-app-inline-count {
+    display: inline-flex;
   }
 }
 .app.mosaic-presentation-mode .presentation-app-toggle { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; font-size: 11px; font-weight: 700; }
@@ -774,30 +796,29 @@
 /* Lecture détaillée à la demande, utile quand la densité métier ne peut pas
    physiquement tenir en une page. Aucun changement du layout métier. */
 .app.mosaic-presentation-mode .presentation-domain-open {
-  position: absolute;
-  top: var(--signal-space-1);
-  right: var(--signal-space-1);
-  display: grid;
-  place-items: center;
-  width: 25px;
-  height: 25px;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 2px var(--signal-space-2);
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
   border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--presentation-domain-color) 82%, var(--map-card-surface));
+  background: color-mix(in srgb, var(--presentation-domain-color) 80%, var(--map-card-surface));
   color: var(--presentation-domain-text-color);
-  font-size: 15px;
-  cursor: zoom-in;
-  opacity: .65;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
 }
-.app.mosaic-presentation-mode .presentation-domain-open:hover,
-.app.mosaic-presentation-mode .presentation-domain-open:focus-visible { opacity: 1; }
+.app.mosaic-presentation-mode .presentation-domain-open:hover {
+  background: color-mix(in srgb, var(--presentation-domain-color) 65%, var(--map-card-surface));
+  border-color: currentColor;
+}
 .app.mosaic-presentation-mode .presentation-domain-open:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--focus-ring-offset);
-}
-.app.mosaic-presentation-mode .mosaic-domain > .domain > .domain-banner:has(.presentation-domain-open) {
-  padding-right: calc(var(--signal-space-5) + var(--signal-space-3));
 }
 .app.mosaic-presentation-mode .presentation-domain-focus-sheet {
   width: min(920px, 100%);

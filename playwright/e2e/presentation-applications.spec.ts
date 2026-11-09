@@ -211,7 +211,16 @@ test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et pe
   await expect(applicationsDetail).toContainText('Portail Usager');
   await applicationsDetail.getByTestId('presentation-focus-close').click();
 
-  await firstDomain.getByTestId('presentation-domain-open').click();
+  // Un clic humain a un délai entre pointerdown et pointerup. Le gestionnaire
+  // global ne doit PAS remonter App et perdre l'élément avant click.
+  const openDomain = firstDomain.getByTestId('presentation-domain-open');
+  await expect(openDomain).toHaveText('Voir N1');
+  const buttonBox = await openDomain.boundingBox();
+  expect(buttonBox).not.toBeNull();
+  await page.mouse.move(buttonBox!.x + buttonBox!.width / 2, buttonBox!.y + buttonBox!.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(120);
+  await page.mouse.up();
   const detail = page.getByRole('dialog', { name: 'Capacités de Relation propriétaire données de santé' });
   await expect(detail).toBeVisible();
   for (const name of names) await expect(detail.getByRole('button', { name: new RegExp(name, 'i') })).toBeVisible();
@@ -238,4 +247,76 @@ test('masque les commandes pendant la lecture et ne les rappelle que près du bo
   await page.mouse.move(700, 895);
   await expect(bar).toHaveAttribute('data-visible', 'true');
   await expect(page.getByTestId('presentation-reading-coverage')).toBeVisible();
+});
+
+
+test('affiche toujours une indication applicative dans les quatre N1 d’une mosaïque très dense', async ({ page }) => {
+  const columnsCount = 3;
+  const rowsCount = 9;
+  await page.setViewportSize({ width: 1728, height: 900 });
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
+  await page.evaluate(({ columnsCount, rowsCount }) => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Cartographie de test non enregistrée');
+    const model = JSON.parse(raw);
+    const columns = Array.from({ length: columnsCount }, (_, index) => ({
+      id: `compact-column-${index}`, name: `Colonne ${index + 1}`, order: index,
+    }));
+    const layers = Array.from({ length: rowsCount }, (_, index) => ({
+      id: `compact-row-${index}`, name: `Ligne ${index + 1}`, order: index,
+    }));
+    model.layout = { ...model.layout, columns, layers };
+    model.domains = Array.from({ length: columnsCount * rowsCount }, (_, index) => ({
+      id: `compact-domain-${index}`, name: index === 0 ? 'Domaine de santé à forte densité' : `Domaine ${index}`,
+      code: `N0-${index}`, color: 'indigo',
+      layout: { columnId: columns[index % columnsCount].id, layerId: layers[Math.floor(index / columnsCount)].id },
+    }));
+    model.capabilities = Array.from({ length: 4 }, (_, index) => ({
+      id: `compact-cap-${index}`, code: `N1-${index}`,
+      name: ['Gestion du carnet de Santé', 'Applications de santé', 'Gestion des anomalies', 'Gestion des notifications'][index],
+      domainId: 'compact-domain-0',
+    }));
+    model.applications = [
+      { id: 'compact-app-1', name: 'Mon espace santé', status: 'Actif', capabilityIds: ['compact-cap-0'] },
+      { id: 'compact-app-2', name: 'Dossier médical partagé', status: 'Actif', capabilityIds: ['compact-cap-0'] },
+      { id: 'compact-app-3', name: 'Application cible', status: 'Cible', capabilityIds: ['compact-cap-0'] },
+      { id: 'compact-app-4', name: 'Système d’alertes', status: 'Cible', capabilityIds: ['compact-cap-1'] },
+    ];
+    localStorage.setItem(key, JSON.stringify(model));
+  }, { columnsCount, rowsCount });
+  await page.goto('/?view=presentation&theme=dark');
+  await page.getByTestId('presentation-show-applications').check();
+
+  const domain = page.getByTestId('capability-map').locator('.mosaic-domain')
+    .filter({ hasText: 'Domaine de santé à forte densité' });
+  const caps = domain.locator('.cap');
+  await expect(caps).toHaveCount(4);
+  await expect(caps.first().getByTestId('presentation-app-inline-count')).toHaveText('3 apps');
+  await expect(caps.nth(1).getByTestId('presentation-app-inline-count')).toHaveText('1 app');
+  await expect(caps.nth(2).getByTestId('presentation-app-inline-count')).toHaveText('0 app');
+  await expect(caps.first().getByTestId('presentation-app-compact')).toBeHidden();
+  const isReadable = await caps.evaluateAll(elements => elements.every(element => {
+    const card = element.getBoundingClientRect();
+    const title = (element.querySelector('.map-cap-select') as HTMLElement).getBoundingClientRect();
+    const badge = (element.querySelector('.presentation-app-inline-count') as HTMLElement).getBoundingClientRect();
+    const fits = (box: DOMRect) => box.width > 0 && box.height > 0
+      && box.left >= card.left - 1 && box.right <= card.right + 1
+      && box.top >= card.top - 1 && box.bottom <= card.bottom + 1;
+    return fits(title) && fits(badge) && title.right <= badge.left + 1;
+  }));
+  expect(isReadable).toBe(true);
+
+  await caps.first().click();
+  const detail = page.getByRole('dialog', { name: 'Détail de Gestion du carnet de Santé' });
+  await expect(detail).toContainText('Mon espace santé');
+  await expect(detail).toContainText('Dossier médical partagé');
+  await expect(detail).toContainText('Application cible');
+  await detail.getByTestId('presentation-focus-close').click();
+
+  // La fenêtre N0 s'ouvre aussi depuis le clavier, même avec la barre masquée.
+  await domain.getByTestId('presentation-domain-open').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Capacités de Domaine de santé à forte densité' })).toBeVisible();
 });
