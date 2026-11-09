@@ -772,6 +772,7 @@ test.describe('Analyse des risques applicatifs', () => {
     await expect(entry).toContainText('20/25');
     await expect(entry).toContainText('Échéance atteinte');
     await expect(entry).toContainText('Gestion des Prospects');
+    await page.screenshot({ path: 'test-results/risk-analysis-qualified.png', fullPage: true, animations: 'disabled' });
     await page.reload();
     await page.getByTestId('nav-analysis').click();
     await page.getByTestId('dashboard-view-risk').click();
@@ -821,11 +822,13 @@ test.describe('Analyse des risques applicatifs', () => {
     await page.getByTestId('theme-toggle').click();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('risk-analysis')).toBeVisible();
+    await page.screenshot({ path: 'test-results/risk-analysis-dark.png', fullPage: true, animations: 'disabled' });
     await page.setViewportSize({ width: 390, height: 844 });
     await assertNoHorizontalOverflow(page);
     await page.getByTestId('risk-application-app-1').getByRole('button', { name: 'Évaluer le risque de Salesforce CRM' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: 'test-results/risk-analysis-mobile-form.png', animations: 'disabled' });
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).not.toBeVisible();
   });
