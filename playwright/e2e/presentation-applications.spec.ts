@@ -179,3 +179,21 @@ test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et pe
   await expect(page.getByRole('dialog', { name: 'Détail de Gestion des anomalies' })).not.toBeVisible();
   await expect(mosaic.locator('.mosaic-domain')).toHaveCount(columnsCount * rowsCount);
 });
+
+test('masque les commandes pendant la lecture et ne les rappelle que près du bord inférieur', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?view=presentation');
+  const bar = page.locator('.presentation-exit-bar');
+  await expect(bar).toHaveAttribute('data-visible', 'true');
+  await expect(bar).toHaveAttribute('data-visible', 'false', { timeout: 6000 });
+
+  // La souris peut explorer la cartographie sans réveiller la barre flottante.
+  await page.mouse.move(350, 220);
+  await page.mouse.move(600, 550);
+  await expect(bar).toHaveAttribute('data-visible', 'false');
+
+  // Le contrôle reste accessible depuis le bas de l'écran.
+  await page.mouse.move(700, 895);
+  await expect(bar).toHaveAttribute('data-visible', 'true');
+  await expect(page.getByTestId('presentation-reading-coverage')).toBeVisible();
+});
