@@ -53,6 +53,11 @@
   --map-presentation-control-text: var(--color-text);
   --map-presentation-muted-domain-share: 22%;
 
+  /* Densité de la cartographie : seuil de lisibilité des N1 et hauteur des pistes. */
+  --map-row-min-height-comfortable: 180px;
+  --map-row-min-height-compact: 7.5rem;
+  --map-compact-capability-min-width: 16rem;
+
   /* Shared geometry and motion */
   --control-target-size: 36px;
   --radius-control: 7px;
