@@ -1238,9 +1238,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const rowSpan = presentation
           ? mosaicLayersLayout.filter(layer => { const index = layers.findIndex(item => item.id === layer.id); return index >= sourceRowIndex && index < sourceRowIndex + sourceRowSpan; }).length
           : sourceRowSpan;
+        const gridColumn = `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`;
+        const gridRow = `${rowIndex + mosaicRowOffset} / span ${rowSpan}`;
         return <div className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
           aria-label={presentation ? `Carte ${domain.name}` : `Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
-          style={{ gridColumn: `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`, gridRow: `${rowIndex + mosaicRowOffset} / span ${rowSpan}` }}
+          data-layout-grid-column={gridColumn} data-layout-grid-row={gridRow}
+          style={{ gridColumn, gridRow }}
           onPointerDown={event => {
             if (presentation) return;
             const bounds = event.currentTarget.getBoundingClientRect();
@@ -1295,22 +1298,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const cellHeight = Number(card.dataset.resizeCellHeight || 0);
             const columnDelta = card.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
             const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
+            // Restore the model position BEFORE committing the new spans.
+            // Otherwise an old inline preview can survive a React render.
+            viewport.resetMosaicResizePreview(card);
             if (columnDelta || rowDelta) resizeDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
-            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
-            card.style.gridRow = card.dataset.resizeOriginalRow || '';
-            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
-            const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
-            if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
-            if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
           }}
-          onPointerCancel={event => {
-            const card = event.currentTarget;
-            card.style.gridColumn = card.dataset.resizeOriginalColumn || '';
-            card.style.gridRow = card.dataset.resizeOriginalRow || '';
-            ['resizeStartX', 'resizeStartY', 'resizeLastX', 'resizeLastY', 'resizeCellWidth', 'resizeCellHeight', 'resizeColumn', 'resizeRow', 'resizeOriginalColumn', 'resizeOriginalRow'].forEach(key => delete card.dataset[key]);
-            const draggableDomain = card.querySelector('.domain-card') as HTMLElement | null;
-            if (draggableDomain?.dataset.resizeWasDraggable === 'true') draggableDomain.setAttribute('draggable', 'true');
-            if (draggableDomain) delete draggableDomain.dataset.resizeWasDraggable;
+          onPointerCancel={event => viewport.resetMosaicResizePreview(event.currentTarget)}
+          onLostPointerCapture={event => {
+            // Pointer capture can be lost without pointerup (native drag, blur,
+            // interrupted gesture); discard any stale resize preview.
+            if (event.currentTarget.dataset.resizeStartX !== undefined) {
+              viewport.resetMosaicResizePreview(event.currentTarget);
+            }
           }}
           onKeyDown={event => {
             if (presentation) return;
