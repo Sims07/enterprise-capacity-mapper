@@ -6,6 +6,11 @@ import { Button } from './ui/Button.tsx';
 import { CheckboxField, Field, SelectField, TextareaField } from './ui/Fields.tsx';
 import { Modal } from './ui/Modal.tsx';
 
+const capabilityPath = (model: CatalogModel, target: { name: string; domainId?: unknown }) => {
+  const domain = model.domains.find(item => item.id === target.domainId);
+  return domain ? `${domain.name} / ${target.name}` : target.name;
+};
+
 function ProcessEditor({ model, process, onSave, onClose }: { model: CatalogModel; process: BusinessProcess;
   onSave: (draft: BusinessProcess) => void; onClose: () => void }) {
   const [draft, setDraft] = useState<BusinessProcess>({ ...process, capabilityIds: [...process.capabilityIds] });
@@ -70,14 +75,14 @@ export default function BusinessProcesses({ model, onSave, onRemove, onExploreTa
     <div className="process-metrics"><div><strong>{analysis.length}</strong><span>Processus documentés</span></div><div><strong>{analysis.filter(item => !item.capabilities.length).length}</strong><span>À rattacher aux capacités</span></div><div><strong>{analysis.filter(item => item.exposedApplications.length > 0).length}</strong><span>Avec une exposition élevée ou critique</span></div></div>
     <details className="process-method"><summary>Processus, capacités et applications : comment les lire ?</summary><p>Une capacité décrit ce que l’entreprise sait faire ; un processus décrit comment le travail se déroule. Un même processus mobilise plusieurs capacités, et une capacité peut intervenir dans plusieurs processus.</p><p>Les applications ci-dessous sont déduites des relations entre capacités et applications. Elles ne prouvent pas un usage direct dans le processus ni sa couverture fonctionnelle. Les applications Cible sont comptées à part. Les risques élevés ou critiques non résolus, y compris acceptés, sont signalés comme exposition indirecte.</p></details>
     <div className="process-filters"><Field label="Rechercher un processus" type="search" value={search} onChange={e => setSearch(e.target.value)} />
-      <SelectField label="Filtrer par capacité" value={targetId} onChange={e => setTargetId(e.target.value)} options={[{ value: 'all', label: 'Toutes les capacités' }, ...targets.map(target => ({ value: target.id, label: target.name }))]} />
+      <SelectField label="Filtrer par capacité" value={targetId} onChange={e => setTargetId(e.target.value)} options={[{ value: 'all', label: 'Toutes les capacités' }, ...targets.map(target => ({ value: target.id, label: capabilityPath(model, target) }))]} />
       <SelectField label="Afficher les processus" value={filter} onChange={e => setFilter(e.target.value)} options={[{ value: 'all', label: 'Tous les processus' }, { value: 'unlinked', label: 'À rattacher' }, { value: 'exposed', label: 'Exposition élevée ou critique' }]} /></div>
     <p aria-live="polite">{visible.length} processus affiché(s) sur {analysis.length}</p>
     {visible.length ? <div className="process-register">{visible.map(item => <article className="process-entry" key={item.process.id} data-testid={`business-process-${item.process.id}`}>
       <div className="process-entry-heading"><div><h3>{item.process.name}</h3><p>{item.process.code && `${item.process.code} · `}Responsable : {item.process.owner || 'À désigner'}</p></div><div className="process-actions"><Button onClick={() => setEditing(item.process)} aria-label={`Modifier le processus ${item.process.name}`}>Modifier</Button><Button variant="quiet" onClick={() => { setError(''); setRemoving(item.process); }} aria-label={`Supprimer le processus ${item.process.name}`}>Supprimer</Button></div></div>
       {item.process.description && <p>{item.process.description}</p>}
       {item.process.documentationUrl && <a href={item.process.documentationUrl} target="_blank" rel="noopener noreferrer">Consulter la documentation ↗</a>}
-      <div className="process-capability-links"><strong>Capacités mobilisées</strong>{item.capabilities.map(target => <Button variant="quiet" key={target.id} onClick={() => onExploreTarget(target.id)}>{target.name}</Button>)}{!item.capabilities.length && <span className="risk-badge is-unknown">À rattacher</span>}</div>
+      <div className="process-capability-links"><strong>Capacités mobilisées</strong>{item.capabilities.map(target => <Button variant="quiet" key={target.id} onClick={() => onExploreTarget(target.id)}>{capabilityPath(model, target)}</Button>)}{!item.capabilities.length && <span className="risk-badge is-unknown">À rattacher</span>}</div>
       <details className="process-method"><summary>{item.currentApplications.length} application(s) actuelle(s) liée(s) aux capacités · {item.plannedApplications.length} cible(s)</summary><p>{item.currentApplications.map(app => app.name).join(' · ') || 'Aucune relation applicative actuelle documentée.'}</p>{item.plannedApplications.length > 0 && <p>Cible : {item.plannedApplications.map(app => app.name).join(' · ')}</p>}{item.unsupportedCapabilities.length > 0 && <p>Sans relation applicative actuelle : {item.unsupportedCapabilities.map(target => target.name).join(' · ')}</p>}</details>
       {item.exposedApplications.length > 0 && <div className="process-risk-exposure"><strong>Exposition indirecte via les capacités</strong><ul>{item.exposedApplications.map(risk => <li key={risk.application.id}>{risk.application.name} · {RISK_LEVELS[risk.level]}{risk.status === 'accepted' && ' · Risque accepté'}</li>)}</ul><Button variant="quiet" onClick={onShowRisks}>Examiner les risques applicatifs</Button></div>}
     </article>)}</div> : <div className="attention-empty">{analysis.length ? 'Aucun processus ne correspond aux filtres.' : 'Ajoutez votre premier processus métier, puis sélectionnez les capacités qu’il mobilise.'}</div>}

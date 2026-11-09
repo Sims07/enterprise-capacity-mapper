@@ -918,3 +918,21 @@ test.describe('Processus métier et capacités', () => {
     await expect(page.getByTestId('risk-analysis')).toBeVisible();
   });
 });
+
+test.describe('Processus métier sous le chemin GitHub Pages', () => {
+  test.use({ serviceWorkers: 'block' });
+  test('charge le module différé et ouvre la fiche depuis un sous-chemin', async ({ page }) => {
+    await page.route('**/enterprise-capacity-mapper/**', async route => {
+      const url = new URL(route.request().url());
+      url.pathname = url.pathname.replace('/enterprise-capacity-mapper', '');
+      const response = await route.fetch({ url: url.toString() });
+      await route.fulfill({ response });
+    });
+    await page.goto('/enterprise-capacity-mapper/');
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-processes').click();
+    await expect(page.getByTestId('business-processes')).toBeVisible();
+    await page.getByRole('button', { name: 'Ajouter un processus', exact: true }).click();
+    await expect(page.getByRole('dialog').getByRole('checkbox', { name: 'Gestion des Prospects & Leads', exact: true })).toBeVisible();
+  });
+});
