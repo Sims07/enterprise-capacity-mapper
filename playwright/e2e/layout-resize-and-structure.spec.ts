@@ -75,3 +75,48 @@ test('insère une colonne au milieu d’un N0 étendu sans perdre ses cellules c
   await expect(page.getByTestId('capability-map').locator('.mosaic-domain').filter({ hasText: 'Domaine étendu' }))
     .toHaveAttribute('data-layout-grid-column', /span 4$/);
 });
+
+
+test('réduit au pointeur un N0 empilé de 3 à 2 puis 1 colonnes sans retour à la taille initiale', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1050 });
+  await page.goto('/');
+  const map = page.getByTestId('capability-map');
+  const domain = map.locator('.mosaic-domain').filter({ hasText: 'Finance, Gestion & Comptabilité' });
+
+  // A partial horizontal overlap is legitimate in the same business layer.
+  await domain.getByRole('button', { name: 'Actions pour Finance, Gestion & Comptabilité' }).click();
+  await page.getByRole('button', { name: 'Modifier', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Modifier le domaine N0' });
+  await dialog.getByTestId('domain-column-select').selectOption({ label: 'Client' });
+  await dialog.getByLabel('Ligne (layer)').selectOption({ label: 'Core / Value' });
+  await dialog.getByLabel('Étendue sur les colonnes').selectOption('3');
+  await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+  await expect(domain).toHaveAttribute('data-layout-grid-column', /span 3$/);
+  await expect(domain).toHaveAttribute('data-stack-tier', '1');
+  const originCell = map.locator('[data-zone-key="customer:core"]');
+
+  const shrinkByOneColumn = async () => {
+    await domain.scrollIntoViewIfNeeded();
+    const [bounds, cellBounds] = await Promise.all([domain.boundingBox(), originCell.boundingBox()]);
+    expect(bounds).not.toBeNull();
+    expect(cellBounds).not.toBeNull();
+    const x = bounds!.x + bounds!.width - 3;
+    const y = bounds!.y + bounds!.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x - cellBounds!.width * 1.1, y, { steps: 8 });
+    await page.mouse.up();
+  };
+
+  await shrinkByOneColumn();
+  await expect(domain).toHaveAttribute('data-layout-grid-column', /span 2$/);
+  await shrinkByOneColumn();
+  await expect(domain).toHaveAttribute('data-layout-grid-column', /span 1$/);
+  await expect(page.getByRole('status')).not.toContainText('Redimensionnement impossible');
+
+  await page.reload();
+  await expect(map.locator('.mosaic-domain').filter({ hasText: 'Finance, Gestion & Comptabilité' }))
+    .toHaveAttribute('data-layout-grid-column', /span 1$/);
+  await expect(map.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' })).toBeVisible();
+});
