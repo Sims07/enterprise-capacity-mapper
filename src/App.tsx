@@ -53,10 +53,10 @@ import Dashboard from './components/Dashboard.tsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
 import PresentationReadingLegend from './components/PresentationReadingLegend.tsx';
+import PresentationApplicationPreview from './components/PresentationApplicationPreview.tsx';
 import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
-const PRESENTATION_APP_PREVIEW_LIMIT = 2;
 const PRESENTATION_CONTROLS_REVEAL_EDGE_PX = 64;
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -1138,15 +1138,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     </div>}
                   </div>
                   {presentation && presentationReadingMode !== 'identity' && <span className="presentation-cap-signal">{signal.label}</span>}
-                  {presentation && presentationShowApplications && <div className="presentation-app-preview" aria-label="Applications rattachées">
-                    {coverage.apps.slice(0, PRESENTATION_APP_PREVIEW_LIMIT).map(application => <span
-                      className={isCurrentApplication(application) ? 'presentation-app-chip' : 'presentation-app-chip is-target'}
-                      key={application.id} title={`${application.name} · ${isCurrentApplication(application) ? 'Actuelle' : 'Cible'}`}>
-                      {application.name}{!isCurrentApplication(application) && <em>cible</em>}
-                    </span>)}
-                    {coverage.apps.length > PRESENTATION_APP_PREVIEW_LIMIT && <span className="presentation-app-more">+{coverage.apps.length - PRESENTATION_APP_PREVIEW_LIMIT} autres</span>}
-                    {coverage.apps.length === 0 && <span className="presentation-app-empty">Aucune application reliée</span>}
-                  </div>}
+                  {presentation && presentationShowApplications &&
+                    <PresentationApplicationPreview applications={coverage.apps} />}
                   {presentation && presentationShowApplications && <div className="presentation-app-compact"
                     data-testid="presentation-app-compact"
                     aria-label={`${coverage.apps.length} application(s) rattachée(s)`}
