@@ -152,3 +152,10 @@ La suppression d'un domaine retire ses N1 et nettoie les relations applicatives 
 
 Une ligne traversée par le `rowSpan` d'un N0 reste occupée. Les lignes métier explicitement nommées (par exemple « Support »), les lignes contenant une zone personnalisée et au moins une ligne d'insertion sont conservées, même si elles sont vides. Les colonnes, les identifiants des N0 restants, leurs spans, leurs relations et les préférences de présentation ne changent pas. Une nouvelle insertion peut à nouveau étendre la grille si nécessaire. L'opération est enregistrée avec le modèle et reste compatible avec l'historique Annuler/Rétablir.
 
+
+
+## Déplacement N0 entre lignes métier occupées
+
+Une ligne (layer) est un axe de lecture métier, pas un emplacement exclusif. Déplacer un N0 de Support à Cœur métier déjà occupée ne crée aucune ligne structurelle. Pour les domaines avec `rowSpan = 1`, les empreintes horizontales qui se croisent (même sur une partie de leurs colonnes) s’empilent sur des sous-rangées *visuelles* dans leur ligne métier. Les domaines disjoints utilisent la même sous-rangée. Le domaine déplacé est affiché après les domaines déjà présents.
+
+Le JSON local, les spans, les identifiants N0/N1 et leurs relations applicatives restent inchangés. La vue présentation suit la même règle d’affichage. Les collisions avec un domaine couvrant plusieurs lignes (`rowSpan > 1`) et les débordements de grille restent interdits pour les nouveaux déplacements. L’empilement n’ajoute aucune notion à la sémantique TOGAF ni aucun nouvel axe.

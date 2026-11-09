@@ -243,8 +243,9 @@ export class MapLayout {
         columnSpan: (placement.columnSpan as string | number | undefined) ?? 1,
         rowSpan: (placement.rowSpan as string | number | undefined) ?? 1,
         // Imported matrix maps may contain intentional identical legacy placements.
-        // New moves/resizes are strict and pass allowExactOverlap: false.
+        // Single-layer N0 may share a business row even with different column spans.
         allowExactOverlap: true,
+        allowStackingInLayer: true,
       })) return null;
     }
 
@@ -255,7 +256,7 @@ export class MapLayout {
   }
 
   isPlacementAvailable({
-    domains, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true,
+    domains, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true, allowStackingInLayer = false,
   }: {
     domains: DomainPlacement[];
     columns: LayoutAxis[];
@@ -266,6 +267,7 @@ export class MapLayout {
     columnSpan: string | number;
     rowSpan?: string | number;
     allowExactOverlap?: boolean;
+    allowStackingInLayer?: boolean;
   }): boolean {
     const columnStart = columns.findIndex(column => column.id === columnId);
     const layerStart = layers.findIndex(layer => layer.id === layerId);
@@ -287,7 +289,10 @@ export class MapLayout {
 
       const sameRectangle = otherColumnStart === columnStart && otherLayerStart === layerStart
         && otherColumnSize === columnSize && otherLayerSize === layerSize;
-      // Legacy matrix layouts may intentionally share an identical placement.
+      // A business layer can contain a vertical stack of N0 with intersecting
+      // column footprints, without adding another structural layer.
+      if (allowStackingInLayer && layerStart === otherLayerStart && layerSize === 1 && otherLayerSize === 1) return false;
+      // Legacy placements can share an identical multi-layer rectangle.
       if (allowExactOverlap && sameRectangle) return false;
 
       const columnsOverlap = columnStart < otherColumnStart + otherColumnSize
@@ -299,7 +304,7 @@ export class MapLayout {
   }
 
   prepareDomainPlacement({
-    domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true,
+    domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true, allowStackingInLayer = false,
   }: {
     domains: DomainPlacement[];
     layout: MapLayoutData;
@@ -311,6 +316,7 @@ export class MapLayout {
     columnSpan?: string | number;
     rowSpan?: string | number;
     allowExactOverlap?: boolean;
+    allowStackingInLayer?: boolean;
   }): PreparedLayout | null {
     if (!domainId) return null;
     const moving = domains.find(domain => domain.id === domainId);
@@ -323,7 +329,7 @@ export class MapLayout {
     const targetRowSpan = rowSpan ?? moving.layout?.rowSpan ?? 1;
     if (!this.isPlacementAvailable({
       domains, columns, layers, domainId, columnId: targetColumn, layerId: targetLayer,
-      columnSpan: targetColumnSpan, rowSpan: targetRowSpan, allowExactOverlap,
+      columnSpan: targetColumnSpan, rowSpan: targetRowSpan, allowExactOverlap, allowStackingInLayer,
     })) return null;
 
     return {
