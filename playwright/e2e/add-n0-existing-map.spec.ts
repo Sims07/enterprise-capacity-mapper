@@ -76,3 +76,47 @@ test('insère un N0 avant un domaine existant sans perdre ses capacités et rela
   await expect(mosaic).toContainText('Domaine inséré');
   await expect(mosaic.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' })).toContainText('Salesforce CRM');
 });
+
+test('déplace un N0 de Support à Cœur métier occupé et le garde visible après rechargement', async ({ page }) => {
+  await page.goto('/');
+  const mosaic = page.getByTestId('capability-map');
+  const existing = mosaic.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' });
+  const moved = mosaic.locator('.mosaic-domain').filter({ hasText: 'Finance, Gestion & Comptabilité' });
+  await moved.getByRole('button', { name: 'Actions pour Finance, Gestion & Comptabilité' }).click();
+  await page.getByRole('button', { name: 'Modifier', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Modifier le domaine N0' });
+  await dialog.getByLabel('Colonne').selectOption({ label: 'Client' });
+  await dialog.getByLabel('Ligne (layer)').selectOption({ label: 'Core / Value' });
+  await dialog.getByLabel('Étendue sur les colonnes').selectOption('2');
+  await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+  await expect(dialog).toHaveCount(0);
+
+  const before = await existing.boundingBox();
+  const after = await moved.boundingBox();
+  expect(before).not.toBeNull();
+  expect(after).not.toBeNull();
+  expect(after!.y).toBeGreaterThanOrEqual(before!.y + before!.height - 2);
+  expect(after!.x).toBe(before!.x);
+  await expect(moved).toHaveAttribute('data-stack-tier', '1');
+  await expect(mosaic.locator('.mosaic-row-heading')).toHaveCount(3);
+
+  await page.reload();
+  const restored = page.getByTestId('capability-map');
+  const restoredMoved = restored.locator('.mosaic-domain').filter({ hasText: 'Finance, Gestion & Comptabilité' });
+  const restoredExisting = restored.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' });
+  await expect(restoredMoved).toHaveAttribute('data-stack-tier', '1');
+  const restoredAbove = await restoredExisting.boundingBox();
+  const restoredBelow = await restoredMoved.boundingBox();
+  expect(restoredBelow!.y).toBeGreaterThanOrEqual(restoredAbove!.y + restoredAbove!.height - 2);
+  await expect(restored.locator('.mosaic-row-heading')).toHaveCount(3);
+
+  await page.goto('/?view=presentation');
+  const presentation = page.getByTestId('capability-map');
+  const presentedMoved = presentation.locator('.mosaic-domain').filter({ hasText: 'Finance, Gestion & Comptabilité' });
+  const presentedExisting = presentation.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' });
+  await expect(presentedMoved).toBeVisible();
+  await expect(presentedExisting).toBeVisible();
+  const presentedAbove = await presentedExisting.boundingBox();
+  const presentedBelow = await presentedMoved.boundingBox();
+  expect(presentedBelow!.y).toBeGreaterThanOrEqual(presentedAbove!.y + presentedAbove!.height - 2);
+});
