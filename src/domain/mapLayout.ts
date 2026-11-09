@@ -29,6 +29,24 @@ const cloneDraft = (draft: LayoutDraft): LayoutDraft => cloneValue(draft);
 
 const GENERATED_LAYER_NAME = /^Ligne [1-9]\d*$/;
 
+/** The preview and the persisted resize must use the same legal span. */
+export const clampDomainSpan = (span: number, delta: number, startIndex: number, axisLength: number): number =>
+  Math.min(axisLength - startIndex, Math.max(1, span + delta));
+
+/** New tracks placed inside an existing N0 must not cut its former coverage. */
+const rebasedSpan = (
+  previous: LayoutAxis[], current: LayoutAxis[], startId: string, span: number,
+): number | null => {
+  const start = previous.findIndex(axis => axis.id === startId);
+  if (start < 0) return span;
+  const covered = previous.slice(start, start + span);
+  if (covered.length !== span) return null;
+  const positions = covered.map(axis => current.findIndex(candidate => candidate.id === axis.id));
+  // Removing a covered track would silently drop part of a capability domain.
+  if (positions.some(position => position < 0) || positions.some((position, index) => index > 0 && position <= positions[index - 1])) return null;
+  return positions[positions.length - 1] - positions[0] + 1;
+};
+
 const normalizedSpan = (value: string | number | undefined): number | null => {
   const span = value === undefined ? 1 : Number(value);
   return Number.isInteger(span) && span >= 1 ? span : null;
@@ -115,18 +133,26 @@ export class MapLayout {
   }
 
   addItem(kind: 'columns' | 'layers', id: string): MapLayout {
+    return this.insertItem(kind, id);
+  }
+
+  insertItem(kind: 'columns' | 'layers', id: string, beforeId?: string): MapLayout {
     if (!id.trim() || this.draft[kind].some(item => item.id === id)) {
       throw new Error('Un identifiant de colonne ou de layer unique est obligatoire.');
     }
+    const index = beforeId === undefined ? this.draft[kind].length : this.draft[kind].findIndex(item => item.id === beforeId);
+    if (index < 0) throw new Error('La colonne ou ligne de référence est introuvable.');
     const item: LayoutAxis = {
       id,
       name: kind === 'columns' ? 'Nouvelle colonne' : 'Nouveau layer',
-      order: this.draft[kind].length,
+      order: index,
     };
-    const items = [...this.draft[kind].map(existing => ({ ...existing })), item];
-    const columns = kind === 'columns' ? items : this.draft.columns;
-    const layers = kind === 'layers' ? items : this.draft.layers;
-    return new MapLayout({ ...this.draft, [kind]: items, zones: completeZones(columns, layers, this.draft.zones) });
+    const items = [...this.draft[kind].map(existing => ({ ...existing }))];
+    items.splice(index, 0, item);
+    const ordered = items.map((entry, position) => ({ ...entry, order: position }));
+    const columns = kind === 'columns' ? ordered : this.draft.columns;
+    const layers = kind === 'layers' ? ordered : this.draft.layers;
+    return new MapLayout({ ...this.draft, [kind]: ordered, zones: completeZones(columns, layers, this.draft.zones) });
   }
 
   removeItem(kind: 'columns' | 'layers', id: string): MapLayout {
@@ -172,6 +198,8 @@ export class MapLayout {
       }
     }));
 
+    const previousColumns = layout.columns?.length ? layout.columns : columns;
+    const previousLayers = layout.layers?.length ? layout.layers : layers;
     const preparedDomains: DomainPlacement[] = [];
     for (const [index, domain] of domains.entries()) {
       const columnId = columnIds.has(domain.layout?.columnId as string)
@@ -180,8 +208,11 @@ export class MapLayout {
       const layerId = layerIds.has(domain.layout?.layerId as string)
         ? domain.layout?.layerId as string
         : layers[0].id;
-      const columnSpan = normalizedSpan(domain.layout?.columnSpan);
-      const rowSpan = normalizedSpan(domain.layout?.rowSpan);
+      const originalColumnSpan = normalizedSpan(domain.layout?.columnSpan);
+      const originalRowSpan = normalizedSpan(domain.layout?.rowSpan);
+      if (originalColumnSpan === null || originalRowSpan === null) return null;
+      const columnSpan = rebasedSpan(previousColumns, columns, columnId, originalColumnSpan);
+      const rowSpan = rebasedSpan(previousLayers, layers, layerId, originalRowSpan);
       const columnStart = columns.findIndex(column => column.id === columnId);
       const layerStart = layers.findIndex(layer => layer.id === layerId);
       if (
@@ -192,7 +223,11 @@ export class MapLayout {
       ) return null;
       preparedDomains.push(cloneValue({
         ...domain,
-        layout: { ...(domain.layout || {}), columnId, layerId },
+        layout: {
+          ...(domain.layout || {}), columnId, layerId,
+          ...(columnSpan !== originalColumnSpan ? { columnSpan } : {}),
+          ...(rowSpan !== originalRowSpan ? { rowSpan } : {}),
+        },
       }));
     }
 
