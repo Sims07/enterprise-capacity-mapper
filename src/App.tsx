@@ -2,6 +2,8 @@ import { saveBusinessProcess, removeBusinessProcess } from './domain/businessPro
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
 import { Button } from './components/ui/Button.tsx';
+import { LibrarySectionHeading } from './components/LibrarySectionHeading.tsx';
+import { sortLibraryEntriesByDate } from './application/sortLibraryEntries.ts';
 import { FilePicker } from './components/ui/FilePicker.tsx';
 import MapActionsMenu from './components/MapActionsMenu.tsx';
 import { Modal } from './components/ui/Modal.tsx';
@@ -138,6 +140,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const lastSavedLocalSnapshotRef = useRef<{ id: string; json: string } | null>(null);
   const [localMaps, setLocalMaps] = useState([]);
   const [recentMaps, setRecentMaps] = useState([]);
+  const savedMapsByDate = useMemo(() => sortLibraryEntriesByDate(localMaps, 'saved'), [localMaps]);
+  const recentMapsByDate = useMemo(() => sortLibraryEntriesByDate(recentMaps, 'recent'), [recentMaps]);
   const [activeRecentMapId, setActiveRecentMapId] = useState(() => preferences.readActiveRecentMapId(uid('recent')));
   const [localMapName, setLocalMapName] = useState('');
   const [pendingLocalMap, setPendingLocalMap] = useState(null);
@@ -1527,15 +1531,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
           <div className="library-content-grid" data-testid="library-content-grid">
             <section className="library-section library-saved-section" aria-labelledby="saved-maps-heading">
-              <div className="library-section-heading">
-                <div>
-                  <h3 id="saved-maps-heading">Sauvegardes <span className="library-section-count" data-testid="saved-maps-count">{localMaps.length}</span></h3>
-                  <p>Versions nommées, conservées localement.</p>
-                </div>
-              </div>
+              <LibrarySectionHeading kind="saved" id="saved-maps-heading" title="Sauvegardes" count={localMaps.length} description="Dernières versions enregistrées sur cet appareil." />
               {localMaps.length ? (
                 <div className="library-card-grid" data-testid="saved-maps-list">
-                  {localMaps.map(saved => (
+                  {savedMapsByDate.map(saved => (
                     <article className="library-map-card" key={saved.id}>
                       <div className="library-map-details">
                         <div className="library-map-title">
@@ -1548,7 +1547,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                         <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> N0</span><span><strong>{saved.model.capabilities.length}</strong> N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
                       </div>
                       <div className="library-map-card-actions">
-                        <button type="button" className="ds-button ds-button--secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
+                        <button type="button" className="ds-button ds-button--secondary library-open-saved" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Charger</button>
                       </div>
                     </article>
                   ))}
@@ -1559,15 +1558,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             </section>
 
             <section className="library-section library-recent-section" aria-labelledby="recent-maps-heading">
-              <div className="library-section-heading">
-                <div>
-                  <h3 id="recent-maps-heading">Récemment ouvertes <span className="library-section-count" data-testid="recent-maps-count">{recentMaps.length}</span></h3>
-                  <p>Historique des ouvertures, sans modifier vos sauvegardes.</p>
-                </div>
-              </div>
+              <LibrarySectionHeading kind="recent" id="recent-maps-heading" title="Récemment ouvertes" count={recentMaps.length} description="Retirer de l’historique ne supprime pas la sauvegarde." />
               {recentMaps.length ? (
                 <div className="library-card-grid" data-testid="recent-maps-list">
-                  {recentMaps.map(saved => (
+                  {recentMapsByDate.map(saved => (
                     <article className="library-map-card" key={saved.id}>
                       <div className="library-map-details">
                         <div className="library-map-title">
@@ -1580,7 +1574,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                         <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> N0</span><span><strong>{saved.model.capabilities.length}</strong> N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
                       </div>
                       <div className="library-map-card-actions">
-                        <button type="button" className="ds-button ds-button--secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
+                        <button type="button" className="ds-button ds-button--secondary library-open-recent" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Reprendre</button>
                         <button type="button" className="ds-button ds-button--quiet library-remove-recent" data-testid={`remove-recent-${saved.id}`} aria-label={`Retirer ${saved.name} des récents`} onClick={() => {
                           try {
                             repository.removeRecentMap(saved.id);
