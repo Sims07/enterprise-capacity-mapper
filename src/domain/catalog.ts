@@ -1,3 +1,4 @@
+import { removeProcessCapabilityLinks } from './businessProcesses.ts';
 import type { Application, Capability, CatalogModel, Domain } from './catalogModel.ts';
 import { validateCapabilityAssessment } from './capabilityAssessment.ts';
 
@@ -87,6 +88,7 @@ export class Catalog {
       domains: [],
       capabilities: [],
       applications: [],
+      ...(this.model.businessProcesses === undefined ? {} : { businessProcesses: [] }),
     });
   }
 
@@ -98,6 +100,7 @@ export class Catalog {
     if (!this.model.capabilities.some(capability => capability.id === capabilityId)) return this;
     return this.with({
       capabilities: this.model.capabilities.filter(capability => capability.id !== capabilityId),
+      ...removeProcessCapabilityLinks(this.model, new Set([capabilityId])),
       applications: this.model.applications.map(application => ({
         ...copyApplication(application),
         ...(application.capabilityIds === undefined ? {} : {
@@ -197,6 +200,7 @@ export class Catalog {
     // Remove links to the deleted domain and to every capability deleted with it.
     const removedRelationIds = new Set([domainId, ...capabilityIds]);
     return this.with({
+      ...removeProcessCapabilityLinks(this.model, removedRelationIds),
       domains: this.model.domains.filter(domain => domain.id !== domainId),
       capabilities: this.model.capabilities.filter(capability => capability.domainId !== domainId),
       applications: this.model.applications.map(application => ({

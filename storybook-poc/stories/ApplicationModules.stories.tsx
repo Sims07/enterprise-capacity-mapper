@@ -1,3 +1,5 @@
+import BusinessProcesses from '../../src/components/BusinessProcesses.tsx';
+import { saveBusinessProcess, removeBusinessProcess } from '../../src/domain/businessProcesses.ts';
 import type { CatalogModel } from '../../src/domain/catalogModel.ts';
 import RiskAnalysis from '../../src/components/RiskAnalysis.tsx';
 import React, { useState } from 'react';
@@ -42,6 +44,8 @@ function DashboardScenario({ depth = 2 }: { depth?: number }) {
     onUpdatePriority={() => undefined}
     onEditCapability={id => setSelected([id])}
     onShowOnMap={id => setSelected([id])}
+    onSaveProcess={() => undefined}
+    onRemoveProcess={() => undefined}
     onUpdateRisk={() => undefined}
     onExportReview={() => undefined}
     onClearReference={() => undefined}
@@ -67,3 +71,9 @@ function RiskScenario() {
   return <RiskAnalysis model={model} onUpdateRisk={(id, risk) => setModel(previous => ({ ...previous, applications: previous.applications.map(app => app.id === id ? { ...app, risk } : app) }))} onExploreTarget={() => undefined} onExport={() => undefined} />;
 }
 export const AnalyseDesRisques: Story = { render: () => <RiskScenario /> };
+
+function ProcessesScenario() {
+  const [model, setModel] = useState<CatalogModel>({ ...DEMO_MODEL, businessProcesses: [{ id: 'process-order', name: 'Traiter une commande client', owner: 'Direction commerciale', capabilityIds: ['l1-1', 'l1-2', 'l1-5'] }] });
+  return <BusinessProcesses model={model} onSave={draft => setModel(previous => saveBusinessProcess(previous, { ...draft, id: draft.id || crypto.randomUUID() }))} onRemove={id => setModel(previous => removeBusinessProcess(previous, id))} onExploreTarget={() => undefined} onShowRisks={() => undefined} />;
+}
+export const ProcessusMetier: Story = { render: () => <ProcessesScenario /> };

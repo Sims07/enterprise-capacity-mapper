@@ -13,4 +13,5 @@ export type CapabilityAssessment = {
 };
 export type Capability = { id: string; domainId: string; code?: string; name: string; description?: string; priority?: string; assessment?: CapabilityAssessment; [key: string]: unknown };
 export type Application = { risk?: ApplicationRisk; id: string; name: string; code?: string; type?: string; status?: string; vendor?: string; capabilityIds?: string[]; description?: string; [key: string]: unknown };
-export type CatalogModel = { domains: Domain[]; capabilities: Capability[]; applications: Application[]; [key: string]: unknown };
+export type BusinessProcess = { id: string; name: string; code?: string; owner?: string; description?: string; documentationUrl?: string; capabilityIds: string[]; [key: string]: unknown };
+export type CatalogModel = { businessProcesses?: BusinessProcess[]; domains: Domain[]; capabilities: Capability[]; applications: Application[]; [key: string]: unknown };

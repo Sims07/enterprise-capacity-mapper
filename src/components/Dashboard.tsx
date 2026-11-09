@@ -1,10 +1,12 @@
 import RiskAnalysis from './RiskAnalysis.tsx';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { FilePicker } from './ui/FilePicker.tsx';
 import { Button } from './ui/Button.tsx';
 import { analyzeCapabilityGaps, findMissingReferenceCapabilities } from '../domain/capabilityGaps.ts';
 import { createDecisionReview, formatDecisionReviewMarkdown, simulateApplicationRetirement, DECISION_REVIEW_DISPLAY_LIMIT } from '../application/decisionReview.ts';
 import { isCurrentApplication } from '../application/coverageUseCases.ts';
+
+const BusinessProcesses = React.lazy(() => import('./BusinessProcesses.tsx'));
 
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
 const resolveDomainColor = color => /^#[\da-f]{6}$/i.test(color || '') ? color : DOMAIN_COLORS[color] || '#3b82f6';
@@ -20,7 +22,7 @@ const resetDashboardScroll = () => {
   });
 };
 
-export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference, onLoadReferenceUrl, onExportReview, onEditCapability, onShowOnMap, onUpdateRisk, onExportRisk = onExportReview }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference, onLoadReferenceUrl, onExportReview, onEditCapability, onShowOnMap, onUpdateRisk, onExportRisk = onExportReview, onSaveProcess, onRemoveProcess }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -81,7 +83,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [activeView, setActiveView] = useState(() => {
     const view = window.history.state?.capacityMapperDashboardView;
-    return ['overview', 'coverage', 'impact', 'attention', 'risk'].includes(view) ? view : 'overview';
+    return ['overview', 'coverage', 'impact', 'attention', 'risk', 'processes'].includes(view) ? view : 'overview';
   });
 
   const navigateDashboardView = nextView => {
@@ -98,7 +100,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   useEffect(() => {
     const handleDashboardPopState = event => {
       const view = event.state?.capacityMapperDashboardView;
-      if (['overview', 'coverage', 'impact', 'attention', 'risk'].includes(view)) {
+      if (['overview', 'coverage', 'impact', 'attention', 'risk', 'processes'].includes(view)) {
         setActiveView(view);
       } else {
         setActiveView('overview');
@@ -299,7 +301,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         <button type="button" data-testid="dashboard-view-impact" className={activeView === 'impact' ? 'is-active' : ''} aria-pressed={activeView === 'impact'} onClick={() => navigateDashboardView('impact')}><span className="dashboard-intent-eyebrow">03 · Comprendre</span><strong>Comprendre les impacts</strong><small>Relier sélection, applications et gaps</small></button>
         <button type="button" data-testid="dashboard-view-attention" className={activeView === 'attention' ? 'is-active' : ''} aria-pressed={activeView === 'attention'} onClick={() => navigateDashboardView('attention')}><span className="dashboard-intent-eyebrow">04 · Agir</span><strong>Examiner les points d’attention</strong><small>Prioriser les gaps et les situations à revoir</small></button>
         <Button data-testid="dashboard-view-risk" className={activeView === 'risk' ? 'is-active' : ''} aria-pressed={activeView === 'risk'} onClick={() => navigateDashboardView('risk')}><span className="dashboard-intent-eyebrow">05 · Anticiper</span><strong>Analyser les risques</strong><small>Prioriser l’exposition et suivre les actions</small></Button>
+        <Button data-testid="dashboard-view-processes" className={activeView === 'processes' ? 'is-active' : ''} aria-pressed={activeView === 'processes'} onClick={() => navigateDashboardView('processes')}><span className="dashboard-intent-eyebrow">06 · Relier</span><strong>Processus métier</strong><small>Relier les processus aux capacités</small></Button>
       </nav>
+      {activeView === 'processes' && <Suspense fallback={<p role="status">Chargement des processus métier…</p>}><BusinessProcesses model={model} onSave={onSaveProcess} onRemove={onRemoveProcess} onExploreTarget={onExploreTarget} onShowRisks={() => navigateDashboardView('risk')} /></Suspense>}
       {activeView === 'risk' && <RiskAnalysis model={model} onUpdateRisk={onUpdateRisk} onExploreTarget={onExploreTarget} onExport={onExportRisk} />}
       {activeView === 'overview' && <section className="dashboard-overview-intro" data-testid="dashboard-overview-intro"><div><span className="dashboard-overview-kicker">PILOTAGE DE LA CARTOGRAPHIE</span><h2>Où souhaitez-vous concentrer votre analyse ?</h2><p>Commencez par les indicateurs globaux, puis choisissez une intention pour approfondir sans parcourir toutes les sections.</p></div><div className="dashboard-overview-shortcuts"><button type="button" onClick={() => navigateDashboardView('coverage')}><strong>Analyser la couverture</strong><span>Comparer les capacités dans la heatmap <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => navigateDashboardView('impact')}><strong>Comprendre les impacts</strong><span>{impactTargets.length ? `${impactTargets.length} élément(s) sélectionné(s) depuis Impact` : 'Sélectionner les capacités et mesurer leurs effets'} <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => navigateDashboardView('attention')}><strong>Examiner les points d’attention</strong><span>{stats.gaps.length} gaps · {stats.redundancies.length} couvertures multiples <b aria-hidden="true">↗</b></span></button></div></section>}
       {activeView === 'impact' && (

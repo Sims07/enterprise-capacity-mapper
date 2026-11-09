@@ -191,3 +191,13 @@ test('preserves application risks across JSON import and validates their structu
   model.applications[0].risk.impact = 12;
   await assert.rejects(importModel({ text: async () => JSON.stringify(model) }), /compris entre 1 et 5/);
 });
+
+test('imports processes without changing application relations and rejects dangling process links', async () => {
+  const model = validModel();
+  model.businessProcesses = [{ id: 'process-1', name: 'Traiter une commande', capabilityIds: ['cap-1'], documentationUrl: 'https://example.org/procedure' }];
+  const imported = await importModel({ text: async () => JSON.stringify(model) });
+  assert.deepEqual(imported.businessProcesses, model.businessProcesses);
+  assert.deepEqual(imported.applications, model.applications);
+  model.businessProcesses[0].capabilityIds = ['missing'];
+  await assert.rejects(importModel({ text: async () => JSON.stringify(model) }), /processus référence/i);
+});
