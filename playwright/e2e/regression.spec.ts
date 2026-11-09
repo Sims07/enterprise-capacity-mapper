@@ -479,6 +479,50 @@ test.describe('Playwright regression — companion', () => {
     await page.getByTestId('companion-launcher').click();
   });
 
+  test('qualifie un écart de couverture sans LLM ni modification de la cartographie', async ({ page }) => {
+    const before = await page.evaluate(() => {
+      const raw = localStorage.getItem('enterprise-capacity-mapper:model:v3');
+      if (!raw) throw new Error('Cartographie absente');
+      const model = JSON.parse(raw);
+      return { applications: model.applications, capabilities: model.capabilities };
+    });
+    await page.getByTestId('companion-prompt-coverage').click();
+    const review = page.getByTestId('companion-guided-review');
+    await expect(review).toBeVisible();
+    const gap = review.locator('[data-rule-id="coverage.target-uncovered"]').first();
+    await expect(gap).toBeVisible();
+    await gap.click();
+    await expect(review.getByTestId('companion-review-question')).toContainText('lacune réelle');
+    await review.getByTestId('companion-review-answer-confirmed').click();
+    await expect(review.getByTestId('companion-review-question')).toContainText('processus métier');
+    await review.getByTestId('companion-review-answer-important').click();
+    await expect(review.getByTestId('companion-review-conclusion')).toContainText('Ne pas déduire automatiquement le niveau de risque');
+
+    await review.getByTestId('companion-review-restart').click();
+    await review.getByTestId('companion-review-answer-incomplete').click();
+    await expect(review.getByTestId('companion-review-conclusion')).toContainText('Donnée incomplète');
+    await expect(review.getByTestId('companion-review-conclusion')).not.toContainText('Lacune déclarée');
+
+    const after = await page.evaluate(() => {
+      const model = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}');
+      return { applications: model.applications, capabilities: model.capabilities };
+    });
+    expect(after).toEqual(before);
+  });
+
+  test('conserve les quatre analyses existantes avec qualification complémentaire', async ({ page }) => {
+    for (const prompt of ['overview', 'coverage', 'naming', 'structure']) {
+      await page.getByTestId(`companion-prompt-${prompt}`).click();
+      await expect(page.getByTestId('companion-exchange').last()).toBeVisible();
+    }
+    const history = page.getByTestId('companion-exchange');
+    await expect(history).toHaveCount(4);
+    await page.getByTestId('companion-mode-conversation').click();
+    await expect(history).toHaveCount(4);
+    await page.getByTestId('companion-mode-guided').click();
+    await expect(history).toHaveCount(4);
+  });
+
   test('redimensionne le panneau, persiste le format et garde le dock dans le viewport', async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 900 });
     const panel = page.getByTestId('companion-panel');
