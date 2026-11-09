@@ -1,3 +1,4 @@
+import { validateBusinessProcesses } from '../domain/businessProcesses.ts';
 import { validateApplicationRisk } from '../domain/applicationRisk.ts';
 import type { CatalogModel } from '../domain/catalogModel.ts';
 import { validateCapabilityAssessment } from '../domain/capabilityAssessment.ts';
@@ -156,6 +157,7 @@ export function validateModel(model: CatalogModel): CatalogModel {
   if (model.capabilities.some(x => !domainIds.has(x.domainId))) throw new Error('Une capacité référence un domaine inexistant.');
   const relationTargetIds = (model.layout as { depth?: number } | undefined)?.depth === 1 ? domainIds : capIds;
   if (model.applications.some(x => x.capabilityIds?.some(id => !relationTargetIds.has(id)))) throw new Error('Une application référence une capacité inexistante.');
+  if (model.businessProcesses !== undefined) validateBusinessProcesses(model.businessProcesses, relationTargetIds);
   return model;
 }
 export async function importModel(source: { text(): Promise<string> }): Promise<CatalogModel> { return validateModel(JSON.parse(await source.text()) as CatalogModel); }

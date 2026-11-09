@@ -1,3 +1,4 @@
+import { saveBusinessProcess, removeBusinessProcess } from './domain/businessProcesses.ts';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
 import { Button } from './components/ui/Button.tsx';
@@ -1558,6 +1559,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 if (!repository.loadRemoteModel) throw new Error('Source de référence distante indisponible.');
                 setCapabilityReference(await repository.loadRemoteModel(repository.normalizeJsonUrl?.(url) || url));
               }}
+              onSaveProcess={draft => update(saveBusinessProcess(model, { ...draft, id: draft.id || uid('process') }))}
+              onRemoveProcess={id => update(removeBusinessProcess(model, id))}
               onUpdateRisk={(id, risk) => update({ applications: model.applications.map(app => app.id === id ? { ...app, risk } : app) })}
               onExportRisk={markdown => downloadDecisionReview(markdown, 'capability-risk-analysis.md')}
               onExportReview={downloadDecisionReview}
