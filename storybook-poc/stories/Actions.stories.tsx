@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '../../src/components/ui/Button.tsx';
+import { FilePicker } from '../../src/components/ui/FilePicker.tsx';
+import { ToolMenuIcon } from '../../src/components/ui/ToolMenuIcon.tsx';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { withSignalTheme, storyGrid, storyPanel, storyHelp } from './storyFrame.tsx';
 
@@ -59,22 +61,43 @@ function MenuDemo() {
   }, []);
   const choose = (value: string) => { setSelected(value); setOpen(false); };
   return <section style={storyPanel}>
-    <h3>Menu Outils</h3>
-    <div ref={ref} className="toolbar" style={{ position: 'relative', display: 'inline-flex' }}>
-      <Button type="button" variant="quiet" className="toolbar-tools-toggle" aria-expanded={open}
-        aria-controls="storybook-tools-panel" onClick={() => setOpen(value => !value)}>⋯ Outils</Button>
-      {open && <div className="toolbar-tools-panel" id="storybook-tools-panel">
-        <section className="toolbar-menu-group" aria-label="Données">
-          <h3 className="toolbar-menu-heading">Données</h3>
-          <Button type="button" variant="quiet" onClick={() => choose('Export JSON')}>Exporter en JSON</Button>
-          <Button type="button" variant="quiet" onClick={() => choose('Import JSON')}>Importer depuis JSON</Button>
-        </section>
-        <div className="toolbar-menu-divider" role="separator" />
-        <section className="toolbar-menu-group" aria-label="Affichage">
-          <h3 className="toolbar-menu-heading">Affichage</h3>
-          <Button type="button" variant="quiet" onClick={() => choose('Thème sombre')}>Thème sombre</Button>
-        </section>
-      </div>}
+    <h3>Menu Outils — actions alignées, sans bordures superflues</h3>
+    <div className="toolbar-switch primary-navigation" style={{ display: 'flex', position: 'relative', width: 'fit-content', overflow: 'visible' }}>
+      <div ref={ref} className={['toolbar-tools', open && 'is-open'].filter(Boolean).join(' ')}>
+        <Button type="button" variant="quiet" className="toolbar-tools-toggle" aria-expanded={open}
+          aria-controls="storybook-tools-panel" onClick={() => setOpen(value => !value)}>Outils</Button>
+        {open && <div className="toolbar-tools-panel" id="storybook-tools-panel" aria-label="Outils et actions">
+          <section className="toolbar-menu-group" aria-label="Cartographie">
+            <h3 className="toolbar-menu-heading">Cartographie</h3>
+            <Button type="button" variant="quiet" className="toolbar-menu-action toolbar-menu-action--create" onClick={() => choose('Nouvelle cartographie')}>
+              <ToolMenuIcon name="create" /><span>Nouvelle cartographie</span>
+            </Button>
+            <Button type="button" variant="quiet" className="toolbar-menu-action" onClick={() => choose('Enregistrer')}>
+              <ToolMenuIcon name="save" /><span>Enregistrer la cartographie</span>
+            </Button>
+          </section>
+          <div className="toolbar-menu-divider" role="separator" />
+          <section className="toolbar-menu-group" aria-label="Données">
+            <h3 className="toolbar-menu-heading">Données</h3>
+            <Button type="button" variant="quiet" className="toolbar-menu-action" onClick={() => choose('Export JSON')}>
+              <ToolMenuIcon name="download" /><span>Exporter en JSON</span>
+            </Button>
+            <FilePicker label="Importer depuis JSON" variant="quiet" className="toolbar-import toolbar-menu-action"
+              leadingIcon={<ToolMenuIcon name="upload" />} accept=".json,application/json" onChange={() => choose('Import JSON')} />
+          </section>
+          <div className="toolbar-menu-divider" role="separator" />
+          <section className="toolbar-menu-group" aria-label="Affichage">
+            <h3 className="toolbar-menu-heading">Affichage</h3>
+            <Button type="button" variant="quiet" className="toolbar-menu-action" onClick={() => choose('Thème sombre')}>
+              <ToolMenuIcon name="moon" /><span>Thème sombre</span>
+            </Button>
+          </section>
+          <div className="toolbar-menu-divider" role="separator" />
+          <div className="toolbar-menu-footer" aria-label="Version de l’application">
+            <small className="pwa-version">Version de démonstration</small>
+          </div>
+        </div>}
+      </div>
     </div>
     <p role="status" style={storyHelp}>{selected || 'Ouvrez le menu pour examiner les actions.'}</p>
   </section>;

@@ -5,6 +5,7 @@ import { Button } from './components/ui/Button.tsx';
 import { LibrarySectionHeading } from './components/LibrarySectionHeading.tsx';
 import { sortLibraryEntriesByDate } from './application/sortLibraryEntries.ts';
 import { FilePicker } from './components/ui/FilePicker.tsx';
+import { ToolMenuIcon } from './components/ui/ToolMenuIcon.tsx';
 import MapActionsMenu from './components/MapActionsMenu.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
@@ -1456,38 +1457,45 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 className="toolbar-tools-toggle"
                 data-testid="tools-menu-toggle"
                 ref={toolsMenuToggleRef}
-                aria-label="Ouvrir le menu Outils"
+                aria-label={toolsMenuOpen ? "Fermer le menu Outils" : "Ouvrir le menu Outils"}
                 aria-haspopup="true"
+                aria-controls="tools-panel"
                 aria-expanded={toolsMenuOpen}
                 onClick={() => setToolsMenuOpen(open => !open)}
               >
                 <span>Outils</span><span aria-hidden="true">⌄</span>
               </button>
-              {toolsMenuOpen && <div className="toolbar-tools-panel" aria-label="Outils et actions">
+              {toolsMenuOpen && <div className="toolbar-tools-panel" id="tools-panel" aria-label="Outils et actions">
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-maps">
                   <h3 id="tools-group-maps" className="toolbar-menu-heading">Cartographie</h3>
-                  <Button variant="secondary" className="new-map-button" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
-                    <span className="new-map-button-mark" aria-hidden="true">+</span>
-                    <span>Nouvelle cartographie</span>
+                  <Button variant="quiet" className="toolbar-menu-action toolbar-menu-action--create" data-testid="new-map-button" onClick={() => { closeToolsMenu(); openWizard(); }}>
+                    <ToolMenuIcon name="create" /><span>Nouvelle cartographie</span>
                   </Button>
-                  <Button variant="primary" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>Enregistrer la cartographie</Button>
+                  <Button variant="quiet" className="toolbar-menu-action" data-testid="save-local-map" onClick={() => { closeToolsMenu(); saveCurrentLocalMap(); }}>
+                    <ToolMenuIcon name="save" /><span>Enregistrer la cartographie</span>
+                  </Button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-data">
                   <h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3>
-                  <Button variant="secondary" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>↓ Exporter en JSON</Button>
-                  <FilePicker label="Importer depuis JSON" variant="quiet" className="toolbar-import" data-testid="import-model" accept=".json,application/json" onChange={event => { closeToolsMenu(); importJson(event); }} />
+                  <Button variant="quiet" className="toolbar-menu-action" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>
+                    <ToolMenuIcon name="download" /><span>Exporter en JSON</span>
+                  </Button>
+                  <FilePicker label="Importer depuis JSON" variant="quiet" className="toolbar-import toolbar-menu-action"
+                    leadingIcon={<ToolMenuIcon name="upload" />} data-testid="import-model" accept=".json,application/json"
+                    onChange={event => { closeToolsMenu(); importJson(event); }} />
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
                 <section className="toolbar-menu-group" aria-labelledby="tools-group-display">
                   <h3 id="tools-group-display" className="toolbar-menu-heading">Affichage</h3>
-                  <Button variant="secondary" className="theme-toggle" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>{darkMode ? '☀ Thème clair' : '☾ Thème sombre Signal'}</Button>
+                  <Button variant="quiet" className="toolbar-menu-action" data-testid="theme-toggle" aria-pressed={darkMode} onClick={() => { setDarkMode(value => !value); closeToolsMenu(); }}>
+                    <ToolMenuIcon name={darkMode ? 'sun' : 'moon'} /><span>{darkMode ? 'Thème clair' : 'Thème sombre Signal'}</span>
+                  </Button>
                 </section>
                 <div className="toolbar-menu-divider" role="separator" />
-                <section className="toolbar-menu-group toolbar-menu-version" aria-labelledby="tools-group-version">
-                  <h3 id="tools-group-version" className="toolbar-menu-heading">Version</h3>
+                <div className="toolbar-menu-footer" aria-label="Version de l'application">
                   <PwaUpdateNotice />
-                </section>
+                </div>
               </div>}
             </div>
           </nav>

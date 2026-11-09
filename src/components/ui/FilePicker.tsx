@@ -9,13 +9,15 @@ export type FilePickerProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 
   variant?: 'secondary' | 'quiet';
   /** Classe du déclencheur (pour les menus contextuels préexistants). */
   className?: string;
+  /** Icône optionnelle pour un déclencheur contextualisé. */
+  leadingIcon?: React.ReactNode;
 };
 
 /**
  * Le véritable <input type="file"> demeure focusable au clavier et exploitable
  * par les tests d'import. Le libellé adopte la même primitive visuelle que Button.
  */
-export function FilePicker({ label, hint, variant = 'secondary', className, id, onChange, disabled, ...props }: FilePickerProps) {
+export function FilePicker({ label, hint, variant = 'secondary', className, leadingIcon, id, onChange, disabled, ...props }: FilePickerProps) {
   const generatedId = useId();
   const inputId = id || generatedId;
   const [filename, setFilename] = useState('');
@@ -27,7 +29,7 @@ export function FilePicker({ label, hint, variant = 'secondary', className, id, 
           setFilename(event.currentTarget.files?.[0]?.name || '');
           onChange?.(event);
         }} />
-      <span aria-hidden="true" className="ds-file-picker-symbol">↑</span>
+      <span aria-hidden="true" className="ds-file-picker-symbol">{leadingIcon ?? '↑'}</span>
       <span>{label}</span>
     </label>
     {(filename || hint) && <small className="ds-file-picker-detail" role="status">{filename || hint}</small>}
