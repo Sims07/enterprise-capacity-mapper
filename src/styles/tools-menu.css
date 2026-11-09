@@ -6,7 +6,7 @@
   position: absolute;
   top: calc(100% + var(--signal-space-2));
   right: 0;
-  width: min(16rem, calc(100vw - 2 * var(--signal-space-3)));
+  width: min(16rem, calc(100vw - var(--signal-space-5)));
   min-width: 0;
   max-width: none;
   max-height: min(72dvh, 35rem);
