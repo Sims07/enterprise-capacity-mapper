@@ -246,7 +246,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     const savedSection = library.locator('.library-saved-section');
     const savedCard = library.getByTestId('saved-maps-list').locator('.library-map-card').first();
     await expect(savedCard).toContainText('Bibliothèque compacte');
-    await expect(savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' })).toBeVisible();
+    await expect(savedCard.getByRole('button', { name: 'Charger' })).toBeVisible();
     const bounds = await savedSection.evaluate(section => {
       const heading = section.querySelector('h3');
       const row = section.querySelector('.library-map-card');
@@ -263,10 +263,69 @@ test.describe('Playwright regression — import, library and persistence', () =>
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(library.getByTestId('library-active-map')).toBeVisible();
-    await expect(savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' })).toBeVisible();
+    await expect(savedCard.getByRole('button', { name: 'Charger' })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });
 
+
+  test('trie par dates de sauvegarde et d’ouverture et différencie visuellement les deux sources', async ({ page }) => {
+    await page.getByTestId('autosave-action').click();
+    await page.getByTestId('local-map-name').fill('Base pour le tri');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+
+    await page.evaluate(() => {
+      const savedKey = 'enterprise-capacity-mapper:local-maps:v1';
+      const recentKey = 'enterprise-capacity-mapper:recent-maps:v1';
+      const base = JSON.parse(localStorage.getItem(savedKey) || '[]')[0];
+      if (!base) throw new Error('Une sauvegarde de test est nécessaire');
+      localStorage.setItem(savedKey, JSON.stringify([
+        { ...base, id: 'saved-old', name: 'Sauvegarde ancienne', updatedAt: '2026-11-05T09:26:00Z' },
+        { ...base, id: 'saved-new', name: 'Sauvegarde nouvelle', updatedAt: '2026-11-09T16:04:00Z' },
+        { ...base, id: 'saved-middle', name: 'Sauvegarde intermédiaire', updatedAt: '2026-11-06T11:41:00Z' },
+      ]));
+      localStorage.setItem(recentKey, JSON.stringify([
+        { ...base, id: 'recent-middle', name: 'Historique intermédiaire', openedAt: '2026-11-06T11:34:00Z' },
+        { ...base, id: 'recent-old', name: 'Historique ancien', openedAt: '2026-11-05T09:48:00Z' },
+        { ...base, id: 'recent-new', name: 'Historique nouveau', openedAt: '2026-11-09T10:08:00Z' },
+      ]));
+    });
+    await page.reload();
+    await page.getByTestId('primary-library').click();
+    const library = page.getByTestId('library-page');
+    const savedList = library.getByTestId('saved-maps-list');
+    const recentList = library.getByTestId('recent-maps-list');
+    await expect(savedList.locator('.library-map-card h4')).toHaveText([
+      'Sauvegarde nouvelle', 'Sauvegarde intermédiaire', 'Sauvegarde ancienne',
+    ]);
+    // L’application peut ajouter une session récente au rechargement : ne comparer que les entrées préparées.
+    const historyNames = (await recentList.locator('.library-map-card h4').allTextContents())
+      .filter(name => name.startsWith('Historique '));
+    expect(historyNames).toEqual(['Historique nouveau', 'Historique intermédiaire', 'Historique ancien']);
+    await expect(savedList.getByRole('button', { name: 'Charger' })).toHaveCount(3);
+    for (const name of ['Historique nouveau', 'Historique intermédiaire', 'Historique ancien']) {
+      await expect(recentList.locator('.library-map-card').filter({ hasText: name })
+        .getByRole('button', { name: 'Reprendre' })).toBeVisible();
+    }
+    const tones = await library.evaluate(element => {
+      const saved = element.querySelector('.library-saved-section');
+      const recent = element.querySelector('.library-recent-section');
+      if (!saved || !recent) throw new Error('Sections introuvables');
+      return {
+        saved: getComputedStyle(saved).borderTopColor,
+        recent: getComputedStyle(recent).borderTopColor,
+        savedIcon: saved.querySelector('.library-section-icon')?.getAttribute('aria-hidden'),
+        recentIcon: recent.querySelector('.library-section-icon')?.getAttribute('aria-hidden'),
+      };
+    });
+    expect(tones.saved).not.toBe(tones.recent);
+    expect(tones.savedIcon).toBe('true');
+    expect(tones.recentIcon).toBe('true');
+
+    await recentList.locator('.library-map-card').filter({ hasText: 'Historique ancien' })
+      .getByRole('button', { name: 'Retirer' }).click();
+    await expect(recentList).not.toContainText('Historique ancien');
+    await expect(savedList).toContainText('Sauvegarde ancienne');
+  });
 
   test('indique le brouillon local puis sa sauvegarde sur cet appareil', async ({ page }) => {
     await expect(page.getByTestId('autosave-status')).toHaveText('Brouillon local');
@@ -316,7 +375,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await page.reload();
     await page.getByTestId('primary-library').click();
     const savedCard = page.getByTestId('saved-maps-list').locator('.library-map-card').filter({ has: page.getByRole('heading', { name: 'Autosave Playwright' }) });
-    await savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' }).click();
+    await savedCard.getByRole('button', { name: 'Charger' }).click();
     await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
     await expect(page.locator('.cap:visible').filter({ hasText: 'Capacité sauvegardée automatiquement' })).toBeVisible();
   });
@@ -363,7 +422,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await page.locator('.modal .field input').fill('Édition à conserver');
     await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
     await page.getByTestId('primary-library').click();
-    await page.getByTestId('saved-maps-list').getByRole('button', { name: 'Ouvrir cette cartographie' }).first().click();
+    await page.getByTestId('saved-maps-list').getByRole('button', { name: 'Charger' }).first().click();
     await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
     await expect(page.locator('.cap:visible').filter({ hasText: 'Édition à conserver' })).toBeVisible();
     await expect(page.getByTestId('autosave-status')).toHaveText('Enregistrée sur cet appareil');
@@ -371,7 +430,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
 
   test('une cartographie récente non nommée reste un brouillon', async ({ page }) => {
     await page.getByTestId('primary-library').click();
-    await page.getByTestId('recent-maps-list').getByRole('button', { name: 'Ouvrir cette cartographie' }).first().click();
+    await page.getByTestId('recent-maps-list').getByRole('button', { name: 'Reprendre' }).first().click();
     await page.locator('.modal-actions').getByRole('button', { name: 'Ouvrir' }).click();
     await expect(page.getByTestId('autosave-status')).toHaveText('Brouillon local');
     await expect(page.getByTestId('autosave-action')).toHaveText('Enregistrer');
