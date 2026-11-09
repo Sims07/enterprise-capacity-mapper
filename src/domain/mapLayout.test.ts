@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MapLayout } from './mapLayout.ts';
+import { MapLayout, clampDomainSpan } from './mapLayout.ts';
 
 const draft = () => ({
   columns: [{ id: 'c1', name: 'Business', order: 0 }, { id: 'c2', name: 'Support', order: 1 }],
@@ -246,6 +246,62 @@ test('MapLayout keeps an insertion row after the last N0 is deleted and tolerate
     { id: 'second', layout: { columnId: 'c1', layerId: 'auto-2' } },
   ];
   assert.deepEqual(MapLayout.collapseUnusedGeneratedLayers(layout, stacked).layers?.map(layer => layer.id), ['auto-2']);
+});
+
+test('a three-column N0 shrinks to two or one column even after an oversized drag', () => {
+  assert.equal(clampDomainSpan(3, -1, 0, 3), 2);
+  assert.equal(clampDomainSpan(3, -2, 0, 3), 1);
+  assert.equal(clampDomainSpan(3, -100, 0, 3), 1, 'the release must use the same bounds as its preview');
+  assert.equal(clampDomainSpan(1, -1, 0, 3), 1);
+  assert.equal(clampDomainSpan(1, 20, 1, 3), 2);
+  const columns = [...draft().columns, { id: 'c3', name: 'Data', order: 2 }];
+  const layers = draft().layers;
+  const domains = [
+    { id: 'green', layout: { columnId: 'c1', layerId: 'l2', columnSpan: 3 } },
+    { id: 'upper-left', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1 } },
+    { id: 'upper-right', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 2 } },
+  ];
+  const layout = { columns, layers };
+  for (const width of [2, 1]) {
+    const result = MapLayout.fromDraft(draft()).prepareDomainPlacement({
+      layout, domains, columns, layers, domainId: 'green', columnSpan: width, rowSpan: 1, allowExactOverlap: false,
+    });
+    assert.equal(result?.domains[0].layout?.columnSpan, width);
+    assert.equal(result?.domains[1].layout?.columnSpan, 1);
+  }
+});
+
+test('inserts rows and columns between occupied axes while keeping N0 coverage intact', () => {
+  const before = draft();
+  const columns = [...before.columns, { id: 'c3', name: 'Other', order: 2 }];
+  const original = { ...before, columns, zones: MapLayout.completeZones(columns, before.layers, before.zones) };
+  const withMiddleColumn = MapLayout.fromDraft(original).insertItem('columns', 'extra-column', 'c2').toDraft();
+  const inserted = MapLayout.fromDraft(withMiddleColumn).insertItem('layers', 'extra-row', 'l2').toDraft();
+  assert.deepEqual(inserted.columns.map(column => column.id), ['c1', 'extra-column', 'c2', 'c3']);
+  assert.deepEqual(inserted.layers.map(layer => layer.id), ['l1', 'extra-row', 'l2']);
+  assert.deepEqual(inserted.columns.map(column => column.order), [0, 1, 2, 3]);
+  assert.equal(inserted.zones.length, 12);
+  assert.equal(inserted.zones.find(zone => zone.id === 'c1:l2')?.name, 'Business support');
+  const domains = [
+    { id: 'green', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 3, rowSpan: 2, metadata: { retained: true } } },
+  ];
+  const originalSnapshot = JSON.stringify({ original, domains });
+  const prepared = MapLayout.fromDraft(inserted).prepareForSave(original, domains);
+  assert.equal(prepared?.domains[0].layout?.columnSpan, 4);
+  assert.equal(prepared?.domains[0].layout?.rowSpan, 3);
+  assert.deepEqual(prepared?.domains[0].layout?.metadata, { retained: true });
+  assert.equal(JSON.stringify({ original, domains }), originalSnapshot);
+  assert.equal(MapLayout.fromDraft(original).insertItem('columns', 'at-end').toDraft().columns.at(-1)?.id, 'at-end');
+  assert.throws(() => MapLayout.fromDraft(original).insertItem('layers', 'foo', 'missing'), /introuvable/);
+});
+
+test('refuses to silently remove a track occupied by a spanning N0', () => {
+  const before = draft();
+  const domains = [{ id: 'wide', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2, rowSpan: 2 } }];
+  const withoutColumn = MapLayout.fromDraft(before).removeItem('columns', 'c2').toDraft();
+  const withoutLayer = MapLayout.fromDraft(before).removeItem('layers', 'l2').toDraft();
+  assert.equal(MapLayout.fromDraft(withoutColumn).prepareForSave(before, domains), null);
+  assert.equal(MapLayout.fromDraft(withoutLayer).prepareForSave(before, domains), null);
 });
 
 

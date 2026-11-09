@@ -7,6 +7,7 @@ import MapActionsMenu from './components/MapActionsMenu.tsx';
 import { Modal } from './components/ui/Modal.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
+import { clampDomainSpan } from './domain/mapLayout.ts';
 import { analyzeCapabilityGaps } from './domain/capabilityGaps.ts';
 import { capabilityMapReadout, MAP_READING_MODES, type MapReadingMode } from './application/capabilityMapReadout.ts';
 import { presentationCapabilitySignal, PRESENTATION_READING_OPTIONS, type PresentationReadingMode } from './application/presentationReadout.ts';
@@ -20,6 +21,7 @@ import {
   collapseLayoutAfterDomainRemoval,
   type Layout,
   isDomainPlacementAvailable,
+  insertLayoutDraftItem,
   prepareNewDomainSlot,
   prepareLayoutForSave,
   prepareDomainPlacement,
@@ -150,6 +152,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [editingCapabilityId, setEditingCapabilityId] = useState(null);
   const [editingApplicationId, setEditingApplicationId] = useState(null);
   const [layoutDraft, setLayoutDraft] = useState(null);
+  const [layoutInsertion, setLayoutInsertion] = useState({ columns: 'end', layers: 'end' });
   const [pendingDomainPlan, setPendingDomainPlan] = useState<NonNullable<ReturnType<typeof prepareNewDomainSlot>> | null>(null);
   const [domainInsertionTarget, setDomainInsertionTarget] = useState('auto');
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
@@ -711,6 +714,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const openLayoutEditor = () => {
     setLayoutDraft({ columns: columns.map(x => ({ ...x })), layers: layers.map(x => ({ ...x })), zones: zones.map(x => ({ ...x })), showColumnHeadings, showRowHeadings });
+    setLayoutInsertion({ columns: 'end', layers: 'end' });
     setModal('layout');
   };
 
@@ -718,14 +722,39 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const updateZoneDraft = (columnId, layerId, name) => setLayoutDraft(d => renameLayoutZone(d, columnId, layerId, name));
 
-  const addLayoutItem = kind => setLayoutDraft(d => addLayoutDraftItem(d, kind, uid(kind === 'columns' ? 'column' : 'layer')));
+  const addLayoutItem = kind => {
+    const id = uid(kind === 'columns' ? 'column' : 'layer');
+    const beforeId = layoutInsertion[kind];
+    setLayoutDraft(d => beforeId === 'end'
+      ? addLayoutDraftItem(d, kind, id)
+      : insertLayoutDraftItem(d, kind, id, beforeId));
+    setLayoutInsertion(current => ({ ...current, [kind]: 'end' }));
+  };
 
-  const removeLayoutItem = (kind, id) => setLayoutDraft(d => removeLayoutDraftItem(d, kind, id));
+  const isLayoutAxisOccupied = (kind, id) => {
+    const axis = kind === 'columns' ? columns : layers;
+    const index = axis.findIndex(item => item.id === id);
+    if (index < 0) return false; // A newly staged axis cannot contain an existing N0.
+    return model.domains.some(domain => {
+      const startId = kind === 'columns' ? domain.layout?.columnId : domain.layout?.layerId;
+      const start = axis.findIndex(item => item.id === (startId || axis[0].id));
+      const span = Number(kind === 'columns' ? domain.layout?.columnSpan : domain.layout?.rowSpan) || 1;
+      return index >= start && index < start + span;
+    });
+  };
+
+  const removeLayoutItem = (kind, id) => {
+    if (isLayoutAxisOccupied(kind, id)) {
+      notify('Cette ligne ou colonne contient un N0 : déplacez ou redimensionnez ses domaines avant de la supprimer.');
+      return;
+    }
+    setLayoutDraft(d => removeLayoutDraftItem(d, kind, id));
+  };
 
   const saveLayout = () => {
     const prepared = prepareLayoutForSave(layoutDraft, layout, model.domains);
     if (!prepared) {
-      notify('Chaque colonne, layer et zone doit avoir un nom');
+      notify('Structure impossible à enregistrer : vérifiez les noms, les étendues et les éventuels N0 sur les axes supprimés.');
       return;
     }
     update({ ...prepared, layout: { ...prepared.layout, showColumnHeadings: layoutDraft.showColumnHeadings !== false, showRowHeadings: layoutDraft.showRowHeadings !== false } });
@@ -781,6 +810,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   };
 
   const resizeDomain = (domain, columnSpan, rowSpan) => {
+    if (columnSpan === (Number(domain.layout?.columnSpan) || 1)
+      && rowSpan === (Number(domain.layout?.rowSpan) || 1)) return;
     const patch = prepareDomainPlacement({
       domains: model.domains,
       layout,
@@ -1292,10 +1323,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const cellHeight = Number(card.dataset.resizeCellHeight || 0);
             const columnDelta = card.dataset.resizeColumn === 'true' && cellWidth > 0 ? Math.round((event.clientX - startX) / cellWidth) : 0;
             const rowDelta = card.dataset.resizeRow === 'true' && cellHeight > 0 ? Math.round((event.clientY - startY) / cellHeight) : 0;
-            const previewColumnSpan = Math.max(1, Math.min(columns.length - sourceColumnIndex, columnSpan + columnDelta));
-            const previewRowSpan = Math.max(1, Math.min(layers.length - sourceRowIndex, rowSpan + rowDelta));
+            const previewColumnSpan = clampDomainSpan(columnSpan, columnDelta, sourceColumnIndex, columns.length);
+            const previewRowSpan = clampDomainSpan(rowSpan, rowDelta, sourceRowIndex, layers.length);
             card.style.gridColumn = `${columnIndex + mosaicColumnOffset} / span ${previewColumnSpan}`;
-            card.style.gridRow = `${rowIndex + mosaicRowOffset} / span ${previewRowSpan}`;
+            card.style.gridRow = `${mosaicLayerRowStart(rowIndex) + (previewRowSpan === 1 ? (stackedRows.tiers[domain.id] ?? 0) : 0)} / span ${previewRowSpan === 1 ? 1 : mosaicLayerRowSpan(rowIndex, previewRowSpan)}`;
           }}
           onPointerUp={event => {
             const card = event.currentTarget;
@@ -1309,7 +1340,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             // Restore the model position BEFORE committing the new spans.
             // Otherwise an old inline preview can survive a React render.
             viewport.resetMosaicResizePreview(card);
-            if (columnDelta || rowDelta) resizeDomain(domain, columnSpan + columnDelta, rowSpan + rowDelta);
+            if (columnDelta || rowDelta) resizeDomain(domain,
+              clampDomainSpan(columnSpan, columnDelta, sourceColumnIndex, columns.length),
+              clampDomainSpan(rowSpan, rowDelta, sourceRowIndex, layers.length));
           }}
           onPointerCancel={event => viewport.resetMosaicResizePreview(event.currentTarget)}
           onLostPointerCapture={event => {
@@ -1328,7 +1361,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             const change = changes[event.key];
             if (!change) return;
             event.preventDefault();
-            resizeDomain(domain, columnSpan + change[0], rowSpan + change[1]);
+            resizeDomain(domain,
+              clampDomainSpan(columnSpan, change[0], sourceColumnIndex, columns.length),
+              clampDomainSpan(rowSpan, change[1], sourceRowIndex, layers.length));
           }}>
           <DomainCard d={domain} />
         </div>;
@@ -1881,10 +1916,22 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     <span>{title.slice(0, -1)} {index + 1}</span>
                     <input value={item.name} onChange={e => updateLayoutDraft(kind, item.id, e.target.value)} />
                   </label>
-                  <button type="button" className="structure-remove" disabled={layoutDraft[kind].length === 1} onClick={() => removeLayoutItem(kind, item.id)}>Supprimer</button>
+                  <Button variant="quiet" disabled={layoutDraft[kind].length === 1 || isLayoutAxisOccupied(kind, item.id)}
+                    title={isLayoutAxisOccupied(kind, item.id) ? 'Déplacez les N0 qui occupent cet axe avant de le supprimer' : 'Supprimer cet axe'}
+                    onClick={() => removeLayoutItem(kind, item.id)}>Supprimer</Button>
                 </div>
               ))}
-              <button type="button" className="structure-add" onClick={() => addLayoutItem(kind)}>＋ Ajouter {kind === 'columns' ? 'une colonne' : 'un layer'}</button>
+              <div className="structure-insert-controls">
+                <label className="field">
+                  <span>Position de la nouvelle {kind === 'columns' ? 'colonne' : 'ligne'}</span>
+                  <select data-testid={`structure-insert-${kind}`} value={layoutInsertion[kind]}
+                    onChange={event => setLayoutInsertion(previous => ({ ...previous, [kind]: event.target.value }))}>
+                    <option value="end">À la fin</option>
+                    {layoutDraft[kind].map(item => <option key={item.id} value={item.id}>Avant « {item.name} »</option>)}
+                  </select>
+                </label>
+                <Button variant="secondary" onClick={() => addLayoutItem(kind)}>Ajouter {kind === 'columns' ? 'une colonne' : 'une ligne'}</Button>
+              </div>
             </section>
           ))}
           <section className="structure-section zone-editor">

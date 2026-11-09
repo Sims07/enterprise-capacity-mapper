@@ -42,6 +42,10 @@ export const renameLayoutZone = (
 export const addLayoutDraftItem = (draft: LayoutDraft, kind: 'columns' | 'layers', id: string): LayoutDraft =>
   MapLayout.fromDraft(draft).addItem(kind, id).toDraft();
 
+export const insertLayoutDraftItem = (
+  draft: LayoutDraft, kind: 'columns' | 'layers', id: string, beforeId: string,
+): LayoutDraft => MapLayout.fromDraft(draft).insertItem(kind, id, beforeId).toDraft();
+
 export const removeLayoutDraftItem = (draft: LayoutDraft, kind: 'columns' | 'layers', id: string): LayoutDraft =>
   MapLayout.fromDraft(draft).removeItem(kind, id).toDraft();
 
