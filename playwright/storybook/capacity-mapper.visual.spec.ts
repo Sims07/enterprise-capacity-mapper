@@ -54,7 +54,8 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
       columns: getComputedStyle(element).gridTemplateColumns.split(' ').length,
       rows: getComputedStyle(element).gridTemplateRows.split(' ').length,
     }));
-    expect(tracks).toEqual({ columns: 3, rows: 2 });
+    // The two business layers occupy three visual tracks when Support stacks N0.
+    expect(tracks).toEqual({ columns: 3, rows: 3 });
     const hoveredCapability = mosaic.locator('.mosaic-domain .cap').first();
     await hoveredCapability.hover();
     await expect(hoveredCapability).toHaveCSS('animation-name', 'none');
