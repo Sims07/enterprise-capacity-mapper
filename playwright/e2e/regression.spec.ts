@@ -743,3 +743,90 @@ test.describe('PWA — disparition de bundles hashés après déploiement', () =
     expect(missingBundleCount).toBe(2);
   });
 });
+
+test.describe('Analyse des risques applicatifs', () => {
+  test.beforeEach(async ({ page }) => {
+    await fresh(page);
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-risk').click();
+  });
+
+  test('qualifie un risque, conserve la décision et exporte les capacités concernées', async ({ page }) => {
+    await expect(page.getByTestId('risk-analysis')).toBeVisible();
+    const entry = page.getByTestId('risk-application-app-1');
+    await expect(entry).toContainText('À qualifier');
+    await entry.getByRole('button', { name: 'Évaluer le risque de Salesforce CRM' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Probabilité (1 à 5)').selectOption('5');
+    await dialog.getByRole('button', { name: 'Enregistrer le risque' }).click();
+    await expect(dialog.getByRole('alert')).toContainText('Renseignez ensemble');
+    await dialog.getByLabel('Impact métier (1 à 5)').selectOption('4');
+    await dialog.getByLabel('Catégorie du risque').selectOption('security');
+    await dialog.getByLabel('Fin de support', { exact: true }).fill('2026-01-01');
+    await dialog.getByLabel('Justification et éléments constatés').fill('Défaillance impactant les ventes');
+    await dialog.getByLabel('Responsable', { exact: true }).fill('RSSI');
+    await dialog.getByLabel('Plan d’action ou action réalisée').fill('Migrer la plateforme');
+    await dialog.getByRole('button', { name: 'Enregistrer le risque' }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(entry).toContainText('Critique');
+    await expect(entry).toContainText('20/25');
+    await expect(entry).toContainText('Échéance atteinte');
+    await expect(entry).toContainText('Gestion des Prospects');
+    await page.reload();
+    await page.getByTestId('nav-analysis').click();
+    await page.getByTestId('dashboard-view-risk').click();
+    await expect(entry).toContainText('Migrer la plateforme');
+    await page.getByLabel('Afficher les risques').selectOption('urgent');
+    await expect(entry).toBeVisible();
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Exporter l’analyse' }).click();
+    const download = await downloadPromise;
+    const stream = await download.createReadStream();
+    let content = '';
+    for await (const chunk of stream!) content += chunk.toString();
+    expect(content).toContain('Salesforce CRM');
+    expect(content).toContain('Gestion des Prospects');
+    expect(content).toContain('20/25');
+    await assertNoHorizontalOverflow(page);
+  });
+
+  test('garde les risques acceptés visibles et retire les risques résolus de la file', async ({ page }) => {
+    const entry = page.getByTestId('risk-application-app-1');
+    await entry.getByRole('button', { name: 'Évaluer le risque de Salesforce CRM' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Probabilité (1 à 5)').selectOption('5');
+    await dialog.getByLabel('Impact métier (1 à 5)').selectOption('5');
+    await dialog.getByLabel('Décision de traitement').selectOption('accepted');
+    await dialog.getByLabel('Responsable', { exact: true }).fill('DSI');
+    await dialog.getByLabel('Date de réexamen').fill('2099-01-01');
+    await dialog.getByLabel('Justification et éléments constatés').fill('Accepté par la DSI');
+    await dialog.getByRole('button', { name: 'Enregistrer le risque' }).click();
+    await expect(entry).toContainText('Critique');
+    await expect(entry).toContainText('Accepté');
+    await page.getByLabel('Afficher les risques').selectOption('urgent');
+    await expect(entry).not.toBeVisible();
+    await page.getByLabel('Afficher les risques').selectOption('accepted');
+    await entry.getByRole('button', { name: 'Évaluer le risque de Salesforce CRM' }).click();
+    await dialog.getByLabel('Décision de traitement').selectOption('resolved');
+    await dialog.getByLabel('Plan d’action ou action réalisée').fill('Migration vérifiée');
+    await dialog.getByRole('button', { name: 'Enregistrer le risque' }).click();
+    await page.getByLabel('Afficher les risques').selectOption('resolved');
+    await expect(entry).toContainText('Migration vérifiée');
+    await expect(entry).toContainText('niveau initial : Critique');
+    await expect(page.getByTestId('risk-application-app-4')).not.toBeVisible();
+  });
+
+  test('reste utilisable en thème sombre et en écran étroit', async ({ page }) => {
+    await openTools(page);
+    await page.getByTestId('theme-toggle').click();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('risk-analysis')).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await assertNoHorizontalOverflow(page);
+    await page.getByTestId('risk-application-app-1').getByRole('button', { name: 'Évaluer le risque de Salesforce CRM' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+});

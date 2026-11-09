@@ -151,3 +151,7 @@ La fenêtre `?view=presentation` est strictement en lecture seule : les cartes N
 ## Récupération des données locales
 
 Lorsqu'une collection de cartographies locales contient une entrée invalide, le chargeur conserve les éléments valides et copie la valeur JSON brute sous une clé `enterprise-capacity-mapper:local-maps:v1:recovery:...` (ou `recent-maps:v1:recovery:...`) avant de réparer la liste. Si la collection entière est illisible, la copie de récupération est conservée avant la remise à zéro de la liste active. En cas d'échec de la copie, la donnée initiale n'est pas supprimée. Cette récupération reste strictement locale au navigateur ; exporter régulièrement le modèle JSON demeure conseillé.
+
+## Analyse des risques applicatifs
+
+`src/domain/applicationRisk.ts` porte les validations et calculs purs (date d’analyse injectée), sans dépendance navigateur. Le DTO Application accepte un champ `risk` facultatif dans le JSON v3 ; `storage.validateModel` valide les évaluations avant import ou sauvegarde. `RiskAnalysis.tsx` utilise les contrôles du design system et délègue les mises à jour à l’orchestration App, puis à la persistance existante. Les agrégations suivent les relations explicites N0/N1 → application, dédupliquent les applications et excluent le statut Cible. Les données non évaluées et les risques acceptés restent visibles. La grille et ses limites sont décrites dans le README.

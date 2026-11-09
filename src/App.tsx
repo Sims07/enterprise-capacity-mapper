@@ -1558,6 +1558,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 if (!repository.loadRemoteModel) throw new Error('Source de référence distante indisponible.');
                 setCapabilityReference(await repository.loadRemoteModel(repository.normalizeJsonUrl?.(url) || url));
               }}
+              onUpdateRisk={(id, risk) => update({ applications: model.applications.map(app => app.id === id ? { ...app, risk } : app) })}
+              onExportRisk={markdown => downloadDecisionReview(markdown, 'capability-risk-analysis.md')}
               onExportReview={downloadDecisionReview}
               onExploreTarget={exploreDashboardTarget}
               onEditCapability={capabilityId => {

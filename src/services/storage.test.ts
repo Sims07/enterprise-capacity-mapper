@@ -182,3 +182,12 @@ test('accepts optional capability assessments in v3 and rejects invalid maturity
   invalid.capabilities[0].assessment = { targetMaturity: 99 };
   assert.throws(() => validateModel(invalid), /maturité/i);
 });
+
+test('preserves application risks across JSON import and validates their structure', async () => {
+  const model = validModel();
+  model.applications[0].risk = { likelihood: 3, impact: 5, owner: 'SI', status: 'mitigating', supportEndDate: '2027-01-01', mitigation: 'Migration planifiée' };
+  const imported = await importModel({ text: async () => JSON.stringify(model) });
+  assert.deepEqual(imported.applications[0].risk, model.applications[0].risk);
+  model.applications[0].risk.impact = 12;
+  await assert.rejects(importModel({ text: async () => JSON.stringify(model) }), /compris entre 1 et 5/);
+});

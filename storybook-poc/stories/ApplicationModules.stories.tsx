@@ -1,3 +1,4 @@
+import RiskAnalysis from '../../src/components/RiskAnalysis.tsx';
 import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import NewMapWizard from '../../src/components/NewMapWizard.tsx';
@@ -40,6 +41,7 @@ function DashboardScenario({ depth = 2 }: { depth?: number }) {
     onUpdatePriority={() => undefined}
     onEditCapability={id => setSelected([id])}
     onShowOnMap={id => setSelected([id])}
+    onUpdateRisk={() => undefined}
     onExportReview={() => undefined}
     onClearReference={() => undefined}
     onLoadReferenceUrl={async () => undefined}
@@ -58,3 +60,9 @@ function RelationsScenario() {
     onToggleSelection={id => setSelected(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} />;
 }
 export const RelationsN0N1: Story = { render: () => <RelationsScenario /> };
+
+function RiskScenario() {
+  const [model, setModel] = useState({ ...DEMO_MODEL, applications: DEMO_MODEL.applications.map((app, index) => ({ ...app, risk: index === 0 ? { likelihood: 5, impact: 4, category: 'continuity' as const, owner: 'Responsable SI', rationale: 'Application indispensable au métier', supportEndDate: '2026-01-01' } : undefined })) });
+  return <RiskAnalysis model={model} onUpdateRisk={(id, risk) => setModel(previous => ({ ...previous, applications: previous.applications.map(app => app.id === id ? { ...app, risk } : app) }))} onExploreTarget={() => undefined} onExport={() => undefined} />;
+}
+export const AnalyseDesRisques: Story = { render: () => <RiskScenario /> };
