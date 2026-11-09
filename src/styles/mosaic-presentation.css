@@ -505,15 +505,67 @@
 .app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="critical"] { background: var(--status-critical-bg); border-color: var(--status-critical-text); }
 .app.mosaic-presentation-mode .presentation-reading-legend i[data-tone="neutral"] { background: var(--status-neutral-bg); border-color: var(--status-neutral-text); }
 
-/* Restitution applicative : progressive et sans déformation des cellules N1. */
-.app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] { flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; }
+/* Restitution applicative : réserver une ligne aux applications même dans une
+   mosaïque dense. Au-delà de trois N1, des colonnes trop étroites multiplient
+   les retours à la ligne et repoussent les badges sous le clipping des cartes. */
+.app.mosaic-presentation-mode .mosaic-domain .caps-list:has(> .cap:nth-child(n + 4)[data-show-applications="true"]) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+}
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--signal-space-1);
+}
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .cap-head {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  align-items: flex-start;
+}
+.app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .map-cap-select {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 .app.mosaic-presentation-mode .mosaic-domain .cap[role="button"] { cursor: zoom-in; }
 .app.mosaic-presentation-mode .mosaic-domain .cap[role="button"]:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: -3px; }
-.app.mosaic-presentation-mode .presentation-app-preview { display: flex; min-width: 0; max-width: 100%; flex-wrap: wrap; gap: 3px; overflow: hidden; align-items: center; font-size: clamp(9px,1.35cqi,11px); }
-.app.mosaic-presentation-mode .presentation-app-chip { display: inline-flex; align-items: center; min-width: 0; max-width: 100%; gap: 3px; border: 1px solid var(--map-capability-border); border-radius: var(--radius-control); background: color-mix(in srgb,var(--map-card-surface) 76%,transparent); color: var(--map-capability-text); padding: 2px 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app.mosaic-presentation-mode .presentation-app-preview {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  gap: var(--signal-space-1);
+  overflow: hidden;
+  align-items: center;
+  font-size: clamp(9px, 1.35cqi, 11px);
+}
+.app.mosaic-presentation-mode .presentation-app-chip {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  gap: var(--signal-space-1);
+  border: 1px solid var(--map-capability-border);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--map-card-surface) 76%, transparent);
+  color: var(--map-capability-text);
+  padding: 2px 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .app.mosaic-presentation-mode .presentation-app-chip.is-target { border-style: dashed; }
 .app.mosaic-presentation-mode .presentation-app-chip em { font-size: 9px; font-style: normal; font-weight: 700; }
-.app.mosaic-presentation-mode .presentation-app-more,.app.mosaic-presentation-mode .presentation-app-empty { font-size: 10px; color: var(--map-capability-muted); }
+.app.mosaic-presentation-mode .presentation-app-more, .app.mosaic-presentation-mode .presentation-app-empty {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: var(--map-capability-muted);
+  white-space: nowrap;
+}
 .app.mosaic-presentation-mode .presentation-app-toggle { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; font-size: 11px; font-weight: 700; }
 .app.mosaic-presentation-mode .presentation-app-toggle input { accent-color: var(--color-accent); }
 .app.mosaic-presentation-mode .presentation-app-toggle:has(input:disabled) { opacity: .45; cursor: not-allowed; }
