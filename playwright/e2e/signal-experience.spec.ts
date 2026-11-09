@@ -80,10 +80,15 @@ test.describe('SIGNAL — parcours client sans régression', () => {
   });
 });
 
-test('la légende suit les quatre lectures sans modifier les spans et la densité reste locale', async ({ page }) => {
+test('les quatre lectures restent accessibles sans menu Affichage et sans modifier les spans', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   const map = page.getByTestId('capability-map');
+  await expect(map).toHaveAttribute('data-density', 'compact');
+  await expect(page.getByTestId('map-reading-disclosure')).toHaveCount(0);
+  await expect(page.getByTestId('map-reading-legend')).toHaveCount(0);
+  await expect(page.getByTestId('map-density')).toHaveCount(0);
+
   const geometry = () => map.locator('.mosaic-domain').evaluateAll(elements => elements.map(element => ({
     name: element.getAttribute('aria-label'),
     column: (element as HTMLElement).style.gridColumn,
@@ -92,29 +97,16 @@ test('la légende suit les quatre lectures sans modifier les spans et la densit�
   })));
   const initial = await geometry();
   expect(initial.length).toBeGreaterThan(0);
-  const display = page.getByTestId('map-reading-disclosure');
-  await expect(page.getByTestId('map-reading-legend')).toBeHidden();
-  await display.locator('summary').click();
-  await expect(page.getByTestId('map-reading-legend')).toBeVisible();
-  for (const [mode, label] of [
-    ['applications', 'Nombre de supports applicatifs actuels'],
-    ['coverage', 'Non couverte'],
-    ['maturity', 'Maturité actuelle /5 déclarée'],
-    ['gaps', 'Signal à examiner'],
-  ] as const) {
-    await page.getByTestId('map-reading-' + mode).click();
-    await expect(page.getByTestId('map-reading-legend')).toHaveAttribute('data-reading', mode);
-    await expect(page.getByTestId('map-reading-legend')).toContainText(label);
+  for (const mode of ['applications', 'coverage', 'maturity', 'gaps'] as const) {
+    const button = page.getByTestId('map-reading-' + mode);
+    await button.click();
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(map).toHaveAttribute('data-density', 'compact');
     expect(await geometry()).toEqual(initial);
   }
-  await page.getByTestId('map-density').selectOption('compact');
-  await expect(map).toHaveAttribute('data-density', 'compact');
-  expect(await geometry()).toEqual(initial);
   await page.reload();
-  await expect(page.getByTestId('map-reading-legend')).toBeHidden();
-  await page.getByTestId('map-reading-disclosure').locator('summary').click();
-  await expect(page.getByTestId('map-density')).toHaveValue('compact');
-  await expect(page.getByTestId('capability-map')).toHaveAttribute('data-density', 'compact');
+  await expect(map).toHaveAttribute('data-density', 'compact');
+  await expect(page.getByTestId('map-reading-disclosure')).toHaveCount(0);
   expect(await geometry()).toEqual(initial);
 });
 
@@ -173,19 +165,15 @@ test('la carte conserve les actions secondaires au survol et au clavier sans bar
     .getByRole('button', { name: 'Fermer la fenêtre' }).click();
 });
 
-test('Affichage ouvre la légende au clavier, puis Escape la referme sans changer la lecture', async ({ page }) => {
+test('les modes de lecture restent pilotables au clavier après suppression du menu Affichage', async ({ page }) => {
   await page.goto('/');
-  const disclosure = page.getByTestId('map-reading-disclosure');
-  const summary = disclosure.locator('summary');
-  await summary.focus();
+  const coverage = page.getByTestId('map-reading-coverage');
+  await coverage.focus();
   await page.keyboard.press('Enter');
-  await expect(disclosure).toHaveAttribute('open', '');
-  await expect(page.getByTestId('map-reading-legend')).toBeVisible();
-  await disclosure.getByTestId('map-density').selectOption('compact');
-  await page.keyboard.press('Escape');
-  await expect(disclosure).not.toHaveAttribute('open', '');
-  await expect(summary).toBeFocused();
-  await expect(page.getByTestId('map-reading-applications')).toHaveAttribute('aria-pressed', 'true');
+  await expect(coverage).toHaveAttribute('aria-pressed', 'true');
+  await expect(coverage).toBeFocused();
+  await expect(page.getByTestId('capability-map')).toHaveAttribute('data-density', 'compact');
+  await expect(page.getByTestId('map-reading-disclosure')).toHaveCount(0);
 });
 
 test('la commande de carte unifiée donne priorité à la carte et préserve les opérations métier', async ({ page }) => {

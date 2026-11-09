@@ -35,16 +35,11 @@ export const SignalCartography: Story = {
   },
 };
 
-/** Vrai composant applicatif, en densité compacte initialisée avant son montage.
- * La préférence locale reste modifiable depuis « Affichage > Densité ». */
+/** Instance réelle de l'application : la densité compacte est désormais l'unique mode. */
 export const CompactCapabilities: Story = {
-  decorators: [Story => {
-    window.localStorage.setItem('enterprise-capacity-mapper:map-density', 'compact');
-    return <Story />;
-  }],
   parameters: {
     viewport: { defaultViewport: 'desktop' },
-    docs: { description: { story: 'Comparer les N1 à hauteur naturelle et, dans un domaine N0 étendu, deux cartes N1 côte à côte. Vérifier les applications sans troncature, la lecture sur mobile et le retour au mode Confortable.' } },
+    docs: { description: { story: 'Vérifier les N1 à hauteur naturelle et, dans un domaine N0 étendu, deux cartes N1 côte à côte. Vérifier les applications sans troncature et la lecture sur mobile. Aucun réglage de densité ni menu Affichage.' } },
   },
 };
 

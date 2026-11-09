@@ -145,18 +145,7 @@
 .app.signal-experience .map-reading-legend-key.is-none { background: var(--status-critical-bg); border-color: var(--status-critical-text); }
 .app.signal-experience .map-reading-legend-key.is-partial { background: var(--status-gap-bg); border-color: var(--status-gap-text); }
 .app.signal-experience .map-reading-legend-key.is-sufficient { background: var(--status-covered-bg); border-color: var(--status-covered-text); }
-.app.signal-experience .map-density-control {
-  display: flex; flex-direction: column; gap: var(--signal-space-1);
-  color: var(--color-text-muted); font-size: 11px;
-}
-.app.signal-experience .map-density-control select {
-  min-height: var(--control-target-size);
-  padding: var(--signal-space-1) var(--signal-space-2);
-  border: 1px solid var(--color-border-strong); border-radius: var(--radius-control);
-  background: var(--color-surface); color: var(--color-text); font: inherit;
-}
-.app.signal-experience .map-density-control select:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: var(--focus-ring-offset); }
-/* Le mode compact économise vraiment de la hauteur sans toucher aux positions N0,
+/* La cartographie compacte économise vraiment de la hauteur sans toucher aux positions N0,
    aux spans, aux applications reliées ni au mode présentation. Un N0 suffisamment
    large accueille deux N1 par rangée ; les N0 étroits gardent une seule colonne. */
 .app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic[data-density="compact"] {

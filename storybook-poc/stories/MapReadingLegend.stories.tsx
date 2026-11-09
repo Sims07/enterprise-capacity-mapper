@@ -4,6 +4,7 @@ import { withSignalTheme } from './storyFrame.tsx';
 
 const meta = {
   title: 'Design system/Légende de la cartographie',
+  id: 'design-system-legende-de-cartographie',
   component: MapReadingLegend,
   decorators: [withSignalTheme],
   parameters: { layout: 'fullscreen' },

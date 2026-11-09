@@ -6,25 +6,27 @@ const domain = (page: import('@playwright/test').Page) =>
 const compactMinTileHeight = 160; // Hauteur imposée historiquement en mode confortable.
 
 test.describe('Cartographie — densité compacte adaptative', () => {
-  test('la densité compacte supprime la hauteur forcée des N1, sans modifier le mode confortable', async ({ page }) => {
+  test('affiche uniquement la densité compacte, même après une ancienne préférence Confortable', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
+    await page.evaluate(() =>
+      localStorage.setItem('enterprise-capacity-mapper:map-density', 'comfortable')
+    );
+    await page.reload();
+
     const tiles = domain(page).locator('.cap');
     await expect(tiles).toHaveCount(3);
-
-    const initialHeight = (await tiles.first().boundingBox())!.height;
-    expect(initialHeight).toBeGreaterThanOrEqual(compactMinTileHeight);
-
-    await page.getByTestId('map-reading-disclosure').locator('summary').click();
-    await page.getByTestId('map-density').selectOption('compact');
     await expect(map(page)).toHaveAttribute('data-density', 'compact');
-    const compactHeight = (await tiles.first().boundingBox())!.height;
-    expect(compactHeight).toBeLessThan(compactMinTileHeight);
-    expect(compactHeight).toBeLessThan(initialHeight);
+    await expect(page.getByTestId('map-reading-disclosure')).toHaveCount(0);
+    await expect(page.getByTestId('map-density')).toHaveCount(0);
+    await expect(page.getByText('Affichage', { exact: true })).toHaveCount(0);
 
-    await page.getByTestId('map-density').selectOption('comfortable');
-    await expect(map(page)).toHaveAttribute('data-density', 'comfortable');
-    expect((await tiles.first().boundingBox())!.height).toBeGreaterThanOrEqual(compactMinTileHeight);
+    const tileHeight = (await tiles.first().boundingBox())!.height;
+    expect(tileHeight).toBeLessThan(compactMinTileHeight);
+    await page.reload();
+    await expect(map(page)).toHaveAttribute('data-density', 'compact');
+    expect((await tiles.first().boundingBox())!.height).toBeLessThan(compactMinTileHeight);
+    expect(await page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:map-density'))).toBe('comfortable');
   });
 
   test('passe à deux N1 par rangée pour un N0 élargi, garde toutes les applications et revient à une colonne sur mobile', async ({ page }) => {
@@ -43,7 +45,7 @@ test.describe('Cartographie — densité compacte adaptative', () => {
         if (!app.capabilityIds.includes('l1-1')) app.capabilityIds.push('l1-1');
       }
       localStorage.setItem(key, JSON.stringify(model));
-      localStorage.setItem('enterprise-capacity-mapper:map-density', 'compact');
+      localStorage.setItem('enterprise-capacity-mapper:map-density', 'comfortable'); // Ignoré par l'éditeur.
     });
     await page.reload();
     await expect(map(page)).toHaveAttribute('data-density', 'compact');
