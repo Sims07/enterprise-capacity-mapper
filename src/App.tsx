@@ -1953,7 +1953,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 <>
                   <label className="field">
                     <span>Colonne</span>
-                    <select value={form.columnId} disabled={insertingN0} onChange={e => setForm({ ...form, columnId: e.target.value })}>
+                    <select data-testid="domain-column-select" value={form.columnId} disabled={insertingN0} onChange={e => setForm({ ...form, columnId: e.target.value })}>
                       {domainFormColumns.map(c => <option value={c.id} key={c.id}>{c.name}</option>)}
                     </select>
                   </label>
