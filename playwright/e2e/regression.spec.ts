@@ -231,6 +231,43 @@ test.describe('Playwright regression — import, library and persistence', () =>
     await fresh(page);
   });
 
+  test('affiche une bibliothèque compacte sans blocs de statistiques redondants, y compris en mobile', async ({ page }) => {
+    await page.getByTestId('autosave-action').click();
+    await page.getByTestId('local-map-name').fill('Bibliothèque compacte');
+    await page.locator('.modal-actions').getByRole('button', { name: 'Enregistrer' }).click();
+
+    await page.getByTestId('primary-library').click();
+    const library = page.getByTestId('library-page');
+    await expect(library.getByRole('heading', { name: 'Bibliothèque' })).toBeVisible();
+    await expect(library.locator('.library-stats')).toHaveCount(0);
+    await expect(library.getByTestId('library-active-map')).toContainText('Bibliothèque compacte');
+    await expect(library.getByTestId('saved-maps-count')).toHaveText('1');
+    await expect(library.getByTestId('recent-maps-count')).toBeVisible();
+    const savedSection = library.locator('.library-saved-section');
+    const savedCard = library.getByTestId('saved-maps-list').locator('.library-map-card').first();
+    await expect(savedCard).toContainText('Bibliothèque compacte');
+    await expect(savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' })).toBeVisible();
+    const bounds = await savedSection.evaluate(section => {
+      const heading = section.querySelector('h3');
+      const row = section.querySelector('.library-map-card');
+      if (!heading || !row) throw new Error('Ligne compacte ou titre introuvable');
+      return {
+        titleInset: heading.getBoundingClientRect().left - section.getBoundingClientRect().left,
+        rowHeight: row.getBoundingClientRect().height,
+      };
+    });
+    expect(bounds.titleInset).toBeGreaterThan(0);
+    // Une ligne compacte doit rester nettement moins haute que les anciennes grandes cartes.
+    const maxCompactRowHeightPx = 160;
+    expect(bounds.rowHeight).toBeLessThan(maxCompactRowHeightPx);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(library.getByTestId('library-active-map')).toBeVisible();
+    await expect(savedCard.getByRole('button', { name: 'Ouvrir cette cartographie' })).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+  });
+
+
   test('indique le brouillon local puis sa sauvegarde sur cet appareil', async ({ page }) => {
     await expect(page.getByTestId('autosave-status')).toHaveText('Brouillon local');
     await page.getByTestId('autosave-action').click();
