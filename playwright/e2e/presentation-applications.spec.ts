@@ -97,3 +97,85 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
     await expect(domain.locator('.presentation-app-chip')).toHaveCount(capabilityNames.length + 1);
   }
 });
+
+
+test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et permet de les agrandir', async ({ page }) => {
+  const columnsCount = 3;
+  const rowsCount = 7;
+  const names = [
+    'Gestion du carnet de Santé',
+    'Applications de santé',
+    'Gestion des retours Usager',
+    'Gestion des anomalies',
+  ];
+  await page.setViewportSize({ width: 1728, height: 900 });
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
+  await page.evaluate(({ columnsCount, rowsCount, names }) => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('La cartographie de test doit être persistée');
+    const model = JSON.parse(raw);
+    const columns = Array.from({ length: columnsCount }, (_, index) => ({
+      id: `dense-column-${index}`, name: `Colonne ${index + 1}`, order: index,
+    }));
+    const layers = Array.from({ length: rowsCount }, (_, index) => ({
+      id: `dense-layer-${index}`, name: `Ligne ${index + 1}`, order: index,
+    }));
+    model.layout = { ...model.layout, columns, layers };
+    model.domains = Array.from({ length: columnsCount * rowsCount }, (_, index) => ({
+      id: `dense-domain-${index}`,
+      code: `N0-${index}`,
+      name: index === 0 ? 'Relation propriétaire données de santé' : `Domaine d'entreprise ${index}`,
+      color: 'indigo',
+      layout: {
+        columnId: columns[index % columnsCount].id,
+        layerId: layers[Math.floor(index / columnsCount)].id,
+      },
+    }));
+    model.capabilities = names.map((name, index) => ({
+      id: `dense-cap-${index}`, domainId: 'dense-domain-0', code: `N1-${index}`, name,
+    }));
+    model.applications = [];
+    localStorage.setItem(key, JSON.stringify(model));
+  }, { columnsCount, rowsCount, names });
+  await page.goto('/?view=presentation');
+
+  const mosaic = page.getByTestId('capability-map');
+  await expect(mosaic.locator('.mosaic-domain')).toHaveCount(columnsCount * rowsCount);
+  const firstDomain = mosaic.locator('.mosaic-domain').filter({ hasText: 'Relation propriétaire données de santé' });
+  const caps = firstDomain.locator('.cap');
+  await expect(caps).toHaveCount(names.length);
+  const dimensions = await firstDomain.evaluate(element => {
+    const inside = (outer: DOMRect, inner: DOMRect) =>
+      inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1 &&
+      inner.left >= outer.left - 1 && inner.right <= outer.right + 1;
+    const domainBox = element.getBoundingClientRect();
+    const heading = element.querySelector('.domain-banner') as HTMLElement;
+    const list = element.querySelector('.caps-list') as HTMLElement;
+    const cards = Array.from(element.querySelectorAll('.cap')) as HTMLElement[];
+    return {
+      headingFits: inside(domainBox, heading.getBoundingClientRect()),
+      listFits: inside(domainBox, list.getBoundingClientRect()),
+      labelsFit: cards.every(card => {
+        const label = card.querySelector('.map-cap-select') as HTMLElement;
+        return inside(card.getBoundingClientRect(), label.getBoundingClientRect())
+          && label.scrollHeight <= label.clientHeight + 1;
+      }),
+      titlesFit: heading.scrollHeight <= heading.clientHeight + 1,
+    };
+  });
+  expect(dimensions).toEqual({
+    headingFits: true, listFits: true, labelsFit: true, titlesFit: true,
+  });
+
+  await firstDomain.getByTestId('presentation-domain-open').click();
+  const detail = page.getByRole('dialog', { name: 'Capacités de Relation propriétaire données de santé' });
+  await expect(detail).toBeVisible();
+  for (const name of names) await expect(detail.getByRole('button', { name: new RegExp(name, 'i') })).toBeVisible();
+  await detail.getByRole('button', { name: /Gestion des anomalies/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Détail de Gestion des anomalies' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Détail de Gestion des anomalies' })).not.toBeVisible();
+  await expect(mosaic.locator('.mosaic-domain')).toHaveCount(columnsCount * rowsCount);
+});
