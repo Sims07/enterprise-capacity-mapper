@@ -99,6 +99,20 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
     const detail = page.getByRole('dialog', { name: `Détail de ${capabilityNames[0]}` });
     await expect(detail).toBeVisible();
     await expect(detail).toContainText('Historique de santé');
+    await expect(detail.getByRole('heading', { name: 'Applications associées' })).toBeVisible();
+    await expect(detail.getByTestId('presentation-app-total')).toHaveText('3');
+    await expect(detail.getByTestId('presentation-current-apps').locator('li')).toHaveCount(2);
+    await expect(detail.getByTestId('presentation-target-apps').locator('li')).toHaveCount(1);
+    await expect(detail.getByTestId('presentation-current-apps')).toContainText('Dossier Médical Partagé');
+    await expect(detail.getByTestId('presentation-target-apps')).toContainText('Historique de santé');
+    await expect(detail.locator('.presentation-detail-landscape')).toBeVisible();
+    await expect(detail.locator('.presentation-detail-assessment')).toBeVisible();
+    const order = await detail.evaluate(node => {
+      const applications = node.querySelector('.presentation-detail-landscape')?.getBoundingClientRect();
+      const assessment = node.querySelector('.presentation-detail-assessment')?.getBoundingClientRect();
+      return !!applications && !!assessment && applications.bottom <= assessment.top;
+    });
+    expect(order).toBe(true);
     await detail.getByTestId('presentation-focus-close').click();
 
     // Couverture et Carte conservent le même aperçu des applications.
@@ -107,6 +121,60 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
   }
 });
 
+
+
+test('affiche toutes les applications nombreuses dans la fiche N1, puis un vrai état vide', async ({ page }) => {
+  const count = 18;
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
+  await page.evaluate(applicationCount => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Cartographie de test absente');
+    const model = JSON.parse(raw);
+    const capability = model.capabilities[0];
+    model.applications = Array.from({ length: applicationCount }, (_, index) => ({
+      id: 'application-many-' + index,
+      name: 'Application métier numéro ' + (index + 1),
+      status: 'Actif',
+      capabilityIds: [capability.id],
+    }));
+    localStorage.setItem(key, JSON.stringify(model));
+  }, count);
+  await page.goto('/?view=presentation');
+  await page.locator('.mosaic-domain .cap').first().click();
+  const detail = page.getByTestId('presentation-capability-detail');
+  await expect(detail).toBeVisible();
+  await expect(detail.getByTestId('presentation-app-total')).toHaveText(String(count));
+  const apps = detail.getByTestId('presentation-current-apps').locator('li');
+  await expect(apps).toHaveCount(count);
+  await expect(detail.getByText('Aucune application cible rattachée.')).toBeVisible();
+  await apps.last().scrollIntoViewIfNeeded();
+  await expect(apps.last()).toBeInViewport();
+  const overflow = await detail.evaluate(node => ({
+    scrollTop: node.scrollTop, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
+  }));
+  expect(overflow.scrollHeight).toBeGreaterThan(overflow.clientHeight);
+  expect(overflow.scrollTop).toBeGreaterThan(0);
+  await page.keyboard.press('Escape');
+  await expect(detail).toHaveCount(0);
+
+  await page.evaluate(() => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Cartographie de test absente');
+    const model = JSON.parse(raw);
+    model.applications = [];
+    localStorage.setItem(key, JSON.stringify(model));
+  });
+  await page.reload();
+  await page.locator('.mosaic-domain .cap').first().click();
+  const empty = page.getByTestId('presentation-capability-detail');
+  await expect(empty.getByTestId('presentation-app-total')).toHaveText('0');
+  await expect(empty.getByText('Aucune application actuelle rattachée.')).toBeVisible();
+  await expect(empty.getByText('Aucune application cible rattachée.')).toBeVisible();
+});
 
 test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et permet de les agrandir', async ({ page }) => {
   const columnsCount = 3;

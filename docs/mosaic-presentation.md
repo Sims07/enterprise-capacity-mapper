@@ -54,7 +54,9 @@ Lorsque le N0 contient au moins quatre N1 et que l'aperçu applicatif est activ�
 
 Le test Playwright `playwright/e2e/presentation-applications.spec.ts` reproduit une mosaïque de douze N0 sur quatre lignes, dont un N0 avec quatre N1 et plusieurs applications (actuelles et cibles). Il contrôle la géométrie réelle des puces et de leur conteneur en présentation 1440×900 et 1728×900, ainsi que l'accès à la fiche détaillée et le changement de lecture.
 
-Une N1 activée au clic ou au clavier (Entrée/Espace) ouvre une fiche de restitution présentant couverture, maturité, signaux et **toutes** les applications actuelles et cibles. Échap ferme d'abord la fiche, puis quitte la présentation au second appui. Aucune modification métier n'est possible dans cette vue.
+Une N1 activée au clic ou au clavier (Entrée/Espace) ouvre une **fiche de restitution centrée sur les applications** : contexte N0 et code, intitulé métier complet, dénombrement et liste exhaustive des applications actuelles et cibles avec leurs statuts. Les applications sont affichées avant les indicateurs d'évaluation, séparées visuellement par état actuel/cible. Si aucune application cible (ou actuelle) n'est présente, la fiche affiche un état vide explicite sans inventer de couverture métier. La section secondaire « Évaluation métier » conserve couverture fonctionnelle, maturité déclarée (actuelle et cible) et écarts, sans inférence à partir des liens applicatifs. La fiche reste défilable pour les grands catalogues et responsive sur les petits écrans. Échap ferme d'abord la fiche, puis quitte la présentation au second appui. Aucune modification métier n'est possible dans cette vue.
+
+La fiche est un composant dédié `PresentationCapabilityDetail` utilisant les tokens Signal, documenté dans Storybook en trois états (mixte, applications actuelles uniquement, vide). Le test `presentation-applications.spec.ts` valide l'ordre de lecture, les statuts, le défilement des listes longues et les états vides.
 
 ## Piloter l'écran projeté depuis l'éditeur (lot 3)
 
