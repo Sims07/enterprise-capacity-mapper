@@ -53,7 +53,7 @@ export const prepareLayoutForSave = (
   MapLayout.fromDraft(layoutDraft).prepareForSave(layout, domains);
 
 export const isDomainPlacementAvailable = ({
-  domains, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
+  domains, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap, allowStackingInLayer,
 }: {
   domains: Domain[];
   columns: LayoutAxis[];
@@ -64,8 +64,9 @@ export const isDomainPlacementAvailable = ({
   columnSpan: string | number;
   rowSpan?: string | number;
   allowExactOverlap?: boolean;
+  allowStackingInLayer?: boolean;
 }): boolean => MapLayout.fromDraft({ columns, layers, zones: [] }).isPlacementAvailable({
-  domains, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
+  domains, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap, allowStackingInLayer,
 });
 
 /**
@@ -198,7 +199,7 @@ export const prepareNewDomainSlot = <T extends Domain>({
 
 /** Returns null when a move violates layout invariants or targets an unknown domain. */
 export const prepareDomainPlacement = ({
-  domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
+  domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap, allowStackingInLayer,
 }: {
   domains: Domain[];
   layout: Layout;
@@ -210,7 +211,19 @@ export const prepareDomainPlacement = ({
   columnSpan?: string | number;
   rowSpan?: string | number;
   allowExactOverlap?: boolean;
+  allowStackingInLayer?: boolean;
 }): { layout: Layout; domains: Domain[] } | null =>
   MapLayout.fromDraft({ columns, layers, zones: layout.zones || [] }).prepareDomainPlacement({
-    domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap,
+    domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap, allowStackingInLayer,
   });
+
+/** Keep a relocated N0 below the domains already in its target layer. */
+export const appendRelocatedDomain = <T extends Domain>(
+  original: T[], updated: T[], domainId: string,
+): T[] => {
+  const before = original.find(domain => domain.id === domainId);
+  const after = updated.find(domain => domain.id === domainId);
+  if (!before || !after) return updated;
+  if (before.layout?.columnId === after.layout?.columnId && before.layout?.layerId === after.layout?.layerId) return updated;
+  return [...updated.filter(domain => domain.id !== domainId), after];
+};
