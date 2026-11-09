@@ -15,12 +15,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testMatch: /(?:critical-workflows|regression|mosaic-rendering|add-n0-existing-map)\.spec\.ts/,
+      testMatch: /(?:critical-workflows|regression|mosaic-rendering|add-n0-existing-map|tools-menu-layout)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile-chromium',
-      testMatch: /(?:mobile-navigation|mobile)\.spec\.ts/,
+      testMatch: /(?:mobile-navigation|mobile|tools-menu-layout)\.spec\.ts/,
       use: {
         browserName: 'chromium',
         viewport: { width: 390, height: 844 },
