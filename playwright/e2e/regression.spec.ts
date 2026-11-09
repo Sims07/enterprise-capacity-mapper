@@ -762,9 +762,9 @@ test.describe('Analyse des risques applicatifs', () => {
     await expect(dialog.getByRole('alert')).toContainText('Renseignez ensemble');
     await dialog.getByLabel('Impact métier (1 à 5)').selectOption('4');
     await dialog.getByLabel('Catégorie du risque').selectOption('security');
-    await dialog.getByLabel('Fin de support', { exact: true }).fill('2026-01-01');
+    await dialog.getByLabel(/^Fin de support/).fill('2026-01-01');
     await dialog.getByLabel('Justification et éléments constatés').fill('Défaillance impactant les ventes');
-    await dialog.getByLabel('Responsable', { exact: true }).fill('RSSI');
+    await dialog.getByLabel(/^Responsable/).fill('RSSI');
     await dialog.getByLabel('Plan d’action ou action réalisée').fill('Migrer la plateforme');
     await dialog.getByRole('button', { name: 'Enregistrer le risque' }).click();
     await expect(dialog).not.toBeVisible();
@@ -798,7 +798,7 @@ test.describe('Analyse des risques applicatifs', () => {
     await dialog.getByLabel('Probabilité (1 à 5)').selectOption('5');
     await dialog.getByLabel('Impact métier (1 à 5)').selectOption('5');
     await dialog.getByLabel('Décision de traitement').selectOption('accepted');
-    await dialog.getByLabel('Responsable', { exact: true }).fill('DSI');
+    await dialog.getByLabel(/^Responsable/).fill('DSI');
     await dialog.getByLabel('Date de réexamen').fill('2099-01-01');
     await dialog.getByLabel('Justification et éléments constatés').fill('Accepté par la DSI');
     await dialog.getByRole('button', { name: 'Enregistrer le risque' }).click();
