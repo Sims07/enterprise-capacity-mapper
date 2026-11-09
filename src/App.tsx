@@ -839,6 +839,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       columnSpan,
       rowSpan,
       allowExactOverlap: false,
+      // Same business-layer N0 can be stacked, including partial horizontal overlaps.
+      // The domain editor and drag/drop relocation already use this rule.
+      allowStackingInLayer: true,
     });
     if (!patch) {
       notify('Redimensionnement impossible : la zone est occupée ou dépasse la grille.');
@@ -1310,6 +1313,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           aria-label={presentation ? `Carte ${domain.name}` : `Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
           data-layout-grid-column={gridColumn} data-layout-grid-row={gridRow}
           style={{ gridColumn, gridRow }}
+          onDragStartCapture={event => {
+            // An application/N1 can itself be draggable: never let its native
+            // drag interrupt an active edge resize and discard the preview.
+            if (event.currentTarget.dataset.resizeStartX !== undefined) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
           onPointerDown={event => {
             if (presentation) return;
             const bounds = event.currentTarget.getBoundingClientRect();

@@ -79,3 +79,17 @@ Le bouton **Imprimer / PDF**, dans les contrôles de la fenêtre de présentatio
 Les indicateurs du Dashboard sont des **relations à des applications actuelles** : ils ne prouvent pas la maturité ni la couverture fonctionnelle. Cette distinction est visible sous les cartes de KPI.
 
 Les tests unitaires protègent les associations mode/tonalité/libellé ; Playwright vérifie changement des légendes, appel à l'impression, styles d'impression et note de définition des KPI. La PWA reste statique, locale et compatible GitHub Pages.
+
+### Redimensionnement des N0 empilés
+
+Les domaines N0 partageant une même ligne métier peuvent se superposer horizontalement :
+ils sont alors disposés sur des sous-rangées visuelles, sans création de ligne métier artificielle.
+Cette règle est identique lors de l'édition des propriétés, du déplacement et du
+redimensionnement par les bords droit/bas (ou au clavier avec les flèches).
+La réduction de 3 à 2 puis 1 colonne est permise même si un autre N0 occupe
+une partie de la même ligne. Les chevauchements impliquant un N0 étendu sur
+plusieurs lignes métier restent interdits.
+
+Pendant un redimensionnement, le glisser-déposer natif des capacités ou
+applications ne doit pas interrompre la capture du pointeur. La largeur enregistrée
+est celle validée par la règle métier ; les aperçus interrompus sont restaurés.

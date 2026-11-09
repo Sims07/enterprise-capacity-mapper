@@ -284,3 +284,47 @@ test('a relocated N0 is ordered below the N0 already in Cœur métier', () => {
   assert.deepEqual(original.map(domain => domain.layout.layerId), ['l2', 'l1']);
   assert.equal(appendRelocatedDomain(original, original, 'moved'), original);
 });
+
+
+test('resizes stacked N0 across 3, 2 and 1 columns without rejecting same-layer overlaps', () => {
+  const source = draft();
+  const columns = [...source.columns, { id: 'c3', name: 'Operations', order: 2 }];
+  const layers = source.layers;
+  const layout = { ...source, columns };
+  let domains = [
+    { id: 'narrow', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1, rowSpan: 1 } },
+    { id: 'wide', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 3, rowSpan: 1, custom: 'preserved' } },
+    { id: 'below', layout: { columnId: 'c2', layerId: 'l2', columnSpan: 1, rowSpan: 1 } },
+  ];
+
+  // Same initial placement: strict checking rejects the overlap that the
+  // domain form already permits when multiple N0 share a business layer.
+  assert.equal(prepareDomainPlacement({
+    domains, layout, columns, layers, domainId: 'wide', columnSpan: 2, rowSpan: 1,
+    allowExactOverlap: false,
+  }), null);
+
+  for (const nextSpan of [2, 1, 3]) {
+    const changed = prepareDomainPlacement({
+      domains, layout, columns, layers, domainId: 'wide', columnSpan: nextSpan, rowSpan: 1,
+      allowExactOverlap: false, allowStackingInLayer: true,
+    });
+    assert.ok(changed, `resize to ${nextSpan} columns must be possible`);
+    domains = changed.domains;
+    const wide = domains.find(domain => domain.id === 'wide');
+    assert.equal(wide?.layout?.columnSpan, nextSpan);
+    assert.equal(wide?.layout?.custom, 'preserved');
+    assert.equal(domains[0].layout?.columnSpan, 1);
+    assert.equal(domains[2].layout?.columnId, 'c2');
+  }
+
+  // Stacking must not allow overlap with a domain spanning business layers.
+  const acrossLayers = [{
+    id: 'tall', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 1, rowSpan: 2 },
+  }];
+  assert.equal(prepareDomainPlacement({
+    domains: [...domains, ...acrossLayers], layout, columns, layers,
+    domainId: 'wide', columnSpan: 2, rowSpan: 1,
+    allowExactOverlap: false, allowStackingInLayer: true,
+  }), null);
+});
