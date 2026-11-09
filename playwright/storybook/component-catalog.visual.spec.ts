@@ -173,3 +173,22 @@ test('le sélecteur de fichier Signal garde un input accessible, annonce le nom 
   await expect(page.locator('input[type="file"]')).toBeDisabled();
   await expect(page.locator('.ds-file-trigger')).toHaveClass(/is-disabled/);
 });
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`les sauvegardes et les récents gardent leurs identités visuelles (${theme})`, async ({ page }) => {
+    await page.goto(story('design-system-bibliotheque--sauvegardes-et-historique', theme));
+    const saved = page.locator('.library-saved-section');
+    const recent = page.locator('.library-recent-section');
+    await expect(saved.getByRole('heading', { name: /Sauvegardes/ })).toBeVisible();
+    await expect(recent.getByRole('heading', { name: /Récemment ouvertes/ })).toBeVisible();
+    await expect(saved.getByRole('button', { name: 'Charger' }).first()).toBeVisible();
+    await expect(recent.getByRole('button', { name: 'Reprendre' }).first()).toBeVisible();
+    const borders = await page.evaluate(() => {
+      const savedSection = document.querySelector('.library-saved-section');
+      const recentSection = document.querySelector('.library-recent-section');
+      if (!savedSection || !recentSection) throw new Error('Exemples de bibliothèque absents');
+      return [getComputedStyle(savedSection).borderTopColor, getComputedStyle(recentSection).borderTopColor];
+    });
+    expect(borders[0]).not.toBe(borders[1]);
+  });
+}
