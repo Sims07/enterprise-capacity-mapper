@@ -2,6 +2,7 @@ import { saveBusinessProcess, removeBusinessProcess } from './domain/businessPro
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
 import { Button } from './components/ui/Button.tsx';
+import PresentationCapabilityDetail from './components/PresentationCapabilityDetail.tsx';
 import { LibrarySectionHeading } from './components/LibrarySectionHeading.tsx';
 import { sortLibraryEntriesByDate } from './application/sortLibraryEntries.ts';
 import { FilePicker } from './components/ui/FilePicker.tsx';
@@ -1839,28 +1840,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         const detail = capabilityMapReadout(presentationFocusedCapability, coverage, capabilityFindings.get(presentationFocusedCapability.id));
         const current = coverage.apps.filter(isCurrentApplication);
         const targets = coverage.apps.filter(application => !isCurrentApplication(application));
+        const domainName = model.domains.find(domain => domain.id === presentationFocusedCapability.domainId)?.name;
         return <div className="presentation-focus-overlay" onMouseDown={event => {
           if (event.target === event.currentTarget) setPresentationFocusedCapabilityId(null);
         }}>
-          <section className="presentation-focus-sheet" role="dialog" aria-modal="true" aria-label={`Détail de ${presentationFocusedCapability.name}`}>
-            <div className="presentation-focus-header">
-              <div><span>Capacité N1 · Restitution</span><h2>{presentationFocusedCapability.name}</h2></div>
-              <button autoFocus type="button" aria-label="Fermer le détail" data-testid="presentation-focus-close" onClick={() => setPresentationFocusedCapabilityId(null)}>×</button>
-            </div>
-            <div className="presentation-focus-metrics">
-              <div><span>Couverture métier</span><strong>{detail.functionalLabel}</strong></div>
-              <div><span>Maturité</span><strong>{detail.currentMaturityLabel}</strong><small>Cible : {detail.targetMaturityLabel}</small></div>
-              <div><span>Écarts</span><strong>{detail.signals.length ? `${detail.signals.length} point(s) à examiner` : detail.needsQualification ? 'À qualifier' : 'Aucun signal détecté'}</strong></div>
-            </div>
-            <div className="presentation-focus-application-groups">
-              <section><h3>Applications actuelles <span>{current.length}</span></h3>
-                {current.length ? <ul>{current.map(a => <li key={a.id}><strong>{a.name}</strong><small>{a.status || 'Statut non renseigné'}</small></li>)}</ul> : <p>Aucune application actuelle rattachée.</p>}
-              </section>
-              <section><h3>Applications cibles <span>{targets.length}</span></h3>
-                {targets.length ? <ul>{targets.map(a => <li key={a.id}><strong>{a.name}</strong><small>{a.status || 'Cible'}</small></li>)}</ul> : <p>Aucune application cible rattachée.</p>}
-              </section>
-            </div>
-          </section>
+          <PresentationCapabilityDetail capability={presentationFocusedCapability} domainName={domainName}
+            currentApplications={current} targetApplications={targets} readout={detail}
+            onClose={() => setPresentationFocusedCapabilityId(null)} />
         </div>;
       })()}
       {contextMenu && (
