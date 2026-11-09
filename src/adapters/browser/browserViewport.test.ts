@@ -26,10 +26,12 @@ const createDocument = () => {
     listeners,
     calls,
     hoverNodes,
+    mosaicNodes: [],
     addEventListener(type, handler) { listeners.set(type, handler); calls.push(['add', type]); },
     removeEventListener(type, handler) { if (listeners.get(type) === handler) listeners.delete(type); calls.push(['remove', type]); },
     querySelectorAll(selector) {
       if (selector === '.drop-over') return hoverNodes.filter(node => node.classes.has('drop-over'));
+      if (selector === '.map-mosaic .mosaic-domain[data-layout-grid-column][data-layout-grid-row]') return this.mosaicNodes;
       return [];
     },
     dispatch(type, event) { listeners.get(type)?.(event); },
@@ -73,8 +75,73 @@ test('viewport adapter installs auto-scroll and removes listeners on cleanup', (
 
   cleanup();
   assert.deepEqual(documentObject.calls, [
-    ['add', 'dragover'], ['add', 'dragend'], ['add', 'drop'],
-    ['remove', 'dragover'], ['remove', 'dragend'], ['remove', 'drop'],
+    ['add', 'dragover'], ['add', 'dragstart'], ['add', 'dragend'], ['add', 'drop'],
+    ['remove', 'dragover'], ['remove', 'dragstart'], ['remove', 'dragend'], ['remove', 'drop'],
   ]);
   assert.equal(documentObject.listeners.size, 0);
+});
+
+const createResizingMosaicCard = () => {
+  const draggableDomain = {
+    dataset: { resizeWasDraggable: 'true' },
+    attributes: { draggable: 'false' },
+    setAttribute(name, value) { this.attributes[name] = value; },
+  };
+  const card = {
+    dataset: {
+      layoutGridColumn: '2 / span 1',
+      layoutGridRow: '3 / span 1',
+      resizeStartX: '300',
+      resizeOriginalColumn: '2 / span 1',
+      resizeOriginalRow: '3 / span 1',
+    },
+    style: { gridColumn: '2 / span 2', gridRow: '3 / span 2' },
+    querySelector: selector => selector === '.domain-card' ? draggableDomain : null,
+  };
+  return { card, draggableDomain };
+};
+
+test('native drag cancellation restores N0 placement and draggable state without reloading', () => {
+  const documentObject = createDocument();
+  const { card, draggableDomain } = createResizingMosaicCard();
+  documentObject.mosaicNodes.push(card);
+  const viewport = createBrowserViewport({
+    documentObject,
+    windowObject: { innerHeight: 600, scrollBy() {} },
+    getComputedStyleFn: () => ({ overflowY: 'visible' }),
+    ElementClass: FakeElement,
+  });
+
+  const cleanup = viewport.installDragAutoScroll();
+  documentObject.dispatch('dragend', {});
+
+  assert.deepEqual(card.style, { gridColumn: '2 / span 1', gridRow: '3 / span 1' });
+  assert.equal(card.dataset.resizeStartX, undefined);
+  assert.equal(card.dataset.resizeOriginalRow, undefined);
+  assert.equal(draggableDomain.attributes.draggable, 'true');
+  assert.equal(draggableDomain.dataset.resizeWasDraggable, undefined);
+
+  // An invalid/no-op drop must repair another transient preview as well.
+  card.style.gridRow = '99 / span 1';
+  documentObject.dispatch('drop', {});
+  assert.equal(card.style.gridRow, card.dataset.layoutGridRow);
+
+  cleanup();
+});
+
+test('pointer capture interruption restores the persisted grid placement', () => {
+  const { card, draggableDomain } = createResizingMosaicCard();
+  const viewport = createBrowserViewport({
+    documentObject: createDocument(),
+    windowObject: { scrollTo() {} },
+    getComputedStyleFn: () => ({ overflowY: 'visible' }),
+    ElementClass: FakeElement,
+  });
+
+  viewport.resetMosaicResizePreview(card);
+
+  assert.equal(card.style.gridColumn, card.dataset.layoutGridColumn);
+  assert.equal(card.style.gridRow, card.dataset.layoutGridRow);
+  assert.equal(draggableDomain.attributes.draggable, 'true');
+  assert.equal(card.dataset.resizeStartX, undefined);
 });

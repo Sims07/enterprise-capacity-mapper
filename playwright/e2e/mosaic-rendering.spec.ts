@@ -16,6 +16,58 @@ test.describe('Cartographie unifiée', () => {
     await expect(page.getByTestId('capability-map')).toBeVisible();
   });
 
+  test('repositionne visuellement le N0 après drag et répare un aperçu de grille abandonné', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto('/');
+
+    const map = page.getByTestId('capability-map');
+    const domain = map.locator('.mosaic-domain').filter({ hasText: 'Relation & Engagement Client' });
+    const destination = map.locator('[data-zone-key="product:core"]');
+    await expect(domain).toBeVisible();
+    await domain.locator('.domain-banner').dragTo(destination);
+
+    const assertOnDestination = async () => {
+      await expect.poll(async () => domain.evaluate(wrapper => {
+        const map = wrapper.closest('.map-mosaic')!;
+        const cell = map.querySelector<HTMLElement>('[data-zone-key="product:core"]')!;
+        const cardStyle = getComputedStyle(wrapper);
+        const cellStyle = getComputedStyle(cell);
+        const card = wrapper.getBoundingClientRect();
+        const target = cell.getBoundingClientRect();
+        const mapBounds = map.getBoundingClientRect();
+        const geometryMatches = Math.abs(card.left - target.left) <= 2
+          && Math.abs(card.top - target.top) <= 2
+          && card.bottom <= mapBounds.bottom + 2;
+        return cardStyle.gridColumnStart === cellStyle.gridColumnStart
+          && cardStyle.gridRowStart === cellStyle.gridRowStart
+          && geometryMatches;
+      })).toBe(true);
+    };
+
+    // The card must follow its saved placement immediately, without reloading.
+    await assertOnDestination();
+
+    // A lost dragend/pointerup used to leave an inline CSS grid preview on the
+    // node, while its properties still referenced the correct business layer.
+    await domain.evaluate(wrapper => {
+      const card = wrapper as HTMLElement;
+      card.style.gridRow = 'auto';
+      card.dataset.resizeStartX = String(card.getBoundingClientRect().x);
+      const draggable = card.querySelector<HTMLElement>('.domain-card')!;
+      draggable.dataset.resizeWasDraggable = 'true';
+      draggable.setAttribute('draggable', 'false');
+    });
+    await page.locator('body').dispatchEvent('dragend');
+    await assertOnDestination();
+    await expect(domain.locator('.domain-card')).toHaveAttribute('draggable', 'true');
+    await expect(domain).not.toHaveAttribute('data-resize-start-x');
+
+    // A cancelled/no-op drop also restores the exact model placement.
+    await domain.evaluate(wrapper => { (wrapper as HTMLElement).style.gridColumn = 'auto'; });
+    await page.locator('body').dispatchEvent('drop');
+    await assertOnDestination();
+  });
+
   test('présente la cartographie sans repères de grille et avec les panneaux colorés', async ({ page }) => {
     await page.goto('/');
         await page.goto('/?view=presentation');

@@ -39,7 +39,7 @@ Les références d'architecture sont dans [`docs/architecture/`](docs/architectu
 
 ## Fonctionnalités
 
-En mode mosaïque, chaque carte dispose d’une poignée de redimensionnement directe : faites-la glisser pour ajuster simultanément largeur et hauteur par pas de grille, ou utilisez les flèches du clavier. Les dimensions sont enregistrées dans la cartographie ; les chevauchements et dépassements de la grille restent refusés.
+En mode mosaïque, une carte N0 se déplace par glisser-déposer vers une zone de la grille. Pour la redimensionner, faites glisser son bord droit ou inférieur, ou utilisez les flèches du clavier lorsque la carte a le focus. Les placements et dimensions sont enregistrés dans la cartographie ; les chevauchements et dépassements de la grille restent refusés. Lorsqu'un déplacement est annulé ou interrompu, l'aperçu temporaire est automatiquement nettoyé : la carte réapparaît immédiatement à la position de son modèle, sans rechargement.
 
 - mode présentation de la mosaïque, avec des cartes compactes, des contours colorés et une composition paysage sans pistes vides;
 
