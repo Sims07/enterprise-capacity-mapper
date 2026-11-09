@@ -44,6 +44,10 @@ Les couleurs sont issues des tokens `--status-*` du design system (clair et somb
 
 L'option **Applications** de la barre de présentation affiche jusqu'à deux noms par N1, puis un compteur de relations supplémentaires. Les applications cibles sont identifiées et ne prouvent pas une couverture actuelle. L'option est désactivée en cartographie à un seul niveau.
 
+Lorsque le N0 contient au moins quatre N1 et que l'aperçu applicatif est activé, la mosaïque privilégie des cartes N1 plus larges (si l'espace le permet). Chaque carte réserve la ligne inférieure aux applications : les noms de capacité très longs se limitent visuellement à deux lignes et les badges trop longs sont abrégés horizontalement, jamais coupés verticalement. Le titre complet et toutes les applications restent accessibles dans la fiche N1 (clic ou clavier). Le mode Carte sans applications conserve son dimensionnement antérieur. Un écran extrêmement dense reste limité par l'espace physique disponible sur une page paysage.
+
+Le test Playwright `playwright/e2e/presentation-applications.spec.ts` reproduit une mosaïque de douze N0 sur quatre lignes, dont un N0 avec quatre N1 et plusieurs applications (actuelles et cibles). Il contrôle la géométrie réelle des puces et de leur conteneur en présentation 1440×900 et 1728×900, ainsi que l'accès à la fiche détaillée et le changement de lecture.
+
 Une N1 activée au clic ou au clavier (Entrée/Espace) ouvre une fiche de restitution présentant couverture, maturité, signaux et **toutes** les applications actuelles et cibles. Échap ferme d'abord la fiche, puis quitte la présentation au second appui. Aucune modification métier n'est possible dans cette vue.
 
 ## Piloter l'écran projeté depuis l'éditeur (lot 3)
