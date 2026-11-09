@@ -6,6 +6,7 @@ import { withSignalTheme } from './storyFrame.tsx';
 
 const meta = {
   title: 'Design system/Bibliothèque',
+  id: 'design-system-bibliotheque',
   decorators: [withSignalTheme],
   parameters: { layout: 'fullscreen' },
 } satisfies Meta;
