@@ -12,9 +12,11 @@ import { capabilityMapReadout, MAP_READING_MODES, type MapReadingMode } from './
 import { presentationCapabilitySignal, PRESENTATION_READING_OPTIONS, type PresentationReadingMode } from './application/presentationReadout.ts';
 import { downloadDecisionReview } from './adapters/browser/decisionReviewDownload.ts';
 import type { CapabilityAssessment, CatalogModel } from './domain/catalogModel.ts';
+import { computeMosaicStackLayout } from './domain/mosaicStackLayout.ts';
 import { createFrontendApplication } from './adapters/react/architecture.ts';
 import {
   addLayoutDraftItem,
+  appendRelocatedDomain,
   collapseLayoutAfterDomainRemoval,
   type Layout,
   isDomainPlacementAvailable,
@@ -754,7 +756,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     columnId,
     layerId,
     columnSpan,
-    allowExactOverlap: false,
+    rowSpan: modal === 'edit-domain' ? (model.domains.find(domain => domain.id === domainId)?.layout?.rowSpan ?? 1) : 1,
+    allowExactOverlap: true,
+    allowStackingInLayer: true,
   });
 
   const placeDomain = (domainId, columnId, layerId) => {
@@ -766,13 +770,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       domainId,
       columnId,
       layerId,
-      allowExactOverlap: false,
+      allowExactOverlap: true,
+      allowStackingInLayer: true,
     });
     if (!patch) {
       if (domainId) notify('Déplacement impossible : chevauchement de domaine.');
       return;
     }
-    update(patch);
+    update({ ...patch, domains: appendRelocatedDomain(model.domains, patch.domains as CatalogModel['domains'], domainId) });
   };
 
   const resizeDomain = (domain, columnSpan, rowSpan) => {
@@ -878,7 +883,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     if (modal === 'capability' && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
     if (['app', 'edit-app'].includes(modal) && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
     if ((modal === 'domain' || modal === 'edit-domain') && !/^#[\da-f]{6}$/i.test(form.color)) errors.color = 'Saisissez une couleur hexadécimale au format #RRGGBB.';
-    if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette étendue chevauche un autre domaine.';
+    if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette position dépasse la grille ou croise un domaine étendu sur plusieurs lignes.';
 
     if (Object.keys(errors).length) {
       setFormErrors(errors);
@@ -888,19 +893,22 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
     setFormErrors({});
     if (modal === 'domain') {
-      const creationLayout = pendingDomainPlan?.layout || layout;
+      // Do not persist the suggested extra layer when the user chooses an existing business layer.
+      const usePlannedLayout = Boolean(pendingDomainPlan?.expanded && (insertingN0 || !layers.some(layer => layer.id === form.layerId)));
+      const creationLayout = usePlannedLayout ? pendingDomainPlan!.layout : layout;
       update({
-        ...(pendingDomainPlan?.expanded ? { layout: creationLayout } : {}),
+        ...(usePlannedLayout ? { layout: creationLayout } : {}),
         domains: createDomain({ domains: (pendingDomainPlan?.domains || model.domains) as CatalogModel['domains'], capabilities: model.capabilities, applications: apps, layout: creationLayout, form, id: uid('l0'), defaultColumnId: domainFormColumns[0].id, defaultLayerId: domainFormLayers[0].id, resolveColor: resolveDomainColor }),
       });
       setPendingDomainPlan(null);
       setMapQuery('');
       notify(pendingDomainPlan?.shiftedCount
         ? `Domaine N0 inséré · ${pendingDomainPlan.shiftedCount} domaine(s) repositionné(s)`
-        : pendingDomainPlan?.expanded ? 'Domaine N0 créé · ligne ajoutée' : 'Domaine N0 créé');
+        : usePlannedLayout ? 'Domaine N0 créé · ligne ajoutée' : 'Domaine N0 créé');
     }
     if (modal === 'edit-domain') {
-      update({ domains: updateDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor }) });
+      const editedDomains = updateDomain({ domains: model.domains, capabilities: model.capabilities, applications: apps, layout: model.layout, domainId: editingDomainId, form, defaultColumnId: columns[0].id, defaultLayerId: layers[0].id, resolveColor: resolveDomainColor });
+      update({ domains: appendRelocatedDomain(model.domains, editedDomains, editingDomainId) });
       notify('Domaine N0 modifié');
     }
     if (modal === 'edit-capability') {
@@ -1192,14 +1200,17 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicColumnsLayout = presentation && usedPresentationColumnIndexes.size > 0 ? columns.filter((_, index) => usedPresentationColumnIndexes.has(index)) : columns;
   const mosaicLayersLayout = presentation && usedPresentationLayerIndexes.size > 0 ? layers.filter((_, index) => usedPresentationLayerIndexes.has(index)) : layers;
   const mosaicColumns = `${!presentation && showRowHeadings ? '110px ' : ''}${mosaicColumnsLayout.map(column => `minmax(0, ${Math.max(0.1, Number(column.size) || 1)}fr)`).join(' ')}`;
+  const stackedRows = computeMosaicStackLayout(model.domains, mosaicColumnsLayout, mosaicLayersLayout);
+  const mosaicLayerRowStart = (index: number) => mosaicRowOffset + stackedRows.rowCounts.slice(0, index).reduce((sum, count) => sum + count, 0);
+  const mosaicLayerRowSpan = (index: number, span: number) => stackedRows.rowCounts.slice(index, index + span).reduce((sum, count) => sum + count, 0);
   const mosaicRows = presentation
-    ? mosaicLayersLayout.map(layer => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`).join(' ')
-    : `${showColumnHeadings ? '44px ' : ''}${layers.map(() => 'minmax(var(--map-row-min-height-compact), auto)').join(' ')}`;
+    ? mosaicLayersLayout.flatMap((layer, index) => Array.from({ length: stackedRows.rowCounts[index] }, () => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`)).join(' ')
+    : `${showColumnHeadings ? '44px ' : ''}${layers.flatMap((_, index) => Array.from({ length: stackedRows.rowCounts[index] }, () => 'minmax(var(--map-row-min-height-compact), auto)')).join(' ')}`;
   const capabilityMap = (
     <div className="map map-mosaic" data-testid="capability-map" data-density={!presentation ? 'compact' : undefined} style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
       {!presentation && showColumnHeadings && columns.map(column => <div className="mosaic-column-heading" key={column.id} style={{ gridColumn: columns.indexOf(column) + mosaicColumnOffset, gridRow: 1 }}>{column.name}</div>)}
-      {!presentation && showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: rowIndex + mosaicRowOffset }}>{layer.name}</div>)}
+      {!presentation && showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: `${mosaicLayerRowStart(rowIndex)} / span ${stackedRows.rowCounts[rowIndex]}` }}>{layer.name}</div>)}
       {layers.flatMap((layer, rowIndex) => columns.map((column, columnIndex) => {
         const zone = zones.find(item => item.columnId === column.id && item.layerId === layer.id);
         const occupied = model.domains.some(domain => {
@@ -1212,7 +1223,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             && rowIndex >= startLayer && rowIndex < startLayer + rowSpan;
         });
         return presentation ? null : <div className="mosaic-zone" key={`${column.id}:${layer.id}`} data-zone-key={`${column.id}:${layer.id}`} data-occupied={occupied}
-          style={{ gridColumn: columnIndex + mosaicColumnOffset, gridRow: rowIndex + mosaicRowOffset }}
+          style={{ gridColumn: columnIndex + mosaicColumnOffset, gridRow: `${mosaicLayerRowStart(rowIndex)} / span ${stackedRows.rowCounts[rowIndex]}` }}
           onDragOver={event => event.preventDefault()}
           onDrop={event => { event.preventDefault(); placeDomain(event.dataTransfer.getData('domain'), column.id, layer.id); }}>
           {zone?.name && zone.name !== column.name && <span className="mosaic-zone-label">{zone.name}</span>}
@@ -1236,8 +1247,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           ? mosaicLayersLayout.filter(layer => { const index = layers.findIndex(item => item.id === layer.id); return index >= sourceRowIndex && index < sourceRowIndex + sourceRowSpan; }).length
           : sourceRowSpan;
         const gridColumn = `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`;
-        const gridRow = `${rowIndex + mosaicRowOffset} / span ${rowSpan}`;
-        return <div className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
+        const gridRow = `${mosaicLayerRowStart(rowIndex) + (sourceRowSpan === 1 ? (stackedRows.tiers[domain.id] ?? 0) : 0)} / span ${sourceRowSpan === 1 ? 1 : mosaicLayerRowSpan(rowIndex, rowSpan)}`;
+        return <div data-stack-tier={stackedRows.tiers[domain.id] ?? 0} className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
           aria-label={presentation ? `Carte ${domain.name}` : `Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
           data-layout-grid-column={gridColumn} data-layout-grid-row={gridRow}
           style={{ gridColumn, gridRow }}
@@ -1911,8 +1922,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               </select>
             </label>
           )}
-          {modal === 'domain' && pendingDomainPlan?.expanded && <p className="structure-hint" data-testid="domain-auto-expand-hint">L’espace actuel ne suffit pas. {domainInsertionTarget === 'auto' ? 'Une nouvelle ligne sera ajoutée.' : 'Les domaines suivants seront décalés et une ligne supplémentaire sera créée.'} La carte ne change que lorsque vous confirmez la création.</p>}
+          {modal === 'domain' && pendingDomainPlan?.expanded && (insertingN0 || !layers.some(layer => layer.id === form.layerId)) && <p className="structure-hint" data-testid="domain-auto-expand-hint">L’espace actuel ne suffit pas. {domainInsertionTarget === 'auto' ? 'Une nouvelle ligne sera ajoutée.' : 'Les domaines suivants seront décalés et une ligne supplémentaire sera créée.'} La carte ne change que lorsque vous confirmez la création.</p>}
           {insertingN0 && <p className="structure-hint" data-testid="domain-insertion-hint">Les domaines sont réorganisés à partir de cette position, sans changer leurs capacités ou applications. La position est calculée automatiquement.</p>}
+          {(modal === 'domain' || modal === 'edit-domain') && <p className="structure-hint">Une ligne métier peut accueillir plusieurs N0 : ils s’affichent les uns sous les autres, même si leurs étendues sur les colonnes diffèrent.</p>}
           {(modal === 'capability' || modal === 'edit-capability') && <div className="field-guidance"><b>N1 — Capacité</b><span>Décrit ce que l’entreprise sait faire.</span></div>}
           {modal === 'edit-capability' && (
             <div className="capability-sheet-context" data-testid="capability-sheet-context">
