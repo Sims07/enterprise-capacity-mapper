@@ -85,7 +85,7 @@ test('déplace un N0 de Support à Cœur métier occupé et le garde visible apr
   await moved.getByRole('button', { name: 'Actions pour Finance, Gestion & Comptabilité' }).click();
   await page.getByRole('button', { name: 'Modifier', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Modifier le domaine N0' });
-  await dialog.getByLabel('Colonne', { exact: true }).selectOption({ label: 'Client' });
+  await dialog.getByTestId('domain-column-select').selectOption({ label: 'Client' });
   await dialog.getByLabel('Ligne (layer)').selectOption({ label: 'Core / Value' });
   await dialog.getByLabel('Étendue sur les colonnes').selectOption('2');
   await dialog.getByRole('button', { name: 'Enregistrer' }).click();
