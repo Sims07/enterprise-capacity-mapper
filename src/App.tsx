@@ -57,6 +57,7 @@ import { publishPresentationTheme, publishPresentationUpdate, publishPresentatio
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_APP_PREVIEW_LIMIT = 2;
+const PRESENTATION_CONTROLS_REVEAL_EDGE_PX = 64;
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
@@ -183,6 +184,12 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       return undefined;
     }
     const revealControls = (event?: Event) => {
+      // Les déplacements sur la cartographie ne doivent pas rouvrir la barre
+      // au-dessus des N1 du bas. Le bord inférieur reste une zone de rappel ;
+      // le clavier et le focus conservent leur comportement d'accessibilité.
+      if (event instanceof PointerEvent
+        && window.innerHeight - event.clientY > PRESENTATION_CONTROLS_REVEAL_EDGE_PX
+        && !(event.target instanceof Element && event.target.closest('.presentation-exit-bar'))) return;
       // Ne pas remonter App pendant l'activation d'une N1 :
       // pointerdown comme focusin précèdent click et DomainCard est recréé au rendu.
       if (event?.target instanceof Element && event.target.closest('.mosaic-domain .cap[role="button"]')) return;
