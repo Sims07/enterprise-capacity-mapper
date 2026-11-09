@@ -302,7 +302,10 @@ test.describe('Playwright regression — import, library and persistence', () =>
       .filter(name => name.startsWith('Historique '));
     expect(historyNames).toEqual(['Historique nouveau', 'Historique intermédiaire', 'Historique ancien']);
     await expect(savedList.getByRole('button', { name: 'Charger' })).toHaveCount(3);
-    await expect(recentList.getByRole('button', { name: 'Reprendre' })).toHaveCount(3);
+    for (const name of ['Historique nouveau', 'Historique intermédiaire', 'Historique ancien']) {
+      await expect(recentList.locator('.library-map-card').filter({ hasText: name })
+        .getByRole('button', { name: 'Reprendre' })).toBeVisible();
+    }
     const tones = await library.evaluate(element => {
       const saved = element.querySelector('.library-saved-section');
       const recent = element.querySelector('.library-recent-section');
