@@ -17,7 +17,7 @@ Le mode présentation de la cartographie est un rendu de restitution, distinct d
 - Toutes les capacités N1 sont rendues dans la carte : la liste utilise une grille verticale qui répartit la hauteur disponible, sans zone de défilement interne ni masquage silencieux.
 - La présentation est strictement en lecture seule : aucun contrôle de sélection/édition, glisser-déposer, menu contextuel ou redimensionnement par pointeur/clavier n'est actif.
 - Le switch de la barre d'outils ouvre toujours la présentation dans un nouvel onglet, sur ordinateur comme sur mobile ; la fenêtre d'édition reste ouverte et son switch revient immédiatement à l'état désactivé.
-- Dans l'onglet de présentation, un switch temporaire dans la barre flottante permet de fermer cette page (ou de revenir à l'éditeur si le navigateur interdit sa fermeture). La barre se masque après trois secondes d'inactivité.
+- Dans l'onglet de présentation, un switch temporaire dans la barre flottante permet de fermer cette page (ou de revenir à l'éditeur si le navigateur interdit sa fermeture). La barre se masque après trois secondes d'inactivité et se rappelle en approchant le pointeur du **bord inférieur** (ou via le clavier), sans réapparaître pendant la lecture du reste de la carte.
 - La touche **Échap** ferme d'abord la fiche N1 ou la lecture agrandie N0, puis la fenêtre de présentation si aucun détail n'est ouvert.
 - L'URL `?view=presentation` reste disponible pour ouvrir directement une vue de restitution.
 
