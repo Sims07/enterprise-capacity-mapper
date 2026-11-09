@@ -53,6 +53,7 @@ En mode mosaïque, une carte N0 se déplace par glisser-déposer vers une zone d
 - création de cartographies avec assistant ;
 - import/export JSON versionné ;
 - bibliothèque locale et cartographies récentes ;
+  - bibliothèque compacte : version active en bandeau discret, sauvegardes nommées et historique récent dans deux listes ; les actions « Ouvrir » et « Retirer » sont distinctes, et retirer un récent ne supprime pas sa sauvegarde ;
 - historique annuler/rétablir ;
 - compagnon IA local/configurable ;
 - thème clair/sombre ;

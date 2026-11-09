@@ -1509,78 +1509,100 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       {mode === 'library' ? (
         <section className="standalone-page library-page" data-testid="library-page">
           <div className="standalone-page-heading library-page-heading" data-testid="library-page-heading">
-            <div>
-              <div className="eyebrow">ESPACE DE TRAVAIL · STOCKAGE LOCAL</div>
-              <h2>Bibliothèque de cartographies</h2>
-              <p>Retrouvez vos modèles récents, gérez les sauvegardes de cet appareil et rouvrez une cartographie sans quitter cet espace.</p>
+            <div className="library-page-intro">
+              <h2>Bibliothèque</h2>
+              <p>Vos sauvegardes et l’historique des cartographies ouvertes sur cet appareil.</p>
             </div>
             <div className="library-page-actions">
-              <button type="button" className="secondary" data-testid="back-to-cartography" onClick={() => navigateToMode('editor')}>Retour à la cartographie</button>
-              <button type="button" className="primary" data-testid="save-current-from-library" onClick={saveCurrentLocalMap}>＋ Sauvegarder la cartographie actuelle</button>
+              <button type="button" className="ds-button ds-button--secondary" data-testid="back-to-cartography" onClick={() => navigateToMode('editor')}>Retour à la cartographie</button>
+              <button type="button" className="ds-button ds-button--primary" data-testid="save-current-from-library" onClick={saveCurrentLocalMap}>＋ Enregistrer une copie</button>
             </div>
           </div>
 
-          <div className="library-stats" aria-label="Résumé de la bibliothèque">
-            <article className="library-stat-card"><span>Cartographie active</span><strong>{model.metadata?.name || 'Sans nom'}</strong><small>{model.domains.length} domaines N0 · {model.capabilities.length} capacités N1</small></article>
-            <article className="library-stat-card"><span>Récemment ouvertes</span><strong data-testid="recent-maps-count">{recentMaps.length}</strong><small>Jusqu’à 10 cartographies conservées dans l’historique</small></article>
-            <article className="library-stat-card"><span>Sauvegardes locales</span><strong data-testid="saved-maps-count">{localMaps.length}</strong><small>Disponibles sur cet appareil</small></article>
+          <div className="library-active-map" aria-label="Cartographie active" data-testid="library-active-map">
+            <span>En cours</span>
+            <strong>{model.metadata?.name || 'Sans nom'}</strong>
+            <small>{model.domains.length} domaines N0 · {model.capabilities.length} capacités N1</small>
           </div>
 
           <div className="library-content-grid" data-testid="library-content-grid">
-          <section className="library-section library-saved-section" aria-labelledby="saved-maps-heading">
-            <div className="library-section-heading"><div><h3 id="saved-maps-heading">Cartographies enregistrées</h3><p>Vos versions nommées, conservées sur cet appareil.</p></div><span className="library-section-count">{localMaps.length} sauvegarde(s)</span></div>
-            {localMaps.length ? (
-              <div className="library-card-grid" data-testid="saved-maps-list">
-                {localMaps.map(saved => (
-                  <article className="library-map-card" key={saved.id}>
-                    <div className="library-map-card-top"><span className="library-map-type saved">SAUVEGARDE</span><span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Enregistrée localement'}</span></div>
-                    <h4>{saved.name}</h4>
-                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
-                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
-                    <div className="library-map-card-actions"><button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button></div>
-                  </article>
-                ))}
+            <section className="library-section library-saved-section" aria-labelledby="saved-maps-heading">
+              <div className="library-section-heading">
+                <div>
+                  <h3 id="saved-maps-heading">Sauvegardes <span className="library-section-count" data-testid="saved-maps-count">{localMaps.length}</span></h3>
+                  <p>Versions nommées, conservées localement.</p>
+                </div>
               </div>
-            ) : (
-              <div className="library-empty-state" data-testid="saved-maps-empty"><strong>Aucune sauvegarde nommée</strong><p>Enregistrez la cartographie active pour lui donner un nom et la retrouver ici, même après avoir travaillé sur un autre modèle.</p><button type="button" className="primary" onClick={saveCurrentLocalMap}>Sauvegarder la cartographie actuelle</button></div>
-            )}
-          </section>
+              {localMaps.length ? (
+                <div className="library-card-grid" data-testid="saved-maps-list">
+                  {localMaps.map(saved => (
+                    <article className="library-map-card" key={saved.id}>
+                      <div className="library-map-details">
+                        <div className="library-map-title">
+                          <h4 title={saved.model.metadata?.description || undefined}>{saved.name}</h4>
+                          <span className="library-map-date">{saved.updatedAt ? new Date(saved.updatedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Enregistrée localement'}</span>
+                        </div>
+                        {saved.model.metadata?.description && saved.model.metadata.description !== 'Cartographie de capacités d’entreprise' && (
+                          <p className="library-map-description">{saved.model.metadata.description}</p>
+                        )}
+                        <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> N0</span><span><strong>{saved.model.capabilities.length}</strong> N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
+                      </div>
+                      <div className="library-map-card-actions">
+                        <button type="button" className="ds-button ds-button--secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="library-empty-state" data-testid="saved-maps-empty"><strong>Aucune sauvegarde nommée</strong><p>Enregistrez la cartographie active pour la retrouver ici, même après avoir travaillé sur un autre modèle.</p><button type="button" className="ds-button ds-button--primary" onClick={saveCurrentLocalMap}>Enregistrer une copie</button></div>
+              )}
+            </section>
 
-          <section className="library-section library-recent-section" aria-labelledby="recent-maps-heading">
-            <div className="library-section-heading"><div><h3 id="recent-maps-heading">Récemment ouvertes</h3><p>Retrouvez les cartographies utilisées dernièrement.</p></div></div>
-            {recentMaps.length ? (
-              <div className="library-card-grid" data-testid="recent-maps-list">
-                {recentMaps.map(saved => (
-                  <article className="library-map-card" key={saved.id}>
-                    <div className="library-map-card-top"><span className="library-map-type">RÉCENT</span><span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Historique sans date'}</span></div>
-                    <h4>{saved.name}</h4>
-                    <p className="library-map-description">{saved.model.metadata?.description || 'Cartographie de capacités d’entreprise'}</p>
-                    <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> domaines N0</span><span><strong>{saved.model.capabilities.length}</strong> capacités N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
-                    <div className="library-map-card-actions">
-                      <button type="button" className="secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
-                      <button type="button" className="library-remove-recent" data-testid={`remove-recent-${saved.id}`} aria-label={`Retirer ${saved.name} des récents`} onClick={() => {
-                        try {
-                          repository.removeRecentMap(saved.id);
-                          setRecentMaps(repository.loadRecentMaps());
-                          if (saved.id === activeRecentMapId) {
-                            preferences.writeActiveRecentMapId('__dismissed__');
-                            setActiveRecentMapId('__dismissed__');
+            <section className="library-section library-recent-section" aria-labelledby="recent-maps-heading">
+              <div className="library-section-heading">
+                <div>
+                  <h3 id="recent-maps-heading">Récemment ouvertes <span className="library-section-count" data-testid="recent-maps-count">{recentMaps.length}</span></h3>
+                  <p>Historique des ouvertures, sans modifier vos sauvegardes.</p>
+                </div>
+              </div>
+              {recentMaps.length ? (
+                <div className="library-card-grid" data-testid="recent-maps-list">
+                  {recentMaps.map(saved => (
+                    <article className="library-map-card" key={saved.id}>
+                      <div className="library-map-details">
+                        <div className="library-map-title">
+                          <h4 title={saved.model.metadata?.description || undefined}>{saved.name}</h4>
+                          <span className="library-map-date">{saved.openedAt ? new Date(saved.openedAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Historique sans date'}</span>
+                        </div>
+                        {saved.model.metadata?.description && saved.model.metadata.description !== 'Cartographie de capacités d’entreprise' && (
+                          <p className="library-map-description">{saved.model.metadata.description}</p>
+                        )}
+                        <div className="library-map-metrics"><span><strong>{saved.model.domains.length}</strong> N0</span><span><strong>{saved.model.capabilities.length}</strong> N1</span><span><strong>{saved.model.applications.length}</strong> applications</span></div>
+                      </div>
+                      <div className="library-map-card-actions">
+                        <button type="button" className="ds-button ds-button--secondary" onClick={() => { setPendingLocalMap(saved); setModal('confirm-local-map'); }}>Ouvrir cette cartographie</button>
+                        <button type="button" className="ds-button ds-button--quiet library-remove-recent" data-testid={`remove-recent-${saved.id}`} aria-label={`Retirer ${saved.name} des récents`} onClick={() => {
+                          try {
+                            repository.removeRecentMap(saved.id);
+                            setRecentMaps(repository.loadRecentMaps());
+                            if (saved.id === activeRecentMapId) {
+                              preferences.writeActiveRecentMapId('__dismissed__');
+                              setActiveRecentMapId('__dismissed__');
+                            }
+                            notify(`« ${saved.name} » retirée des récents`);
+                          } catch (error) {
+                            notify(`Impossible de retirer cette entrée : ${error.message}`);
                           }
-                          notify(`« ${saved.name} » retirée des récents`);
-                        } catch (error) {
-                          notify(`Impossible de retirer cette entrée : ${error.message}`);
-                        }
-                      }}>Retirer des récents</button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="library-empty-state" data-testid="recent-maps-empty"><strong>Aucune cartographie récente</strong><p>Les cartographies que vous ouvrez apparaîtront ici. Vous pouvez retirer une entrée sans supprimer sa sauvegarde locale.</p></div>
-            )}
-          </section>
-        </div>
-
+                        }}>Retirer</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="library-empty-state" data-testid="recent-maps-empty"><strong>Aucune cartographie récente</strong><p>Les cartographies ouvertes apparaîtront ici. Retirer un élément de l’historique ne supprime jamais sa sauvegarde.</p></div>
+              )}
+            </section>
+          </div>
         </section>
       ) : (
       <div className={'workspace' + ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}`}>
