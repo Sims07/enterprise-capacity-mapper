@@ -87,7 +87,7 @@ test('déplace un N0 de Support à Cœur métier occupé et le garde visible apr
   const dialog = page.getByRole('dialog', { name: 'Modifier le domaine N0' });
   await dialog.getByTestId('domain-column-select').selectOption({ label: 'Client' });
   await dialog.getByLabel('Ligne (layer)').selectOption({ label: 'Core / Value' });
-  await dialog.getByLabel('Étendue sur les colonnes').selectOption('2');
+  await dialog.getByLabel('Étendue sur les colonnes').selectOption('3');
   await dialog.getByRole('button', { name: 'Enregistrer' }).click();
   await expect(dialog).toHaveCount(0);
 
