@@ -164,10 +164,14 @@ test('MapLayout validates persisted rectangle collisions and keeps legacy exact-
   ];
   assert.notEqual(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, sameCell), null);
   assert.notEqual(MapLayout.fromDraft(source).prepareForSave({ mode: 'mosaic' }, sameCell), null, 'legacy identical placements remain readable regardless of the old view marker');
-  assert.equal(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, [
+  assert.notEqual(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, [
     { id: 'd1', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
     { id: 'd2', layout: { columnId: 'c2', layerId: 'l1' } },
-  ]), null, 'partial overlaps are rejected even for legacy matrix data');
+  ]), null, 'single-layer partial overlaps stack in a business row');
+  assert.equal(MapLayout.fromDraft(source).prepareForSave({ mode: 'matrix' }, [
+    { id: 'd1', layout: { columnId: 'c1', layerId: 'l1', rowSpan: 2 } },
+    { id: 'd2', layout: { columnId: 'c1', layerId: 'l2' } },
+  ]), null, 'multi-layer collisions remain forbidden');
 });
 
 test('MapLayout collapses unused generated rows without moving domains or breaking zone metadata', () => {
@@ -242,4 +246,21 @@ test('MapLayout keeps an insertion row after the last N0 is deleted and tolerate
     { id: 'second', layout: { columnId: 'c1', layerId: 'auto-2' } },
   ];
   assert.deepEqual(MapLayout.collapseUnusedGeneratedLayers(layout, stacked).layers?.map(layer => layer.id), ['auto-2']);
+});
+
+
+test('MapLayout accepts relocation into the same occupied layer with partial width', () => {
+  const source = draft();
+  const domains = [
+    { id: 'existing', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
+    { id: 'moved', layout: { columnId: 'c2', layerId: 'l2', columnSpan: 1 } },
+  ];
+  const subject = MapLayout.fromDraft(source);
+  const args = { domains, layout: source, columns: source.columns, layers: source.layers,
+    domainId: 'moved', columnId: 'c2', layerId: 'l1' };
+  assert.equal(subject.prepareDomainPlacement(args), null, 'strict mode remains available');
+  const allowed = subject.prepareDomainPlacement({ ...args, allowStackingInLayer: true });
+  assert.equal(allowed?.domains[1].layout?.layerId, 'l1');
+  assert.equal(allowed?.layout.layers?.length, 2);
+  assert.notEqual(subject.prepareForSave(source, allowed!.domains), null);
 });
