@@ -264,6 +264,8 @@ test.describe('Cartographie unifiée', () => {
       await page.waitForTimeout(3200);
       await expect(exitBar).toHaveCSS('opacity', '0');
       await page.mouse.move(100, 100);
+      await expect(exitBar).toHaveCSS('opacity', '0');
+      await page.mouse.move(viewport.width / 2, viewport.height - 2);
       await expect(exitBar).toHaveCSS('opacity', '1');
     }
   });
