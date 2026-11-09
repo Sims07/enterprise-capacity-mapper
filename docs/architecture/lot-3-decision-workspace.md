@@ -40,3 +40,15 @@ Cette séparation évite de transformer trop tôt le compagnon en agent autonome
 ## Suite prévue
 
 Le prochain incrément pourra exposer ce contrat dans l’interface sous forme d’un **Decision Brief** : priorités, questions de revue et accès direct aux preuves, puis préparer un format d’ADR sans l’enregistrer automatiquement.
+
+## Lot complémentaire — Qualification guidée locale des constats
+
+Le compagnon conserve ses **quatre actions d’analyse** (vue d’ensemble, couverture, nommage, structure) et le Decision Brief. Dans chaque résultat local comportant des observations, un bloc « Approfondir un constat » permet de choisir un élément priorisé par `buildDecisionBrief`, puis de répondre à une ou deux questions contextuelles.
+
+- `src/domain/companionReview.ts` définit une arborescence déclarative et déterministe par identifiant de règle, avec des réponses « Je ne sais pas encore ». Les réponses ne sont **pas** déduites automatiquement d’une position visuelle, d’un nombre d’applications ou d’un LLM.
+- `src/components/CompanionGuidedReview.tsx` utilise le bouton du design system, les tokens existants et les références déjà présentes vers la cartographie ; les autres constats restent accessibles sans nouvel onglet.
+- Les réponses sont conservées en mémoire **dans le composant associé à l’échange** pendant la session. Elles sont perdues à la suppression de l’échange ou au rechargement : aucune écriture dans le JSON métier, le stockage local ou un fournisseur distant.
+- Les conclusions sont des **pistes d’action**, jamais une décision prise à la place de l’architecte. La déclaration d’une lacune et son importance métier demandent une confirmation humaine. L’évaluation de risque opérationnelle reste dans le registre existant (`applicationRisk.ts`) ; le compagnon n’attribue aucun niveau de risque sans qualification.
+- Les réponses « donnée incomplète », « hors périmètre » et « inconnu » n’aboutissent jamais à une lacune confirmée. Pour la couverture, une confirmation de lacune déclenche une seconde question sur son importance métier avant la recommandation.
+
+Vérification : tests unitaires sur tous les scénarios et embranchements dans `src/domain/companionReview.test.ts`, tests Playwright de qualification sans mutation du modèle et de conservation des quatre analyses dans `playwright/e2e/regression.spec.ts`, exemples Storybook clair/sombre dans `CompanionGuidedReview.stories.tsx`.

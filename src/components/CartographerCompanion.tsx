@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { analyzeCartography, buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
+import CompanionGuidedReview from './CompanionGuidedReview.tsx';
 import { buildOctaveFollowUpPrompt } from '../application/buildOctaveFollowUpPrompt.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
 import type { AiCompanionPort } from '../ports/aiCompanion.ts';
@@ -748,15 +749,12 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                     </ul>
                   </div>
                 )}
-                {exchange.observations.length > 0 && exchange.brief.questions.length > 0 && (
-                  <div className="companion-decision-section">
-                    <h4>Questions à trancher</h4>
-                    <ul className="companion-review-questions">
-                      {exchange.brief.questions.slice(0, 2).map(question => <li key={question}>{question}</li>)}
-                    </ul>
-                  </div>
-                )}
+
               </section>
+            )}
+            {exchange.status !== 'streaming' && exchange.source === 'local' && exchange.observations.length > 0 && (
+              <CompanionGuidedReview observations={exchange.observations}
+                onNavigateToEvidence={item => { if (evidenceExists(item, model)) navigateToEvidence(item); }} />
             )}
             {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
               <details className="companion-details">
