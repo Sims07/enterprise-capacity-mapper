@@ -35,6 +35,19 @@ export const SignalCartography: Story = {
   },
 };
 
+/** Vrai composant applicatif, en densité compacte initialisée avant son montage.
+ * La préférence locale reste modifiable depuis « Affichage > Densité ». */
+export const CompactCapabilities: Story = {
+  decorators: [Story => {
+    window.localStorage.setItem('enterprise-capacity-mapper:map-density', 'compact');
+    return <Story />;
+  }],
+  parameters: {
+    viewport: { defaultViewport: 'desktop' },
+    docs: { description: { story: 'Comparer les N1 à hauteur naturelle et, dans un domaine N0 étendu, deux cartes N1 côte à côte. Vérifier les applications sans troncature, la lecture sur mobile et le retour au mode Confortable.' } },
+  },
+};
+
 /** Vérifier dans Storybook : inventaire SI sur demande, puis « Relier à… ». */
 export const SignalApplications: Story = {
   parameters: {
