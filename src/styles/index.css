@@ -35,3 +35,6 @@
 
 /* Unifier les commandes de carte sans intervenir dans les modèles ou la présentation. */
 @import './map-unified-controls.css';
+
+/* Réduction ciblée de la bibliothèque, indépendante des styles de carte. */
+@import './library-compact.css';
