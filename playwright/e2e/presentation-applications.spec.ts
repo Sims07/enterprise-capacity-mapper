@@ -62,9 +62,18 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
     await expect(mosaic.locator('.mosaic-domain')).toHaveCount(domainColumns * domainRows);
     const domain = mosaic.locator('.mosaic-domain').filter({ hasText: 'Relation propriétaire données de santé' });
     await expect(domain.locator('.cap')).toHaveCount(capabilityNames.length);
-    await expect(domain.locator('.presentation-app-chip')).toHaveCount(capabilityNames.length + 1);
-    await expect(domain.locator('.presentation-app-more')).toHaveText('+1 autres');
-    await expect(domain.locator('.presentation-app-chip.is-target')).toHaveCount(1);
+    // Chaque N1 choisit le maximum de badges réellement logeables ; pas de
+    // quota fixe (historiquement 2), ni de compteurs cachés dans le DOM.
+    const firstPreview = domain.locator('.cap').first().getByTestId('presentation-app-preview');
+    await expect.poll(async () => Number(await firstPreview.getAttribute('data-visible-count'))).toBeGreaterThan(0);
+    const firstVisible = Number(await firstPreview.getAttribute('data-visible-count'));
+    expect(firstVisible).toBeLessThanOrEqual(3);
+    if (firstVisible < 3) {
+      await expect(firstPreview.locator('.presentation-app-more')).toHaveText(`+${3 - firstVisible} autres`);
+    } else {
+      await expect(firstPreview.locator('.presentation-app-more')).toHaveCount(0);
+    }
+    await expect(domain.locator('.cap').nth(1).locator('.presentation-app-chip.is-target')).toHaveCount(1);
 
     // Le test mesure le rendu effectif : une puce présente dans le DOM mais masquée
     // par overflow:hidden (défaut signalé) doit faire échouer la non-régression.
@@ -94,7 +103,7 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
 
     // Couverture et Carte conservent le même aperçu des applications.
     await page.getByTestId('presentation-reading-coverage').click();
-    await expect(domain.locator('.presentation-app-chip')).toHaveCount(capabilityNames.length + 1);
+    await expect.poll(async () => Number(await firstPreview.getAttribute('data-visible-count'))).toBeGreaterThan(0);
   }
 });
 
@@ -319,4 +328,66 @@ test('affiche toujours une indication applicative dans les quatre N1 d’une mos
   await domain.getByTestId('presentation-domain-open').focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('dialog', { name: 'Capacités de Domaine de santé à forte densité' })).toBeVisible();
+});
+
+
+test('affiche toutes les applications quand la carte est large, et seulement les badges qui tiennent quand elle rétrécit', async ({ page }) => {
+  const names = Array.from({ length: 12 }, (_, index) => `Application métier ${index + 1} de santé`);
+  await page.setViewportSize({ width: 1728, height: 900 });
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
+  await page.evaluate(names => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Cartographie de test absente');
+    const model = JSON.parse(raw);
+    const columns = Array.from({ length: 3 }, (_, index) => ({ id: `wide-col-${index}`, name: `Colonne ${index}`, order: index }));
+    const layers = Array.from({ length: 6 }, (_, index) => ({ id: `wide-row-${index}`, name: `Ligne ${index}`, order: index }));
+    model.layout = { ...model.layout, columns, layers };
+    model.domains = [{
+      id: 'wide-domain', name: 'Pilotage des applications métier', code: 'PAM', color: 'emerald',
+      layout: { columnId: columns[0].id, layerId: layers[0].id, columnSpan: 3 },
+    }, ...Array.from({ length: 15 }, (_, index) => ({
+      id: `other-domain-${index}`, name: `Domaine ${index}`, code: `N0-${index}`, color: 'indigo',
+      layout: { columnId: columns[index % 3].id, layerId: layers[1 + Math.floor(index / 3)].id },
+    }))];
+    model.capabilities = [{ id: 'wide-cap', name: 'Pilotage KPI métier', code: 'PKM', domainId: 'wide-domain' }];
+    model.applications = names.map((name, index) => ({
+      id: `wide-app-${index}`, name, status: index % 3 === 0 ? 'Cible' : 'Actif', capabilityIds: ['wide-cap'],
+    }));
+    localStorage.setItem(key, JSON.stringify(model));
+  }, names);
+  await page.goto('/?view=presentation');
+  await page.getByTestId('presentation-show-applications').check();
+
+  const cap = page.getByTestId('capability-map').locator('.mosaic-domain')
+    .filter({ hasText: 'Pilotage des applications métier' }).locator('.cap');
+  const preview = cap.getByTestId('presentation-app-preview');
+  await expect(preview).toHaveAttribute('data-visible-count', String(names.length));
+  await expect(preview.locator('.presentation-app-chip')).toHaveCount(names.length);
+  await expect(preview.locator('.presentation-app-more')).toHaveCount(0);
+
+  await page.setViewportSize({ width: 700, height: 600 });
+  await expect.poll(async () => Number(await preview.getAttribute('data-visible-count'))).toBeLessThan(names.length);
+  const count = Number(await preview.getAttribute('data-visible-count'));
+  expect(count).toBeGreaterThan(0);
+  await expect(preview.locator('.presentation-app-chip')).toHaveCount(count);
+  await expect(preview.locator('.presentation-app-more')).toHaveText(`+${names.length - count} autres`);
+
+  const isInside = await preview.evaluate(element => {
+    const frame = element.getBoundingClientRect();
+    const inside = (child: Element) => {
+      const box = child.getBoundingClientRect();
+      return box.left >= frame.left - 1 && box.right <= frame.right + 1 &&
+        box.top >= frame.top - 1 && box.bottom <= frame.bottom + 1;
+    };
+    return Array.from(element.children).every(inside) &&
+      element.scrollHeight <= element.clientHeight + 1 &&
+      element.scrollWidth <= element.clientWidth + 1;
+  });
+  expect(isInside).toBe(true);
+
+  await cap.click();
+  const detail = page.getByRole('dialog', { name: 'Détail de Pilotage KPI métier' });
+  for (const name of names) await expect(detail).toContainText(name);
 });
