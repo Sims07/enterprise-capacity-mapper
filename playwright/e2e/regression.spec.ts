@@ -238,7 +238,7 @@ test.describe('Playwright regression — import, library and persistence', () =>
 
     await page.getByTestId('primary-library').click();
     const library = page.getByTestId('library-page');
-    await expect(library.getByRole('heading', { name: 'Bibliothèque' })).toBeVisible();
+    await expect(library.getByTestId('library-page-heading').getByRole('heading', { name: 'Bibliothèque', exact: true })).toBeVisible();
     await expect(library.locator('.library-stats')).toHaveCount(0);
     await expect(library.getByTestId('library-active-map')).toContainText('Bibliothèque compacte');
     await expect(library.getByTestId('saved-maps-count')).toHaveText('1');
