@@ -94,7 +94,7 @@ export default function PresentationApplicationPreview({ applications }: Props) 
         </span>
       ))}
       {visibleCount < applications.length &&
-        <span className="presentation-app-more">+${applications.length - visibleCount} autres</span>}
+        <span className="presentation-app-more">+{applications.length - visibleCount} autres</span>}
     </div>
     <div ref={measureRef} className="presentation-app-measure" aria-hidden="true">
       {applications.map(application => <span key={application.id}
