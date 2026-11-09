@@ -125,6 +125,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [presentationReadingMode, setPresentationReadingMode] = useState<PresentationReadingMode>('identity');
   const [presentationShowApplications, setPresentationShowApplications] = useState(false);
   const [presentationFocusedCapabilityId, setPresentationFocusedCapabilityId] = useState<string | null>(null);
+  const [presentationExpandedDomainId, setPresentationExpandedDomainId] = useState<string | null>(null);
   const [presentationFocusedDomainId, setPresentationFocusedDomainId] = useState<string | null>(null);
   const [presentationDirectorOpen, setPresentationDirectorOpen] = useState(false);
   const [directorView, setDirectorView] = useState<PresentationViewState>({
@@ -193,6 +194,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       revealControls();
       if (event.key === 'Escape') {
         if (presentationFocusedCapabilityId) setPresentationFocusedCapabilityId(null);
+        else if (presentationExpandedDomainId) setPresentationExpandedDomainId(null);
         else togglePresentation(false);
       }
     };
@@ -206,7 +208,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       window.removeEventListener('keydown', exitPresentation);
       window.removeEventListener('focusin', revealControls);
     };
-  }, [presentation, presentationFocusedCapabilityId]);
+  }, [presentation, presentationFocusedCapabilityId, presentationExpandedDomainId]);
 
   useEffect(() => {
     if (!presentation || !presentationControlsVisible) return undefined;
@@ -1051,9 +1053,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           <div className="domain-banner-title">
             {depth === 1 ? (
               presentation ? <span className="map-domain-select">{d.name}</span> : <button type="button" className="map-domain-select" data-testid="map-domain-select" aria-pressed={selected.includes(d.id)} onClick={() => toggleCap(d.id)}>{d.name}</button>
-            ) : <h3>{d.name}</h3>}
+            ) : <h3 title={presentation ? d.name : undefined}>{d.name}</h3>}
             <span className="domain-meta">{d.code}{(!presentation || caps.length > 0) && <> · {caps.length} N1</>}</span>
           </div>
+          {presentation && depth === 2 && <button type="button" className="presentation-domain-open"
+            data-testid="presentation-domain-open"
+            aria-label={`Agrandir le domaine ${d.name} et consulter ses capacités`}
+            title="Lire toutes les capacités de ce domaine"
+            onClick={() => setPresentationExpandedDomainId(d.id)}>↗</button>}
           {!presentation && <div className="domain-actions">
             {depth === 2 && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
             <button type="button" className="mini-action-trigger" aria-label={`Actions pour ${d.name}`} title="Actions du domaine" onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}>⋮</button>
@@ -1104,7 +1111,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   onDrop={e => { if (!presentation) onDrop(e, c.id); }}
                 >
                   <div className="cap-head">
-                    {presentation ? <span className="map-cap-select">{c.name}</span> : <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>}
+                    {presentation ? <span className="map-cap-select" title={c.name}>{c.name}</span> : <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>}
                     {!presentation && <div className="capability-card-actions">
                       <button type="button" className="capability-open-sheet" data-testid="capability-open-sheet"
                         aria-label={`Ouvrir la fiche de ${c.name}`}
@@ -1760,6 +1767,34 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           <span className="presentation-switch-track" aria-hidden="true"><span className="presentation-switch-thumb" /></span>
         </label>
       </div>}
+
+      {presentation && presentationExpandedDomainId && (() => {
+        const domain = model.domains.find(item => item.id === presentationExpandedDomainId);
+        if (!domain) return null;
+        const capabilities = model.capabilities.filter(item => item.domainId === domain.id);
+        return <div className="presentation-focus-overlay" onMouseDown={event => {
+          if (event.target === event.currentTarget) setPresentationExpandedDomainId(null);
+        }}>
+          <section className="presentation-focus-sheet presentation-domain-focus-sheet" role="dialog" aria-modal="true"
+            aria-label={`Capacités de ${domain.name}`}>
+            <div className="presentation-focus-header">
+              <div><span>Domaine N0 · {domain.code} · {capabilities.length} N1</span><h2>{domain.name}</h2></div>
+              <button autoFocus type="button" aria-label="Fermer les capacités du domaine"
+                data-testid="presentation-domain-close" onClick={() => setPresentationExpandedDomainId(null)}>×</button>
+            </div>
+            {capabilities.length ? <div className="presentation-domain-focus-list">
+              {capabilities.map(capability => <button type="button" className="presentation-domain-focus-cap"
+                key={capability.id} onClick={() => {
+                  setPresentationExpandedDomainId(null);
+                  setPresentationFocusedCapabilityId(capability.id);
+                }}>
+                <strong>{capability.name}</strong>
+                <small>{capability.code} · {getCapCoverageState(capability.id).apps.length} application(s)</small>
+              </button>)}
+            </div> : <p>Aucune capacité N1 rattachée à ce domaine.</p>}
+          </section>
+        </div>;
+      })()}
 
       {presentation && presentationFocusedCapability && (() => {
         const coverage = getCapCoverageState(presentationFocusedCapability.id);
