@@ -190,10 +190,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       if (event instanceof PointerEvent
         && window.innerHeight - event.clientY > PRESENTATION_CONTROLS_REVEAL_EDGE_PX
         && !(event.target instanceof Element && event.target.closest('.presentation-exit-bar'))) return;
-      // Ne pas remonter App pendant l'activation d'une N1 :
-      // pointerdown comme focusin précèdent click et DomainCard est recréé au rendu.
-      if (event?.target instanceof Element && event.target.closest('.mosaic-domain .cap[role="button"]')) return;
-      if (document.activeElement?.closest('.mosaic-domain .cap[role="button"]')) return;
+      // Pointerdown et focusin précèdent click ; redessiner App à ce moment
+      // démonte DomainCard et annule le clic natif. Préserver toutes les actions
+      // de lecture de la mosaïque (N1 et bouton « Voir N1 »).
+      if (event?.target instanceof Element && event.target.closest('.mosaic-domain')) return;
+      if (document.activeElement?.closest('.mosaic-domain')) return;
       setPresentationControlsVisible(true);
       setPresentationActivity(value => value + 1);
     };
@@ -1066,8 +1067,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           {presentation && depth === 2 && <button type="button" className="presentation-domain-open"
             data-testid="presentation-domain-open"
             aria-label={`Agrandir le domaine ${d.name} et consulter ses capacités`}
-            title="Lire toutes les capacités de ce domaine"
-            onClick={() => setPresentationExpandedDomainId(d.id)}>↗</button>}
+            title="Afficher toutes les capacités N1 et leurs applications"
+            onClick={event => { event.stopPropagation(); setPresentationExpandedDomainId(d.id); }}>Voir N1</button>}
           {!presentation && <div className="domain-actions">
             {depth === 2 && <button type="button" className="domain-add-capability" data-testid="add-capability-to-domain" aria-label={`Ajouter une capacité N1 à ${d.name}`} onClick={e => { e.stopPropagation(); openNew('capability', d.id); }}>＋ N1</button>}
             <button type="button" className="mini-action-trigger" aria-label={`Actions pour ${d.name}`} title="Actions du domaine" onClick={e => { e.stopPropagation(); openContextMenu(e, { type: 'domain', item: d }); }}>⋮</button>
@@ -1119,6 +1120,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 >
                   <div className="cap-head">
                     {presentation ? <span className="map-cap-select" title={c.name}>{c.name}</span> : <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>}
+                    {presentation && presentationShowApplications && <span className="presentation-app-inline-count" data-testid="presentation-app-inline-count" aria-hidden="true">
+                      {coverage.apps.length} app{coverage.apps.length > 1 ? 's' : ''}
+                    </span>}
                     {!presentation && <div className="capability-card-actions">
                       <button type="button" className="capability-open-sheet" data-testid="capability-open-sheet"
                         aria-label={`Ouvrir la fiche de ${c.name}`}
