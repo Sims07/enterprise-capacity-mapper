@@ -5,6 +5,7 @@ import {
   collapseLayoutAfterDomainRemoval,
   completeLayoutZones,
   isDomainPlacementAvailable,
+  insertLayoutDraftItem,
   prepareLayoutForSave,
   prepareDomainPlacement,
   prepareNewDomainSlot,
@@ -54,6 +55,15 @@ test('renames an individual zone and adds/removes layout items consistently', ()
   assert.equal(removed.zones.length, 4);
   assert.deepEqual(removed.columns.map(column => column.order), [0, 1]);
   assert.equal(removeLayoutDraftItem({ ...draft(), columns: [draft().columns[0]] }, 'columns', 'c1').columns.length, 1);
+});
+
+test('inserts a structural column before an existing one without losing zone titles', () => {
+  const source = draft();
+  const result = insertLayoutDraftItem(source, 'columns', 'new', 'c2');
+  assert.deepEqual(result.columns.map(column => column.id), ['c1', 'new', 'c2']);
+  assert.equal(result.zones.length, 6);
+  assert.equal(result.zones.find(zone => zone.id === 'c1:l2').name, 'Business support');
+  assert.deepEqual(source.columns.map(column => column.id), ['c1', 'c2']);
 });
 
 test('prepares a valid layout, normalizes labels, completes zones and repairs invalid domain placements', () => {
