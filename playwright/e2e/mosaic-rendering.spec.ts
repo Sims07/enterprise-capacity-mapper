@@ -459,7 +459,8 @@ test.describe('Cartographie unifiée', () => {
     await page.mouse.down();
     await page.mouse.move(middleX, bottomEdgeY + resizedCellBounds!.height * 0.6);
     await page.mouse.up();
-    await expect(firstDomain).toHaveCSS('grid-row', /span 2/);
+    // rowSpan=2 business layers spans 3 visual tiers (the second layer stacks two N0).
+    await expect(firstDomain).toHaveCSS('grid-row', /span 3/);
 
     const mosaicBounds = await page.getByTestId('capability-map').boundingBox();
     const expandedBounds = await firstDomain.boundingBox();
@@ -470,7 +471,7 @@ test.describe('Cartographie unifiée', () => {
     await page.reload();
         const persistedDomain = page.locator('.mosaic-domain').first();
     await expect(persistedDomain).toHaveCSS('grid-column', /span 2/);
-    await expect(persistedDomain).toHaveCSS('grid-row', /span 2/);
+    await expect(persistedDomain).toHaveCSS('grid-row', /span 3/);
     await persistedDomain.focus();
     await page.keyboard.press('ArrowLeft');
     await expect(persistedDomain).toHaveCSS('grid-column', /span 1/);
