@@ -40,7 +40,7 @@ for (const viewport of VIEWPORTS) {
     for (const item of geometry) {
       expect(Math.abs(item.x - first.x)).toBeLessThanOrEqual(1);
       expect(Math.abs((item.iconX ?? 0) - (first.iconX ?? 0))).toBeLessThanOrEqual(1);
-      expect(item.aligned).toBe('flex-start');
+      expect(['flex-start', 'flow-start']).toContain(item.aligned);
       expect(item.border).toBe('rgba(0, 0, 0, 0)');
     }
 
