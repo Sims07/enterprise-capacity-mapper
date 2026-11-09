@@ -41,3 +41,6 @@
 
 /* Menu Outils : règles uniques, après les anciens styles contextuels. */
 @import './tools-menu.css';
+
+/* Fiche N1 de restitution, isolée des autres dialogues de présentation. */
+@import './presentation-capability-detail.css';
