@@ -136,7 +136,14 @@ test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et pe
     model.capabilities = names.map((name, index) => ({
       id: `dense-cap-${index}`, domainId: 'dense-domain-0', code: `N1-${index}`, name,
     }));
-    model.applications = [];
+    model.applications = [
+      { id: 'dense-app-a', name: 'Dossier Médical Partagé', status: 'Actif', capabilityIds: ['dense-cap-0'] },
+      { id: 'dense-app-b', name: 'Mon espace santé', status: 'Actif', capabilityIds: ['dense-cap-0'] },
+      { id: 'dense-app-c', name: 'Portail Usager', status: 'Cible', capabilityIds: ['dense-cap-0'] },
+      { id: 'dense-app-d', name: 'Gestion des applications de santé', status: 'Actif', capabilityIds: ['dense-cap-0'] },
+      { id: 'dense-app-e', name: 'Application cible', status: 'Cible', capabilityIds: ['dense-cap-1'] },
+      { id: 'dense-app-f', name: 'Service applicatif', status: 'Actif', capabilityIds: ['dense-cap-3'] },
+    ];
     localStorage.setItem(key, JSON.stringify(model));
   }, { columnsCount, rowsCount, names });
   await page.goto('/?view=presentation');
@@ -168,6 +175,41 @@ test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et pe
   expect(dimensions).toEqual({
     headingFits: true, listFits: true, labelsFit: true, titlesFit: true,
   });
+
+  // Avec des applications, quatre N1 sur une rangée courte passent au résumé :
+  // ni bandeau coupé, ni titre caché par les badges.
+  await page.getByTestId('presentation-show-applications').check();
+  const firstCap = caps.first();
+  const compact = firstCap.getByTestId('presentation-app-compact');
+  await expect(compact).toBeVisible();
+  await expect(compact).toContainText('Dossier Médical Partagé');
+  await expect(compact).toContainText('+3');
+  await expect(firstCap.locator('.presentation-app-preview')).toBeHidden();
+  await expect(caps.nth(1).getByTestId('presentation-app-compact')).toContainText('Application cible');
+  await expect(caps.nth(1).getByTestId('presentation-app-compact')).toContainText('cible');
+  await expect(caps.nth(2).getByTestId('presentation-app-compact')).toContainText('Aucune application reliée');
+
+  const compactFit = await caps.evaluateAll(elements => elements.every(element => {
+    const card = element.getBoundingClientRect();
+    const title = (element.querySelector('.map-cap-select') as HTMLElement).getBoundingClientRect();
+    const summary = (element.querySelector('.presentation-app-compact') as HTMLElement).getBoundingClientRect();
+    const within = (box: DOMRect) => box.top >= card.top - 1 && box.bottom <= card.bottom + 1
+      && box.left >= card.left - 1 && box.right <= card.right + 1;
+    return within(title) && within(summary) && title.bottom <= summary.top + 1;
+  }));
+  expect(compactFit).toBe(true);
+
+  await page.getByTestId('presentation-reading-coverage').click();
+  await expect(compact).toBeVisible();
+  await page.getByTestId('presentation-show-applications').uncheck();
+  await expect(firstCap.getByTestId('presentation-app-compact')).toHaveCount(0);
+  await page.getByTestId('presentation-show-applications').check();
+
+  await firstCap.click();
+  const applicationsDetail = page.getByRole('dialog', { name: `Détail de ${names[0]}` });
+  await expect(applicationsDetail).toContainText('Gestion des applications de santé');
+  await expect(applicationsDetail).toContainText('Portail Usager');
+  await applicationsDetail.getByTestId('presentation-focus-close').click();
 
   await firstDomain.getByTestId('presentation-domain-open').click();
   const detail = page.getByRole('dialog', { name: 'Capacités de Relation propriétaire données de santé' });

@@ -12,6 +12,8 @@ Le mode présentation de la cartographie est un rendu de restitution, distinct d
 - Un domaine sans N1 remplit toute sa carte avec son bandeau coloré ; aucune liste vide ne réserve de hauteur.
 - Les titres se replient entre les mots ; en présentation, leur taille et les espacements dépendent **de la largeur et de la hauteur de la carte** (container queries). Cela évite qu'un N0 large mais peu haut pousse ses N1 hors du cadre.
 - À partir de quatre N1 dans un même N0, la grille privilégie des colonnes suffisamment larges pour éviter les titres illisibles, avec ou sans aperçu des applications.
+- Lorsque l'option **Applications** est cochée, chaque carte N1 choisit son rendu selon **sa hauteur réelle** : badges d'applications sur les cartes assez hautes, ou résumé très compact (première application, statut cible si besoin et nombre d'autres applications) dans les cartes courtes. Aucun libellé N1 ne doit être écrasé verticalement par les badges. La fiche de détail N1 reste le point d'accès à **toutes** les applications. Sur les cartes extrêmement basses, le nom de capacité est prioritaire ; le détail demeure accessible au clavier et au clic.
+- Les noms longs bénéficient d'un titre au survol ; le résumé compact indique les applications restantes sans les perdre et distingue les capacités sans application.
 - L'icône **↗** en haut à droite d'un N0 ouvre une lecture agrandie de toutes ses capacités avec leurs libellés complets ; chaque N1 mène ensuite à sa fiche de restitution. C'est le repli de lecture pour les cartographies tellement denses qu'un écran ne peut plus afficher tout le texte simultanément.
 - En thème clair, les bandeaux conservent une teinte légère de la couleur du domaine. En thème sombre, la couleur est davantage saturée sur la surface graphite ; le texte est choisi en fonction du contraste du fond calculé.
 - Toutes les capacités N1 sont rendues dans la carte : la liste utilise une grille verticale qui répartit la hauteur disponible, sans zone de défilement interne ni masquage silencieux.
@@ -25,7 +27,7 @@ Le mode présentation de la cartographie est un rendu de restitution, distinct d
 
 Le scénario Playwright `playwright/e2e/mosaic-rendering.spec.ts` vérifie les dimensions 1440×900, 1600×900 et 1920×1080 avec douze domaines, l'absence de débordement, le retour à la ligne des titres, le remplissage des cartes sans N1, l'absence de « 0 N1 », la visibilité individuelle des quatre capacités d'un même N0, l'absence de contrôles/drag-and-drop et le contraste en thème sombre.
 
-Le scénario `playwright/e2e/presentation-applications.spec.ts` teste aussi une cartographie de **3 colonnes × 7 lignes** : quatre N1 dans une carte peu haute, absence de texte coupé et ouverture des lectures N0 puis N1.
+Le scénario `playwright/e2e/presentation-applications.spec.ts` teste aussi une cartographie de **3 colonnes × 7 lignes** : quatre N1 dans une carte peu haute, zéro, une ou plusieurs applications (dont des cibles), bascule automatique vers le résumé compact, absence de recouvrement et ouverture de la fiche N1 avec toutes les applications.
 
 Le test visuel Storybook capture les rendus paysage clair et sombre dans `playwright/storybook/__screenshots__/`. Les captures évoluent parce que les cartes vides occupent maintenant toute leur surface, que la grille remplit le viewport et que les couleurs/tailles de texte sont recalculées à partir de la carte plutôt que de la fenêtre.
 

@@ -1143,6 +1143,16 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                     {coverage.apps.length > PRESENTATION_APP_PREVIEW_LIMIT && <span className="presentation-app-more">+{coverage.apps.length - PRESENTATION_APP_PREVIEW_LIMIT} autres</span>}
                     {coverage.apps.length === 0 && <span className="presentation-app-empty">Aucune application reliée</span>}
                   </div>}
+                  {presentation && presentationShowApplications && <div className="presentation-app-compact"
+                    data-testid="presentation-app-compact"
+                    aria-label={`${coverage.apps.length} application(s) rattachée(s)`}
+                    title={coverage.apps.map(application => application.name).join(' · ')}>
+                    {coverage.apps.length > 0 ? <>
+                      <span className="presentation-app-compact-name">{coverage.apps[0].name}</span>
+                      {!isCurrentApplication(coverage.apps[0]) && <span className="presentation-app-compact-target">cible</span>}
+                      {coverage.apps.length > 1 && <span className="presentation-app-compact-more">+{coverage.apps.length - 1}</span>}
+                    </> : <span className="presentation-app-compact-empty">Aucune application reliée</span>}
+                  </div>}
 
                   <div className="cap-meta">
                     <span className="app-count" title={`${coverage.currentCount} application(s) actuelle(s), ${coverage.targetCount} cible(s)`}>{coverage.currentCount}{coverage.targetCount > 0 ? ` +${coverage.targetCount}` : ''}</span>

@@ -514,9 +514,13 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
 }
 .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] {
+  /* Les lignes N1 ont une taille fixée par la grille ; leur hauteur réelle pilote
+     la bascule entre les badges complets et le résumé compact. */
+  container-type: size;
+  container-name: presentation-n1;
   flex-direction: column;
   align-items: stretch;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--signal-space-1);
 }
 .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] .cap-head {
@@ -542,7 +546,7 @@
   gap: var(--signal-space-1);
   overflow: hidden;
   align-items: center;
-  font-size: clamp(9px, 1.35cqi, 11px);
+  font-size: clamp(10px, 1.6cqi, 12px);
 }
 .app.mosaic-presentation-mode .presentation-app-chip {
   display: inline-flex;
@@ -567,6 +571,71 @@
   font-size: 10px;
   color: var(--map-capability-muted);
   white-space: nowrap;
+}
+/* Le résumé compact est une alternative au bandeau de badges, pas une
+   deuxième information affichée : seul le mode adapté à la hauteur se voit. */
+.app.mosaic-presentation-mode .presentation-app-compact {
+  display: none;
+  align-items: center;
+  gap: var(--signal-space-1);
+  min-width: 0;
+  max-width: 100%;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--map-capability-muted);
+}
+.app.mosaic-presentation-mode .presentation-app-compact-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app.mosaic-presentation-mode .presentation-app-compact-more,
+.app.mosaic-presentation-mode .presentation-app-compact-target {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.app.mosaic-presentation-mode .presentation-app-compact-target { border-bottom: 1px dashed currentColor; }
+.app.mosaic-presentation-mode .presentation-app-compact-empty {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Deux lignes (nom + applications) ne tiennent pas avec les badges borderés
+   sous une hauteur de 3.6rem. Le rendu compact conserve le premier nom
+   d'application, l'état cible et le nombre restant ; le détail N1 donne tout. */
+@container presentation-n1 (max-height: 3.6rem) {
+  .app.mosaic-presentation-mode .mosaic-domain .cap-head {
+    flex: 0 0 auto;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+  .app.mosaic-presentation-mode .mosaic-domain .map-cap-select {
+    display: block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: unset;
+  }
+  .app.mosaic-presentation-mode .presentation-app-preview,
+  .app.mosaic-presentation-mode .presentation-cap-signal {
+    display: none;
+  }
+  .app.mosaic-presentation-mode .presentation-app-compact {
+    display: flex;
+  }
+}
+/* Une seule ligne très basse ne peut contenir nom et aperçu sans recouvrement.
+   La fiche détaillée reste disponible au clic/clavier et le titre reste prioritaire. */
+@container presentation-n1 (max-height: 2.2rem) {
+  .app.mosaic-presentation-mode .presentation-app-compact {
+    display: none;
+  }
 }
 .app.mosaic-presentation-mode .presentation-app-toggle { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; font-size: 11px; font-weight: 700; }
 .app.mosaic-presentation-mode .presentation-app-toggle input { accent-color: var(--color-accent); }
