@@ -1,3 +1,4 @@
+import { validateApplicationRisk } from '../domain/applicationRisk.ts';
 import type { CatalogModel } from '../domain/catalogModel.ts';
 import { validateCapabilityAssessment } from '../domain/capabilityAssessment.ts';
 
@@ -144,6 +145,9 @@ export function validateModel(model: CatalogModel): CatalogModel {
   }
   for (const capability of model.capabilities) {
     if (capability.assessment !== undefined) validateCapabilityAssessment(capability.assessment);
+  }
+  for (const app of model.applications) {
+    if (app.risk !== undefined) validateApplicationRisk(app.risk);
   }
   if (model.applications.some(app => app.capabilityIds !== undefined && !Array.isArray(app.capabilityIds))) {
     throw new Error('Les relations applicatives doivent être une liste.');

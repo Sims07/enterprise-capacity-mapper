@@ -1,3 +1,4 @@
+import RiskAnalysis from './RiskAnalysis.tsx';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FilePicker } from './ui/FilePicker.tsx';
 import { Button } from './ui/Button.tsx';
@@ -19,7 +20,7 @@ const resetDashboardScroll = () => {
   });
 };
 
-export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference, onLoadReferenceUrl, onExportReview, onEditCapability, onShowOnMap }) {
+export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, onUpdatePriority, onToggleTarget, selected = [], capabilityReference = null, onImportReference, onClearReference, onLoadReferenceUrl, onExportReview, onEditCapability, onShowOnMap, onUpdateRisk, onExportRisk = onExportReview }) {
   const domains = model.domains || [];
   const capabilities = model.capabilities || [];
   const apps = model.applications || [];
@@ -80,7 +81,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [activeView, setActiveView] = useState(() => {
     const view = window.history.state?.capacityMapperDashboardView;
-    return ['overview', 'coverage', 'impact', 'attention'].includes(view) ? view : 'overview';
+    return ['overview', 'coverage', 'impact', 'attention', 'risk'].includes(view) ? view : 'overview';
   });
 
   const navigateDashboardView = nextView => {
@@ -97,7 +98,7 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   useEffect(() => {
     const handleDashboardPopState = event => {
       const view = event.state?.capacityMapperDashboardView;
-      if (['overview', 'coverage', 'impact', 'attention'].includes(view)) {
+      if (['overview', 'coverage', 'impact', 'attention', 'risk'].includes(view)) {
         setActiveView(view);
       } else {
         setActiveView('overview');
@@ -297,7 +298,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
         <button type="button" data-testid="dashboard-view-coverage" className={activeView === 'coverage' ? 'is-active' : ''} aria-pressed={activeView === 'coverage'} onClick={() => navigateDashboardView('coverage')}><span className="dashboard-intent-eyebrow">02 · Explorer</span><strong>Analyser la couverture</strong><small>Cartographier et filtrer les capacités</small></button>
         <button type="button" data-testid="dashboard-view-impact" className={activeView === 'impact' ? 'is-active' : ''} aria-pressed={activeView === 'impact'} onClick={() => navigateDashboardView('impact')}><span className="dashboard-intent-eyebrow">03 · Comprendre</span><strong>Comprendre les impacts</strong><small>Relier sélection, applications et gaps</small></button>
         <button type="button" data-testid="dashboard-view-attention" className={activeView === 'attention' ? 'is-active' : ''} aria-pressed={activeView === 'attention'} onClick={() => navigateDashboardView('attention')}><span className="dashboard-intent-eyebrow">04 · Agir</span><strong>Examiner les points d’attention</strong><small>Prioriser les gaps et les situations à revoir</small></button>
+        <Button data-testid="dashboard-view-risk" className={activeView === 'risk' ? 'is-active' : ''} aria-pressed={activeView === 'risk'} onClick={() => navigateDashboardView('risk')}><span className="dashboard-intent-eyebrow">05 · Anticiper</span><strong>Analyser les risques</strong><small>Prioriser l’exposition et suivre les actions</small></Button>
       </nav>
+      {activeView === 'risk' && <RiskAnalysis model={model} onUpdateRisk={onUpdateRisk} onExploreTarget={onExploreTarget} onExport={onExportRisk} />}
       {activeView === 'overview' && <section className="dashboard-overview-intro" data-testid="dashboard-overview-intro"><div><span className="dashboard-overview-kicker">PILOTAGE DE LA CARTOGRAPHIE</span><h2>Où souhaitez-vous concentrer votre analyse ?</h2><p>Commencez par les indicateurs globaux, puis choisissez une intention pour approfondir sans parcourir toutes les sections.</p></div><div className="dashboard-overview-shortcuts"><button type="button" onClick={() => navigateDashboardView('coverage')}><strong>Analyser la couverture</strong><span>Comparer les capacités dans la heatmap <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => navigateDashboardView('impact')}><strong>Comprendre les impacts</strong><span>{impactTargets.length ? `${impactTargets.length} élément(s) sélectionné(s) depuis Impact` : 'Sélectionner les capacités et mesurer leurs effets'} <b aria-hidden="true">↗</b></span></button><button type="button" onClick={() => navigateDashboardView('attention')}><strong>Examiner les points d’attention</strong><span>{stats.gaps.length} gaps · {stats.redundancies.length} couvertures multiples <b aria-hidden="true">↗</b></span></button></div></section>}
       {activeView === 'impact' && (
         <section className="dashboard-panel dashboard-impact-selector" data-testid="impact-view">
