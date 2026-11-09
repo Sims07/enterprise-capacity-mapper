@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   addLayoutDraftItem,
+  appendRelocatedDomain,
   collapseLayoutAfterDomainRemoval,
   completeLayoutZones,
   isDomainPlacementAvailable,
@@ -250,4 +251,26 @@ test('domain deletion use case collapses an empty generated row, not an authored
     { ...layout, layers: layout.layers.map((layer, index) => index ? { ...layer, name: 'Autre activité' } : layer) },
     kept,
   ).layers?.length, 2);
+});
+
+
+test('a relocated N0 is ordered below the N0 already in Cœur métier', () => {
+  const layout = draft();
+  const original = [
+    { id: 'moved', name: 'Notifications', layout: { columnId: 'c1', layerId: 'l2', columnSpan: 2, custom: 'keep' } },
+    { id: 'existing', name: 'Services', layout: { columnId: 'c1', layerId: 'l1' } },
+  ];
+  const moved = prepareDomainPlacement({
+    domains: original, layout, columns: layout.columns, layers: layout.layers,
+    domainId: 'moved', columnId: 'c1', layerId: 'l1', allowStackingInLayer: true,
+  });
+  assert.notEqual(moved, null);
+  const reordered = appendRelocatedDomain(original, moved!.domains, 'moved');
+  assert.deepEqual(reordered.map(domain => domain.id), ['existing', 'moved']);
+  assert.equal(reordered[1].layout?.layerId, 'l1');
+  assert.equal(reordered[1].layout?.columnSpan, 2);
+  assert.equal(reordered[1].layout?.custom, 'keep');
+  assert.deepEqual(layout.layers.map(layer => layer.id), ['l1', 'l2']);
+  assert.deepEqual(original.map(domain => domain.layout.layerId), ['l2', 'l1']);
+  assert.equal(appendRelocatedDomain(original, original, 'moved'), original);
 });
