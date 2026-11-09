@@ -639,7 +639,10 @@ test.describe('Cartographie unifiée', () => {
     });
     expect(textVisibility).toEqual(Array.from({ length: expectedCount }, () => true));
     await expect(presentationDomain.locator('[draggable="true"]')).toHaveCount(0);
-    await expect(presentationDomain.locator('button')).toHaveCount(0);
+    // L'agrandissement N0 est une action de lecture autorisée ; les actions
+    // d'édition restent strictement absentes en présentation.
+    await expect(presentationDomain.getByTestId('presentation-domain-open')).toHaveCount(1);
+    await expect(presentationDomain.locator('button:not(.presentation-domain-open)')).toHaveCount(0);
 
     const map = page.getByTestId('capability-map');
     const before = await map.locator('.mosaic-domain').evaluateAll(elements =>
