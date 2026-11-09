@@ -516,6 +516,7 @@
 .app.mosaic-presentation-mode .mosaic-domain .cap[data-show-applications="true"] {
   /* Les lignes N1 ont une taille fixée par la grille ; leur hauteur réelle pilote
      la bascule entre les badges complets et le résumé compact. */
+  position: relative;
   container-type: size;
   container-name: presentation-n1;
   flex-direction: column;
@@ -539,18 +540,37 @@
 .app.mosaic-presentation-mode .mosaic-domain .cap[role="button"]:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus); outline-offset: -3px; }
 .app.mosaic-presentation-mode .presentation-app-preview {
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 1 0;
+  width: 100%;
   min-width: 0;
+  min-height: 0;
   max-width: 100%;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
   gap: var(--signal-space-1);
   overflow: hidden;
-  align-items: center;
   font-size: clamp(10px, 1.6cqi, 12px);
 }
-.app.mosaic-presentation-mode .presentation-app-chip {
+/* Miroir de mesure invisible : typographie identique aux badges réels,
+   sans participation au layout de la carte et sans doublons accessibles. */
+.app.mosaic-presentation-mode .presentation-app-measure {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  display: flex;
+  width: 0;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--signal-space-1);
+  visibility: hidden;
+  pointer-events: none;
+  font-size: clamp(10px, 1.6cqi, 12px);
+}
+.app.mosaic-presentation-mode .presentation-app-chip,
+.app.mosaic-presentation-mode .presentation-app-measure-chip {
   display: inline-flex;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   align-items: center;
   min-width: 0;
   max-width: 100%;
@@ -564,9 +584,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.app.mosaic-presentation-mode .presentation-app-chip.is-target { border-style: dashed; }
-.app.mosaic-presentation-mode .presentation-app-chip em { font-size: 9px; font-style: normal; font-weight: 700; }
-.app.mosaic-presentation-mode .presentation-app-more, .app.mosaic-presentation-mode .presentation-app-empty {
+.app.mosaic-presentation-mode .presentation-app-chip.is-target,
+.app.mosaic-presentation-mode .presentation-app-measure-chip.is-target { border-style: dashed; }
+.app.mosaic-presentation-mode .presentation-app-chip em,
+.app.mosaic-presentation-mode .presentation-app-measure-chip em { font-size: 9px; font-style: normal; font-weight: 700; }
+.app.mosaic-presentation-mode .presentation-app-more,
+.app.mosaic-presentation-mode .presentation-app-measure-more,
+.app.mosaic-presentation-mode .presentation-app-empty {
   flex: 0 0 auto;
   font-size: 10px;
   color: var(--map-capability-muted);
