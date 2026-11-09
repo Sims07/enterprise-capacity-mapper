@@ -116,7 +116,8 @@ test.describe('Cartographie unifiée', () => {
       columns: getComputedStyle(element).gridTemplateColumns.split(' ').length,
       rows: getComputedStyle(element).gridTemplateRows.split(' ').length,
     }));
-    expect(compactTracks).toEqual({ columns: 3, rows: 2 });
+    // Two business rows remain, but the shared Support location needs two visual tiers.
+    expect(compactTracks).toEqual({ columns: 3, rows: 3 });
     const dimensions = await page.evaluate(() => ({
       viewportWidth: document.documentElement.clientWidth,
       viewportHeight: document.documentElement.clientHeight,
