@@ -21,6 +21,10 @@ jobs:
         with:
           ref: main
 
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
       - name: Create a GitHub Release for this deployment
         env:
           GH_TOKEN: ${{ github.token }}

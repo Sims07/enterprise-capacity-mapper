@@ -97,6 +97,12 @@ Playwright utilise Chromium desktop et une configuration mobile 390×844 avec to
 
 Cypress a été remplacé par Playwright pour les tests E2E. La collecte de couverture Playwright repose sur un build instrumenté Istanbul dédié ; le build de production déployé n’est pas instrumenté.
 
+## Version de Node.js et GitHub Actions
+
+Le projet utilise **Node.js 24** pour le développement, les tests, la compilation PWA, Storybook et les releases. Le fichier `.nvmrc` est la référence commune pour les workflows GitHub Actions : sur un poste utilisant `nvm`, exécuter `nvm install` puis `nvm use` avant `npm install`.
+
+Les actions GitHub embarquent leur propre runtime Node, distinct de la version qui compile l'application. Les workflows utilisent les versions d'actions compatibles Node 24 (`checkout@v5`, `setup-node@v5`, `upload-artifact@v7`, `upload-pages-artifact@v5` et `deploy-pages@v5`). Dependabot surveille uniquement les actions GitHub chaque semaine ; ses PR doivent passer la CI avant toute fusion. L'application déployée reste une PWA statique et ne nécessite aucun serveur Node.
+
 ## Commandes de développement
 
 Installer les dépendances :
