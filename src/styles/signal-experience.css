@@ -202,7 +202,8 @@
   white-space: nowrap;
   font-weight: 750;
 }
-/* Inventaire flottant à la demande : conserve la largeur de la mosaïque. */
+/* L'inventaire SI est un dock pleine hauteur, sans variante flottante.
+ * La carte se redimensionne comme pour le compagnon, sans changer la grille métier. */
 .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open {
   grid-template-columns: minmax(0, 1fr) !important;
 }
@@ -211,20 +212,41 @@
   width: 100%;
 }
 .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column;
   position: fixed !important;
-  inset-block: var(--signal-panel-top) var(--signal-panel-gap);
-  inset-inline: auto var(--signal-panel-gap);
+  inset: 0 0 0 auto;
   z-index: 12;
   width: var(--signal-panel-width);
-  max-height: calc(100dvh - var(--signal-panel-top) - var(--signal-panel-gap));
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
   padding: var(--signal-space-4);
-  overflow: auto;
+  overflow: hidden;
   color: var(--color-text);
   background: var(--color-surface);
-  border: 1px solid var(--color-accent-border);
-  border-radius: var(--radius-panel);
+  border: 0;
+  border-left: 1px solid var(--color-accent-border);
+  border-radius: 0;
   box-shadow: var(--shadow-overlay);
+}
+.app.signal-experience #app-inventory .signal-inventory-header {
+  flex: 0 0 auto;
+  padding-bottom: var(--signal-space-3);
+  background: var(--color-surface);
+}
+.app.signal-experience #app-inventory .signal-inventory-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.app.signal-experience #app-inventory .signal-inventory-scroll:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-ring-offset));
 }
 .app.signal-experience .workspace.mosaic-workspace #app-inventory .panel-title {
   display: flex;
@@ -246,7 +268,7 @@
   border-color: var(--color-accent);
   border-radius: var(--radius-control);
 }
-.app.signal-experience #app-inventory :is(.signal-inventory-size-toggle, .signal-inventory-close) {
+.app.signal-experience #app-inventory .signal-inventory-close {
   display: grid;
   place-items: center;
   min-width: 28px;
@@ -258,7 +280,7 @@
   background: var(--color-surface-muted);
   cursor: pointer;
 }
-.app.signal-experience #app-inventory :is(.signal-inventory-size-toggle, .signal-inventory-close):focus-visible {
+.app.signal-experience #app-inventory .signal-inventory-close:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--focus-ring-offset);
 }
@@ -282,53 +304,31 @@
   color: var(--color-text);
   border-color: var(--color-border);
 }
-/* Comme le compagnon ancré, l'inventaire pleine hauteur réserve sa largeur et redimensionne la carte.
- * La variante flottante conserve l'affichage historique sans retrait de largeur. */
 @media (min-width: 901px) {
-  .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-docked) {
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-open) {
     width: calc(100% - var(--signal-panel-width));
   }
-  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
-    inset-block: 0 !important;
-    max-height: 100dvh;
-    height: 100dvh;
-    border-radius: 0;
-    border-block: 0;
-    border-inline-end: 0;
-  }
-  /* Les deux panneaux ancrés coexistent sans se superposer. */
-  .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-docked):has(> .companion-root .companion-panel.is-dock) {
+  /* Deux docks simultanés restent côte à côte, sans couvrir la carte. */
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-open):has(> .companion-root .companion-panel.is-dock) {
     width: calc(100% - var(--signal-panel-width) - var(--companion-dock-width));
   }
-  .app.signal-experience:not(.mosaic-presentation-mode):has(> .companion-root .companion-panel.is-dock) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
-    inset-inline-end: var(--companion-dock-width);
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .companion-root .companion-panel.is-dock) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
+    right: var(--companion-dock-width);
   }
 }
 @media (max-width: 900px) {
   .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
-    inset-block-start: max(env(safe-area-inset-top), var(--signal-space-4));
-    inset-block-end: var(--signal-space-4);
-    inset-inline-end: var(--signal-space-4);
-    width: min(var(--signal-panel-width), calc(100vw - 2 * var(--signal-space-4)));
-    max-height: calc(100dvh - 2 * var(--signal-space-4));
-  }
-  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
     inset: 0 !important;
     width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
+    padding-top: max(env(safe-area-inset-top), var(--signal-space-4));
+    padding-bottom: max(env(safe-area-inset-bottom), var(--signal-space-4));
     border: 0;
-    border-radius: 0;
   }
   .app.signal-experience .canvas-actions { flex-wrap: wrap; }
 }
 @media (max-width: 480px) {
   .app.signal-experience .map-si-toggle { flex: 1 1 auto; }
   .app.signal-experience .canvas-actions [data-testid="map-inventory-toggle"] { flex: 1 1 auto; }
-  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
-    inset-inline: var(--signal-space-2);
-    width: auto;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .app.signal-experience .toolbar button,
