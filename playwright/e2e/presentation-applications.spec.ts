@@ -146,6 +146,74 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
 
 
 
+
+test('présente les applications sans cible sur toute la largeur et explique le signal métier', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
+  await page.evaluate(() => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('La cartographie doit exister');
+    const model = JSON.parse(raw);
+    const capability = model.capabilities[0];
+    capability.assessment = { functionalCoverage: 'sufficient', currentMaturity: 4, targetMaturity: 5 };
+    model.applications = ['Portail Support Niveau 1', 'Service Snow', 'ICD'].map((name, index) => ({
+      id: 'presentation-polish-' + index,
+      name,
+      status: 'Actif',
+      capabilityIds: [capability.id],
+    }));
+    localStorage.setItem(key, JSON.stringify(model));
+  });
+  await page.goto('/?view=presentation');
+  await page.locator('.mosaic-domain .cap').first().click();
+  const detail = page.getByTestId('presentation-capability-detail');
+  await expect(detail.getByTestId('presentation-app-total')).toHaveText('3');
+  await expect(detail.getByTestId('presentation-current-apps').locator('li')).toHaveCount(3);
+  await expect(detail.getByText('Aucune application cible rattachée.')).toBeVisible();
+  await expect(detail.locator('.presentation-detail-assessment-list > div').last()).toContainText('1 point à examiner');
+  await expect(detail.getByRole('list', { name: 'Points de vigilance' })).toContainText('Écart de maturité de 1 niveau');
+  const desktop = await detail.evaluate(node => {
+    const group = node.querySelector('.presentation-detail-application-groups') as HTMLElement;
+    const current = node.querySelector('.presentation-detail-app-group[data-kind="current"]') as HTMLElement;
+    const target = node.querySelector('.presentation-detail-app-group[data-kind="target"]') as HTMLElement;
+    const applications = current.querySelector('ul') as HTMLElement;
+    const groupBox = group.getBoundingClientRect();
+    const currentBox = current.getBoundingClientRect();
+    const targetBox = target.getBoundingClientRect();
+    const tolerance = 2;
+    return {
+      currentUsesWidth: Math.abs(currentBox.width - groupBox.width) <= tolerance,
+      targetIsBelow: targetBox.top >= currentBox.bottom,
+      targetIsCompact: targetBox.height < currentBox.height,
+      twoApplicationColumns: getComputedStyle(applications).gridTemplateColumns.split(' ').length === 2,
+      noHorizontalOverflow: node.scrollWidth <= node.clientWidth + tolerance,
+    };
+  });
+  expect(desktop).toEqual({
+    currentUsesWidth: true,
+    targetIsBelow: true,
+    targetIsCompact: true,
+    twoApplicationColumns: true,
+    noHorizontalOverflow: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobile = await detail.evaluate(node => {
+    const current = node.querySelector('.presentation-detail-app-group[data-kind="current"]') as HTMLElement;
+    const applications = current.querySelector('ul') as HTMLElement;
+    const tolerance = 2;
+    return {
+      oneApplicationColumn: getComputedStyle(applications).gridTemplateColumns.split(' ').length === 1,
+      noHorizontalOverflow: node.scrollWidth <= node.clientWidth + tolerance,
+    };
+  });
+  expect(mobile).toEqual({ oneApplicationColumn: true, noHorizontalOverflow: true });
+  await detail.getByTestId('presentation-focus-close').click();
+  await expect(detail).toHaveCount(0);
+});
+
+
 test('affiche toutes les applications nombreuses dans la fiche N1, puis un vrai état vide', async ({ page }) => {
   const count = 18;
   await page.setViewportSize({ width: 1280, height: 720 });
