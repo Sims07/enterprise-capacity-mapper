@@ -115,6 +115,10 @@ test('la légende de la cartographie reste documentée dans Storybook sans contr
 for (const theme of ['light', 'dark'] as const) {
   test(`le menu des actions de carte reste accessible au clavier (${theme})`, async ({ page }) => {
     await page.goto(story('design-system-map-actions--options', theme));
+    const si = page.getByRole('button', { name: 'Cartographie SI' });
+    await expect(si).toBeVisible();
+    await si.click();
+    await expect(page.getByRole('status')).toContainText('Cartographie SI : inventaire des applications');
     const menu = page.getByTestId('map-more-actions');
     const trigger = menu.locator('summary');
     await expect(trigger).toBeVisible();
@@ -129,7 +133,8 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(trigger).toBeFocused();
 
     await page.keyboard.press('Enter');
-    await expect(menu.getByRole('button', { name: 'Inventaire SI (20)' })).toBeVisible();
+    await expect(menu.getByRole('button', { name: 'Aide TOGAF' })).toBeVisible();
+    await expect(menu.getByRole('button', { name: 'Inventaire SI (20)' })).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(menu).not.toHaveAttribute('open', '');
     await expect(trigger).toBeFocused();

@@ -39,7 +39,7 @@ export const ProjectedSelection: Story = {
 export const SignalCartography: Story = {
   parameters: {
     viewport: { defaultViewport: 'desktop' },
-    docs: { description: { story: 'SIGNAL document-first : titre de cartographie et sauvegarde associés, onglets sobres, historique au niveau des commandes de carte. Les N0/N1 gardent leur géométrie et « + Application » reste immédiatement accessible.' } },
+    docs: { description: { story: 'SIGNAL document-first : titre de cartographie et sauvegarde associés, onglets sobres, historique au niveau des commandes de carte. Les N0/N1 gardent leur géométrie et « Cartographie SI » ouvre l’inventaire, où se trouve « + Application ».' } },
   },
 };
 
@@ -55,7 +55,7 @@ export const CompactCapabilities: Story = {
 export const SignalApplications: Story = {
   parameters: {
     viewport: { defaultViewport: 'desktop' },
-    docs: { description: { story: 'Cliquer sur « Inventaire SI », ouvrir une application, utiliser « Relier à… », puis refermer sans réduire la mosaïque.' } },
+    docs: { description: { story: 'Cliquer sur « Cartographie SI », créer une application avec « + Application », utiliser « Relier à… », puis tester l’ancrage en pleine hauteur (↗) et le retour au panneau flottant (↙).' } },
   },
 };
 

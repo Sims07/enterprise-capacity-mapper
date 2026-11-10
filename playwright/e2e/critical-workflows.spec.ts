@@ -27,7 +27,6 @@ test.describe('Playwright POC — critical browser workflows', () => {
 
   test('modifie les propriétés d’une application depuis son crayon discret', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     const application = page.locator('.app-item').filter({ hasText: 'Salesforce CRM' });
     await expect(application).toHaveCount(1);

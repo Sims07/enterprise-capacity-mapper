@@ -194,7 +194,7 @@
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--focus-ring-offset);
 }
-.app.signal-experience .signal-add-application {
+.app.signal-experience .map-si-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +202,7 @@
   white-space: nowrap;
   font-weight: 750;
 }
-/* Inventaire à la demande : ne rétrécit JAMAIS la grille de cartographie. */
+/* Inventaire flottant à la demande : conserve la largeur de la mosaïque. */
 .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open {
   grid-template-columns: minmax(0, 1fr) !important;
 }
@@ -246,7 +246,7 @@
   border-color: var(--color-accent);
   border-radius: var(--radius-control);
 }
-.app.signal-experience #app-inventory .signal-inventory-close {
+.app.signal-experience #app-inventory :is(.signal-inventory-size-toggle, .signal-inventory-close) {
   display: grid;
   place-items: center;
   min-width: 28px;
@@ -258,7 +258,7 @@
   background: var(--color-surface-muted);
   cursor: pointer;
 }
-.app.signal-experience #app-inventory .signal-inventory-close:focus-visible {
+.app.signal-experience #app-inventory :is(.signal-inventory-size-toggle, .signal-inventory-close):focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--focus-ring-offset);
 }
@@ -282,6 +282,28 @@
   color: var(--color-text);
   border-color: var(--color-border);
 }
+/* Comme le compagnon ancré, l'inventaire pleine hauteur réserve sa largeur et redimensionne la carte.
+ * La variante flottante conserve l'affichage historique sans retrait de largeur. */
+@media (min-width: 901px) {
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-docked) {
+    width: calc(100% - var(--signal-panel-width));
+  }
+  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
+    inset-block: 0 !important;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+    border-block: 0;
+    border-inline-end: 0;
+  }
+  /* Les deux panneaux ancrés coexistent sans se superposer. */
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-docked):has(> .companion-root .companion-panel.is-dock) {
+    width: calc(100% - var(--signal-panel-width) - var(--companion-dock-width));
+  }
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .companion-root .companion-panel.is-dock) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
+    inset-inline-end: var(--companion-dock-width);
+  }
+}
 @media (max-width: 900px) {
   .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
     inset-block-start: max(env(safe-area-inset-top), var(--signal-space-4));
@@ -290,10 +312,18 @@
     width: min(var(--signal-panel-width), calc(100vw - 2 * var(--signal-space-4)));
     max-height: calc(100dvh - 2 * var(--signal-space-4));
   }
+  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
+    inset: 0 !important;
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
   .app.signal-experience .canvas-actions { flex-wrap: wrap; }
 }
 @media (max-width: 480px) {
-  .app.signal-experience .signal-add-application { flex: 1 1 auto; }
+  .app.signal-experience .map-si-toggle { flex: 1 1 auto; }
   .app.signal-experience .canvas-actions [data-testid="map-inventory-toggle"] { flex: 1 1 auto; }
   .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open > aside#app-inventory {
     inset-inline: var(--signal-space-2);

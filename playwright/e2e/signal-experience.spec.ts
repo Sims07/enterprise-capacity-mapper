@@ -15,7 +15,6 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     const inventory = page.locator('#app-inventory');
     await expect(inventory).toBeHidden();
 
-    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     await expect(inventory).toBeVisible();
     await expect(inventory).toHaveCSS('position', 'fixed');
@@ -26,16 +25,61 @@ test.describe('SIGNAL — parcours client sans régression', () => {
 
     await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
     await expect(inventory).toBeHidden();
-    await page.getByTestId('map-more-actions').locator('summary').click();
     await page.getByTestId('map-inventory-toggle').click();
     await expect(inventory).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(inventory).toBeHidden();
   });
 
+  test('passe de l’inventaire flottant au panneau ancré pleine hauteur et restaure la carte', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    const map = page.getByTestId('capability-map');
+    const inventory = page.locator('#app-inventory');
+    const toggle = page.getByTestId('map-inventory-toggle');
+    const originalWidth = (await map.boundingBox())!.width;
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(inventory).toBeVisible();
+    const size = page.getByTestId('inventory-size-toggle');
+    await expect(size).toHaveAttribute('aria-pressed', 'false');
+    await size.click();
+    await expect(size).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.workspace')).toHaveClass(/mosaic-inventory-docked/);
+    await expect.poll(async () => (await inventory.boundingBox())!.height).toBe(900);
+    await expect.poll(async () => (await map.boundingBox())!.width).toBeLessThan(originalWidth);
+    const bounds = await inventory.boundingBox();
+    expect(bounds!.y).toBe(0);
+    expect(bounds!.x + bounds!.width).toBeCloseTo(1440, 0);
+
+    await size.click();
+    await expect(size).toHaveAttribute('aria-pressed', 'false');
+    await expect.poll(async () => (await map.boundingBox())!.width).toBeCloseTo(originalWidth, 0);
+    await toggle.click();
+    await expect(inventory).toBeHidden();
+  });
+
+  test('le panneau Cartographie SI pleine hauteur reste fermable sur mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await page.getByTestId('map-inventory-toggle').click();
+    await page.getByTestId('inventory-size-toggle').click();
+    const inventory = page.locator('#app-inventory');
+    const bounds = await inventory.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBe(0);
+    expect(bounds!.y).toBe(0);
+    expect(bounds!.width).toBeCloseTo(390, 0);
+    expect(bounds!.height).toBeCloseTo(844, 0);
+    await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
+    await expect(inventory).toBeHidden();
+    await expect(page.getByTestId('capability-map')).toBeVisible();
+  });
+
   test('ajoute une application depuis la mosaïque puis la relie à une N1', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('signal-add-application').click();
+    await page.getByTestId('map-inventory-toggle').click();
+    await page.locator('#app-inventory .side-add').click();
     const dialog = page.getByRole('dialog', { name: 'Nouvelle application' });
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Créer' }).click();
@@ -46,9 +90,8 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     await dialog.getByLabel('Éditeur / fournisseur').fill('Éditeur interne');
     await dialog.getByRole('button', { name: 'Créer' }).click();
     await expect(dialog).toBeHidden();
+    await expect(page.getByTestId('map-inventory-toggle')).toHaveAttribute('aria-expanded', 'true');
 
-    await page.getByTestId('map-more-actions').locator('summary').click();
-    await page.getByTestId('map-inventory-toggle').click();
     const app = page.locator('#app-inventory .app-item').filter({ hasText: 'Outil devis SIGNAL' });
     await expect(app).toBeVisible();
     await app.getByRole('button', { name: /Relier/ }).click();
@@ -75,7 +118,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     await expect(presentation.locator('.app.signal-experience.mosaic-presentation-mode')).toBeVisible();
     await expect(presentation.locator('.map-mosaic .mosaic-domain')).toHaveCount(4);
     await expect(presentation.locator('.map-controls-row')).toBeHidden();
-    await expect(presentation.getByTestId('signal-add-application')).toHaveCount(0);
+    await expect(presentation.getByTestId('map-inventory-toggle')).toHaveCount(0);
     await presentation.close();
   });
 });
@@ -145,7 +188,7 @@ test('la restitution distingue chaque légende, imprime sans contrôles et expli
 test('la carte conserve les actions secondaires au survol et au clavier sans barres de dépôt répétées', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
-  await expect(page.getByTestId('signal-add-application')).toBeVisible();
+  await expect(page.getByTestId('map-inventory-toggle')).toBeVisible();
   await expect(page.getByTestId('map-add-domain')).toBeVisible();
   await expect(page.getByTestId('capability-reading-toolbar')).toBeVisible();
 
@@ -184,9 +227,10 @@ test('la commande de carte unifiée donne priorité à la carte et préserve les
   await expect(toolbar).toBeVisible();
   await expect(toolbar.getByTestId('map-filter')).toBeVisible();
   await expect(toolbar.getByTestId('map-reading-applications')).toBeVisible();
-  await expect(toolbar.getByTestId('signal-add-application')).toBeVisible();
+  await expect(toolbar.getByTestId('map-inventory-toggle')).toBeVisible();
   await expect(toolbar.getByTestId('map-add-domain')).toBeVisible();
   await expect(toolbar.locator('.canvas-actions > button')).toHaveCount(2);
+  await expect(toolbar.getByTestId('map-inventory-toggle')).toHaveAttribute('aria-expanded', 'false');
   await expect(toolbar.getByTestId('capability-diagnostic-shortcut')).toBeHidden();
   await expect(map.locator('.mosaic-domain')).not.toHaveCount(0);
 
@@ -211,8 +255,7 @@ test('la commande de carte unifiée donne priorité à la carte et préserve les
   await page.getByTestId('nav-cartography').click();
   await expect(toolbar).toBeVisible();
 
-  await trigger.click();
-  await menu.getByTestId('map-inventory-toggle').click();
+  await toolbar.getByTestId('map-inventory-toggle').click();
   await expect(page.locator('#app-inventory')).toBeVisible();
   await expect(menu).not.toHaveAttribute('open', '');
   await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
@@ -229,7 +272,7 @@ test('les commandes secondaires restent accessibles en affichage mobile', async 
   await page.keyboard.press('Escape');
   await expect(menu).not.toHaveAttribute('open', '');
   await expect(menu.locator('summary')).toBeFocused();
-  await expect(page.getByTestId('signal-add-application')).toBeVisible();
+  await expect(page.getByTestId('map-inventory-toggle')).toBeVisible();
 });
 
 
@@ -256,7 +299,7 @@ test.describe('SIGNAL — hiérarchie document-first de l’éditeur', () => {
     await expect(history.getByTestId('undo-button')).toBeVisible();
     await expect(history.getByTestId('redo-button')).toBeVisible();
     await expect(page.locator('header').getByTestId('undo-button')).toHaveCount(0);
-    await expect(toolbar.getByTestId('signal-add-application')).toBeVisible();
+    await expect(toolbar.getByTestId('map-inventory-toggle')).toBeVisible();
     await expect(toolbar.getByTestId('map-add-domain')).toBeVisible();
     await expect(toolbar.getByTestId('map-reading-applications')).toBeVisible();
     await expect(toolbar).toHaveCSS('border-top-style', 'none');
@@ -278,7 +321,7 @@ test.describe('SIGNAL — hiérarchie document-first de l’éditeur', () => {
     const toolbar = page.getByTestId('map-unified-controls');
     await expect(toolbar.getByTestId('undo-button')).toBeVisible();
     await expect(toolbar.getByTestId('map-add-domain')).toBeVisible();
-    await expect(toolbar.getByTestId('signal-add-application')).toBeVisible();
+    await expect(toolbar.getByTestId('map-inventory-toggle')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
   });
