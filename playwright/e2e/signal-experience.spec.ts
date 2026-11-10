@@ -38,7 +38,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
   });
 
   test('garde l’ajout et la recherche visibles lorsque la liste d’applications défile', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 1440, height: 520 });
     await page.goto('/');
     await page.getByTestId('map-inventory-toggle').click();
     const header = page.getByTestId('inventory-sticky-header');
@@ -58,9 +58,9 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     await expect(add).toBeVisible();
     await expect(search).toBeVisible();
 
-    await search.fill('Web PS');
+    await search.fill('Salesforce CRM');
     await expect(list.locator('.app-item')).toHaveCount(1);
-    await expect(list).toContainText('Web PS');
+    await expect(list).toContainText('Salesforce CRM');
     await search.clear();
     await add.click();
     await expect(page.getByRole('dialog', { name: 'Nouvelle application' })).toBeVisible();
@@ -68,7 +68,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
   });
 
   test('affiche le dock SI sur tout l’écran mobile avec les actions toujours visibles', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize({ width: 390, height: 620 });
     await page.goto('/');
     await page.getByTestId('map-inventory-toggle').click();
     const inventory = page.locator('#app-inventory');
@@ -77,7 +77,7 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     expect(bounds!.x).toBe(0);
     expect(bounds!.y).toBe(0);
     expect(bounds!.width).toBeCloseTo(390, 0);
-    expect(bounds!.height).toBeCloseTo(844, 0);
+    expect(bounds!.height).toBeCloseTo(620, 0);
     await expect(page.getByTestId('inventory-size-toggle')).toHaveCount(0);
     const add = page.getByTestId('inventory-sticky-header').locator('.side-add');
     const search = page.getByRole('textbox', { name: 'Rechercher une application' });
