@@ -24,11 +24,9 @@ function Example() {
       <input aria-label="Filtrer les domaines" placeholder="Nom ou code" />
     </label>
     <div className="canvas-actions map-primary-actions">
-      <Button type="button" variant="primary" onClick={() => setAction("Nouvelle application")}>+ Application</Button>
+      <Button type="button" variant="primary" onClick={() => setAction("Cartographie SI : inventaire des applications")}>Cartographie SI</Button>
       <Button type="button" variant="secondary" onClick={() => setAction("Nouveau domaine N0")}>+ Domaine N0</Button>
       <MapActionsMenu onDismiss={() => setDirector(false)}>
-        <Button type="button" variant="quiet" className="map-actions-menu-item" data-map-menu-close="true"
-          onClick={() => setAction('Inventaire SI')}>Inventaire SI (20)</Button>
         <Button type="button" variant="quiet" className="map-actions-menu-item" data-map-menu-close="true"
           onClick={() => setAction('Structure')}>Structure</Button>
         <Button type="button" variant="quiet" className="map-actions-menu-item" data-map-menu-close="true"
