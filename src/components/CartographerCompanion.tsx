@@ -237,7 +237,9 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   useEffect(() => {
     if (!open) return undefined;
     const handleKeyDown = event => {
-      if (event.key === 'Escape') {
+      // A validated relation is edited in the application's modal above this panel.
+      // Escape closes that modal first, without discarding the companion review.
+      if (event.key === 'Escape' && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
         setOpen(false);
       }
     };
