@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultRelationRole, relationRoleFor, retainRelationRoles, supportsCurrent, supportsTarget, validateRelationRoles } from './applicationRelations.ts';
+import { defaultRelationRole, lifecycleLabel, relationRoleFor, retainRelationRoles, supportsCurrent, supportsTarget, validateRelationRoles } from './applicationRelations.ts';
 import type { Application } from './catalogModel.ts';
 
 const app = (status = 'Actif'): Application => ({ id: 'a', name: 'Application', status, capabilityIds: ['c'] });
@@ -30,4 +30,10 @@ test('roles are validated against actual links and orphaned values are pruned', 
   }
   assert.deepEqual(retainRelationRoles({ ...app(), relationRoles: { c: 'both', missing: 'target' } }, ['c']), { relationRoles: { c: 'both' } });
   assert.deepEqual(retainRelationRoles({ ...app(), relationRoles: { c: 'both' } }, []), {});
+});
+
+test('lifecycle label does not confuse planned applications with target-only relations', () => {
+  assert.equal(lifecycleLabel('Cible'), 'Planifiée');
+  assert.equal(lifecycleLabel('Actif'), 'Actif');
+  assert.equal(lifecycleLabel(undefined), 'Non renseigné');
 });
