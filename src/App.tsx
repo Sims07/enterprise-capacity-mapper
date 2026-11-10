@@ -1171,7 +1171,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   data-show-applications={presentation && presentationShowApplications ? 'true' : undefined}
                   role={presentation ? 'button' : undefined}
                   tabIndex={presentation ? 0 : undefined}
-                  aria-label={presentation ? `Détails de ${c.name}` : undefined}
+                  aria-label={presentation ? `${presentationSelectedCapabilityIds.includes(c.id) ? 'Capacité mise en avant. ' : ''}Détails de ${c.name}` : undefined}
                   onClick={presentation ? () => setPresentationFocusedCapabilityId(c.id) : undefined}
                   onKeyDown={presentation ? event => {
                     if (event.key === 'Enter' || event.key === ' ') {
@@ -1327,8 +1327,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mosaicRows = presentation
     ? mosaicLayersLayout.flatMap((layer, index) => Array.from({ length: stackedRows.rowCounts[index] }, () => `minmax(0, ${Math.max(0.1, Number(layer.size) || 1)}fr)`)).join(' ')
     : `${showColumnHeadings ? '44px ' : ''}${layers.flatMap((_, index) => Array.from({ length: stackedRows.rowCounts[index] }, () => 'minmax(var(--map-row-min-height-compact), auto)')).join(' ')}`;
+  const hasPresentationSpotlight = presentation && model.capabilities.some(capability => presentationSelectedCapabilityIds.includes(capability.id));
   const capabilityMap = (
-    <div className="map map-mosaic" data-testid="capability-map" data-density={!presentation ? 'compact' : undefined} style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
+    <div className={`map map-mosaic${hasPresentationSpotlight ? ' has-presentation-spotlight' : ''}`} data-testid="capability-map" data-density={!presentation ? 'compact' : undefined} style={{ gridTemplateColumns: mosaicColumns, gridTemplateRows: mosaicRows }}>
       {!presentation && showColumnHeadings && showRowHeadings && <div className="mosaic-corner" />}
       {!presentation && showColumnHeadings && columns.map(column => <div className="mosaic-column-heading" key={column.id} style={{ gridColumn: columns.indexOf(column) + mosaicColumnOffset, gridRow: 1 }}>{column.name}</div>)}
       {!presentation && showRowHeadings && layers.map((layer, rowIndex) => <div className="mosaic-row-heading" key={layer.id} style={{ gridColumn: 1, gridRow: `${mosaicLayerRowStart(rowIndex)} / span ${stackedRows.rowCounts[rowIndex]}` }}>{layer.name}</div>)}
