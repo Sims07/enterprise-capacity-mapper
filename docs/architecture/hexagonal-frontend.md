@@ -67,6 +67,8 @@ La migration reste incrémentale : chaque déplacement doit conserver le comport
 
 ### Extraction des règles de mise en page
 
+La présentation de l'éditeur est isolée dans `src/components/StructureEditor.tsx`, avec un style scoped dans `src/styles/structure-editor.css`. L'éditeur organise les colonnes et les lignes sur deux panneaux, garde les actions de validation accessibles et masque par défaut la liste avancée des zones. La validation, les règles d'occupation et les mutations du brouillon restent déléguées à l'application et au domaine ; la démo interactive est dans Storybook.
+
 Les transformations de l'éditeur de structure sont regroupées dans `src/application/layoutUseCases.ts`. Ce module pur complète la grille des zones colonne/layer, renomme les colonnes et zones, ajoute ou retire des colonnes/layers, prépare une structure validée pour l'enregistrement et vérifie les chevauchements de domaines. Il ne dépend ni de React ni du navigateur.
 
 `App.jsx` conserve l'orchestration d'interface : état temporaire du formulaire, ouverture/fermeture de la modale, notifications et application du résultat au modèle. Les règles déterministes de transformation sont testées séparément dans `src/application/layoutUseCases.test.js`. Cette extraction constitue une première tranche du découpage orchestration/présentation ; les autres parcours métier restent à extraire par tranches testées.
