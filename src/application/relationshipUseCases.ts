@@ -1,5 +1,5 @@
 import { Catalog } from '../domain/catalog.ts';
-import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
+import type { Application, Capability, CatalogModel, Domain, RelationRole } from '../domain/catalogModel.ts';
 
 export type RelatedApplication = { id: string; capabilityIds?: string[]; [key: string]: unknown };
 export type MappedItem = { id: string; [key: string]: unknown };
@@ -69,12 +69,14 @@ export const linkPickedApplications = (
 };
 
 export const prepareLinkedApplications = ({
-  applications, mappedItems, link, checkedIds, domains = [], capabilities = [], depth = 2,
+  applications, mappedItems, link, checkedIds, roles, domains = [], capabilities = [], depth = 2,
 }: {
   applications: RelatedApplication[];
   mappedItems: MappedItem[];
   link: Link | null;
   checkedIds: string[];
+  /** Roles indexed by option id: application when linking to a target, target when linking from an application. */
+  roles?: Record<string, RelationRole>;
   domains?: Domain[];
   capabilities?: Capability[];
   depth?: TargetDepth;
@@ -88,12 +90,19 @@ export const prepareLinkedApplications = ({
     const checked = new Set(checkedIds);
     let next = catalog;
     applications.forEach(application => {
-      next = checked.has(application.id)
-        ? next.linkApplicationToMappedItem(application.id, link.id)
-        : next.unlinkApplicationFromMappedItem(application.id, link.id);
+      if (checked.has(application.id)) {
+        next = next.linkApplicationToMappedItem(application.id, link.id);
+        if (roles?.[application.id]) next = next.setMappedRelationRole(application.id, link.id, roles[application.id]);
+      } else {
+        next = next.unlinkApplicationFromMappedItem(application.id, link.id);
+      }
     });
     return applicationSnapshots(next, applications);
   }
 
-  return applicationSnapshots(catalog.replaceMappedRelations(link.id, mappedIds, checkedIds), applications);
+  let next = catalog.replaceMappedRelations(link.id, mappedIds, checkedIds);
+  if (roles) checkedIds.forEach(targetId => {
+    if (roles[targetId]) next = next.setMappedRelationRole(link.id, targetId, roles[targetId]);
+  });
+  return applicationSnapshots(next, applications);
 };
