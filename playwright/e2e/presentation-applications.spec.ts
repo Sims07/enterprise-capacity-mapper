@@ -105,6 +105,29 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
     await expect(detail.getByTestId('presentation-target-apps').locator('li')).toHaveCount(1);
     await expect(detail.getByTestId('presentation-current-apps')).toContainText('Dossier Médical Partagé');
     await expect(detail.getByTestId('presentation-target-apps')).toContainText('Historique de santé');
+    // Le bouton fermer est réellement aligné dans l'en-tête interne, sans hériter
+    // des règles globales sticky/hauteur fixe de l'en-tête de l'application.
+    const alignment = await detail.evaluate(dialog => {
+      const header = dialog.querySelector('.presentation-detail-header') as HTMLElement;
+      const close = dialog.querySelector('.presentation-detail-close') as HTMLElement;
+      const heading = dialog.querySelector('.presentation-detail-app-heading') as HTMLElement;
+      const headerBounds = header.getBoundingClientRect();
+      const closeBounds = close.getBoundingClientRect();
+      const rightInset = Number.parseFloat(getComputedStyle(header).paddingRight);
+      const pixelTolerance = 2;
+      return {
+        closeOnRight: Math.abs(closeBounds.right - (headerBounds.right - rightInset)) <= pixelTolerance,
+        closeInsideHeader: closeBounds.top >= headerBounds.top && closeBounds.bottom <= headerBounds.bottom,
+        headerUsesLocalPosition: getComputedStyle(header).position === 'relative',
+        applicationHeaderNotSticky: getComputedStyle(heading).position === 'static',
+      };
+    });
+    expect(alignment).toEqual({
+      closeOnRight: true, closeInsideHeader: true,
+      headerUsesLocalPosition: true, applicationHeaderNotSticky: true,
+    });
+    await expect(detail.getByText('CAPACITÉ N1')).toBeVisible();
+    await expect(detail.locator('.presentation-detail-assessment-list > div')).toHaveCount(3);
     await expect(detail.locator('.presentation-detail-landscape')).toBeVisible();
     await expect(detail.locator('.presentation-detail-assessment')).toBeVisible();
     const order = await detail.evaluate(node => {
@@ -174,6 +197,22 @@ test('affiche toutes les applications nombreuses dans la fiche N1, puis un vrai 
   await expect(empty.getByTestId('presentation-app-total')).toHaveText('0');
   await expect(empty.getByText('Aucune application actuelle rattachée.')).toBeVisible();
   await expect(empty.getByText('Aucune application cible rattachée.')).toBeVisible();
+  // Avec un viewport réduit, les deux cartes sont empilées, sans défilement horizontal.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileLayout = await empty.evaluate(dialog => {
+    const groups = dialog.querySelectorAll('.presentation-detail-app-group');
+    const first = groups[0].getBoundingClientRect();
+    const second = groups[1].getBoundingClientRect();
+    const sheet = dialog.getBoundingClientRect();
+    const pixelTolerance = 2;
+    return {
+      stacked: second.top >= first.bottom && Math.abs(second.left - first.left) <= pixelTolerance,
+      insideSheet: first.left >= sheet.left && second.right <= sheet.right,
+      noHorizontalOverflow: dialog.scrollWidth <= dialog.clientWidth + pixelTolerance,
+    };
+  });
+  expect(mobileLayout).toEqual({ stacked: true, insideSheet: true, noHorizontalOverflow: true });
+
 });
 
 test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et permet de les agrandir', async ({ page }) => {
