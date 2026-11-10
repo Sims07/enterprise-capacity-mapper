@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
 import { GUIDED_REVIEW_LIMIT, resolveCompanionReview, type ReviewFinding } from '../domain/companionReview.ts';
+import { companionRemediation, type CompanionRemediationAction } from '../domain/companionRemediation.ts';
+import type { CatalogModel } from '../domain/catalogModel.ts';
 import { Button } from './ui/Button.tsx';
 
 type Evidence = { type: 'domain' | 'capability' | 'application'; id: string | null; name: string };
 type Finding = ReviewFinding & { detail?: string; evidence?: Evidence[] };
 type NavigateEvidence = { type: Evidence['type']; id: string; name: string };
 
-export default function CompanionGuidedReview({ observations, onNavigateToEvidence }: {
+export default function CompanionGuidedReview({ observations, model, onNavigateToEvidence, onRemediation }: {
   observations: Finding[];
+  model: Pick<CatalogModel, 'domains' | 'capabilities' | 'applications'> & { layout?: { depth?: number } };
   onNavigateToEvidence?: (item: NavigateEvidence) => void;
+  onRemediation?: (action: CompanionRemediationAction) => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [answersById, setAnswersById] = useState<Record<string, string[]>>({});
@@ -26,6 +30,7 @@ export default function CompanionGuidedReview({ observations, onNavigateToEviden
   const active = observations.find(item => item.id === activeId);
   const answers = active ? answersById[active.id] ?? [] : [];
   const step = active ? resolveCompanionReview(active, answers) : null;
+  const remediation = active ? companionRemediation(active, answers, model) : null;
 
   const selectAnswer = (id: string) => {
     if (!active) return;
@@ -87,6 +92,20 @@ export default function CompanionGuidedReview({ observations, onNavigateToEviden
               <strong>{step.classification}</strong>
               <p><b>Piste à examiner :</b> {step.action}</p>
               <small>Qualification déclarative, conservée uniquement pendant cette session. Aucune modification automatique ni score de risque déduit.</small>
+              {remediation?.state === 'available' && onRemediation && (
+                <div className="companion-guided-review-actions" data-testid="companion-review-actions">
+                  {remediation.actions.map((action, index) => (
+                    <Button key={action.kind} variant={index === 0 ? 'primary' : 'secondary'}
+                      data-testid={`companion-review-action-${action.kind}`}
+                      onClick={() => onRemediation(action)}>{action.label}</Button>
+                  ))}
+                </div>
+              )}
+              {remediation?.state === 'relation-added' && (
+                <p className="companion-guided-review-updated" data-testid="companion-review-updated" role="status">
+                  Une relation est maintenant déclarée dans la cartographie. Relancez l’analyse pour actualiser les constats ; cela ne prouve pas à lui seul une couverture fonctionnelle suffisante.
+                </p>
+              )}
             </div>
           )}
           {answers.length > 0 && (
