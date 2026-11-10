@@ -13,7 +13,7 @@ Consultez le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/sto
 
 ## Design system Signal
 
-L'interface Signal conserve la **navigation haute**, la cartographie matricielle N0/N1 avec ses spans de lignes et de colonnes, et toutes les fonctions de gestion des applications. L'inventaire SI s'ouvre à la demande sans réduire la mosaïque ; le bouton « + Application » donne accès au formulaire existant, et « Relier à… » associe les applications aux capacités.
+L'interface Signal conserve la **navigation haute**, la cartographie matricielle N0/N1 avec ses spans de lignes et de colonnes, et toutes les fonctions de gestion des applications. Le bouton **Cartographie SI** ouvre directement l'inventaire des applications. Le bouton **+ Application** se trouve dans ce panneau, au même endroit que la recherche, l'édition et l'action **Relier à…** pour associer une application à une capacité. L'inventaire s'ouvre en mode flottant sans réduire la mosaïque ; l'icône **↗** l'ancre sur toute la hauteur et réserve sa largeur dans la cartographie (sur mobile, il occupe l'écran). L'icône **↙** revient au mode flottant et la croix ferme le panneau.
 
 **Cartographie compacte par défaut** — les N1 s'affichent à hauteur adaptée au contenu. Un N0 suffisamment large présente jusqu'à **deux N1 côte à côte** ; les N0 étroits et l'affichage mobile conservent une colonne. Toutes les applications associées restent visibles et modifiables. Le menu « Affichage » et l'ancien choix de densité ont été supprimés : les préférences locales historiques ne sont plus utilisées. La structure N0, les spans et le mode présentation sont inchangés.
 
