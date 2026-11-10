@@ -7,6 +7,9 @@ export const RELATION_ROLE_OPTIONS: ReadonlyArray<{ value: RelationRole; label: 
   { value: 'both', label: 'Actuelle et cible' },
 ];
 
+/** Display a lifecycle state without reusing the technical legacy value "Cible" as a relation role. */
+export const lifecycleLabel = (status?: string): string => status === 'Cible' ? 'Planifiée' : status || 'Non renseigné';
+
 export const isRelationRole = (value: unknown): value is RelationRole =>
   value === 'current' || value === 'target' || value === 'both';
 
