@@ -1286,3 +1286,21 @@
   white-space: normal;
   text-align: left;
 }
+
+/* Companion remediations reuse the application's validated relation editors. */
+.companion-guided-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+}
+.companion-root .companion-guided-review-actions .ds-button {
+  min-height: 38px;
+  white-space: normal;
+  text-align: left;
+}
+.companion-guided-review-conclusion .companion-guided-review-updated {
+  margin-top: 5px;
+  color: var(--companion-text);
+  font-weight: 600;
+}

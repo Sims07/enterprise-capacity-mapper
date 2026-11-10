@@ -23,7 +23,15 @@ const sampleFindings = [
 const meta = {
   title: 'Application/Compagnon/Qualification guidée',
   component: CompanionGuidedReview,
-  args: { observations: sampleFindings },
+  args: {
+    observations: sampleFindings,
+    model: {
+      layout: { depth: 2 },
+      domains: [{ id: 'domain', code: 'ID', name: 'Identité' }],
+      capabilities: [{ id: 'cap-1', domainId: 'domain', name: 'Gestion des identités' }],
+      applications: [{ id: 'app-1', name: 'Annuaire', capabilityIds: [] }],
+    },
+  },
   parameters: { layout: 'centered' },
   decorators: [Story => <div className="companion-root" style={{ maxWidth: 430, width: 'min(430px, 90vw)', padding: 14, background: 'var(--color-surface)', color: 'var(--color-text)' }}><Story /></div>],
 } satisfies Meta<typeof CompanionGuidedReview>;

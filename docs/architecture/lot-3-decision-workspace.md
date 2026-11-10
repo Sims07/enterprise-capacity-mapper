@@ -52,3 +52,15 @@ Le compagnon conserve ses **quatre actions d’analyse** (vue d’ensemble, couv
 - Les réponses « donnée incomplète », « hors périmètre » et « inconnu » n’aboutissent jamais à une lacune confirmée. Pour la couverture, une confirmation de lacune déclenche une seconde question sur son importance métier avant la recommandation.
 
 Vérification : tests unitaires sur tous les scénarios et embranchements dans `src/domain/companionReview.test.ts`, tests Playwright de qualification sans mutation du modèle et de conservation des quatre analyses dans `playwright/e2e/regression.spec.ts`, exemples Storybook clair/sombre dans `CompanionGuidedReview.stories.tsx`.
+
+## Lot suivant — Passer du constat à l’action sans duplication métier
+
+Après une qualification humaine confirmant qu’une relation applicative manque, le compagnon propose des actions **explicites** depuis le résultat local : **Relier une application existante** ou **Créer une application liée**. Pour une application sans rattachement, il peut ouvrir la modale inverse « Relier cette application ».
+
+- `src/domain/companionRemediation.ts` détermine de façon pure quelles actions sont pertinentes. Il exige une réponse de qualification complète, une référence d’élément existant et le bon niveau N0/N1 ; un constat « hors périmètre » ou « inconnu » n’ouvre aucune action de liaison.
+- La commande est **déléguée à App**. Elle ouvre `openLinkForTarget`, `openLinkForApp` ou `openNew('app', target.id)`, réutilisant les validations et use cases de relations et de création déjà en place, sans écrire directement dans le modèle depuis le compagnon.
+- Le nouvel élément est présélectionné dans la fiche de création d’application, avec son rattachement indiqué à l’écran. Les boutons Annuler/Enregistrer gardent leur fonctionnement normal.
+- Après confirmation, le compagnon constate qu’une **relation est déclarée** dans la cartographie active et propose de relancer le diagnostic ; cette relation n’est pas assimilée à une couverture fonctionnelle suffisante ou à un niveau de risque calculé.
+- Les réponses de qualification restent en mémoire de session et ne sont pas exportées. Les tests du domaine et Playwright couvrent les refus, l’annulation sans modification, la confirmation, les contextes N0/N1 et les références obsolètes.
+
+L’application demeure statique, compatible GitHub Pages et hors ligne, sans appel à un LLM.

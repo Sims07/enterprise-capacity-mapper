@@ -510,6 +510,76 @@ test.describe('Playwright regression — companion', () => {
     expect(after).toEqual(before);
   });
 
+  test('propose de relier une application après qualification et utilise la modale de relations existante', async ({ page }) => {
+    await page.getByTestId('companion-prompt-coverage').click();
+    const review = page.getByTestId('companion-guided-review');
+    await review.locator('[data-rule-id="coverage.target-uncovered"]').first().click();
+    const targetName = (await review.getByTestId('companion-review-evidence').first().innerText()).trim();
+    const targetId = await page.evaluate(name => {
+      const data = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}');
+      return data.capabilities.find((item: { name: string }) => item.name === name)?.id
+        || data.domains.find((item: { name: string }) => item.name === name)?.id;
+    }, targetName);
+    expect(targetId).toBeTruthy();
+    await review.getByTestId('companion-review-answer-outside').click();
+    await expect(review.getByTestId('companion-review-actions')).toHaveCount(0);
+    await review.getByTestId('companion-review-restart').click();
+    await review.getByTestId('companion-review-answer-incomplete').click();
+    const launch = review.getByTestId('companion-review-action-link-target');
+    await expect(launch).toBeVisible();
+    await launch.click();
+    const modal = page.locator('.modal');
+    await expect(modal).toContainText(targetName);
+    await expect(page.getByTestId('link-list').locator('input[type="checkbox"]').first()).toBeVisible();
+
+    // Cancel does not edit the model.
+    await modal.getByRole('button', { name: 'Annuler' }).click();
+    const unchanged = await page.evaluate(id => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}')
+      .applications.some((app: { capabilityIds: string[] }) => app.capabilityIds.includes(id)), targetId);
+    expect(unchanged).toBe(false);
+
+    await launch.click();
+    await page.keyboard.press('Escape');
+    await expect(modal).toHaveCount(0);
+    await expect(page.getByTestId('companion-panel')).toBeVisible();
+    await launch.click();
+    await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
+    await page.getByTestId('link-save').click();
+    await expect(review.getByTestId('companion-review-updated')).toContainText('Une relation est maintenant déclarée');
+    await expect.poll(() => page.evaluate(id => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}')
+      .applications.some((app: { capabilityIds: string[] }) => app.capabilityIds.includes(id)), targetId)).toBe(true);
+    await expect(review.getByTestId('companion-review-action-link-target')).toHaveCount(0);
+  });
+
+  test('propose de créer une application préreliée et ne l’enregistre qu’après validation', async ({ page }) => {
+    await page.getByTestId('companion-prompt-coverage').click();
+    const review = page.getByTestId('companion-guided-review');
+    await review.locator('[data-rule-id="coverage.target-uncovered"]').first().click();
+    const targetName = (await review.getByTestId('companion-review-evidence').first().innerText()).trim();
+    await review.getByTestId('companion-review-answer-confirmed').click();
+    await review.getByTestId('companion-review-answer-important').click();
+    await review.getByTestId('companion-review-action-create-application').click();
+    const modal = page.locator('.modal');
+    await expect(modal).toContainText('Nouvelle application');
+    await expect(page.getByTestId('companion-create-app-target')).toContainText(targetName);
+    await modal.getByRole('button', { name: 'Annuler' }).click();
+    await expect(page.getByTestId('companion-review-conclusion')).toContainText('Lacune déclarée');
+    await review.getByTestId('companion-review-action-create-application').click();
+    await modal.getByLabel(/^Nom\b/).fill('Application de test du compagnon');
+    await modal.getByLabel(/^Code\b/).fill('APP-ASSIST');
+    await modal.getByLabel('Éditeur / fournisseur').fill('Éditeur de test');
+    await modal.getByRole('button', { name: 'Créer' }).click();
+    await expect(modal).toHaveCount(0);
+    await expect(review.getByTestId('companion-review-updated')).toBeVisible();
+    await expect.poll(() => page.evaluate(name => {
+      const data = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}');
+      const app = data.applications.find((item: { name: string }) => item.name === 'Application de test du compagnon');
+      const target = data.capabilities.find((item: { name: string }) => item.name === name)
+        || data.domains.find((item: { name: string }) => item.name === name);
+      return Boolean(app && target && app.capabilityIds.includes(target.id));
+    }, targetName)).toBe(true);
+  });
+
   test('conserve les quatre analyses existantes avec qualification complémentaire', async ({ page }) => {
     for (const prompt of ['overview', 'coverage', 'naming', 'structure']) {
       await page.getByTestId(`companion-prompt-${prompt}`).click();
