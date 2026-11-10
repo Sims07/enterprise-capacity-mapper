@@ -937,13 +937,12 @@ test.describe('Cartographie unifiée', () => {
     await expect(first).toHaveCSS('outline-style', 'solid');
     const spotlight = await first.evaluate(element => ({
       outlineWidth: Number.parseFloat(getComputedStyle(element).outlineWidth),
-      marker: getComputedStyle(element, '::before').content,
-      markerColor: getComputedStyle(element, '::before').backgroundColor,
+      leadingDecoration: getComputedStyle(element, '::before').content,
       parentOutline: getComputedStyle(element.closest('.mosaic-domain')!).boxShadow,
     }));
     expect(spotlight.outlineWidth).toBeGreaterThan(0);
-    expect(spotlight.marker).not.toBe('none');
-    expect(spotlight.markerColor).not.toBe('rgba(0, 0, 0, 0)');
+    // La N1 est mise en avant par son fond et son contour, sans barre à gauche.
+    expect(spotlight.leadingDecoration).toBe('none');
     expect(spotlight.parentOutline).not.toBe('none');
 
     // Reconnecting an already-selected editor must restore the spotlight.
