@@ -660,7 +660,7 @@ test.describe('Playwright regression — companion', () => {
     await expect(review.getByTestId('companion-review-question')).toBeVisible();
     await expect(page.getByTestId('companion-exchange').last()).toContainText('1 point(s) actuellement détecté(s)');
     await expect(page.getByTestId('companion-decision-brief')).toHaveCount(0);
-    await expect(page.locator('.companion-observation')).toHaveCount(0);
+    await expect(page.locator('.companion-observation')).toHaveCount(1);
   });
 
   test('propose de créer une application préreliée et ne l’enregistre qu’après validation', async ({ page }) => {
