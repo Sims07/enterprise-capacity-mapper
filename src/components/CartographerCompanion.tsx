@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { analyzeCartography, buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
 import CompanionGuidedReview from './CompanionGuidedReview.tsx';
+import { reconcileCompanionReview } from '../domain/companionReviewProgress.ts';
 import type { CompanionRemediationAction } from '../domain/companionRemediation.ts';
 import { buildOctaveFollowUpPrompt } from '../application/buildOctaveFollowUpPrompt.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
@@ -192,6 +193,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
   });
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState([]);
+  const liveDiagnostic = useMemo(() => analyzeCartography(model), [model]);
   const [activePrompt, setActivePrompt] = useState(null);
   const [mode, setMode] = useState('guided');
   const [duoMode, setDuoMode] = useState(false);
@@ -628,7 +630,16 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
 
   const renderHistory = () => (
     <div className="companion-chat-history" data-testid="companion-chat-history">
-      {history.map((exchange, index) => (
+      {history.map((exchange, index) => {
+        const isLiveReview = exchange.source === 'local' && PROMPTS.some(prompt => prompt.id === exchange.prompt);
+        const category = isLiveReview ? categoryForPrompt(exchange.prompt) : null;
+        const liveObservations = isLiveReview
+          ? (category ? liveDiagnostic.observations.filter(item => item.category === category) : liveDiagnostic.observations)
+          : exchange.observations;
+        const progress = isLiveReview ? reconcileCompanionReview(exchange.observations, liveObservations) : null;
+        const displayedObservations = progress?.current ?? exchange.observations;
+        const currentBrief = progress?.changed ? buildDecisionBrief({ observations: displayedObservations }) : exchange.brief;
+        return (
         <article className="companion-exchange" data-testid="companion-exchange" key={exchange.id}>
           <div className="companion-exchange-actions">
             {confirmDeleteId === exchange.id ? (
@@ -651,7 +662,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               <MascotIcon kind={exchange.mascot || mascot} className="companion-avatar companion-mascot-svg" />
               <div>
                 <p className="companion-message-role">{MASCOT_PERSONALITIES[exchange.mascot || mascot].name}</p>
-                <p className="companion-answer-meta">{exchange.status === 'streaming' || exchange.status === 'duo-follow-up' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${exchange.counts.total} point(s) détecté(s) · analyse locale` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
+                <p className="companion-answer-meta">{exchange.status === 'streaming' || exchange.status === 'duo-follow-up' ? `Génération en cours · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}` : exchange.source === 'error' ? 'Erreur fournisseur' : exchange.source === 'local' ? `${displayedObservations.length} point(s) actuellement détecté(s) · analyse locale${progress?.changed ? ' actualisée' : ''}` : `Réponse générée · ${companionPreferences.defaults[exchange.source]?.label || exchange.source}`}</p>
               </div>
             </div>
             {exchange.thinking && (
@@ -668,7 +679,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                 {MASCOT_PERSONALITIES[mascot].thinking}
               </p>
             ) : (
-              <FormattedAnswer text={exchange.answer} testId="companion-answer" />
+              <FormattedAnswer text={progress?.changed ? resultMessage(exchange.prompt, liveDiagnostic, displayedObservations) : exchange.answer} testId="companion-answer" />
             )}
             {exchange.status === 'streaming' && exchange.answer && (
               <p className="companion-streaming-note" role="status" data-testid="companion-streaming-note">Réponse en cours de génération…</p>
@@ -735,13 +746,13 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               </div>
             )}
 
-            {exchange.status !== 'streaming' && exchange.source === 'local' && exchange.brief && exchange.observations.length > 1 && (
+            {exchange.status !== 'streaming' && exchange.source === 'local' && currentBrief && displayedObservations.length > 1 && (
               <section className="companion-decision-brief" data-testid="companion-decision-brief" aria-label="Synthèse de la revue">
-                {exchange.brief.priorities.length > 0 && (
+                {currentBrief.priorities.length > 0 && (
                   <div className="companion-decision-section">
                     <h4>À retenir</h4>
                     <ul className="companion-decision-priorities">
-                      {exchange.brief.priorities.slice(0, 3).map(item => (
+                      {currentBrief.priorities.slice(0, 3).map(item => (
                         <li key={item.id}>
                           <span className={'companion-severity severity-' + item.severity}>{item.label}</span>
                           <span>
@@ -756,16 +767,16 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
 
               </section>
             )}
-            {exchange.status !== 'streaming' && exchange.source === 'local' && exchange.observations.length > 0 && (
-              <CompanionGuidedReview observations={exchange.observations} model={model}
+            {exchange.status !== 'streaming' && exchange.source === 'local' && (displayedObservations.length > 0 || (progress?.resolvedCount ?? 0) > 0) && (
+              <CompanionGuidedReview observations={displayedObservations} resolvedCount={progress?.resolvedCount ?? 0} model={model}
                 onNavigateToEvidence={item => { if (evidenceExists(item, model)) navigateToEvidence(item); }}
                 onRemediation={onRemediation} />
             )}
-            {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
+            {exchange.status === 'streaming' ? null : displayedObservations.length > 0 ? (
               <details className="companion-details">
-                <summary>Voir les constats ({exchange.observations.length})</summary>
+                <summary>Voir les constats actifs ({displayedObservations.length})</summary>
                 <div className="companion-observations">
-                  {exchange.observations.map((observation, observationIndex) => (
+                  {displayedObservations.map((observation, observationIndex) => (
                     <article className="companion-observation" key={observation.id + ':' + observationIndex}>
                       <div className="companion-observation-topline">
                         <span className={'companion-severity severity-' + observation.severity}>{SEVERITY_LABELS[observation.severity] || observation.severity}</span>
@@ -790,14 +801,15 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
                   ))}
                 </div>
               </details>
-            ) : exchange.source === 'local' ? (
-              <p className="companion-no-findings">Aucun constat n’a été relevé par cette revue.</p>
+            ) : exchange.source === 'local' && !progress?.resolvedCount ? (
+              <p className="companion-no-findings">Aucun constat actif détecté dans la cartographie actuelle.</p>
             ) : null}
             {exchange.status !== 'streaming' && <p className="companion-disclaimer">{exchange.source === 'local' ? 'Résultat indicatif des règles locales ; à valider avec le contexte métier.' : exchange.source === 'error' ? (exchange.partialResponse ? 'Réponse incomplète : seuls les fragments déjà reçus sont affichés. Tu peux réessayer.' : 'Aucun résultat n’a été produit ; vérifie la configuration du fournisseur et réessaie.') : 'Réponse générée par un fournisseur externe ; vérifie les faits et les recommandations avec le contexte métier.'}</p>}
           </div>
           {index < history.length - 1 && <div className="companion-exchange-divider" aria-hidden="true" />}
         </article>
-      ))}
+        );
+      })}
     </div>
   );
 
