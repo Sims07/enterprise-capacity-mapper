@@ -895,14 +895,20 @@
   }
 }
 
-/* Projected N1 spotlight: a visible perimeter and accent marker, not merely a
-   border-color change. Keep business/status backgrounds and text untouched.
-   The outline also wins over legacy dark-mode border: ... !important rules. */
+/* Focus de projection : contraste de surface + silhouette forte. Un simple
+   filet bleu se confond avec les bordures des domaines de la cartographie.
+   Les N0 non sélectionnés gardent une surface et du texte opaques, mais leurs
+   contours décoratifs passent au second plan. Le mode de lecture métier garde
+   sa couleur de fond ; seul le contour de la N1 sélectionnée change. */
+.app.mosaic-presentation-mode .map-mosaic.has-presentation-spotlight .mosaic-domain:not(.is-presentation-selection-parent):not(.is-presentation-focused) {
+  border-color: var(--map-capability-border) !important;
+  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--map-capability-border) !important;
+}
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-selection-parent {
   z-index: 3;
-  border-color: var(--color-accent) !important;
-  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-accent-border),
-    0 0 var(--signal-space-4) var(--color-accent-soft) !important;
+  border-color: var(--color-focus) !important;
+  box-shadow: 0 0 0 var(--map-presentation-spotlight-border-width) var(--color-focus),
+    0 0 var(--signal-space-5) color-mix(in srgb, var(--color-focus) 45%, transparent) !important;
 }
 .app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected,
 .app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:hover,
@@ -912,18 +918,26 @@
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:hover {
   position: relative;
   z-index: 2;
+  border: var(--map-presentation-spotlight-border-width) solid var(--color-focus) !important;
   outline: var(--focus-ring-width) solid var(--color-focus) !important;
   outline-offset: calc(-1 * var(--focus-ring-width));
-  border-color: var(--color-focus) !important;
-  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--color-focus),
-    0 0 0 var(--focus-ring-width) var(--color-accent-border) !important;
+  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--color-accent-border),
+    0 0 var(--signal-space-3) color-mix(in srgb, var(--color-focus) 40%, transparent) !important;
+}
+/* Identité : ajouter une véritable surface colorée, sans masquer les libellés.
+   Couverture/Maturité/Écarts : conserver les fonds sémantiques préexistants. */
+.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:not([data-presentation-tone]),
+.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:not([data-presentation-tone]):hover,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:not([data-presentation-tone]),
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:not([data-presentation-tone]):hover {
+  background: color-mix(in srgb, var(--color-focus) var(--map-presentation-spotlight-fill-share), var(--map-card-surface)) !important;
 }
 .app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected::before {
   content: '';
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
-  width: calc(var(--focus-ring-width) + var(--focus-ring-width));
+  width: var(--signal-space-2);
   background: var(--color-focus);
   pointer-events: none;
 }
