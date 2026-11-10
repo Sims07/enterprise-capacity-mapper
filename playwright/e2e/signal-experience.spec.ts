@@ -90,8 +90,8 @@ test.describe('SIGNAL — parcours client sans régression', () => {
     await dialog.getByLabel('Éditeur / fournisseur').fill('Éditeur interne');
     await dialog.getByRole('button', { name: 'Créer' }).click();
     await expect(dialog).toBeHidden();
+    await expect(page.getByTestId('map-inventory-toggle')).toHaveAttribute('aria-expanded', 'true');
 
-    await page.getByTestId('map-inventory-toggle').click();
     const app = page.locator('#app-inventory .app-item').filter({ hasText: 'Outil devis SIGNAL' });
     await expect(app).toBeVisible();
     await app.getByRole('button', { name: /Relier/ }).click();
