@@ -565,8 +565,8 @@ test.describe('Playwright regression — companion', () => {
     await modal.getByRole('button', { name: 'Annuler' }).click();
     await expect(page.getByTestId('companion-review-conclusion')).toContainText('Lacune déclarée');
     await review.getByTestId('companion-review-action-create-application').click();
-    await modal.getByLabel('Nom', { exact: true }).fill('Application de test du compagnon');
-    await modal.getByLabel('Code', { exact: true }).fill('APP-ASSIST');
+    await modal.getByLabel(/^Nom\b/).fill('Application de test du compagnon');
+    await modal.getByLabel(/^Code\b/).fill('APP-ASSIST');
     await modal.getByLabel('Éditeur / fournisseur').fill('Éditeur de test');
     await modal.getByRole('button', { name: 'Créer' }).click();
     await expect(modal).toHaveCount(0);
