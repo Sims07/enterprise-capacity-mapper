@@ -735,7 +735,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               </div>
             )}
 
-            {exchange.status !== 'streaming' && exchange.source === 'local' && exchange.brief && (
+            {exchange.status !== 'streaming' && exchange.source === 'local' && exchange.brief && exchange.observations.length > 1 && (
               <section className="companion-decision-brief" data-testid="companion-decision-brief" aria-label="Synthèse de la revue">
                 {exchange.brief.priorities.length > 0 && (
                   <div className="companion-decision-section">
