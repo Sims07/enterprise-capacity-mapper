@@ -44,3 +44,6 @@
 
 /* Fiche N1 de restitution, isolée des autres dialogues de présentation. */
 @import './presentation-capability-detail.css';
+
+/* Rôle actuel / cible propre à chaque relation applicative. */
+@import './relationship-roles.css';
