@@ -2,6 +2,7 @@ import React from 'react';
 import type { Application, Capability } from '../domain/catalogModel.ts';
 import type { capabilityMapReadout } from '../application/capabilityMapReadout.ts';
 import { Button } from './ui/Button.tsx';
+import { relationRoleFor } from '../domain/applicationRelations.ts';
 
 type CapabilityReadout = ReturnType<typeof capabilityMapReadout>;
 
@@ -14,10 +15,11 @@ export type PresentationCapabilityDetailProps = {
   onClose: () => void;
 };
 
-function ApplicationGroup({ title, applications, kind }: {
+function ApplicationGroup({ title, applications, kind, capabilityId }: {
   title: string;
   applications: Application[];
   kind: 'current' | 'target';
+  capabilityId?: string;
 }) {
   return <section className="presentation-detail-app-group" data-kind={kind} data-empty={applications.length === 0}>
     <header className="presentation-detail-app-heading">
@@ -38,8 +40,11 @@ function ApplicationGroup({ title, applications, kind }: {
         <div className="presentation-detail-app-body">
           <strong>{application.name}</strong>
           {application.code && <small>{application.code}</small>}
+          {capabilityId && relationRoleFor(application, capabilityId) === 'both'
+            && <small>{kind === 'current' ? 'Maintenue dans la cible' : 'Déjà en service'}</small>}
         </div>
-        <span className="presentation-detail-app-status">{application.status || (kind === 'target' ? 'Cible' : 'Statut non renseigné')}</span>
+        <span className="presentation-detail-app-status">{application.status === 'Cible'
+          ? 'Planifiée' : application.status || 'Statut non renseigné'}</span>
       </li>)}
     </ul> : <p className="presentation-detail-app-empty">{kind === 'current'
       ? 'Aucune application actuelle rattachée.'
@@ -56,7 +61,7 @@ export default function PresentationCapabilityDetail({
   readout,
   onClose,
 }: PresentationCapabilityDetailProps) {
-  const applicationCount = currentApplications.length + targetApplications.length;
+  const applicationCount = new Set([...currentApplications, ...targetApplications].map(application => application.id)).size;
 
   return <section className="presentation-focus-sheet presentation-capability-detail" role="dialog" aria-modal="true"
     aria-label={'Détail de ' + capability.name} data-testid="presentation-capability-detail">
@@ -93,8 +98,8 @@ export default function PresentationCapabilityDetail({
       </div>
       <div className="presentation-detail-application-groups"
         data-one-sided={currentApplications.length === 0 || targetApplications.length === 0}>
-        <ApplicationGroup kind="current" title="Applications actuelles" applications={currentApplications} />
-        <ApplicationGroup kind="target" title="Applications cibles" applications={targetApplications} />
+        <ApplicationGroup kind="current" title="Applications actuelles" applications={currentApplications} capabilityId={capability.id} />
+        <ApplicationGroup kind="target" title="Applications cibles" applications={targetApplications} capabilityId={capability.id} />
       </div>
     </section>
 
