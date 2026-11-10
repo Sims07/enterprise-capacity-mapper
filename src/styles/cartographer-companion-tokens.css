@@ -1,4 +1,9 @@
 /* Pont visuel du compagnon vers la palette sémantique officielle. */
+/* Même largeur pour le compagnon ancré et l'espace réservé à la cartographie. */
+.app.signal-experience {
+  --companion-dock-width: min(560px, 46vw);
+}
+
 .companion-root {
   --companion-launcher-shadow: color-mix(in srgb, var(--color-accent) 28%, transparent);
   --companion-launcher-shadow-hover: color-mix(in srgb, var(--color-accent) 34%, transparent);
