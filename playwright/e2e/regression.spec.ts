@@ -539,6 +539,10 @@ test.describe('Playwright regression — companion', () => {
     expect(unchanged).toBe(false);
 
     await launch.click();
+    await page.keyboard.press('Escape');
+    await expect(modal).toHaveCount(0);
+    await expect(page.getByTestId('companion-panel')).toBeVisible();
+    await launch.click();
     await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
     await page.getByTestId('link-save').click();
     await expect(review.getByTestId('companion-review-updated')).toContainText('Une relation est maintenant déclarée');
