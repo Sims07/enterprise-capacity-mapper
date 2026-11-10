@@ -407,9 +407,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         if (isPresentationWindow) setDarkMode(theme === 'dark');
       },
       onSelection: capabilityIds => {
-        if (isPresentationWindow) setPresentationSelectedCapabilityIds(
-          capabilityIds.filter(id => modelRef.current.capabilities.some(capability => capability.id === id)),
-        );
+        // Keep IDs until their model arrives: the model update and the selection
+        // travel separately, so validating here can silently drop a new N1.
+        if (isPresentationWindow) setPresentationSelectedCapabilityIds(capabilityIds);
       },
       onSelectionRequest: () => {
         if (!isPresentationWindow) publishPresentationSelection({
@@ -432,8 +432,24 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         }
       },
     });
-    if (isPresentationWindow) requestPresentationSelection({ sourceId: presentationSourceId.current });
-    return unsubscribe;
+    if (!isPresentationWindow) return unsubscribe;
+
+    // An existing projection may miss messages while suspended or restoring
+    // from the page cache. Always reconcile with the editor when it returns.
+    const requestSelection = () => requestPresentationSelection({ sourceId: presentationSourceId.current });
+    const requestSelectionWhenVisible = () => {
+      if (document.visibilityState === 'visible') requestSelection();
+    };
+    window.addEventListener('focus', requestSelection);
+    window.addEventListener('pageshow', requestSelection);
+    document.addEventListener('visibilitychange', requestSelectionWhenVisible);
+    requestSelection();
+    return () => {
+      unsubscribe();
+      window.removeEventListener('focus', requestSelection);
+      window.removeEventListener('pageshow', requestSelection);
+      document.removeEventListener('visibilitychange', requestSelectionWhenVisible);
+    };
   }, [isPresentationWindow]);
 
   // La copie de travail permet de retrouver un brouillon après rechargement, même
