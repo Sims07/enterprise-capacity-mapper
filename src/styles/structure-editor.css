@@ -305,6 +305,12 @@
 }
 
 @media (max-width: 600px) {
+  /* Préserve la lisibilité et évite le zoom automatique sur les champs iOS. */
+  .app.signal-experience .modal.structure-modal .field > input,
+  .app.signal-experience .modal.structure-modal .field > select {
+    font-size: 16px;
+  }
+
   .modal-backdrop > .modal.structure-modal {
     width: 100%;
     max-width: none;
