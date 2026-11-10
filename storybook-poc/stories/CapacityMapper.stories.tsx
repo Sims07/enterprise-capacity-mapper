@@ -27,6 +27,14 @@ export const UnifiedMapPresentation: Story = {
   },
 };
 
+/** Contrôle visuel du focus à distance : choisir une N1 puis ouvrir la restitution. */
+export const ProjectedSelection: Story = {
+  parameters: {
+    viewport: { defaultViewport: 'desktop' },
+    docs: { description: { story: 'Sélectionner une capacité N1 dans la cartographie et ouvrir Présentation. Contrôler le fond contrasté et le contour renforcé en clair et sombre ; les autres N0 conservent leurs couleurs métier et leurs titres.' } },
+  },
+};
+
 /** Atelier SIGNAL : navigation documentaire, commandes métier et mosaïque inchangée. */
 export const SignalCartography: Story = {
   parameters: {
