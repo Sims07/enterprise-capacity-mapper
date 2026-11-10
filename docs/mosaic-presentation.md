@@ -93,3 +93,9 @@ plusieurs lignes métier restent interdits.
 Pendant un redimensionnement, le glisser-déposer natif des capacités ou
 applications ne doit pas interrompre la capture du pointeur. La largeur enregistrée
 est celle validée par la règle métier ; les aperçus interrompus sont restaurés.
+
+## Focus N1 synchronisé entre l'éditeur et la présentation
+
+La sélection d'une ou plusieurs capacités **N1** depuis leur titre dans la cartographie de travail met immédiatement en évidence ces mêmes N1 dans la fenêtre projetée. Un contour d'accent distinct du fond souligne chaque N1, tandis qu'un repère discret signale leur domaine N0 parent. Un nouveau clic désélectionne la capacité et retire le repère ; la multisélection est possible. Une fenêtre ouverte après une sélection demande aussi l'état initial à l'éditeur.
+
+Le focus de sélection est un **repère de lecture temporaire**, pas une déclaration de risque ou d'impact métier. Il n'altère ni les couleurs fonctionnelles des modes Couverture/Maturité/Écarts, ni les liens applicatifs, ni les données enregistrées. La synchronisation ne transporte que des identifiants via `BroadcastChannel` (même navigateur, même origine). Sans canal disponible, chaque fenêtre reste utilisable indépendamment. Le focus N0 manuel conserve son fonctionnement. Le test Playwright `mosaic-rendering.spec.ts` couvre la sélection avant l'ouverture, la multisélection, la désélection et le respect de la coloration métier.

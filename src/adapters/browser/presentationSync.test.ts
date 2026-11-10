@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ACTIVE_MODEL_STORAGE_KEY } from '../../services/storage.ts';
 import { APP_THEME_STORAGE_KEY } from './appPreferences.ts';
-import { PRESENTATION_CHANNEL_NAME, publishPresentationTheme, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates } from './presentationSync.ts';
+import { PRESENTATION_CHANNEL_NAME, publishPresentationTheme, publishPresentationUpdate, publishPresentationView, publishPresentationSelection, requestPresentationSelection, subscribeToPresentationUpdates } from './presentationSync.ts';
 
 describe('presentationSync', () => {
   let messageHandler: EventListener | undefined;
@@ -58,6 +58,30 @@ describe('presentationSync', () => {
     messageHandler?.({ data: { type: 'view-updated', sourceId: 'editor-1', view: { ...view, readingMode: 'invalid' } } } as MessageEvent);
     expect(onView).toHaveBeenCalledTimes(1);
     expect(onUpdate).not.toHaveBeenCalled();
+    unsubscribe();
+  });
+
+  it('synchronise les identifiants sélectionnés et demande l’état initial sans modèle métier', () => {
+    const onSelection = vi.fn();
+    const onSelectionRequest = vi.fn();
+    const unsubscribe = subscribeToPresentationUpdates({
+      sourceId: 'projection', windowTarget, channelFactory: () => channel,
+      onUpdate: vi.fn(), onSelection, onSelectionRequest,
+    });
+    publishPresentationSelection({ channel, sourceId: 'editor', capabilityIds: ['n1-a', 'n1-b'] });
+    expect(channel.postMessage).toHaveBeenCalledWith({
+      type: 'selection-updated', sourceId: 'editor', capabilityIds: ['n1-a', 'n1-b'],
+    });
+    messageHandler?.({ data: { type: 'selection-updated', sourceId: 'editor', capabilityIds: ['n1-a', 'n1-b'] } } as MessageEvent);
+    expect(onSelection).toHaveBeenCalledWith(['n1-a', 'n1-b']);
+    messageHandler?.({ data: { type: 'selection-updated', sourceId: 'projection', capabilityIds: [] } } as MessageEvent);
+    messageHandler?.({ data: { type: 'selection-updated', sourceId: 'editor', capabilityIds: ['n1-a', 2] } } as MessageEvent);
+    messageHandler?.({ data: { type: 'selection-updated', sourceId: 'editor', capabilityIds: 'n1-a' } } as MessageEvent);
+    expect(onSelection).toHaveBeenCalledTimes(1);
+    requestPresentationSelection({ channel, sourceId: 'projection' });
+    expect(channel.postMessage).toHaveBeenCalledWith({ type: 'selection-requested', sourceId: 'projection' });
+    messageHandler?.({ data: { type: 'selection-requested', sourceId: 'editor' } } as MessageEvent);
+    expect(onSelectionRequest).toHaveBeenCalledOnce();
     unsubscribe();
   });
 

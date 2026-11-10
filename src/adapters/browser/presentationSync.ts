@@ -15,6 +15,8 @@ export type PresentationViewState = {
 type PresentationMessage =
   | { type: 'model-updated'; sourceId: string; timestamp: number }
   | { type: 'view-updated'; sourceId: string; view: PresentationViewState }
+  | { type: 'selection-updated'; sourceId: string; capabilityIds: string[] }
+  | { type: 'selection-requested'; sourceId: string }
   | { type: 'theme-updated'; sourceId: string; theme: Theme };
 type ChannelLike = Pick<BroadcastChannel, 'postMessage' | 'addEventListener' | 'removeEventListener' | 'close'>;
 type WindowLike = Pick<Window, 'addEventListener' | 'removeEventListener'>;
@@ -31,6 +33,20 @@ export const publishPresentationView = ({ channel, sourceId, view }: {
   channel?: ChannelLike | null; sourceId: string; view: PresentationViewState;
 }): void => {
   (channel ?? publisherChannel)?.postMessage({ type: 'view-updated', sourceId, view } satisfies PresentationMessage);
+};
+
+/** Broadcasts ephemeral N1 selection without touching the business model. */
+export const publishPresentationSelection = ({ channel, sourceId, capabilityIds }: {
+  channel?: ChannelLike | null; sourceId: string; capabilityIds: string[];
+}): void => {
+  (channel ?? publisherChannel)?.postMessage({ type: 'selection-updated', sourceId, capabilityIds } satisfies PresentationMessage);
+};
+
+/** A newly opened projection requests the current selection from its editor. */
+export const requestPresentationSelection = ({ channel, sourceId }: {
+  channel?: ChannelLike | null; sourceId: string;
+}): void => {
+  (channel ?? publisherChannel)?.postMessage({ type: 'selection-requested', sourceId } satisfies PresentationMessage);
 };
 
 /** Keeps the presentation palette in sync without sending or persisting the model. */
@@ -52,6 +68,8 @@ const isPresentationViewState = (value: unknown): value is PresentationViewState
 export const subscribeToPresentationUpdates = ({
   onUpdate,
   onView,
+  onSelection,
+  onSelectionRequest,
   onTheme,
   sourceId,
   windowTarget = globalThis.window,
@@ -59,6 +77,8 @@ export const subscribeToPresentationUpdates = ({
 }: {
   onUpdate: () => void;
   onView?: (view: PresentationViewState) => void;
+  onSelection?: (capabilityIds: string[]) => void;
+  onSelectionRequest?: () => void;
   onTheme?: (theme: Theme) => void;
   sourceId: string;
   windowTarget?: WindowLike;
@@ -69,6 +89,10 @@ export const subscribeToPresentationUpdates = ({
     if (!event.data || event.data.sourceId === sourceId) return;
     if (event.data.type === 'model-updated') onUpdate();
     if (event.data.type === 'view-updated' && isPresentationViewState(event.data.view)) onView?.(event.data.view);
+    if (event.data.type === 'selection-updated'
+      && Array.isArray(event.data.capabilityIds)
+      && event.data.capabilityIds.every(id => typeof id === 'string')) onSelection?.(event.data.capabilityIds);
+    if (event.data.type === 'selection-requested') onSelectionRequest?.();
     if (event.data.type === 'theme-updated' && (event.data.theme === 'light' || event.data.theme === 'dark')) onTheme?.(event.data.theme);
   };
   const onStorage = (event: StorageEvent) => {

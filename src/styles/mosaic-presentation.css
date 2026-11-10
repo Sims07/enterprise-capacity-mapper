@@ -894,3 +894,19 @@
     -webkit-print-color-adjust: exact;
   }
 }
+
+/* Repère temporaire de lecture, indépendant des couleurs métier du N1.
+   Les bordures intérieures restent visibles même dans les cartes très denses. */
+.app.mosaic-presentation-mode .mosaic-domain.is-presentation-selection-parent {
+  z-index: 3;
+  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--color-accent-border);
+}
+.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected,
+.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:hover,
+.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected[data-presentation-tone],
+.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected[data-presentation-tone]:hover,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected,
+.app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:hover {
+  border-color: var(--color-focus) !important;
+  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--color-focus) !important;
+}

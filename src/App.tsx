@@ -58,7 +58,7 @@ import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
 import PresentationReadingLegend from './components/PresentationReadingLegend.tsx';
 import PresentationApplicationPreview from './components/PresentationApplicationPreview.tsx';
-import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
+import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, publishPresentationSelection, requestPresentationSelection, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_CONTROLS_REVEAL_EDGE_PX = 64;
@@ -132,6 +132,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [presentationFocusedCapabilityId, setPresentationFocusedCapabilityId] = useState<string | null>(null);
   const [presentationExpandedDomainId, setPresentationExpandedDomainId] = useState<string | null>(null);
   const [presentationFocusedDomainId, setPresentationFocusedDomainId] = useState<string | null>(null);
+  const [presentationSelectedCapabilityIds, setPresentationSelectedCapabilityIds] = useState<string[]>([]);
   const [presentationDirectorOpen, setPresentationDirectorOpen] = useState(false);
   const [directorView, setDirectorView] = useState<PresentationViewState>({
     readingMode: 'identity', showApplications: false, focusedDomainId: null,
@@ -147,7 +148,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [activeRecentMapId, setActiveRecentMapId] = useState(() => preferences.readActiveRecentMapId(uid('recent')));
   const [localMapName, setLocalMapName] = useState('');
   const [pendingLocalMap, setPendingLocalMap] = useState(null);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
   const [pendingCompanionEvidence, setPendingCompanionEvidence] = useState(null);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
@@ -328,6 +331,15 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const presentationSourceId = useRef(`window-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
+  // La sélection N1 ne modifie pas le JSON métier et n'est jamais persistée.
+  useEffect(() => {
+    if (isPresentationWindow) return;
+    publishPresentationSelection({
+      sourceId: presentationSourceId.current,
+      capabilityIds: selected.filter(id => model.capabilities.some(capability => capability.id === id)),
+    });
+  }, [isPresentationWindow, selected, model.capabilities]);
+
   useEffect(() => {
     // The presentation is read-only: only the editor writes user preferences.
     if (isPresentationWindow) return;
@@ -381,7 +393,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   };
 
   useEffect(() => {
-    return subscribeToPresentationUpdates({
+    const unsubscribe = subscribeToPresentationUpdates({
       sourceId: presentationSourceId.current,
       onUpdate: () => {
         if (!isPresentationWindow) return;
@@ -392,6 +404,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       },
       onTheme: theme => {
         if (isPresentationWindow) setDarkMode(theme === 'dark');
+      },
+      onSelection: capabilityIds => {
+        if (isPresentationWindow) setPresentationSelectedCapabilityIds(
+          capabilityIds.filter(id => modelRef.current.capabilities.some(capability => capability.id === id)),
+        );
+      },
+      onSelectionRequest: () => {
+        if (!isPresentationWindow) publishPresentationSelection({
+          sourceId: presentationSourceId.current,
+          capabilityIds: selectedRef.current.filter(id =>
+            modelRef.current.capabilities.some(capability => capability.id === id)),
+        });
       },
       onView: view => {
         if (isPresentationWindow) {
@@ -407,6 +431,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         }
       },
     });
+    if (isPresentationWindow) requestPresentationSelection({ sourceId: presentationSourceId.current });
+    return unsubscribe;
   }, [isPresentationWindow]);
 
   // La copie de travail permet de retrouver un brouillon après rechargement, même
@@ -1102,7 +1128,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               const coverage = getCapCoverageState(c.id);
               const insight = capabilityMapReadout(c, coverage, capabilityFindings.get(c.id));
               const signal = presentationCapabilitySignal(c, capabilityFindings.get(c.id), presentationReadingMode);
-              const capItemClass = `cap${selected.includes(c.id) ? ' impact-selected' : ''}`;
+              const capItemClass = `cap${!presentation && selected.includes(c.id) ? ' impact-selected' : ''}${presentation && presentationSelectedCapabilityIds.includes(c.id) ? ' is-presentation-selected' : ''}`;
 
               return (
                 <div
@@ -1309,7 +1335,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           : sourceRowSpan;
         const gridColumn = `${columnIndex + mosaicColumnOffset} / span ${columnSpan}`;
         const gridRow = `${mosaicLayerRowStart(rowIndex) + (sourceRowSpan === 1 ? (stackedRows.tiers[domain.id] ?? 0) : 0)} / span ${sourceRowSpan === 1 ? 1 : mosaicLayerRowSpan(rowIndex, rowSpan)}`;
-        return <div data-stack-tier={stackedRows.tiers[domain.id] ?? 0} className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
+        return <div data-stack-tier={stackedRows.tiers[domain.id] ?? 0} className={'mosaic-domain' + (presentation && presentationFocusedDomainId && presentationFocusedDomainId !== domain.id ? ' is-presentation-dimmed' : '') + (presentation && presentationFocusedDomainId === domain.id ? ' is-presentation-focused' : '') + (presentation && model.capabilities.some(capability => capability.domainId === domain.id && presentationSelectedCapabilityIds.includes(capability.id)) ? ' is-presentation-selection-parent' : '')} key={domain.id} tabIndex={presentation ? -1 : 0} role="group"
           aria-label={presentation ? `Carte ${domain.name}` : `Carte ${domain.name}. Utilisez les bords droit et inférieur pour redimensionner.`}
           data-layout-grid-column={gridColumn} data-layout-grid-row={gridRow}
           style={{ gridColumn, gridRow }}
