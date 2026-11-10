@@ -62,6 +62,9 @@
   --map-compact-capability-min-width: 16rem;
 
   /* Shared geometry and motion */
+  /* Fenêtre métier d'édition de structure, délimitée par le viewport. */
+  --structure-dialog-width: 1024px;
+  --structure-dialog-max-height: 88dvh;
   --control-target-size: 36px;
   --radius-control: 7px;
   --radius-card: 12px;

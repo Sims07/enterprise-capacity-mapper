@@ -47,3 +47,6 @@
 
 /* Rôle actuel / cible propre à chaque relation applicative. */
 @import './relationship-roles.css';
+
+/* Éditeur de structure : portée isolée, après les variantes et le thème. */
+@import './structure-editor.css';

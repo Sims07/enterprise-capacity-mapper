@@ -51,6 +51,7 @@ En mode mosaïque, une carte N0 se déplace par glisser-déposer vers une zone d
 
 - cartographie TOGAF / capability mapping ;
 - intitulés des axes de matrice affichables ou masquables indépendamment ;
+- éditeur de structure large et responsive : colonnes et lignes côte à côte sur ordinateur, insertions/suppressions contextuelles, zones de matrice repliables et commandes de validation toujours accessibles ;
 - matrices larges et mosaïques optimisées pour les cartographies multi-colonnes ;
 - ajout et insertion d’un domaine N0 sur une cartographie existante : le formulaire permet de choisir « Insérer avant… » un N0, en repositionnant les domaines suivants sans changer leurs capacités ni leurs applications ; une ligne est ajoutée uniquement en cas de besoin, et l’annulation conserve la carte intacte ;
 - capacités N1 et applications associées ;

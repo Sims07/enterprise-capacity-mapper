@@ -9,6 +9,7 @@ import { FilePicker } from './components/ui/FilePicker.tsx';
 import { ToolMenuIcon } from './components/ui/ToolMenuIcon.tsx';
 import MapActionsMenu from './components/MapActionsMenu.tsx';
 import { Modal } from './components/ui/Modal.tsx';
+import { StructureEditor } from './components/StructureEditor.tsx';
 import { DEMO_MODEL } from './data/demoData.ts';
 import { MATURITY_LEVELS } from './domain/capabilityAssessment.ts';
 import { clampDomainSpan } from './domain/mapLayout.ts';
@@ -2049,58 +2050,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       )}
 
       {modal === 'layout' && layoutDraft && (
-        <Modal title="Personnaliser la structure" onClose={() => setModal(null)}>
-          <p className="structure-hint">Renommez les colonnes et les lignes, et choisissez les intitulés visibles sur la cartographie.</p>
-          <section className="structure-section" data-testid="axis-heading-options">
-            <h3>Intitulés des axes</h3>
-            <label className="structure-visibility-option"><input type="checkbox" checked={layoutDraft.showColumnHeadings !== false} onChange={event => setLayoutDraft(draft => ({ ...draft, showColumnHeadings: event.target.checked }))} /> Afficher les titres des colonnes</label>
-            <label className="structure-visibility-option"><input type="checkbox" checked={layoutDraft.showRowHeadings !== false} onChange={event => setLayoutDraft(draft => ({ ...draft, showRowHeadings: event.target.checked }))} /> Afficher les titres des lignes</label>
-          </section>
-          {[['columns', 'Colonnes'], ['layers', 'Layers']].map(([kind, title]) => (
-            <section className="structure-section" key={kind}>
-              <h3>{title}</h3>
-              {layoutDraft[kind].map((item, index) => (
-                <div className="structure-row" key={item.id}>
-                  <label className="field">
-                    <span>{title.slice(0, -1)} {index + 1}</span>
-                    <input value={item.name} onChange={e => updateLayoutDraft(kind, item.id, e.target.value)} />
-                  </label>
-                  <Button variant="quiet" disabled={layoutDraft[kind].length === 1 || isLayoutAxisOccupied(kind, item.id)}
-                    title={isLayoutAxisOccupied(kind, item.id) ? 'Déplacez les N0 qui occupent cet axe avant de le supprimer' : 'Supprimer cet axe'}
-                    onClick={() => removeLayoutItem(kind, item.id)}>Supprimer</Button>
-                </div>
-              ))}
-              <div className="structure-insert-controls">
-                <label className="field">
-                  <span>Position de la nouvelle {kind === 'columns' ? 'colonne' : 'ligne'}</span>
-                  <select data-testid={`structure-insert-${kind}`} value={layoutInsertion[kind]}
-                    onChange={event => setLayoutInsertion(previous => ({ ...previous, [kind]: event.target.value }))}>
-                    <option value="end">À la fin</option>
-                    {layoutDraft[kind].map(item => <option key={item.id} value={item.id}>Avant « {item.name} »</option>)}
-                  </select>
-                </label>
-                <Button variant="secondary" onClick={() => addLayoutItem(kind)}>Ajouter {kind === 'columns' ? 'une colonne' : 'une ligne'}</Button>
-              </div>
-            </section>
-          ))}
-          <section className="structure-section zone-editor">
-            <h3>Zones de la matrice</h3>
-            {layoutDraft.zones.map(zone => {
-              const column = layoutDraft.columns.find(x => x.id === zone.columnId);
-              const layer = layoutDraft.layers.find(x => x.id === zone.layerId);
-              return (
-                <label className="field zone-row" key={`${zone.columnId}:${zone.layerId}`} data-zone-key={`${zone.columnId}:${zone.layerId}`}>
-                  <span>{column?.name} · {layer?.name}</span>
-                  <input value={zone.name} onChange={e => updateZoneDraft(zone.columnId, zone.layerId, e.target.value)} />
-                </label>
-              );
-            })}
-          </section>
-          <div className="modal-actions">
-            <Button onClick={() => setModal(null)}>Annuler</Button>
-            <Button variant="primary" onClick={saveLayout}>Enregistrer</Button>
-          </div>
-        </Modal>
+        <StructureEditor
+          draft={layoutDraft}
+          insertion={layoutInsertion}
+          isAxisOccupied={isLayoutAxisOccupied}
+          onHeadingChange={(preference, visible) => setLayoutDraft(draft => ({ ...draft, [preference]: visible }))}
+          onAxisNameChange={updateLayoutDraft}
+          onZoneNameChange={updateZoneDraft}
+          onInsertionChange={(kind, value) => setLayoutInsertion(previous => ({ ...previous, [kind]: value }))}
+          onAddAxis={addLayoutItem}
+          onRemoveAxis={removeLayoutItem}
+          onCancel={() => setModal(null)}
+          onSave={saveLayout}
+        />
       )}
 
       {['domain', 'edit-domain', 'capability', 'edit-capability', 'app', 'edit-app'].includes(modal) && (
