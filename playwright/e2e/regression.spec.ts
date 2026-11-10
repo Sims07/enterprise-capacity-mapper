@@ -542,9 +542,8 @@ test.describe('Playwright regression — companion', () => {
     await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
     await page.getByTestId('link-save').click();
     await expect(review.getByTestId('companion-review-updated')).toContainText('Une relation est maintenant déclarée');
-    const linked = await page.evaluate(id => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}')
-      .applications.some((app: { capabilityIds: string[] }) => app.capabilityIds.includes(id)), targetId);
-    expect(linked).toBe(true);
+    await expect.poll(() => page.evaluate(id => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}')
+      .applications.some((app: { capabilityIds: string[] }) => app.capabilityIds.includes(id)), targetId)).toBe(true);
     await expect(review.getByTestId('companion-review-action-link-target')).toHaveCount(0);
   });
 
@@ -568,14 +567,13 @@ test.describe('Playwright regression — companion', () => {
     await modal.getByRole('button', { name: 'Créer' }).click();
     await expect(modal).toHaveCount(0);
     await expect(review.getByTestId('companion-review-updated')).toBeVisible();
-    const created = await page.evaluate(name => {
+    await expect.poll(() => page.evaluate(name => {
       const data = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}');
       const app = data.applications.find((item: { name: string }) => item.name === 'Application de test du compagnon');
       const target = data.capabilities.find((item: { name: string }) => item.name === name)
         || data.domains.find((item: { name: string }) => item.name === name);
       return Boolean(app && target && app.capabilityIds.includes(target.id));
-    }, targetName);
-    expect(created).toBe(true);
+    }, targetName)).toBe(true);
   });
 
   test('conserve les quatre analyses existantes avec qualification complémentaire', async ({ page }) => {
