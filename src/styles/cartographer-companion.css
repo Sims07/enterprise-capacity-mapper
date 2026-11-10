@@ -1361,3 +1361,28 @@
   text-align: center;
   min-height: 40px;
 }
+
+/* Feedback reflects the current cartography rather than a historical recommendation. */
+.companion-guided-review-resolved {
+  display: grid;
+  gap: var(--signal-space-2);
+  padding: var(--signal-space-3);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-card);
+  color: var(--companion-text);
+}
+.companion-guided-review-resolved > strong {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.companion-guided-review-resolved p,
+.companion-guided-review-resolved small {
+  margin: 0;
+  color: var(--companion-text);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.companion-guided-review-resolved small {
+  color: var(--companion-muted);
+}
