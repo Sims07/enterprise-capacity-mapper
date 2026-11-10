@@ -52,7 +52,7 @@
   --map-presentation-control-border: var(--color-border-strong);
   --map-presentation-control-text: var(--color-text);
   --map-presentation-muted-domain-share: 22%;
-  --presentation-detail-width: 920px;
+  --presentation-detail-width: 1020px;
   --presentation-detail-viewport-margin: 40px;
 
   /* Cartographie compacte unique : seuil de lisibilité des N1 et hauteur des pistes. */
