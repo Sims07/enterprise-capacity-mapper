@@ -49,7 +49,7 @@ import {
   updateDomain,
 } from './application/catalogUseCases.ts';
 import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.ts';
-import { defaultRelationRole, relationRoleFor, supportsCurrent, supportsTarget } from './domain/applicationRelations.ts';
+import { defaultRelationRole, lifecycleLabel, relationRoleFor, supportsCurrent, supportsTarget } from './domain/applicationRelations.ts';
 import type { RelationRole } from './domain/catalogModel.ts';
 import { RelationRoleSelect } from './components/ui/RelationRoleSelect.tsx';
 import NewMapWizard from './components/NewMapWizard.tsx';
@@ -1265,7 +1265,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   {(presentation || mapReadingMode === 'applications') && <div className="relations">
                     {coverage.apps.map(a => (
                       <div className="rel" key={a.id} draggable={!presentation} onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData('app', a.id); }}>
-                        <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
+                        <span>◈</span><b>{a.name}</b> <small>({lifecycleLabel(a.status)})</small>
                         {!presentation && <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>}
                       </div>
                     ))}
@@ -1299,7 +1299,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   let linkOptions = null;
   if (link?.kind === 'target') {
     const list = apps.filter(a => linkMatch(`${a.name} ${a.code} ${a.vendor || ''}`));
-    linkOptions = list.length ? list.map(a => linkOption(a.id, a.name, `${a.code} · ${a.status}`)) : <p className="local-map-empty">Aucune application.</p>;
+    linkOptions = list.length ? list.map(a => linkOption(a.id, a.name, `${a.code} · Cycle de vie : ${lifecycleLabel(a.status)}`)) : <p className="local-map-empty">Aucune application.</p>;
   } else if (link?.kind === 'app') {
     const groups = (depth === 1 ? [{ d: null, items: model.domains }] : model.domains.map(d => ({ d, items: model.capabilities.filter(c => c.domainId === d.id) })))
       .map(g => ({ ...g, items: g.items.filter(i => linkMatch(`${i.code} ${i.name}`)) }))
@@ -1707,7 +1707,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <input type="checkbox" className="app-pick" aria-label={`Sélectionner ${a.name}`} checked={pickedValid.includes(a.id)} onChange={() => togglePicked(a.id)} />
               <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
               <div className="app-side">
-                <span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}>{a.status}</span>
+                <span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}{lifecycleLabel(a.status)}</span>
                 <button type="button" className="app-edit" aria-label={`Modifier ${a.name}`} title={`Modifier ${a.name}`} onClick={() => openEditApplication(a)}><svg aria-hidden="true" viewBox="0 0 16 16" focusable="false"><path d="M11.8 2.2a1.4 1.4 0 0 1 2 2L6 12l-3 .8.8-3zM10.8 3.2l2 2" /></svg></button>
                 <button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button>
               </div>
