@@ -2,7 +2,7 @@ import React from 'react';
 import type { Application, Capability } from '../domain/catalogModel.ts';
 import type { capabilityMapReadout } from '../application/capabilityMapReadout.ts';
 import { Button } from './ui/Button.tsx';
-import { relationRoleFor } from '../domain/applicationRelations.ts';
+import { lifecycleLabel, relationRoleFor } from '../domain/applicationRelations.ts';
 
 type CapabilityReadout = ReturnType<typeof capabilityMapReadout>;
 
@@ -43,8 +43,7 @@ function ApplicationGroup({ title, applications, kind, capabilityId }: {
           {capabilityId && relationRoleFor(application, capabilityId) === 'both'
             && <small>{kind === 'current' ? 'Maintenue dans la cible' : 'Déjà en service'}</small>}
         </div>
-        <span className="presentation-detail-app-status">{application.status === 'Cible'
-          ? 'Planifiée' : application.status || 'Statut non renseigné'}</span>
+        <span className="presentation-detail-app-status">{lifecycleLabel(application.status)}</span>
       </li>)}
     </ul> : <p className="presentation-detail-app-empty">{kind === 'current'
       ? 'Aucune application actuelle rattachée.'
