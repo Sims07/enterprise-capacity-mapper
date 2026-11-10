@@ -1,5 +1,6 @@
 import { validateBusinessProcesses } from '../domain/businessProcesses.ts';
 import { validateApplicationRisk } from '../domain/applicationRisk.ts';
+import { validateRelationRoles } from '../domain/applicationRelations.ts';
 import type { CatalogModel } from '../domain/catalogModel.ts';
 import { validateCapabilityAssessment } from '../domain/capabilityAssessment.ts';
 
@@ -149,6 +150,12 @@ export function validateModel(model: CatalogModel): CatalogModel {
   }
   for (const app of model.applications) {
     if (app.risk !== undefined) validateApplicationRisk(app.risk);
+    // Applied again after capabilityIds validation: reject corrupted role payloads on import.
+    if (app.capabilityIds !== undefined && (!Array.isArray(app.capabilityIds)
+      || app.capabilityIds.some(id => typeof id !== 'string'))) {
+      throw new Error('Les relations applicatives doivent contenir des identifiants valides.');
+    }
+    validateRelationRoles(app.relationRoles, app.capabilityIds ?? []);
   }
   if (model.applications.some(app => app.capabilityIds !== undefined && !Array.isArray(app.capabilityIds))) {
     throw new Error('Les relations applicatives doivent être une liste.');

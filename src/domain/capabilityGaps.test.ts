@@ -73,3 +73,13 @@ test('compares capabilities to a validated reference by code or scoped normalize
     { id: 'orphan', name: 'Foo', code: undefined, domainName: 'Domaine inconnu' },
   ]);
 });
+
+test('a retained application contributes to both horizons without manufacturing a new gap', () => {
+  const input = model();
+  input.applications[0].relationRoles = { c1: 'both' };
+  const findings = analyzeCapabilityGaps(input);
+  assert.deepEqual(findings[0].currentApplications, ['app1']);
+  assert.deepEqual(findings[0].targetApplications, ['app1', 'app2']);
+  input.applications[0].relationRoles = { c1: 'target' };
+  assert.equal(analyzeCapabilityGaps(input)[0].signals.some(signal => signal.kind === 'missing-current'), true);
+});

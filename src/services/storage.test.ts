@@ -201,3 +201,17 @@ test('imports processes without changing application relations and rejects dangl
   model.businessProcesses[0].capabilityIds = ['missing'];
   await assert.rejects(importModel({ text: async () => JSON.stringify(model) }), /processus référence/i);
 });
+
+test('imports legacy V3 and validates optional per-link roles without changing the schema', async () => {
+  const legacy = validModel();
+  legacy.applications[0].status = 'Cible';
+  assert.equal(validateModel(legacy).applications[0].relationRoles, undefined);
+  const roles = validModel();
+  roles.applications[0].relationRoles = { 'cap-1': 'both' };
+  assert.deepEqual((await importModel({ text: async () => JSON.stringify(roles) })).applications[0].relationRoles, { 'cap-1': 'both' });
+  for (const value of [{ unknown: 'both' }, { 'cap-1': 'invalid' }, [], null]) {
+    const invalid = validModel();
+    (invalid.applications[0] as unknown as { relationRoles: unknown }).relationRoles = value;
+    assert.throws(() => validateModel(invalid), /rôle|relation inexistante/i);
+  }
+});

@@ -150,3 +150,31 @@ test('Catalog validates and retains qualified capability assessments', () => {
   assert.throws(() => catalog.createCapability({ id: 'c2', domainId: 'd1', name: 'New', assessment: { targetMaturity: 0 } }), /maturité/i);
   assert.deepEqual(catalog.createCapability({ id: 'c2', domainId: 'd1', name: 'New', assessment }).toModel().capabilities[1].assessment, assessment);
 });
+
+test('Catalog preserves explicit link roles through lifecycle edits and cleans orphaned roles', () => {
+  const source = Catalog.fromModel({
+    ...model,
+    capabilities: [...model.capabilities, { id: 'c2', name: 'Second', domainId: 'd1' }],
+    applications: [{ id: 'a1', name: 'App', status: 'Cible', capabilityIds: ['c1', 'c2'] }],
+  });
+  const both = source.setMappedRelationRole('a1', 'c1', 'both');
+  assert.equal(both.toModel().applications[0].relationRoles?.c1, 'both');
+  assert.deepEqual(both.updateApplication('a1', { status: 'Actif' }).toModel().applications[0].relationRoles, { c1: 'both', c2: 'target' });
+  const deleted = both.unlinkApplicationFromMappedItem('a1', 'c1').toModel().applications[0];
+  assert.deepEqual(deleted.relationRoles, undefined);
+  assert.deepEqual(both.removeCapability('c1').toModel().applications[0].relationRoles, undefined);
+  assert.throws(() => source.setMappedRelationRole('a1', 'c1', 'unknown' as never), /Rôle/);
+  assert.throws(() => source.setMappedRelationRole('a1', 'missing', 'current'), /Capacité introuvable/);
+  assert.throws(() => source.setMappedRelationRole('a1', 'c3', 'current'), /Capacité introuvable/);
+  assert.throws(() => source.createApplication({ id: 'a2', name: 'Invalid', capabilityIds: ['c1'], relationRoles: { c2: 'target' } }), /relation inexistante/);
+});
+
+test('Catalog supports per-relation roles in N0 cartographies and removes them with the domain', () => {
+  const source = Catalog.fromModel({
+    ...model,
+    layout: { depth: 1 },
+    applications: [{ id: 'a1', name: 'App', capabilityIds: ['d1'] }],
+  }).setMappedRelationRole('a1', 'd1', 'both');
+  assert.deepEqual(source.toModel().applications[0].relationRoles, { d1: 'both' });
+  assert.deepEqual(source.removeDomain('d1').toModel().applications[0].relationRoles, undefined);
+});

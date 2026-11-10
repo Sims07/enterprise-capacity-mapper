@@ -58,6 +58,12 @@ Une N1 activée au clic ou au clavier (Entrée/Espace) ouvre une **fiche de rest
 
 La fiche est un composant dédié `PresentationCapabilityDetail` utilisant les tokens Signal, documenté dans Storybook en quatre états (mixte, applications actuelles uniquement, vide, catalogue volumineux). Le test `presentation-applications.spec.ts` valide l'ordre de lecture, les statuts, le défilement des listes longues et les états vides.
 
+### Trajectoire applicative — rôle des relations
+
+Les sections « Applications actuelles » et « Applications cibles » représentent les **contributions de chaque relation** à la capacité projetée et non le seul statut global de cycle de vie. Une application déclarée « Actuelle et cible » apparaît dans les deux sections avec la précision « Maintenue dans la cible » / « Déjà en service ». Le compteur principal totalise des applications **distinctes** : une relation double n'est pas comptée deux fois. L'infobulle des aperçus N1 expose ce rôle ; le badge « maintenue » le distingue des applications futures seules. La qualification se fait dans l'éditeur via « Relier… » et non dans la fenêtre de projection en lecture seule.
+
+Les JSON V3 non requalifiés conservent l'ancienne règle `status=Cible` → cible seule, tous les autres statuts → actuelle seule. Le changement du cycle de vie ne modifie pas les rôles de contribution enregistrés. Ce découpage ne présume ni de la fin de vie d'une application actuelle, ni de sa conservation en cible.
+
 ### Fiche exécutive N1
 
 L'en-tête de restitution met d'abord en valeur le nom et le code de la capacité, ainsi que son domaine N0. La fermeture utilise le composant Button du design system et un pictogramme vectoriel, aligné en haut à droite. Les en-têtes internes ne reprennent plus le positionnement sticky, la hauteur et l'ombre du header global.

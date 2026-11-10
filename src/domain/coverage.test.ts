@@ -63,3 +63,22 @@ test('planned target-only links stay visible but do not count as current coverag
   assert.deepEqual(result.redundancy.map(item => item.id), ['cap-2']);
   assert.deepEqual(result.touched, input);
 });
+
+test('one application can count once in each horizon without double-counting linked applications', () => {
+  const input = [
+    { id: 'shared', name: 'Conservée', status: 'Actif', capabilityIds: ['cap-1', 'cap-2'], relationRoles: { 'cap-1': 'both' as const, 'cap-2': 'target' as const } },
+    { id: 'future', name: 'Future', status: 'Cible', capabilityIds: ['cap-1'] },
+  ];
+  const current = getCapabilityCoverageState('cap-1', input);
+  assert.equal(current.count, 2);
+  assert.equal(current.currentCount, 1);
+  assert.equal(current.targetCount, 2);
+  assert.equal(current.state, 'ok');
+  const targetOnly = getCapabilityCoverageState('cap-2', input);
+  assert.equal(targetOnly.state, 'gap');
+  assert.equal(targetOnly.currentCount, 0);
+  assert.equal(targetOnly.targetCount, 1);
+  const overview = deriveCoverageOverview({ mappedItems: [{ id: 'cap-1' }, { id: 'cap-2' }], applications: input, selectedIds: ['cap-1', 'cap-2'] });
+  assert.deepEqual(overview.gaps, [{ id: 'cap-2' }]);
+  assert.deepEqual(overview.redundancy, []);
+});

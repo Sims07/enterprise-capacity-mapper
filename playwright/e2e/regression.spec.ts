@@ -1030,21 +1030,62 @@ test.describe('Revue de décisions et scénarios de transformation', () => {
   });
 });
 
-test('ne compte pas une application uniquement cible dans la couverture actuelle', async ({ page }) => {
+test('déclare une application actuelle et cible depuis la capacité puis la retrouve en présentation', async ({ page }) => {
+  await fresh(page);
+  await page.getByTestId('nav-analysis').click();
+  await page.getByTestId('tab-relations').click();
+  await page.getByRole('button', { name: 'Relier des applications à Gestion des Prospects & Leads' }).click();
+  const relation = page.getByTestId('link-list').locator('.link-relation-option').filter({ hasText: 'Salesforce CRM' });
+  await expect(relation.locator('input[type="checkbox"]')).toBeChecked();
+  await relation.locator('select').selectOption('both');
+  await page.getByTestId('link-save').click();
+  await expect(page.locator('.tree-node-cap').filter({ hasText: 'Gestion des Prospects & Leads' })).toContainText('Actuelle et cible');
+  const persisted = await page.evaluate(() => {
+    const model = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}');
+    const app = model.applications.find((item: { name: string }) => item.name === 'Salesforce CRM');
+    const cap = model.capabilities.find((item: { name: string }) => item.name === 'Gestion des Prospects & Leads');
+    return { role: app?.relationRoles?.[cap?.id], status: app?.status };
+  });
+  expect(persisted).toEqual({ role: 'both', status: 'Actif' });
+  await page.goto('/?view=presentation');
+  const cap = page.locator('.mosaic-domain .cap').filter({ hasText: 'Gestion des Prospects & Leads' }).first();
+  await cap.click();
+  const detail = page.getByTestId('presentation-capability-detail');
+  await expect(detail.getByTestId('presentation-current-apps')).toContainText('Salesforce CRM');
+  await expect(detail.getByTestId('presentation-target-apps')).toContainText('Salesforce CRM');
+  await expect(detail.getByTestId('presentation-app-total')).toHaveText('1');
+  await expect(detail).toContainText('Maintenue dans la cible');
+  await detail.getByTestId('presentation-focus-close').click();
+  await page.reload();
+  await page.locator('.mosaic-domain .cap').filter({ hasText: 'Gestion des Prospects & Leads' }).first().click();
+  await expect(page.getByTestId('presentation-target-apps')).toContainText('Salesforce CRM');
+});
+
+test('distingue le cycle de vie de l’application du rôle de couverture et persiste la trajectoire', async ({ page }) => {
   await fresh(page);
   await page.getByTestId('map-inventory-toggle').click();
   const application = page.locator('.app-item').filter({ hasText: 'Salesforce CRM' });
   await application.getByRole('button', { name: 'Modifier Salesforce CRM' }).click();
   const dialog = page.getByRole('dialog', { name: 'Modifier l’application' });
-  await dialog.getByLabel('Statut').selectOption('Cible');
+  await dialog.getByLabel('Cycle de vie de l\'application').selectOption('Cible');
   await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByTestId('nav-analysis').click();
+  // Planifier l'application dans son cycle de vie ne supprime jamais sa contribution actuelle.
+  await expect(page.getByTestId('dashboard-gap-count')).toHaveText('2');
+  await page.getByTestId('tab-relations').click();
+  const capability = page.locator('.tree-node-cap').filter({ hasText: 'Gestion des Prospects & Leads' });
+  await expect(capability).toContainText('Couvert');
+  await page.getByRole('button', { name: 'Relier des applications à Gestion des Prospects & Leads' }).click();
+  const relation = page.getByTestId('link-list').locator('.link-relation-option').filter({ hasText: 'Salesforce CRM' });
+  await relation.locator('select').selectOption('target');
+  await page.getByTestId('link-save').click();
+  await expect(capability).toContainText('Gap');
+  await expect(capability).toContainText('1 cible(s)');
+  await page.reload();
   await page.getByTestId('nav-analysis').click();
   await expect(page.getByTestId('dashboard-gap-count')).toHaveText('3');
   await page.getByTestId('tab-relations').click();
   await expect(page.locator('.tree-summary')).toContainText('3 gaps');
-  const capability = page.locator('.tree-node-cap').filter({ hasText: 'Gestion des Prospects & Leads' });
-  await expect(capability).toContainText('Gap');
-  await expect(capability).toContainText('1 cible(s)');
 });
 
 

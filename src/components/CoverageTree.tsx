@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { getCapabilityCoverageState, isCurrentApplication } from '../application/coverageUseCases.ts';
+import { getCapabilityCoverageState } from '../application/coverageUseCases.ts';
+import { lifecycleLabel, supportsCurrent, supportsTarget } from '../domain/applicationRelations.ts';
 
 const statusClass = status => 'badge ' + String(status || '').toLowerCase().replace('é', 'e');
 
@@ -23,7 +24,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
 
   const appsFor = id => apps.filter(a => (a.capabilityIds || []).includes(id));
   const matchesCoverage = id => {
-    const n = appsFor(id).filter(isCurrentApplication).length;
+    const n = appsFor(id).filter(app => supportsCurrent(app, id)).length;
     return coverage === 'all' || (coverage === 'gap' && n === 0) || (coverage === 'redundant' && n > 1);
   };
   const matchesText = item => !q
@@ -31,8 +32,8 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
     || appsFor(item.id).some(a => a.name.toLowerCase().includes(q));
 
   const targets = depth === 1 ? domains : capabilities;
-  const gapCount = targets.filter(t => appsFor(t.id).filter(isCurrentApplication).length === 0).length;
-  const redundantCount = targets.filter(t => appsFor(t.id).filter(isCurrentApplication).length > 1).length;
+  const gapCount = targets.filter(t => appsFor(t.id).filter(app => supportsCurrent(app, t.id)).length === 0).length;
+  const redundantCount = targets.filter(t => appsFor(t.id).filter(app => supportsCurrent(app, t.id)).length > 1).length;
 
   const rows = domains.map(d => {
     if (depth === 1) return { d, caps: [], visible: matchesText(d) && matchesCoverage(d.id) };
@@ -89,7 +90,10 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
       <span className="tree-app-icon" aria-hidden="true">◈</span>
       <b>{app.name}</b>
       <small>{app.code}</small>
-      <span className={statusClass(app.status)}>{app.status}</span>
+      <span className={statusClass(app.status)}>{lifecycleLabel(app.status)}</span>
+      <small className="tree-relation-role">{supportsCurrent(app, target.id)
+        ? supportsTarget(app, target.id) ? 'Actuelle et cible' : 'Actuelle'
+        : 'Cible'}</small>
       <button type="button" className="tree-remove" aria-label={`Retirer ${app.name} de ${target.name}`} title="Retirer cette relation" onClick={() => onUnassign(app.id, target.id)}>×</button>
     </div>
   );

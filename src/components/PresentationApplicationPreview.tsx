@@ -1,18 +1,18 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { Application } from '../domain/catalogModel.ts';
-import { isCurrentApplication } from '../domain/coverage.ts';
+import { relationRoleFor } from '../domain/applicationRelations.ts';
 
 // Les arrondis sous-pixel du navigateur ne doivent pas faire perdre un badge.
 const LAYOUT_ROUNDING_TOLERANCE_PX = 1;
 
-type Props = { applications: Application[] };
+type Props = { applications: Application[]; targetId: string };
 
 /**
  * Calcule les badges réellement logeables dans chaque N1 (largeur et hauteur).
  * Le miroir invisible utilise les mêmes styles que les badges affichés :
  * aucune limite globale de deux applications, aucune hauteur devinée.
  */
-export default function PresentationApplicationPreview({ applications }: Props) {
+export default function PresentationApplicationPreview({ applications, targetId }: Props) {
   const previewRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(applications.length);
@@ -88,9 +88,12 @@ export default function PresentationApplicationPreview({ applications }: Props) 
       data-testid="presentation-app-preview" data-visible-count={visibleCount}>
       {applications.slice(0, visibleCount).map(application => (
         <span key={application.id}
-          className={isCurrentApplication(application) ? 'presentation-app-chip' : 'presentation-app-chip is-target'}
-          title={`${application.name} · ${isCurrentApplication(application) ? 'Actuelle' : 'Cible'}`}>
-          {application.name}{!isCurrentApplication(application) && <em>cible</em>}
+          className={relationRoleFor(application, targetId) === 'target'
+            ? 'presentation-app-chip is-target'
+            : relationRoleFor(application, targetId) === 'both' ? 'presentation-app-chip is-maintained' : 'presentation-app-chip'}
+          title={`${application.name} · ${relationRoleFor(application, targetId) === 'both' ? 'Actuelle et cible' : relationRoleFor(application, targetId) === 'target' ? 'Cible' : 'Actuelle'}`}>
+          {application.name}{relationRoleFor(application, targetId) === 'target' && <em>cible</em>}
+          {relationRoleFor(application, targetId) === 'both' && <em>maintenue</em>}
         </span>
       ))}
       {visibleCount < applications.length &&
@@ -98,8 +101,10 @@ export default function PresentationApplicationPreview({ applications }: Props) 
     </div>
     <div ref={measureRef} className="presentation-app-measure" aria-hidden="true">
       {applications.map(application => <span key={application.id}
-        className={isCurrentApplication(application) ? 'presentation-app-measure-chip' : 'presentation-app-measure-chip is-target'}>
-        {application.name}{!isCurrentApplication(application) && <em>cible</em>}
+        className={relationRoleFor(application, targetId) === 'target'
+          ? 'presentation-app-measure-chip is-target' : 'presentation-app-measure-chip'}>
+        {application.name}{relationRoleFor(application, targetId) === 'target' && <em>cible</em>}
+        {relationRoleFor(application, targetId) === 'both' && <em>maintenue</em>}
       </span>)}
       <span className="presentation-app-measure-more" />
     </div>

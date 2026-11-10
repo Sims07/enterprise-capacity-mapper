@@ -49,7 +49,9 @@ import {
   updateDomain,
 } from './application/catalogUseCases.ts';
 import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.ts';
-import { isCurrentApplication } from './domain/coverage.ts';
+import { defaultRelationRole, lifecycleLabel, relationRoleFor, supportsCurrent, supportsTarget } from './domain/applicationRelations.ts';
+import type { RelationRole } from './domain/catalogModel.ts';
+import { RelationRoleSelect } from './components/ui/RelationRoleSelect.tsx';
 import NewMapWizard from './components/NewMapWizard.tsx';
 import TogafGuide from './components/TogafGuide.tsx';
 import CoverageTree from './components/CoverageTree.tsx';
@@ -116,6 +118,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [pickedApps, setPickedApps] = useState([]);
   const [link, setLink] = useState(null);
   const [linkChecked, setLinkChecked] = useState([]);
+  const [linkRoleDraft, setLinkRoleDraft] = useState<Record<string, RelationRole>>({});
   const [linkQuery, setLinkQuery] = useState('');
   const [expandedCapId, setExpandedCapId] = useState(null); // Détail au clic pour N1
   const isPresentationWindow = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('view') === 'presentation';
@@ -187,7 +190,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
   const relationIds = item => item.capabilityIds || [];
-  const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
 
   useEffect(() => {
     if (!presentation) {
@@ -1047,12 +1049,16 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const openLinkForTarget = item => {
     setLink({ kind: 'target', id: item.id, name: item.name });
     setLinkChecked(apps.filter(a => relationIds(a).includes(item.id)).map(a => a.id));
+    setLinkRoleDraft(Object.fromEntries(apps.map(application =>
+      [application.id, relationRoleFor(application, item.id) ?? defaultRelationRole(application)])));
     setLinkQuery('');
     setModal('link');
   };
   const openLinkForApp = app => {
     setLink({ kind: 'app', id: app.id, name: app.name });
     setLinkChecked(relationIds(app).filter(id => mappedItems.some(m => m.id === id)));
+    setLinkRoleDraft(Object.fromEntries(mappedItems.map(item =>
+      [item.id, relationRoleFor(app, item.id) ?? defaultRelationRole(app)])));
     setLinkQuery('');
     setModal('link');
   };
@@ -1073,11 +1079,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     if (action.kind === 'link-target') openLinkForTarget(target);
     else if (action.kind === 'create-application') openNew('app', target.id);
   };
-  const closeLink = () => { setModal(null); setLink(null); };
+  const closeLink = () => { setModal(null); setLink(null); setLinkRoleDraft({}); };
   const toggleLinkChecked = id => setLinkChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
   const saveLink = () => {
     if (!link) return;
-    const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked, domains: model.domains, capabilities: model.capabilities, depth });
+    const nextApps = prepareLinkedApplications({ applications: apps, mappedItems, link, checkedIds: linkChecked, roles: linkRoleDraft, domains: model.domains, capabilities: model.capabilities, depth });
     if (nextApps.some((a, i) => a !== apps[i])) update({ applications: nextApps });
     notify('Relations mises à jour');
     closeLink();
@@ -1209,14 +1215,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   </div>
                   {presentation && presentationReadingMode !== 'identity' && <span className="presentation-cap-signal">{signal.label}</span>}
                   {presentation && presentationShowApplications &&
-                    <PresentationApplicationPreview applications={coverage.apps} />}
+                    <PresentationApplicationPreview applications={coverage.apps} targetId={c.id} />}
                   {presentation && presentationShowApplications && <div className="presentation-app-compact"
                     data-testid="presentation-app-compact"
                     aria-label={`${coverage.apps.length} application(s) rattachée(s)`}
                     title={coverage.apps.map(application => application.name).join(' · ')}>
                     {coverage.apps.length > 0 ? <>
                       <span className="presentation-app-compact-name">{coverage.apps[0].name}</span>
-                      {!isCurrentApplication(coverage.apps[0]) && <span className="presentation-app-compact-target">cible</span>}
+                      {!supportsCurrent(coverage.apps[0], c.id) && <span className="presentation-app-compact-target">cible</span>}
                       {coverage.apps.length > 1 && <span className="presentation-app-compact-more">+{coverage.apps.length - 1}</span>}
                     </> : <span className="presentation-app-compact-empty">Aucune application reliée</span>}
                   </div>}
@@ -1260,7 +1266,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   {(presentation || mapReadingMode === 'applications') && <div className="relations">
                     {coverage.apps.map(a => (
                       <div className="rel" key={a.id} draggable={!presentation} onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData('app', a.id); }}>
-                        <span>◈</span><b>{a.name}</b> <small>({a.status})</small>
+                        <span>◈</span><b>{a.name}</b> <small>({lifecycleLabel(a.status)})</small>
                         {!presentation && <button type="button" onClick={e => { e.stopPropagation(); unassign(a.id, c.id); }}>×</button>}
                       </div>
                     ))}
@@ -1277,15 +1283,24 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const linkMatch = text => text.toLowerCase().includes(linkQuery.trim().toLowerCase());
   const linkOption = (id, title, sub) => (
-    <label className="link-option" key={id}>
-      <input type="checkbox" checked={linkChecked.includes(id)} onChange={() => toggleLinkChecked(id)} />
-      <span><b>{title}</b>{sub && <small>{sub}</small>}</span>
-    </label>
+    <div className="link-option link-relation-option" key={id}>
+      <label className="link-relation-choice">
+        <input type="checkbox" checked={linkChecked.includes(id)} onChange={() => toggleLinkChecked(id)} />
+        <span><b>{title}</b>{sub && <small>{sub}</small>}</span>
+      </label>
+      {linkChecked.includes(id) && <RelationRoleSelect
+        label={link?.kind === 'target'
+          ? `Rôle de ${title} pour ${link.name}`
+          : `Rôle de ${link?.name} pour ${title}`}
+        value={linkRoleDraft[id] ?? 'current'}
+        testId={`relation-role-${id}`}
+        onChange={role => setLinkRoleDraft(previous => ({ ...previous, [id]: role }))} />}
+    </div>
   );
   let linkOptions = null;
   if (link?.kind === 'target') {
     const list = apps.filter(a => linkMatch(`${a.name} ${a.code} ${a.vendor || ''}`));
-    linkOptions = list.length ? list.map(a => linkOption(a.id, a.name, `${a.code} · ${a.status}`)) : <p className="local-map-empty">Aucune application.</p>;
+    linkOptions = list.length ? list.map(a => linkOption(a.id, a.name, `${a.code} · Cycle de vie : ${lifecycleLabel(a.status)}`)) : <p className="local-map-empty">Aucune application.</p>;
   } else if (link?.kind === 'app') {
     const groups = (depth === 1 ? [{ d: null, items: model.domains }] : model.domains.map(d => ({ d, items: model.capabilities.filter(c => c.domainId === d.id) })))
       .map(g => ({ ...g, items: g.items.filter(i => linkMatch(`${i.code} ${i.name}`)) }))
@@ -1703,7 +1718,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <input type="checkbox" className="app-pick" aria-label={`Sélectionner ${a.name}`} checked={pickedValid.includes(a.id)} onChange={() => togglePicked(a.id)} />
               <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
               <div className="app-side">
-                <span className={'badge ' + a.status.toLowerCase().replace('é', 'e')}>{a.status}</span>
+                <span className={'badge ' + String(a.status || '').toLowerCase().replace('é', 'e')}>{lifecycleLabel(a.status)}</span>
                 <button type="button" className="app-edit" aria-label={`Modifier ${a.name}`} title={`Modifier ${a.name}`} onClick={() => openEditApplication(a)}><svg aria-hidden="true" viewBox="0 0 16 16" focusable="false"><path d="M11.8 2.2a1.4 1.4 0 0 1 2 2L6 12l-3 .8.8-3zM10.8 3.2l2 2" /></svg></button>
                 <button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button>
               </div>
@@ -1919,8 +1934,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
       {presentation && presentationFocusedCapability && (() => {
         const coverage = getCapCoverageState(presentationFocusedCapability.id);
         const detail = capabilityMapReadout(presentationFocusedCapability, coverage, capabilityFindings.get(presentationFocusedCapability.id));
-        const current = coverage.apps.filter(isCurrentApplication);
-        const targets = coverage.apps.filter(application => !isCurrentApplication(application));
+        const current = coverage.apps.filter(application => supportsCurrent(application, presentationFocusedCapability.id));
+        const targets = coverage.apps.filter(application => supportsTarget(application, presentationFocusedCapability.id));
         const domainName = model.domains.find(domain => domain.id === presentationFocusedCapability.domainId)?.name;
         return <div className="presentation-focus-overlay" onMouseDown={event => {
           if (event.target === event.currentTarget) setPresentationFocusedCapabilityId(null);
@@ -2027,7 +2042,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           title={link.kind === 'target' ? `Relier des applications à « ${link.name} »` : `Relier « ${link.name} » à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`}
           onClose={closeLink}
         >
-          <p className="structure-hint">Cochez les {link.kind === 'target' ? 'applications qui supportent' : depth === 1 ? 'domaines supportés par' : 'capacités supportées par'} {link.kind === 'target' ? `ce ${relationLabel}` : 'cette application'}. Décochez pour retirer une relation.</p>
+          <p className="structure-hint">Sélectionnez les relations à conserver, puis leur rôle : actuelle, cible ou actuelle et cible. Le cycle de vie de l’application est indépendant de ce rôle.</p>
           <input className="search" aria-label="Rechercher dans la liste" placeholder="Rechercher…" value={linkQuery} onChange={e => setLinkQuery(e.target.value)} />
           <div className="link-list" data-testid="link-list">
             {linkOptions}
@@ -2170,12 +2185,13 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 <>
                   <Field label="Éditeur / fournisseur" required error={formErrors.vendor} value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} />
                   <label className="field">
-                    <span>Statut</span>
+                    <span>Cycle de vie de l'application</span>
                     <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                      <option>Actif</option>
-                      <option>Cible</option>
-                      <option>Obsolète</option>
+                      <option value="Actif">Active</option>
+                      <option value="Cible">Planifiée</option>
+                      <option value="Obsolète">Obsolète</option>
                     </select>
+                    <small className="ds-field-hint">Indépendant du rôle « actuelle / cible » choisi pour chaque capacité dans « Relier à… ».</small>
                   </label>
                   <label className="field">
                     <span>Type</span>

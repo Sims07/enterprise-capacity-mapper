@@ -37,7 +37,7 @@ test.describe('Playwright POC — critical browser workflows', () => {
     await dialog.getByLabel('Nom').fill('Salesforce CRM — renommé');
     await dialog.getByLabel('Code').fill('CRM-SF');
     await dialog.getByLabel('Éditeur / fournisseur').fill('Salesforce');
-    await dialog.getByLabel('Statut').selectOption('Cible');
+    await dialog.getByLabel("Cycle de vie de l'application").selectOption('Cible');
     await dialog.getByLabel('Type').selectOption('ERP');
     await dialog.getByLabel('Description').fill('Application mise à jour depuis la gestion des applications.');
     await dialog.getByRole('button', { name: 'Enregistrer' }).click();
@@ -45,7 +45,7 @@ test.describe('Playwright POC — critical browser workflows', () => {
     const updated = page.locator('.app-item').filter({ hasText: 'Salesforce CRM — renommé' });
     await expect(updated).toContainText('CRM-SF');
     await expect(updated).toContainText('Salesforce');
-    await expect(updated).toContainText('Cible');
+    await expect(updated).toContainText('Planifiée');
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toContainText('Salesforce CRM — renommé');
 
     await page.reload();
