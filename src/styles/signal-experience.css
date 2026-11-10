@@ -202,7 +202,7 @@
   white-space: nowrap;
   font-weight: 750;
 }
-/* Inventaire à la demande : ne rétrécit JAMAIS la grille de cartographie. */
+/* Inventaire flottant à la demande : conserve la largeur de la mosaïque. */
 .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open {
   grid-template-columns: minmax(0, 1fr) !important;
 }
@@ -282,13 +282,13 @@
   color: var(--color-text);
   border-color: var(--color-border);
 }
-/* Comme le compagnon ancré, l'inventaire pleine hauteur libère sa largeur sur la carte.
+/* Comme le compagnon ancré, l'inventaire pleine hauteur réserve sa largeur et redimensionne la carte.
  * La variante flottante conserve l'affichage historique sans retrait de largeur. */
 @media (min-width: 901px) {
   .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-docked) {
     width: calc(100% - var(--signal-panel-width));
   }
-  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-inventory-docked > aside#app-inventory {
+  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
     inset-block: 0 !important;
     max-height: 100dvh;
     height: 100dvh;
@@ -300,7 +300,7 @@
   .app.signal-experience:not(.mosaic-presentation-mode):has(> .workspace.mosaic-inventory-docked):has(> .companion-root .companion-panel.is-dock) {
     width: calc(100% - var(--signal-panel-width) - var(--companion-dock-width));
   }
-  .app.signal-experience:not(.mosaic-presentation-mode):has(> .companion-root .companion-panel.is-dock) .workspace.mosaic-inventory-docked > aside#app-inventory {
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .companion-root .companion-panel.is-dock) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
     inset-inline-end: var(--companion-dock-width);
   }
 }
@@ -312,7 +312,7 @@
     width: min(var(--signal-panel-width), calc(100vw - 2 * var(--signal-space-4)));
     max-height: calc(100dvh - 2 * var(--signal-space-4));
   }
-  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-inventory-docked > aside#app-inventory {
+  .app.signal-experience:not(.mosaic-presentation-mode) .workspace.mosaic-workspace.mosaic-inventory-open.mosaic-inventory-docked > aside#app-inventory {
     inset: 0 !important;
     width: 100vw;
     height: 100dvh;
