@@ -920,8 +920,21 @@ test.describe('Cartographie unifiée', () => {
     const first = projection.locator(`.cap[data-entity-id="${firstId}"]`);
     const second = projection.locator(`.cap[data-entity-id="${secondId}"]`);
     await expect(first).toHaveClass(/is-presentation-selected/);
+    await expect(projection.getByTestId('capability-map')).toHaveClass(/has-presentation-spotlight/);
     await expect(projection.locator('.mosaic-domain.is-presentation-selection-parent')).not.toHaveCount(0);
     await expect(projection.locator('.presentation-focus-overlay')).toHaveCount(0);
+    const contrast = await first.evaluate(element => {
+      const normal = element.closest('.mosaic-domain')?.querySelector('.cap:not(.is-presentation-selected)');
+      if (!normal) throw new Error('La N0 de démonstration doit contenir une N1 non sélectionnée');
+      return {
+        selectedFill: getComputedStyle(element).backgroundColor,
+        otherFill: getComputedStyle(normal).backgroundColor,
+        selectedStroke: Number.parseFloat(getComputedStyle(element).borderTopWidth),
+        otherStroke: Number.parseFloat(getComputedStyle(normal).borderTopWidth),
+      };
+    });
+    expect(contrast.selectedFill).not.toBe(contrast.otherFill);
+    expect(contrast.selectedStroke).toBeGreaterThan(contrast.otherStroke);
     // Assert the actual projected spotlight, not only the class that can be
     // visually overridden by the dark theme or by the business status colors.
     await expect(first).toHaveCSS('outline-style', 'solid');
@@ -943,16 +956,53 @@ test.describe('Cartographie unifiée', () => {
 
     await projection.getByTestId('presentation-reading-maturity').click();
     await expect(first).toHaveAttribute('data-presentation-tone', /.+/);
+    const selectedMaturityColor = await first.evaluate(element => getComputedStyle(element).backgroundColor);
     await editorCaps.nth(1).getByTestId('map-cap-select').click();
     await expect(first).toHaveClass(/is-presentation-selected/);
     await expect(second).toHaveClass(/is-presentation-selected/);
     await expect(second).toHaveAttribute('data-presentation-tone', /.+/);
     await editorCaps.first().getByTestId('map-cap-select').click();
     await expect(first).not.toHaveClass(/is-presentation-selected/);
+    await expect(first).toHaveCSS('background-color', selectedMaturityColor);
     await expect(second).toHaveClass(/is-presentation-selected/);
     await editorCaps.nth(1).getByTestId('map-cap-select').click();
     await expect(projection.locator('.cap.is-presentation-selected')).toHaveCount(0);
     await expect(projection.locator('.mosaic-domain.is-presentation-selection-parent')).toHaveCount(0);
+    await expect(projection.getByTestId('capability-map')).not.toHaveClass(/has-presentation-spotlight/);
+  });
+
+  test('contraste la N1 pointée sur le second écran en thème sombre', async ({ page, context }) => {
+    await page.goto('/');
+    await page.getByTestId('tools-menu-toggle').click();
+    await page.getByTestId('theme-toggle').click();
+    await expect(page.locator('.app.theme-dark')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    const firstEditorCap = page.getByTestId('capability-map').locator('.cap').first();
+    const capabilityId = await firstEditorCap.getAttribute('data-entity-id');
+    await firstEditorCap.getByTestId('map-cap-select').click();
+    const presentationPromise = context.waitForEvent('page');
+    await page.getByTestId('presentation-switch-toolbar').click();
+    const projection = await presentationPromise;
+    await projection.waitForLoadState();
+    const selectedCap = projection.locator(`.cap[data-entity-id="${capabilityId}"]`);
+    await expect(projection.locator('.app.theme-dark')).toBeVisible();
+    await expect(selectedCap).toHaveClass(/is-presentation-selected/);
+    const appearance = await selectedCap.evaluate(element => {
+      const plain = element.closest('.mosaic-domain')?.querySelector('.cap:not(.is-presentation-selected)');
+      if (!plain) throw new Error('Le domaine de démonstration doit contenir une N1 témoin');
+      return {
+        selectedFill: getComputedStyle(element).backgroundColor,
+        ordinaryFill: getComputedStyle(plain).backgroundColor,
+        stroke: Number.parseFloat(getComputedStyle(element).borderTopWidth),
+        ordinaryStroke: Number.parseFloat(getComputedStyle(plain).borderTopWidth),
+      };
+    });
+    expect(appearance.selectedFill).not.toBe(appearance.ordinaryFill);
+    expect(appearance.stroke).toBeGreaterThan(appearance.ordinaryStroke);
+    await firstEditorCap.getByTestId('map-cap-select').click();
+    await expect(selectedCap).not.toHaveClass(/is-presentation-selected/);
+    await expect(projection.getByTestId('capability-map')).not.toHaveClass(/has-presentation-spotlight/);
   });
 
   for (const theme of ['light', 'dark'] as const) {
