@@ -49,7 +49,6 @@ import {
   updateDomain,
 } from './application/catalogUseCases.ts';
 import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.ts';
-import { isCurrentApplication } from './domain/coverage.ts';
 import { defaultRelationRole, relationRoleFor, supportsCurrent, supportsTarget } from './domain/applicationRelations.ts';
 import type { RelationRole } from './domain/catalogModel.ts';
 import { RelationRoleSelect } from './components/ui/RelationRoleSelect.tsx';
@@ -190,7 +189,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
   const relationIds = item => item.capabilityIds || [];
-  const relationLabel = depth === 1 ? 'domaine N0' : 'capacité N1';
 
   useEffect(() => {
     if (!presentation) {
