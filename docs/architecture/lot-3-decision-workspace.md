@@ -70,3 +70,14 @@ L’application demeure statique, compatible GitHub Pages et hors ligne, sans ap
 Lorsque le diagnostic local retourne **exactement un constat**, la qualification s'ouvre immédiatement, sans clic sur une ligne de sélection. La carte « À retenir » n'est alors pas dupliquée : le constat, sa référence et la question sont visibles dans le même bloc. Une réponse qualifiée peut faire apparaître un encart « Passer à l'action » avec les **actions métier explicites** déjà reliées au parcours du compagnon (liaison ou création d'application) et une confirmation dans l'éditeur existant. Après la réponse, l'encart est amené dans la zone visible de la conversation. Le bouton « Recommencer la qualification » revient aux questions, sans mutation.
 
 Avec **plusieurs constats**, le Decision Brief et la liste sélectionnable sont conservés pour ne pas décider à la place de l'architecte. Un clic sur un constat ouvre son questionnaire ; les autres constats ne sont pas ouverts automatiquement. Les variantes simple et sombre sont documentées dans Storybook et l'ouverture automatique ainsi que la visibilité de l'action sont couvertes par Playwright.
+
+## Actualisation immédiate après une action de cartographie
+
+Les échanges du compagnon restent **historiques** (question posée, contexte et réponses conservés pour la session), mais l'affichage des **constats encore actifs** est recalculé en temps réel par `analyzeCartography(model)`. Un diff déterministe de leurs identifiants stables (`reconcileCompanionReview`) distingue les constats levés, ceux encore présents et les nouveaux constats de même catégorie.
+
+Après l'ajout ou la création d'une relation applicative :
+- si le constat initial disparaît et qu'aucun écart de cette analyse ne subsiste, l'affichage annonce **« Constat levé dans la cartographie actuelle »**, à la place de l'ancien statut « Donnée incomplète », de sa recommandation et de la liste de constats obsolète ;
+- si d'autres écarts restent présents, ils sont conservés comme **constats actifs** et peuvent toujours être qualifiés. Le nombre dans l'en-tête et la synthèse suivent également l'état actuel ;
+- si l'édition est annulée, les constats restent actifs, et les recommandations ne sont pas présentées comme réalisées.
+
+Une liaison déclarée prouve uniquement l'existence d'une **relation de cartographie**. La suffisance de la couverture métier ou le niveau de risque restent à qualifier par l'architecte. Aucun LLM, appel distant, modification automatique supplémentaire, ni persistance des réponses du compagnon ne sont introduits. Les tests Vitest du diff et les E2E Playwright couvrent la résolution totale et partielle, ainsi que le maintien des constats restants.
