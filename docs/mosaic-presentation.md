@@ -56,7 +56,14 @@ Le test Playwright `playwright/e2e/presentation-applications.spec.ts` reproduit 
 
 Une N1 activée au clic ou au clavier (Entrée/Espace) ouvre une **fiche de restitution centrée sur les applications** : contexte N0 et code, intitulé métier complet, dénombrement et liste exhaustive des applications actuelles et cibles avec leurs statuts. Les applications sont affichées avant les indicateurs d'évaluation, séparées visuellement par état actuel/cible. Si aucune application cible (ou actuelle) n'est présente, la fiche affiche un état vide explicite sans inventer de couverture métier. La section secondaire « Évaluation métier » conserve couverture fonctionnelle, maturité déclarée (actuelle et cible) et écarts, sans inférence à partir des liens applicatifs. La fiche reste défilable pour les grands catalogues et responsive sur les petits écrans. Échap ferme d'abord la fiche, puis quitte la présentation au second appui. Aucune modification métier n'est possible dans cette vue.
 
-La fiche est un composant dédié `PresentationCapabilityDetail` utilisant les tokens Signal, documenté dans Storybook en trois états (mixte, applications actuelles uniquement, vide). Le test `presentation-applications.spec.ts` valide l'ordre de lecture, les statuts, le défilement des listes longues et les états vides.
+La fiche est un composant dédié `PresentationCapabilityDetail` utilisant les tokens Signal, documenté dans Storybook en quatre états (mixte, applications actuelles uniquement, vide, catalogue volumineux). Le test `presentation-applications.spec.ts` valide l'ordre de lecture, les statuts, le défilement des listes longues et les états vides.
+
+### Fiche exécutive N1
+
+L'en-tête de restitution met d'abord en valeur le nom et le code de la capacité, ainsi que son domaine N0. La fermeture utilise le composant Button du design system et un pictogramme vectoriel, aligné en haut à droite. Les en-têtes internes ne reprennent plus le positionnement sticky, la hauteur et l'ombre du header global.
+
+Les applications actuelles et cibles restent exhaustives, mais se lisent dans deux cartes distinctes avec un décompte sans équivalence avec la couverture fonctionnelle. Sous ce panorama, trois cartes mettent en évidence la couverture déclarée, la maturité actuelle/cible et les points à examiner, sans inventer de risque ni score. Les couleurs reprennent les tokens sémantiques Signal, avec un rendu clair et sombre. Les petits écrans empilent les colonnes, les catalogues longs défilent à l'intérieur du dialogue. Les tests Playwright vérifient aussi le placement réel du bouton de fermeture et l'absence de débordement horizontal en mobile.
+
 
 ## Piloter l'écran projeté depuis l'éditeur (lot 3)
 
