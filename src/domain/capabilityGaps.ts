@@ -1,4 +1,5 @@
 import type { Application, Capability, CatalogModel, FunctionalCoverage } from './catalogModel.ts';
+import { supportsCurrent, supportsTarget } from './applicationRelations.ts';
 
 export type GapSignalKind = 'missing-current' | 'functional-none' | 'functional-partial' | 'maturity' | 'obsolete';
 export type GapSignal = { kind: GapSignalKind; description: string };
@@ -15,12 +16,12 @@ const normalizedStatus = (app: Application): string =>
 const relatedApplications = (capability: Capability, applications: Application[]): Application[] =>
   applications.filter(app => (app.capabilityIds ?? []).includes(capability.id));
 
-/** Diagnose explicit facts. Applications marked "Cible" do not prove coverage today. */
+/** Diagnose explicit relationship horizons, with legacy V3 status fallback. */
 export function analyzeCapabilityGaps(model: CatalogModel): CapabilityGapFinding[] {
   return model.capabilities.map(capability => {
     const applications = relatedApplications(capability, model.applications);
-    const current = applications.filter(app => normalizedStatus(app) !== 'cible');
-    const target = applications.filter(app => normalizedStatus(app) === 'cible');
+    const current = applications.filter(app => supportsCurrent(app, capability.id));
+    const target = applications.filter(app => supportsTarget(app, capability.id));
     const functionalCoverage = capability.assessment?.functionalCoverage ?? 'unknown';
     const maturity = capability.assessment;
     const maturityDelta = maturity?.currentMaturity !== undefined && maturity?.targetMaturity !== undefined
