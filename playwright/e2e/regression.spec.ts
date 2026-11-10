@@ -526,6 +526,31 @@ test.describe('Playwright regression — companion', () => {
     await expect(review.getByTestId('companion-review-actions')).toHaveCount(0);
   });
 
+  test('garde la sélection explicite lorsqu’il y a plusieurs constats', async ({ page }) => {
+    await page.evaluate(() => {
+      const key = 'enterprise-capacity-mapper:model:v3';
+      const model = JSON.parse(localStorage.getItem(key) || '{}');
+      const unlinked = new Set(model.capabilities.slice(0, 2).map((item: { id: string }) => item.id));
+      const linked = model.capabilities.filter((item: { id: string }) => !unlinked.has(item.id)).map((item: { id: string }) => item.id);
+      if (unlinked.size !== 2 || !model.applications?.length) throw new Error('Modèle de test incomplet');
+      model.applications = model.applications.map((app: { capabilityIds?: string[] }) => ({
+        ...app, capabilityIds: [...new Set([...(app.capabilityIds || []), ...linked])].filter(id => !unlinked.has(id)),
+      }));
+      localStorage.setItem(key, JSON.stringify(model));
+    });
+    await page.reload();
+    await page.getByTestId('companion-launcher').click();
+    await page.getByTestId('companion-prompt-coverage').click();
+    const review = page.getByTestId('companion-guided-review');
+    await expect(review).not.toHaveClass(/is-single/);
+    await expect(review.getByTestId('companion-review-item')).toHaveCount(2);
+    await expect(review.getByTestId('companion-review-question')).toHaveCount(0);
+    await expect(page.getByTestId('companion-decision-brief')).toBeVisible();
+    await review.getByTestId('companion-review-item').first().click();
+    await expect(review.getByTestId('companion-review-question')).toBeVisible();
+    await expect(review.getByTestId('companion-review-actions')).toHaveCount(0);
+  });
+
   test('qualifie un écart de couverture sans LLM ni modification de la cartographie', async ({ page }) => {
     const before = await page.evaluate(() => {
       const raw = localStorage.getItem('enterprise-capacity-mapper:model:v3');
