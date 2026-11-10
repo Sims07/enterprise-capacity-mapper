@@ -56,6 +56,7 @@ import CoverageTree from './components/CoverageTree.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import PwaUpdateNotice from './components/PwaUpdateNotice.tsx';
 import CartographerCompanion from './components/CartographerCompanion.tsx';
+import type { CompanionRemediationAction } from './domain/companionRemediation.ts';
 import PresentationReadingLegend from './components/PresentationReadingLegend.tsx';
 import PresentationApplicationPreview from './components/PresentationApplicationPreview.tsx';
 import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
@@ -1013,7 +1014,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     setModal('link');
   };
   // Compagnon → existing, validated relation workflows (never auto-save).
-  const openCompanionRemediation = action => {
+  const openCompanionRemediation = (action: CompanionRemediationAction) => {
     const { reference } = action;
     if (!reference?.id) return;
     if (action.kind === 'link-application') {
@@ -2046,6 +2047,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           title={modal === 'edit-app' ? 'Modifier l’application' : modal === 'edit-capability' ? 'Fiche de capacité N1' : modal === 'domain' ? 'Nouveau domaine N0' : modal === 'edit-domain' ? 'Modifier le domaine N0' : modal === 'capability' ? 'Nouvelle capacité N1' : 'Nouvelle application'}
           onClose={() => setModal(null)}
         >
+          {modal === 'app' && form.capabilityIds?.length > 0 && (
+            <p className="structure-hint" data-testid="companion-create-app-target">
+              Cette nouvelle application sera reliée à « {mappedItems.filter(item => form.capabilityIds.includes(item.id)).map(item => item.name).join(' · ')} » après confirmation de la création.
+            </p>
+          )}
           {(modal === 'domain' || modal === 'edit-domain') && <div className="field-guidance"><b>N0 — Domaine métier</b><span>Regroupe un ensemble large de capacités.</span></div>}
           {modal === 'domain' && (
             <label className="field">
