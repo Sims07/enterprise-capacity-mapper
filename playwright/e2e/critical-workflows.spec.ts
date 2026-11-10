@@ -46,7 +46,7 @@ test.describe('Playwright POC — critical browser workflows', () => {
     const updated = page.locator('.app-item').filter({ hasText: 'Salesforce CRM — renommé' });
     await expect(updated).toContainText('CRM-SF');
     await expect(updated).toContainText('Salesforce');
-    await expect(updated).toContainText('Cible');
+    await expect(updated).toContainText('Planifiée');
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toContainText('Salesforce CRM — renommé');
 
     await page.reload();
