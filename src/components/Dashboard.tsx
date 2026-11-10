@@ -4,7 +4,7 @@ import { FilePicker } from './ui/FilePicker.tsx';
 import { Button } from './ui/Button.tsx';
 import { analyzeCapabilityGaps, findMissingReferenceCapabilities } from '../domain/capabilityGaps.ts';
 import { createDecisionReview, formatDecisionReviewMarkdown, simulateApplicationRetirement, DECISION_REVIEW_DISPLAY_LIMIT } from '../application/decisionReview.ts';
-import { isCurrentApplication } from '../application/coverageUseCases.ts';
+import { supportsCurrent, supportsTarget } from '../domain/applicationRelations.ts';
 
 const BusinessProcesses = React.lazy(() => import('./BusinessProcesses.tsx'));
 
@@ -114,8 +114,9 @@ export default function Dashboard({ model, depth, onExploreTarget, onLinkApp, on
   const stats = useMemo(() => {
     const enriched = targets.map(target => {
       const linkedApps = apps.filter(app => linksFor(app, target.id));
-      const currentApps = linkedApps.filter(isCurrentApplication);
-      return { ...target, linkedApps, coverageCount: currentApps.length, targetCoverageCount: linkedApps.length - currentApps.length, state: coverageState(currentApps.length) };
+      const currentApps = linkedApps.filter(app => supportsCurrent(app, target.id));
+      const targetApps = linkedApps.filter(app => supportsTarget(app, target.id));
+      return { ...target, linkedApps, coverageCount: currentApps.length, targetCoverageCount: targetApps.length, state: coverageState(currentApps.length) };
     });
     const covered = enriched.filter(target => target.coverageCount > 0).length;
     const priorityOrder = { P1: 0, P2: 1, P3: 2, unqualified: 3 };
