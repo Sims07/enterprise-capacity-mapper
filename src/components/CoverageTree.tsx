@@ -32,8 +32,8 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
     || appsFor(item.id).some(a => a.name.toLowerCase().includes(q));
 
   const targets = depth === 1 ? domains : capabilities;
-  const gapCount = targets.filter(t => appsFor(t.id).filter(isCurrentApplication).length === 0).length;
-  const redundantCount = targets.filter(t => appsFor(t.id).filter(isCurrentApplication).length > 1).length;
+  const gapCount = targets.filter(t => appsFor(t.id).filter(app => supportsCurrent(app, t.id)).length === 0).length;
+  const redundantCount = targets.filter(t => appsFor(t.id).filter(app => supportsCurrent(app, t.id)).length > 1).length;
 
   const rows = domains.map(d => {
     if (depth === 1) return { d, caps: [], visible: matchesText(d) && matchesCoverage(d.id) };
