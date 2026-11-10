@@ -1,5 +1,6 @@
 import type { Application, CatalogModel } from './catalogModel.ts';
 import { isCurrentApplication } from './coverage.ts';
+import { supportsCurrent } from './applicationRelations.ts';
 
 export const RISK_SCALE = [1, 2, 3, 4, 5] as const;
 export const RISK_CATEGORIES = { obsolescence: 'Obsolescence', security: 'Sécurité', continuity: 'Continuité', compliance: 'Conformité', dependency: 'Dépendance fournisseur' } as const;
@@ -68,13 +69,15 @@ export function assessApplicationRisk(application: Application, asOf: string) {
 }
 
 export function analyzeApplicationRisks(model: CatalogModel, asOf: string) {
-  const applications = model.applications.filter(isCurrentApplication).map(app => assessApplicationRisk(app, asOf))
+  const applications = model.applications.filter(app => app.capabilityIds?.length
+    ? app.capabilityIds.some(id => supportsCurrent(app, id))
+    : isCurrentApplication(app)).map(app => assessApplicationRisk(app, asOf))
     .sort((a, b) => Number(b.actionable) - Number(a.actionable) || RISK_RANK[b.level] - RISK_RANK[a.level]
       || Number(b.overdue) - Number(a.overdue) || a.application.name.localeCompare(b.application.name, 'fr'));
   const depth = (model.layout as { depth?: number } | undefined)?.depth === 1 ? 1 : 2;
   const targets = depth === 1 ? model.domains : model.capabilities;
   const aggregate = (ids: string[]) => {
-    const linked = applications.filter(item => item.application.capabilityIds?.some(id => ids.includes(id)));
+    const linked = applications.filter(item => ids.some(id => supportsCurrent(item.application, id)));
     const exposed = linked.filter(item => item.status !== 'resolved');
     const level = exposed.reduce<RiskLevel>((current, item) => RISK_RANK[item.level] > RISK_RANK[current] ? item.level : current, 'unknown');
     return { level, applications: linked, unknownCount: linked.filter(item => item.needsQualification).length };
