@@ -56,10 +56,10 @@ export default function CompanionGuidedReview({ observations, resolvedCount = 0,
         <div className="companion-guided-review-resolved" data-testid="companion-review-updated" role="status">
           <strong>{observations.length === 0
             ? 'Constat levé dans la cartographie actuelle'
-            : `${resolvedCount} constat(s) initial(aux) levé(s)`}</strong>
+            : `${resolvedCount} constat${resolvedCount > 1 ? 's' : ''} levé${resolvedCount > 1 ? 's' : ''} depuis l’analyse initiale`}</strong>
           <p>{observations.length === 0
             ? 'Ce constat n’est plus détecté dans la cartographie actuelle. Aucun écart de cette analyse ne reste actif.'
-            : `La cartographie a évolué : ${observations.length} constat(s) reste(nt) à examiner.`}
+            : `La cartographie a évolué : ${observations.length} constat${observations.length > 1 ? 's' : ''} reste${observations.length > 1 ? 'nt' : ''} à examiner.`}
           </p>
           <small>{reviewCategory === 'coverage' ? 'Une liaison déclarée ne garantit pas à elle seule une couverture fonctionnelle suffisante.' : 'La disparition d’un constat automatique ne remplace pas la validation métier.'}</small>
         </div>
