@@ -768,7 +768,7 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               </section>
             )}
             {exchange.status !== 'streaming' && exchange.source === 'local' && (displayedObservations.length > 0 || (progress?.resolvedCount ?? 0) > 0) && (
-              <CompanionGuidedReview observations={displayedObservations} resolvedCount={progress?.resolvedCount ?? 0} model={model}
+              <CompanionGuidedReview observations={displayedObservations} resolvedCount={progress?.resolvedCount ?? 0} reviewCategory={exchange.prompt} model={model}
                 onNavigateToEvidence={item => { if (evidenceExists(item, model)) navigateToEvidence(item); }}
                 onRemediation={onRemediation} />
             )}
