@@ -120,7 +120,7 @@ test.describe('Playwright mobile regression', () => {
     expect(rect!.x).toBeGreaterThanOrEqual(0);
     expect(rect!.width).toBeLessThanOrEqual(390);
     expect(rect!.x + rect!.width).toBeLessThanOrEqual(390);
-    await expect(dialog.locator('input').first()).toHaveCSS('font-size', '16px');
+    await expect(dialog.getByTestId('structure-axis-columns').locator('.field input').first()).toHaveCSS('font-size', '16px');
     await assertNoHorizontalOverflow(page);
   });
 
