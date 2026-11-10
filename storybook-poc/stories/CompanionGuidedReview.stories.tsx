@@ -25,6 +25,7 @@ const meta = {
   component: CompanionGuidedReview,
   args: {
     observations: sampleFindings,
+    onRemediation: () => undefined,
     model: {
       layout: { depth: 2 },
       domains: [{ id: 'domain', code: 'ID', name: 'Identité' }],
