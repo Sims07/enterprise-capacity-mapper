@@ -54,3 +54,15 @@ type Story = StoryObj<typeof meta>;
 export const Mixte: Story = { args: props(currentApplications, targetApplications, true) };
 export const ActuellesUniquement: Story = { args: props(currentApplications, []) };
 export const SansApplications: Story = { args: props([], []) };
+
+/** Catalogue volumineux : la fiche entière défile sans perdre les applications. */
+export const CatalogueVolumineux: Story = {
+  args: props(Array.from({ length: 16 }, (_, index) => ({
+    id: 'app-long-' + index,
+    name: 'Application métier à désignation particulièrement longue ' + (index + 1),
+    code: 'APP-' + (index + 1),
+    status: 'Actif',
+    capabilityIds: [capability.id],
+  })), targetApplications, true),
+};
+
