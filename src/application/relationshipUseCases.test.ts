@@ -93,3 +93,24 @@ test('uses domains as relationship targets when the map is at depth one', () => 
   });
   assert.deepEqual(edited[0].capabilityIds, ['domain1']);
 });
+
+test('link editor writes explicit roles from either side and prunes them when unchecked', () => {
+  const source = applications();
+  const target = prepareLinkedApplications({
+    applications: source, mappedItems, link: { kind: 'target', id: 'cap1' },
+    checkedIds: ['app1', 'app2'], roles: { app1: 'both', app2: 'target' }, domains, capabilities,
+  });
+  assert.deepEqual(target[0].relationRoles, { cap1: 'both' });
+  assert.deepEqual(target[1].relationRoles, { cap1: 'target' });
+  const inverse = prepareLinkedApplications({
+    applications: target, mappedItems, link: { kind: 'app', id: 'app1' },
+    checkedIds: ['cap1', 'cap2'], roles: { cap1: 'current', cap2: 'both' }, domains, capabilities,
+  });
+  assert.deepEqual(inverse[0].relationRoles, { cap1: 'current', cap2: 'both' });
+  const removed = prepareLinkedApplications({
+    applications: inverse, mappedItems, link: { kind: 'target', id: 'cap1' },
+    checkedIds: [], domains, capabilities,
+  });
+  assert.equal(removed[0].relationRoles?.cap1, undefined);
+  assert.equal(removed[1].relationRoles, undefined);
+});
