@@ -114,6 +114,40 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
     await presentationPage.screenshot({ path: 'test-results-storybook/unified-map-presentation-landscape-dark.png', animations: 'disabled' });
   });
   for (const theme of ['light', 'dark'] as const) {
+    test(`présentation — mise en lumière N1 clairement visible, thème ${theme}`, async ({ page }) => {
+      await page.setViewportSize({ width: 1600, height: 900 });
+      await page.goto('/iframe.html?id=application-capacity-mapper--projected-selection&viewMode=story&globals=theme:light');
+      await expect(page.locator('.app').first()).toBeVisible();
+      if (theme === 'dark') {
+        await page.getByTestId('tools-menu-toggle').click();
+        await page.getByTestId('theme-toggle').click();
+        await page.keyboard.press('Escape');
+      }
+      const selectedId = await page.getByTestId('capability-map').locator('.cap').first().getAttribute('data-entity-id');
+      await page.getByTestId('capability-map').locator('.cap').first().getByTestId('map-cap-select').click();
+      const presentationPromise = page.context().waitForEvent('page');
+      await page.getByTestId('presentation-switch-toolbar').click();
+      const presentationPage = await presentationPromise;
+      await presentationPage.waitForLoadState();
+      await presentationPage.setViewportSize({ width: 1600, height: 900 });
+      const selected = presentationPage.locator(`.cap[data-entity-id="${selectedId}"]`);
+      await expect(selected).toHaveClass(/is-presentation-selected/);
+      await expect(selected).toHaveCSS('border-style', 'solid');
+      await expect(presentationPage.getByTestId('capability-map')).toHaveClass(/has-presentation-spotlight/);
+      await mkdir('playwright/storybook/__screenshots__', { recursive: true });
+      await mkdir('test-results-storybook', { recursive: true });
+      await presentationPage.screenshot({
+        path: `playwright/storybook/__screenshots__/unified-map-presentation-n1-spotlight-${theme}.png`,
+        animations: 'disabled',
+      });
+      await presentationPage.screenshot({
+        path: `test-results-storybook/unified-map-presentation-n1-spotlight-${theme}.png`,
+        animations: 'disabled',
+      });
+    });
+  }
+
+  for (const theme of ['light', 'dark'] as const) {
     test(`présentation — focus N0 sans transparence de carte, thème ${theme}`, async ({ page }) => {
       const presentationPage = await openUnifiedMapPresentation(page, theme);
       await page.getByTestId('map-more-actions').locator('summary').click();

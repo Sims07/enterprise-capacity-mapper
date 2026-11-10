@@ -52,6 +52,8 @@
   --map-presentation-control-border: var(--color-border-strong);
   --map-presentation-control-text: var(--color-text);
   --map-presentation-muted-domain-share: 22%;
+  --map-presentation-spotlight-border-width: var(--focus-ring-width);
+  --map-presentation-spotlight-fill-share: 30%;
   --presentation-detail-width: 1020px;
   --presentation-detail-viewport-margin: 40px;
 
@@ -159,6 +161,7 @@
   --signal-space-4: 16px;
   --signal-space-5: 24px;
   --signal-space-6: 32px;
+  --map-presentation-spotlight-border-width: var(--signal-space-1);
   --ds-control-font-size: 0.75rem;
   --ds-control-font-weight: 650;
   --ds-control-disabled-opacity: .52;
@@ -215,6 +218,7 @@
   --color-accent-border: #6479bf;
   --color-accent-on: #0d1219;
   --color-focus: #b3c1ff;
+  --map-presentation-spotlight-fill-share: 32%;
   /* Présentation : mêmes surfaces graphite que l'éditeur SIGNAL, sans modifier la mosaïque. */
   --map-canvas-bg: var(--color-bg);
   --map-card-surface: var(--signal-map-surface);
