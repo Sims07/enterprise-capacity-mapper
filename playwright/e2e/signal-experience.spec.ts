@@ -3,74 +3,89 @@ import { expect, test } from '../fixtures';
 const MAX_LAYOUT_DRIFT_PX = 2;
 
 test.describe('SIGNAL — parcours client sans régression', () => {
-  test('conserve la navigation en haut et toute la largeur de la mosaïque en ouvrant l’inventaire', async ({ page }) => {
+  test('ouvre directement le dock SI pleine hauteur et rend toute sa largeur à la carte en fermant', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    await expect(page.locator('.app.signal-experience')).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible();
 
     const map = page.getByTestId('capability-map');
-    const before = await map.boundingBox();
-    expect(before).not.toBeNull();
     const inventory = page.locator('#app-inventory');
+    const toggle = page.getByTestId('map-inventory-toggle');
+    const originalWidth = (await map.boundingBox())!.width;
     await expect(inventory).toBeHidden();
-
-    await page.getByTestId('map-inventory-toggle').click();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await expect(inventory).toBeVisible();
     await expect(inventory).toHaveCSS('position', 'fixed');
-    const after = await map.boundingBox();
-    expect(after).not.toBeNull();
-    expect(Math.abs(after!.width - before!.width)).toBeLessThanOrEqual(MAX_LAYOUT_DRIFT_PX);
+    await expect(inventory).toHaveCSS('overflow', 'hidden');
+    await expect(page.getByTestId('inventory-size-toggle')).toHaveCount(0);
+    await expect(page.locator('.workspace')).toHaveClass(/mosaic-inventory-open/);
+    await expect.poll(async () => (await map.boundingBox())!.width).toBeLessThan(originalWidth);
+    const bounds = await inventory.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.y).toBe(0);
+    expect(bounds!.height).toBeCloseTo(900, 0);
+    expect(bounds!.x + bounds!.width).toBeCloseTo(1440, 0);
     await expect(map.locator('.mosaic-domain')).toHaveCount(4);
 
     await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
     await expect(inventory).toBeHidden();
-    await page.getByTestId('map-inventory-toggle').click();
+    await expect.poll(async () => (await map.boundingBox())!.width).toBeCloseTo(originalWidth, 0);
+    await toggle.click();
     await expect(inventory).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(inventory).toBeHidden();
   });
 
-  test('passe de l’inventaire flottant au panneau ancré pleine hauteur et restaure la carte', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/');
-    const map = page.getByTestId('capability-map');
-    const inventory = page.locator('#app-inventory');
-    const toggle = page.getByTestId('map-inventory-toggle');
-    const originalWidth = (await map.boundingBox())!.width;
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(inventory).toBeVisible();
-    const size = page.getByTestId('inventory-size-toggle');
-    await expect(size).toHaveAttribute('aria-pressed', 'false');
-    await size.click();
-    await expect(size).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('.workspace')).toHaveClass(/mosaic-inventory-docked/);
-    await expect.poll(async () => (await inventory.boundingBox())!.height).toBe(900);
-    await expect.poll(async () => (await map.boundingBox())!.width).toBeLessThan(originalWidth);
-    const bounds = await inventory.boundingBox();
-    expect(bounds!.y).toBe(0);
-    expect(bounds!.x + bounds!.width).toBeCloseTo(1440, 0);
-
-    await size.click();
-    await expect(size).toHaveAttribute('aria-pressed', 'false');
-    await expect.poll(async () => (await map.boundingBox())!.width).toBeCloseTo(originalWidth, 0);
-    await toggle.click();
-    await expect(inventory).toBeHidden();
-  });
-
-  test('le panneau Cartographie SI pleine hauteur reste fermable sur mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
+  test('garde l’ajout et la recherche visibles lorsque la liste d’applications défile', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 520 });
     await page.goto('/');
     await page.getByTestId('map-inventory-toggle').click();
-    await page.getByTestId('inventory-size-toggle').click();
+    const header = page.getByTestId('inventory-sticky-header');
+    const list = page.getByTestId('inventory-scroll');
+    const add = header.locator('.side-add');
+    const search = header.getByRole('textbox', { name: 'Rechercher une application' });
+    await expect(header).toBeVisible();
+    await expect(list).toHaveCSS('overflow-y', 'auto');
+    const headerY = (await header.boundingBox())!.y;
+    const addY = (await add.boundingBox())!.y;
+    const searchY = (await search.boundingBox())!.y;
+    await list.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    await expect.poll(() => list.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    expect(Math.abs((await header.boundingBox())!.y - headerY)).toBeLessThanOrEqual(MAX_LAYOUT_DRIFT_PX);
+    expect(Math.abs((await add.boundingBox())!.y - addY)).toBeLessThanOrEqual(MAX_LAYOUT_DRIFT_PX);
+    expect(Math.abs((await search.boundingBox())!.y - searchY)).toBeLessThanOrEqual(MAX_LAYOUT_DRIFT_PX);
+    await expect(add).toBeVisible();
+    await expect(search).toBeVisible();
+
+    await search.fill('Salesforce CRM');
+    await expect(list.locator('.app-item')).toHaveCount(1);
+    await expect(list).toContainText('Salesforce CRM');
+    await search.clear();
+    await add.click();
+    await expect(page.getByRole('dialog', { name: 'Nouvelle application' })).toBeVisible();
+    await page.getByRole('dialog', { name: 'Nouvelle application' }).getByRole('button', { name: 'Annuler' }).click();
+  });
+
+  test('affiche le dock SI sur tout l’écran mobile avec les actions toujours visibles', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 620 });
+    await page.goto('/');
+    await page.getByTestId('map-inventory-toggle').click();
     const inventory = page.locator('#app-inventory');
     const bounds = await inventory.boundingBox();
     expect(bounds).not.toBeNull();
     expect(bounds!.x).toBe(0);
     expect(bounds!.y).toBe(0);
     expect(bounds!.width).toBeCloseTo(390, 0);
-    expect(bounds!.height).toBeCloseTo(844, 0);
+    expect(bounds!.height).toBeCloseTo(620, 0);
+    await expect(page.getByTestId('inventory-size-toggle')).toHaveCount(0);
+    const add = page.getByTestId('inventory-sticky-header').locator('.side-add');
+    const search = page.getByRole('textbox', { name: 'Rechercher une application' });
+    const list = page.getByTestId('inventory-scroll');
+    await list.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    await expect.poll(() => list.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    await expect(add).toBeVisible();
+    await expect(search).toBeVisible();
     await page.getByRole('button', { name: 'Fermer l’inventaire SI' }).click();
     await expect(inventory).toBeHidden();
     await expect(page.getByTestId('capability-map')).toBeVisible();

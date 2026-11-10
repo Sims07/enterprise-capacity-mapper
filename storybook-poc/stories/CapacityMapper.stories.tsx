@@ -55,7 +55,7 @@ export const CompactCapabilities: Story = {
 export const SignalApplications: Story = {
   parameters: {
     viewport: { defaultViewport: 'desktop' },
-    docs: { description: { story: 'Cliquer sur « Cartographie SI », créer une application avec « + Application », utiliser « Relier à… », puis tester l’ancrage en pleine hauteur (↗) et le retour au panneau flottant (↙).' } },
+    docs: { description: { story: 'Cliquer sur « Cartographie SI » : le panneau occupe directement toute la hauteur, sans commande de redimensionnement. Faire défiler les applications : le titre, « + Application » et la recherche restent visibles. Tester aussi « Relier à… » et la fermeture.' } },
   },
 };
 
