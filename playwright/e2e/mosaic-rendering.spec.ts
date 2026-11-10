@@ -925,12 +925,13 @@ test.describe('Cartographie unifiée', () => {
     // Assert the actual projected spotlight, not only the class that can be
     // visually overridden by the dark theme or by the business status colors.
     await expect(first).toHaveCSS('outline-style', 'solid');
-    await expect(first).toHaveCSS('outline-width', /px/);
     const spotlight = await first.evaluate(element => ({
+      outlineWidth: Number.parseFloat(getComputedStyle(element).outlineWidth),
       marker: getComputedStyle(element, '::before').content,
       markerColor: getComputedStyle(element, '::before').backgroundColor,
       parentOutline: getComputedStyle(element.closest('.mosaic-domain')!).boxShadow,
     }));
+    expect(spotlight.outlineWidth).toBeGreaterThan(0);
     expect(spotlight.marker).not.toBe('none');
     expect(spotlight.markerColor).not.toBe('rgba(0, 0, 0, 0)');
     expect(spotlight.parentOutline).not.toBe('none');
