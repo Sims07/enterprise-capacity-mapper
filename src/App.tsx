@@ -168,6 +168,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [pendingDomainPlan, setPendingDomainPlan] = useState<NonNullable<ReturnType<typeof prepareNewDomainSlot>> | null>(null);
   const [domainInsertionTarget, setDomainInsertionTarget] = useState('auto');
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
+  const [inventoryDocked, setInventoryDocked] = useState(false);
 
   // La présentation Signal conserve toute la largeur de la grille : l’inventaire est temporaire.
   useEffect(() => {
@@ -1672,12 +1673,21 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           </div>
         </section>
       ) : (
-      <div className={'workspace' + ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}`}>
+      <div className={'workspace' + ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}${showMosaicInventory && inventoryDocked ? ' mosaic-inventory-docked' : ''}`}>
         <aside id="app-inventory" aria-label="Inventaire des applications">
           <div className="panel-title">
             <span>Inventaire SI <em>{apps.length}</em></span>
             <button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button>
-            {showMosaicInventory && <button type="button" className="signal-inventory-close" aria-label="Fermer l’inventaire SI" onClick={() => setShowMosaicInventory(false)}>×</button>}
+            {showMosaicInventory && <>
+              <button type="button" className="signal-inventory-size-toggle" data-testid="inventory-size-toggle"
+                aria-label={inventoryDocked ? 'Réduire le panneau Cartographie SI' : 'Ancrer le panneau Cartographie SI sur toute la hauteur'}
+                aria-pressed={inventoryDocked}
+                title={inventoryDocked ? 'Revenir au panneau flottant' : 'Panneau ancré pleine hauteur'}
+                onClick={() => setInventoryDocked(value => !value)}>
+                {inventoryDocked ? '↙' : '↗'}
+              </button>
+              <button type="button" className="signal-inventory-close" aria-label="Fermer l’inventaire SI" onClick={() => setShowMosaicInventory(false)}>×</button>
+            </>}
           </div>
           <input className="search" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} />
           <div className="hint">Glissez une application vers une capacité, ou cochez-en plusieurs puis utilisez « Relier ici » dans l’onglet Relations. Le bouton « Relier à… » permet de relier sans glisser-déposer.</div>
@@ -1795,11 +1805,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 )}
                 <div className="canvas-actions map-primary-actions">
                   {historyControls}
-                  <button type="button" className="primary signal-add-application" data-testid="signal-add-application" onClick={() => openNew('app')}>＋ Application</button>
+                  <button type="button" className="primary map-si-toggle" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory}
+                    onClick={() => setShowMosaicInventory(value => !value)}>Cartographie SI</button>
                   <button type="button" className="secondary" data-testid="map-add-domain" title="Ajouter ou insérer un domaine N0 dans la cartographie" onClick={() => openNew('domain')}>＋ Domaine N0</button>
                   <MapActionsMenu onDismiss={() => setPresentationDirectorOpen(false)}>
-                    <button type="button" data-map-menu-close="true" className="map-actions-menu-item" data-testid="map-inventory-toggle" aria-controls="app-inventory" aria-expanded={showMosaicInventory}
-                      onClick={() => setShowMosaicInventory(value => !value)}>{showMosaicInventory ? 'Masquer l’inventaire' : `Inventaire SI (${apps.length})`}</button>
                     <button type="button" data-map-menu-close="true" className="map-actions-menu-item" onClick={openLayoutEditor}>Structure</button>
                     <button type="button" data-map-menu-close="true" className="map-actions-menu-item" onClick={() => setGuideOpen(true)}>Aide TOGAF</button>
                     {depth === 2 && <>
