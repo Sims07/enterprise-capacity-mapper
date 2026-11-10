@@ -171,7 +171,6 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [pendingDomainPlan, setPendingDomainPlan] = useState<NonNullable<ReturnType<typeof prepareNewDomainSlot>> | null>(null);
   const [domainInsertionTarget, setDomainInsertionTarget] = useState('auto');
   const [showMosaicInventory, setShowMosaicInventory] = useState(false);
-  const [inventoryDocked, setInventoryDocked] = useState(false);
 
   // La présentation Signal conserve toute la largeur de la grille : l’inventaire est temporaire.
   useEffect(() => {
@@ -1689,31 +1688,25 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           </div>
         </section>
       ) : (
-      <div className={'workspace' + ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}${showMosaicInventory && inventoryDocked ? ' mosaic-inventory-docked' : ''}`}>
+      <div className={'workspace' + ` mosaic-workspace${showMosaicInventory ? ' mosaic-inventory-open' : ''}`}>
         <aside id="app-inventory" aria-label="Inventaire des applications">
-          <div className="panel-title">
-            <span>Inventaire SI <em>{apps.length}</em></span>
-            <button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button>
-            {showMosaicInventory && <>
-              <button type="button" className="signal-inventory-size-toggle" data-testid="inventory-size-toggle"
-                aria-label={inventoryDocked ? 'Réduire le panneau Cartographie SI' : 'Ancrer le panneau Cartographie SI sur toute la hauteur'}
-                aria-pressed={inventoryDocked}
-                title={inventoryDocked ? 'Revenir au panneau flottant' : 'Panneau ancré pleine hauteur'}
-                onClick={() => setInventoryDocked(value => !value)}>
-                {inventoryDocked ? '↙' : '↗'}
-              </button>
-              <button type="button" className="signal-inventory-close" aria-label="Fermer l’inventaire SI" onClick={() => setShowMosaicInventory(false)}>×</button>
-            </>}
-          </div>
-          <input className="search" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} />
-          <div className="hint">Glissez une application vers une capacité, ou cochez-en plusieurs puis utilisez « Relier ici » dans l’onglet Relations. Le bouton « Relier à… » permet de relier sans glisser-déposer.</div>
-          {pickedValid.length > 0 && (
-            <div className="picked-bar" role="status" data-testid="picked-bar">
-              <span>{pickedValid.length} sélectionnée(s)</span>
-              <button type="button" onClick={() => setPickedApps([])}>Tout désélectionner</button>
+          <div className="signal-inventory-header" data-testid="inventory-sticky-header">
+            <div className="panel-title">
+              <span>Inventaire SI <em>{apps.length}</em></span>
+              <button type="button" className="side-add" onClick={() => openNew('app')}>＋ Application</button>
+              {showMosaicInventory && <button type="button" className="signal-inventory-close" aria-label="Fermer l’inventaire SI" onClick={() => setShowMosaicInventory(false)}>×</button>}
             </div>
-          )}
-          {filteredApps.map(a => (
+            <input className="search" aria-label="Rechercher une application" placeholder="Rechercher une application…" value={query} onChange={e => setQuery(e.target.value)} />
+            {pickedValid.length > 0 && (
+              <div className="picked-bar" role="status" data-testid="picked-bar">
+                <span>{pickedValid.length} sélectionnée(s)</span>
+                <button type="button" onClick={() => setPickedApps([])}>Tout désélectionner</button>
+              </div>
+            )}
+          </div>
+          <div className="signal-inventory-scroll" data-testid="inventory-scroll" role="region" aria-label="Liste des applications" tabIndex={0}>
+            <div className="hint">Glissez une application vers une capacité, ou cochez-en plusieurs puis utilisez « Relier ici » dans l’onglet Relations. Le bouton « Relier à… » permet de relier sans glisser-déposer.</div>
+            {filteredApps.map(a => (
             <div key={a.id} className={'app-item' + (pickedValid.includes(a.id) ? ' picked' : '')} data-entity-id={a.id} data-entity-type="application" draggable onDragStart={e => e.dataTransfer.setData('app', a.id)}>
               <input type="checkbox" className="app-pick" aria-label={`Sélectionner ${a.name}`} checked={pickedValid.includes(a.id)} onChange={() => togglePicked(a.id)} />
               <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
@@ -1723,7 +1716,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                 <button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button>
               </div>
             </div>
-          ))}
+            ))}
+          </div>
         </aside>
 
         <main>
