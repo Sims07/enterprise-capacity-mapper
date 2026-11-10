@@ -14,7 +14,7 @@ const FOCUSABLE_SELECTOR = [
  * Fenêtre accessible commune aux fiches métier et à Storybook.
  * Garde le focus dans la fenêtre et le rend au contrôle d'origine à la fermeture.
  */
-export function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
+export function Modal({ title, children, onClose, className }: { title: string; children: React.ReactNode; onClose: () => void; className?: string }) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   // Une sauvegarde ou un changement de saisie peut recréer onClose sans devoir réinitialiser le focus.
@@ -74,7 +74,7 @@ export function Modal({ title, children, onClose }: { title: string; children: R
   }, []);
 
   return <div className="modal-backdrop" onClick={onClose}>
-    <div ref={dialogRef} tabIndex={-1} className="modal" role="dialog" aria-modal="true" aria-labelledby={titleId}
+    <div ref={dialogRef} tabIndex={-1} className={["modal", className].filter(Boolean).join(" ")} role="dialog" aria-modal="true" aria-labelledby={titleId}
       onClick={event => event.stopPropagation()}>
       <div className="modal-head">
         <h2 id={titleId}>{title}</h2>
