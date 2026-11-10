@@ -1304,3 +1304,51 @@
   color: var(--companion-text);
   font-weight: 600;
 }
+
+/* One finding is a ready-to-qualify workflow, not a list to select from. */
+.companion-guided-review.is-single .companion-guided-review-detail {
+  border-color: var(--companion-border);
+  background: var(--companion-panel);
+}
+.companion-guided-review-focus {
+  display: grid;
+  gap: var(--signal-space-1);
+}
+.companion-guided-review-focus > strong {
+  color: var(--companion-text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.companion-guided-review-eyebrow {
+  color: var(--companion-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+.companion-guided-review.is-single .companion-guided-review-question {
+  padding-top: var(--signal-space-3);
+  border-top: 1px solid var(--companion-border);
+}
+.companion-guided-review.is-single .companion-guided-review-prompt {
+  font-size: 13px;
+}
+.companion-root .companion-guided-review .companion-guided-review-actions {
+  display: grid;
+  gap: var(--signal-space-2);
+  margin-top: var(--signal-space-3);
+  padding: var(--signal-space-3);
+  border: 1px solid var(--companion-border);
+  border-radius: var(--radius-card);
+  background: var(--companion-bg);
+}
+.companion-guided-review-action-heading {
+  color: var(--companion-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+.companion-root .companion-guided-review-actions .ds-button {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  min-height: 40px;
+}
