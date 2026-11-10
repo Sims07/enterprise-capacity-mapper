@@ -1012,6 +1012,23 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     setLinkQuery('');
     setModal('link');
   };
+  // Compagnon → existing, validated relation workflows (never auto-save).
+  const openCompanionRemediation = action => {
+    const { reference } = action;
+    if (!reference?.id) return;
+    if (action.kind === 'link-application') {
+      if (reference.type !== 'application') return;
+      const application = apps.find(item => item.id === reference.id);
+      if (application) openLinkForApp(application);
+      return;
+    }
+    const expectedType = depth === 1 ? 'domain' : 'capability';
+    if (reference.type !== expectedType) return;
+    const target = mappedItems.find(item => item.id === reference.id);
+    if (!target) return;
+    if (action.kind === 'link-target') openLinkForTarget(target);
+    else if (action.kind === 'create-application') openNew('app', target.id);
+  };
   const closeLink = () => { setModal(null); setLink(null); };
   const toggleLinkChecked = id => setLinkChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
   const saveLink = () => {
@@ -2229,7 +2246,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           </div>
         </Modal>
       )}
-      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} companionPreferences={companionPreferences} onNavigateToEvidence={navigateToCompanionEvidence} />
+      <CartographerCompanion model={model} darkMode={darkMode} aiCompanionFactory={aiCompanion} companionPreferences={companionPreferences}
+        onNavigateToEvidence={navigateToCompanionEvidence} onRemediation={openCompanionRemediation} />
     </div>
   );
 }
