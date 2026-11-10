@@ -209,9 +209,19 @@ test('affiche toutes les applications nombreuses dans la fiche N1, puis un vrai 
       stacked: second.top >= first.bottom && Math.abs(second.left - first.left) <= pixelTolerance,
       insideSheet: first.left >= sheet.left && second.right <= sheet.right,
       noHorizontalOverflow: dialog.scrollWidth <= dialog.clientWidth + pixelTolerance,
+      closeInHeader: (() => {
+        const header = dialog.querySelector('.presentation-detail-header') as HTMLElement;
+        const close = dialog.querySelector('.presentation-detail-close') as HTMLElement;
+        const headerBounds = header.getBoundingClientRect();
+        const closeBounds = close.getBoundingClientRect();
+        const rightInset = Number.parseFloat(getComputedStyle(header).paddingRight);
+        return getComputedStyle(header).flexDirection === 'row'
+          && closeBounds.top >= headerBounds.top
+          && Math.abs(closeBounds.right - (headerBounds.right - rightInset)) <= pixelTolerance;
+      })(),
     };
   });
-  expect(mobileLayout).toEqual({ stacked: true, insideSheet: true, noHorizontalOverflow: true });
+  expect(mobileLayout).toEqual({ stacked: true, insideSheet: true, noHorizontalOverflow: true, closeInHeader: true });
 
 });
 
