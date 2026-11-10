@@ -1032,7 +1032,6 @@ test.describe('Revue de décisions et scénarios de transformation', () => {
 
 test('ne compte pas une application uniquement cible dans la couverture actuelle', async ({ page }) => {
   await fresh(page);
-  await page.getByTestId('map-more-actions').locator('summary').click();
   await page.getByTestId('map-inventory-toggle').click();
   const application = page.locator('.app-item').filter({ hasText: 'Salesforce CRM' });
   await application.getByRole('button', { name: 'Modifier Salesforce CRM' }).click();
