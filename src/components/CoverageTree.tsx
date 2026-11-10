@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getCapabilityCoverageState } from '../application/coverageUseCases.ts';
-import { supportsCurrent, supportsTarget } from '../domain/applicationRelations.ts';
+import { lifecycleLabel, supportsCurrent, supportsTarget } from '../domain/applicationRelations.ts';
 
 const statusClass = status => 'badge ' + String(status || '').toLowerCase().replace('é', 'e');
 
@@ -90,7 +90,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
       <span className="tree-app-icon" aria-hidden="true">◈</span>
       <b>{app.name}</b>
       <small>{app.code}</small>
-      <span className={statusClass(app.status)}>{app.status}</span>
+      <span className={statusClass(app.status)}>{lifecycleLabel(app.status)}</span>
       <small className="tree-relation-role">{supportsCurrent(app, target.id)
         ? supportsTarget(app, target.id) ? 'Actuelle et cible' : 'Actuelle'
         : 'Cible'}</small>
