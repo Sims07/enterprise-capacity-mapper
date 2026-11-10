@@ -20,7 +20,6 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
   const [showOthers, setShowOthers] = useState(false);
   const actionRef = useRef<HTMLDivElement>(null);
 
-  if (!observations.length) return null;
   const priorities = buildDecisionBrief({ observations }).priorities;
   const preferredIds = priorities.map(item => item.id);
   const ordered = [
@@ -46,6 +45,8 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
     if (!active) return;
     setAnswersById(previous => ({ ...previous, [active.id]: [...(previous[active.id] ?? []), id] }));
   };
+
+  if (!observations.length) return null;
 
   return (
     <section className={`companion-guided-review${singleFinding ? ' is-single' : ''}`} data-testid="companion-guided-review" aria-label="Qualification guidée des constats">
