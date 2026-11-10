@@ -36,7 +36,8 @@ worker.addEventListener('install', event => {
 
 worker.addEventListener('message', event => {
   if ((event as MessageEvent<{ type?: string }>).data?.type === 'SKIP_WAITING') {
-    void worker.skipWaiting();
+    // Keep the message event alive until the activation request is handled.
+    (event as ExtendableEventLike).waitUntil(worker.skipWaiting());
   }
 });
 
