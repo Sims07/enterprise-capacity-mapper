@@ -1,7 +1,7 @@
 import { removeProcessCapabilityLinks } from './businessProcesses.ts';
 import type { Application, Capability, CatalogModel, Domain } from './catalogModel.ts';
 import { validateCapabilityAssessment } from './capabilityAssessment.ts';
-import { isRelationRole, retainRelationRoles, validateRelationRoles } from './applicationRelations.ts';
+import { defaultRelationRole, isRelationRole, retainRelationRoles, validateRelationRoles } from './applicationRelations.ts';
 import type { RelationRole } from './catalogModel.ts';
 
 const normalizedName = (name: string): string => name.trim();
@@ -140,10 +140,15 @@ export class Catalog {
       ? current.capabilityIds
       : Catalog.unique(requestedCapabilityIds);
     capabilityIds?.forEach(id => this.requireMappedTarget(id));
+    // A lifecycle change must never silently redefine the horizons of existing links.
+    const roleSnapshot = changes.status !== undefined && changes.status !== current.status
+      ? Object.fromEntries((current.capabilityIds ?? []).map(id =>
+        [id, current.relationRoles?.[id] ?? defaultRelationRole(current)]))
+      : current.relationRoles;
     return this.with({
       applications: this.model.applications.map(application => application.id === applicationId
         ? {
-          ...withRelationIds(application, capabilityIds ?? []),
+          ...withRelationIds({ ...application, relationRoles: roleSnapshot }, capabilityIds ?? []),
           ...otherChanges,
           id: application.id,
           name,
