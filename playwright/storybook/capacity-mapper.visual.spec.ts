@@ -134,6 +134,10 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
       await expect(selected).toHaveClass(/is-presentation-selected/);
       await expect(selected).toHaveCSS('border-style', 'solid');
       await expect(presentationPage.getByTestId('capability-map')).toHaveClass(/has-presentation-spotlight/);
+      // Le fond/contour renforcé suffisent : aucun liseré vertical ne doit
+      // être dessiné dans les cartes N1 sélectionnées, clair comme sombre.
+      const decoration = await selected.evaluate(element => getComputedStyle(element, '::before').content);
+      expect(decoration).toBe('none');
       await mkdir('playwright/storybook/__screenshots__', { recursive: true });
       await mkdir('test-results-storybook', { recursive: true });
       await presentationPage.screenshot({
