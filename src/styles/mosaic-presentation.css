@@ -895,11 +895,14 @@
   }
 }
 
-/* Repère temporaire de lecture, indépendant des couleurs métier du N1.
-   Les bordures intérieures restent visibles même dans les cartes très denses. */
+/* Projected N1 spotlight: a visible perimeter and accent marker, not merely a
+   border-color change. Keep business/status backgrounds and text untouched.
+   The outline also wins over legacy dark-mode border: ... !important rules. */
 .app.mosaic-presentation-mode .mosaic-domain.is-presentation-selection-parent {
   z-index: 3;
-  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--color-accent-border);
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-accent-border),
+    0 0 var(--signal-space-4) var(--color-accent-soft) !important;
 }
 .app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected,
 .app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:hover,
@@ -907,6 +910,20 @@
 .app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected[data-presentation-tone]:hover,
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected,
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:hover {
+  position: relative;
+  z-index: 2;
+  outline: var(--focus-ring-width) solid var(--color-focus) !important;
+  outline-offset: calc(-1 * var(--focus-ring-width));
   border-color: var(--color-focus) !important;
-  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--color-focus) !important;
+  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--color-focus),
+    0 0 0 var(--focus-ring-width) var(--color-accent-border) !important;
+}
+.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: calc(var(--focus-ring-width) + var(--focus-ring-width));
+  background: var(--color-focus);
+  pointer-events: none;
 }

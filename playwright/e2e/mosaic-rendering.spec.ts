@@ -922,6 +922,24 @@ test.describe('Cartographie unifiée', () => {
     await expect(first).toHaveClass(/is-presentation-selected/);
     await expect(projection.locator('.mosaic-domain.is-presentation-selection-parent')).not.toHaveCount(0);
     await expect(projection.locator('.presentation-focus-overlay')).toHaveCount(0);
+    // Assert the actual projected spotlight, not only the class that can be
+    // visually overridden by the dark theme or by the business status colors.
+    await expect(first).toHaveCSS('outline-style', 'solid');
+    const spotlight = await first.evaluate(element => ({
+      outlineWidth: Number.parseFloat(getComputedStyle(element).outlineWidth),
+      marker: getComputedStyle(element, '::before').content,
+      markerColor: getComputedStyle(element, '::before').backgroundColor,
+      parentOutline: getComputedStyle(element.closest('.mosaic-domain')!).boxShadow,
+    }));
+    expect(spotlight.outlineWidth).toBeGreaterThan(0);
+    expect(spotlight.marker).not.toBe('none');
+    expect(spotlight.markerColor).not.toBe('rgba(0, 0, 0, 0)');
+    expect(spotlight.parentOutline).not.toBe('none');
+
+    // Reconnecting an already-selected editor must restore the spotlight.
+    await projection.reload();
+    await expect(first).toHaveClass(/is-presentation-selected/);
+    await expect(first).toHaveCSS('outline-style', 'solid');
 
     await projection.getByTestId('presentation-reading-maturity').click();
     await expect(first).toHaveAttribute('data-presentation-tone', /.+/);
