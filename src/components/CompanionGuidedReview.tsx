@@ -9,9 +9,10 @@ type Evidence = { type: 'domain' | 'capability' | 'application'; id: string | nu
 type Finding = ReviewFinding & { detail?: string; evidence?: Evidence[] };
 type NavigateEvidence = { type: Evidence['type']; id: string; name: string };
 
-export default function CompanionGuidedReview({ observations, resolvedCount = 0, model, onNavigateToEvidence, onRemediation }: {
+export default function CompanionGuidedReview({ observations, resolvedCount = 0, reviewCategory, model, onNavigateToEvidence, onRemediation }: {
   observations: Finding[];
   resolvedCount?: number;
+  reviewCategory?: string;
   model: Pick<CatalogModel, 'domains' | 'capabilities' | 'applications'> & { layout?: { depth?: number } };
   onNavigateToEvidence?: (item: NavigateEvidence) => void;
   onRemediation?: (action: CompanionRemediationAction) => void;
@@ -57,10 +58,10 @@ export default function CompanionGuidedReview({ observations, resolvedCount = 0,
             ? 'Constat levé dans la cartographie actuelle'
             : `${resolvedCount} constat(s) initial(aux) levé(s)`}</strong>
           <p>{observations.length === 0
-            ? 'La relation manquante n’est plus détectée. Aucun écart de ce contrôle ne reste actif.'
+            ? 'Ce constat n’est plus détecté dans la cartographie actuelle. Aucun écart de cette analyse ne reste actif.'
             : `La cartographie a évolué : ${observations.length} constat(s) reste(nt) à examiner.`}
           </p>
-          <small>Une liaison déclarée ne garantit pas à elle seule une couverture fonctionnelle suffisante.</small>
+          <small>{reviewCategory === 'coverage' ? 'Une liaison déclarée ne garantit pas à elle seule une couverture fonctionnelle suffisante.' : 'La disparition d’un constat automatique ne remplace pas la validation métier.'}</small>
         </div>
       )}
       {observations.length > 0 && <div className="companion-guided-review-heading">
