@@ -421,6 +421,7 @@
   .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"]:has(> .presentation-detail-app-group[data-kind="current"][data-empty="true"]) {
     grid-template-columns: minmax(0, 1fr);
   }
+  .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"]:has(> .presentation-detail-app-group[data-kind="current"][data-empty="true"]):has(> .presentation-detail-app-group[data-kind="target"][data-empty="true"]),
   .app.mosaic-presentation-mode .presentation-detail-assessment-list {
     grid-template-columns: minmax(0, 1fr);
   }
