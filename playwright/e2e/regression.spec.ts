@@ -524,6 +524,19 @@ test.describe('Playwright regression — companion', () => {
     await review.getByTestId('companion-review-restart').click();
     await expect(review.getByTestId('companion-review-question')).toBeVisible();
     await expect(review.getByTestId('companion-review-actions')).toHaveCount(0);
+
+    // Completing the only remediation must refresh the entire diagnostic.
+    await review.getByTestId('companion-review-answer-incomplete').click();
+    await review.getByTestId('companion-review-action-link-target').click();
+    await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
+    await page.getByTestId('link-save').click();
+    await expect(review.getByTestId('companion-review-updated')).toContainText('Constat levé dans la cartographie actuelle');
+    await expect(review.getByTestId('companion-review-detail')).toHaveCount(0);
+    await expect(page.getByTestId('companion-decision-brief')).toHaveCount(0);
+    await expect(page.locator('.companion-observation')).toHaveCount(0);
+    await expect(page.getByTestId('companion-exchange').last().getByTestId('companion-answer')).toContainText('Aucun point de couverture');
+    await expect(page.getByTestId('companion-exchange').last()).toContainText('0 point(s) actuellement détecté(s)');
+    await expect(review.getByText('Donnée incomplète')).toHaveCount(0);
   });
 
   test('garde la sélection explicite lorsqu’il y a plusieurs constats', async ({ page }) => {
@@ -617,13 +630,13 @@ test.describe('Playwright regression — companion', () => {
     await launch.click();
     await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
     await page.getByTestId('link-save').click();
-    await expect(review.getByTestId('companion-review-updated')).toContainText('Constat levé dans la cartographie actuelle');
+    await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
     await expect(review.getByTestId('companion-review-conclusion')).toHaveCount(0);
     await expect(review.getByText('Donnée incomplète')).toHaveCount(0);
+    await expect(review.getByTestId('companion-review-detail')).not.toContainText(targetName);
     await expect(page.getByTestId('companion-decision-brief')).toHaveCount(0);
-    await expect(page.locator('.companion-observation')).toHaveCount(0);
-    await expect(page.getByTestId('companion-exchange').last().getByTestId('companion-answer')).toContainText('Aucun point de couverture');
-    await expect(page.getByTestId('companion-exchange').last()).toContainText('0 point(s) actuellement détecté(s)');
+    await expect(page.locator('.companion-observation')).toHaveCount(1);
+    await expect(page.getByTestId('companion-exchange').last()).toContainText('1 point(s) actuellement détecté(s)');
     await expect.poll(() => page.evaluate(id => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}')
       .applications.some((app: { capabilityIds: string[] }) => app.capabilityIds.includes(id)), targetId)).toBe(true);
     await expect(review.getByTestId('companion-review-action-link-target')).toHaveCount(0);
@@ -655,7 +668,7 @@ test.describe('Playwright regression — companion', () => {
     await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
     await page.getByTestId('link-save').click();
 
-    await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat(s) initial(aux) levé(s)');
+    await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
     await expect(review.getByTestId('companion-review-item')).toHaveCount(0);
     await expect(review.getByTestId('companion-review-question')).toBeVisible();
     await expect(page.getByTestId('companion-exchange').last()).toContainText('1 point(s) actuellement détecté(s)');
@@ -682,9 +695,9 @@ test.describe('Playwright regression — companion', () => {
     await modal.getByLabel('Éditeur / fournisseur').fill('Éditeur de test');
     await modal.getByRole('button', { name: 'Créer' }).click();
     await expect(modal).toHaveCount(0);
-    await expect(review.getByTestId('companion-review-updated')).toContainText('Constat levé');
+    await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
     await expect(review.getByTestId('companion-review-conclusion')).toHaveCount(0);
-    await expect(page.locator('.companion-observation')).toHaveCount(0);
+    await expect(page.locator('.companion-observation')).toHaveCount(1);
     await expect.poll(() => page.evaluate(name => {
       const data = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}');
       const app = data.applications.find((item: { name: string }) => item.name === 'Application de test du compagnon');
