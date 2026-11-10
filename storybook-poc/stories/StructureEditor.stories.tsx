@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StructureEditor } from '../../src/components/StructureEditor.tsx';
 import { Button } from '../../src/components/ui/Button.tsx';
 import {
+  completeLayoutZones,
   addLayoutDraftItem, insertLayoutDraftItem, removeLayoutDraftItem,
   renameLayoutDraftItem, renameLayoutZone,
   type LayoutDraft,
@@ -30,6 +31,7 @@ const initial: LayoutDraft = {
   ],
   zones: [],
 };
+initial.zones = completeLayoutZones(initial.columns, initial.layers, []);
 
 function EditorPreview() {
   const [open, setOpen] = useState(true);
