@@ -902,6 +902,41 @@ test.describe('Cartographie unifiée', () => {
     await expect(presentationPage.locator('.app')).toHaveAttribute('data-presentation-reading', 'identity');
   });
 
+  test('projette la sélection N1 en temps réel en conservant les couleurs métier', async ({ page, context }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    const editorCaps = page.getByTestId('capability-map').locator('.cap');
+    await expect(editorCaps.first()).toBeVisible();
+    const firstId = await editorCaps.first().getAttribute('data-entity-id');
+    const secondId = await editorCaps.nth(1).getAttribute('data-entity-id');
+    expect(firstId).toBeTruthy();
+    expect(secondId).toBeTruthy();
+
+    await editorCaps.first().getByTestId('map-cap-select').click();
+    const presentationPromise = context.waitForEvent('page');
+    await page.getByTestId('presentation-switch-toolbar').click();
+    const projection = await presentationPromise;
+    await projection.waitForLoadState();
+    const first = projection.locator(`.cap[data-entity-id="${firstId}"]`);
+    const second = projection.locator(`.cap[data-entity-id="${secondId}"]`);
+    await expect(first).toHaveClass(/is-presentation-selected/);
+    await expect(projection.locator('.mosaic-domain.is-presentation-selection-parent')).not.toHaveCount(0);
+    await expect(projection.locator('.presentation-focus-overlay')).toHaveCount(0);
+
+    await projection.getByTestId('presentation-reading-maturity').click();
+    await expect(first).toHaveAttribute('data-presentation-tone', /.+/);
+    await editorCaps.nth(1).getByTestId('map-cap-select').click();
+    await expect(first).toHaveClass(/is-presentation-selected/);
+    await expect(second).toHaveClass(/is-presentation-selected/);
+    await expect(second).toHaveAttribute('data-presentation-tone', /.+/);
+    await editorCaps.first().getByTestId('map-cap-select').click();
+    await expect(first).not.toHaveClass(/is-presentation-selected/);
+    await expect(second).toHaveClass(/is-presentation-selected/);
+    await editorCaps.nth(1).getByTestId('map-cap-select').click();
+    await expect(projection.locator('.cap.is-presentation-selected')).toHaveCount(0);
+    await expect(projection.locator('.mosaic-domain.is-presentation-selection-parent')).toHaveCount(0);
+  });
+
   for (const theme of ['light', 'dark'] as const) {
     test(`garde le focus N0 net et les autres cartes opaques en thème ${theme}`, async ({ page, context }) => {
       await page.setViewportSize({ width: 1600, height: 900 });
