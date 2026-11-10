@@ -1,5 +1,5 @@
 import type { BusinessProcess, CatalogModel } from './catalogModel.ts';
-import { isCurrentApplication } from './coverage.ts';
+import { supportsCurrent, supportsTarget } from './applicationRelations.ts';
 import { assessApplicationRisk } from './applicationRisk.ts';
 
 export function processCapabilityTargets(model: CatalogModel) {
@@ -59,9 +59,9 @@ export function analyzeBusinessProcesses(model: CatalogModel, asOf: string) {
   return (model.businessProcesses ?? []).map(process => {
     const capabilities = targets.filter(target => process.capabilityIds.includes(target.id));
     const applications = model.applications.filter(app => app.capabilityIds?.some(id => process.capabilityIds.includes(id)));
-    const currentApplications = applications.filter(isCurrentApplication);
-    const plannedApplications = applications.filter(app => !isCurrentApplication(app));
-    const unsupportedCapabilities = capabilities.filter(target => !currentApplications.some(app => app.capabilityIds?.includes(target.id)));
+    const currentApplications = applications.filter(app => process.capabilityIds.some(id => supportsCurrent(app, id)));
+    const plannedApplications = applications.filter(app => process.capabilityIds.some(id => supportsTarget(app, id)));
+    const unsupportedCapabilities = capabilities.filter(target => !currentApplications.some(app => supportsCurrent(app, target.id)));
     const exposedApplications = currentApplications.map(app => assessApplicationRisk(app, asOf))
       .filter(item => item.status !== 'resolved' && ['high', 'critical'].includes(item.level));
     return { process, capabilities, currentApplications, plannedApplications, unsupportedCapabilities, exposedApplications };
