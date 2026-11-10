@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { getCapabilityCoverageState, isCurrentApplication } from '../application/coverageUseCases.ts';
+import { getCapabilityCoverageState } from '../application/coverageUseCases.ts';
+import { supportsCurrent, supportsTarget } from '../domain/applicationRelations.ts';
 
 const statusClass = status => 'badge ' + String(status || '').toLowerCase().replace('é', 'e');
 
@@ -23,7 +24,7 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
 
   const appsFor = id => apps.filter(a => (a.capabilityIds || []).includes(id));
   const matchesCoverage = id => {
-    const n = appsFor(id).filter(isCurrentApplication).length;
+    const n = appsFor(id).filter(app => supportsCurrent(app, id)).length;
     return coverage === 'all' || (coverage === 'gap' && n === 0) || (coverage === 'redundant' && n > 1);
   };
   const matchesText = item => !q
@@ -90,6 +91,9 @@ export default function CoverageTree({ domains, capabilities, apps, depth, color
       <b>{app.name}</b>
       <small>{app.code}</small>
       <span className={statusClass(app.status)}>{app.status}</span>
+      <small className="tree-relation-role">{supportsCurrent(app, target.id)
+        ? supportsTarget(app, target.id) ? 'Actuelle et cible' : 'Actuelle'
+        : 'Cible'}</small>
       <button type="button" className="tree-remove" aria-label={`Retirer ${app.name} de ${target.name}`} title="Retirer cette relation" onClick={() => onUnassign(app.id, target.id)}>×</button>
     </div>
   );
