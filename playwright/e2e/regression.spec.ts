@@ -479,6 +479,53 @@ test.describe('Playwright regression — companion', () => {
     await page.getByTestId('companion-launcher').click();
   });
 
+  test('ouvre automatiquement le seul constat et rend la résolution visible après qualification', async ({ page }) => {
+    // Construct a model with precisely one unlinked capability and no unlinked apps.
+    const targetName = await page.evaluate(() => {
+      const key = 'enterprise-capacity-mapper:model:v3';
+      const model = JSON.parse(localStorage.getItem(key) || '{}');
+      const target = model.capabilities[0];
+      if (!target || !model.applications?.length) throw new Error('Modèle de test incomplet');
+      const otherIds = model.capabilities.slice(1).map((item: { id: string }) => item.id);
+      model.applications = model.applications.map((app: { capabilityIds?: string[] }) => ({
+        ...app,
+        capabilityIds: [...new Set([...(app.capabilityIds || []), ...otherIds])]
+          .filter(id => id !== target.id),
+      }));
+      localStorage.setItem(key, JSON.stringify(model));
+      return target.name;
+    });
+    await page.reload();
+    await page.getByTestId('companion-launcher').click();
+    await page.getByTestId('companion-prompt-coverage').click();
+
+    const review = page.getByTestId('companion-guided-review');
+    await expect(review).toHaveClass(/is-single/);
+    await expect(review.getByTestId('companion-review-item')).toHaveCount(0);
+    await expect(review.getByTestId('companion-review-detail')).toBeVisible();
+    await expect(review.getByTestId('companion-review-detail')).toContainText(targetName);
+    await expect(review.getByTestId('companion-review-question')).toBeVisible();
+    await expect(page.getByTestId('companion-decision-brief')).toHaveCount(0);
+    await expect(review.getByText('Et maintenant ?')).toBeVisible();
+    await expect(review.getByTestId('companion-review-actions')).toHaveCount(0);
+
+    await review.getByTestId('companion-review-answer-incomplete').click();
+    const actions = review.getByTestId('companion-review-actions');
+    await expect(actions).toBeVisible();
+    await expect(actions).toContainText('Passer à l’action');
+    const link = review.getByTestId('companion-review-action-link-target');
+    await expect(link).toBeVisible();
+    await expect(link).toHaveClass(/ds-button--primary/);
+    await link.click();
+    await expect(page.locator('.modal')).toContainText(targetName);
+    await page.locator('.modal').getByRole('button', { name: 'Annuler' }).click();
+    await expect(review.getByTestId('companion-review-actions')).toBeVisible();
+
+    await review.getByTestId('companion-review-restart').click();
+    await expect(review.getByTestId('companion-review-question')).toBeVisible();
+    await expect(review.getByTestId('companion-review-actions')).toHaveCount(0);
+  });
+
   test('qualifie un écart de couverture sans LLM ni modification de la cartographie', async ({ page }) => {
     const before = await page.evaluate(() => {
       const raw = localStorage.getItem('enterprise-capacity-mapper:model:v3');
