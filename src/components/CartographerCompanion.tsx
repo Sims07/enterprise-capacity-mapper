@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { analyzeCartography, buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
 import CompanionGuidedReview from './CompanionGuidedReview.tsx';
+import type { CompanionRemediationAction } from '../domain/companionRemediation.ts';
 import { buildOctaveFollowUpPrompt } from '../application/buildOctaveFollowUpPrompt.ts';
 import type { Application, Capability, CatalogModel, Domain } from '../domain/catalogModel.ts';
 import type { AiCompanionPort } from '../ports/aiCompanion.ts';
@@ -154,12 +155,13 @@ function MascotIcon({ kind, className = '' }: { kind: MascotKind; className?: st
   />;
 }
 
-export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences, onNavigateToEvidence }: {
+export default function CartographerCompanion({ model, darkMode = false, aiCompanionFactory, companionPreferences, onNavigateToEvidence, onRemediation }: {
   model: CompanionModel;
   darkMode?: boolean;
   aiCompanionFactory: (settings?: Record<string, unknown>) => AiCompanionPort;
   companionPreferences: CompanionPreferencesPort;
   onNavigateToEvidence?: (item: EvidenceReference) => void;
+  onRemediation?: (action: CompanionRemediationAction) => void;
 }) {
   const [open, setOpen] = useState(false);
   type PanelSize = 'normal' | 'large' | 'dock';
@@ -753,8 +755,9 @@ export default function CartographerCompanion({ model, darkMode = false, aiCompa
               </section>
             )}
             {exchange.status !== 'streaming' && exchange.source === 'local' && exchange.observations.length > 0 && (
-              <CompanionGuidedReview observations={exchange.observations}
-                onNavigateToEvidence={item => { if (evidenceExists(item, model)) navigateToEvidence(item); }} />
+              <CompanionGuidedReview observations={exchange.observations} model={model}
+                onNavigateToEvidence={item => { if (evidenceExists(item, model)) navigateToEvidence(item); }}
+                onRemediation={onRemediation} />
             )}
             {exchange.status === 'streaming' ? null : exchange.observations.length > 0 ? (
               <details className="companion-details">
