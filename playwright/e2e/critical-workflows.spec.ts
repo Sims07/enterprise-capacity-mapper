@@ -38,7 +38,7 @@ test.describe('Playwright POC — critical browser workflows', () => {
     await dialog.getByLabel('Nom').fill('Salesforce CRM — renommé');
     await dialog.getByLabel('Code').fill('CRM-SF');
     await dialog.getByLabel('Éditeur / fournisseur').fill('Salesforce');
-    await dialog.getByLabel('Statut').selectOption('Cible');
+    await dialog.getByLabel("Cycle de vie de l'application").selectOption('Cible');
     await dialog.getByLabel('Type').selectOption('ERP');
     await dialog.getByLabel('Description').fill('Application mise à jour depuis la gestion des applications.');
     await dialog.getByRole('button', { name: 'Enregistrer' }).click();
