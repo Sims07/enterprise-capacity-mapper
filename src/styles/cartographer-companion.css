@@ -1126,7 +1126,7 @@
   }
   .companion-root .companion-panel.is-dock {
     inset: 0 0 0 auto;
-    width: min(560px, 46vw);
+    width: var(--companion-dock-width);
     height: 100dvh;
     max-height: none;
     min-height: 0;
@@ -1134,6 +1134,15 @@
     border-radius: 0;
   }
 }
+/* Le dock ne doit pas masquer la carte : le canvas et la navigation
+   occupent l'espace restant, sans modifier la grille métier elle-même. */
+@media (min-width: 601px) {
+  .app.signal-experience:not(.mosaic-presentation-mode):has(> .companion-root .companion-panel.is-dock) {
+    width: calc(100% - var(--companion-dock-width));
+    min-width: 0;
+  }
+}
+
 @media (max-width: 600px) {
   .companion-root .companion-size-toggle { display: none; }
 }
