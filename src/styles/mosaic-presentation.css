@@ -932,12 +932,3 @@
 .app.theme-dark.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected:not([data-presentation-tone]):hover {
   background: color-mix(in srgb, var(--color-focus) var(--map-presentation-spotlight-fill-share), var(--map-card-surface)) !important;
 }
-.app.mosaic-presentation-mode .mosaic-domain .cap.is-presentation-selected::before {
-  content: '';
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: var(--signal-space-2);
-  background: var(--color-focus);
-  pointer-events: none;
-}
