@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import PresentationCapabilityDetail from '../../src/components/PresentationCapabilityDetail.tsx';
 import { capabilityMapReadout } from '../../src/application/capabilityMapReadout.ts';
 import { getCapabilityCoverageState } from '../../src/domain/coverage.ts';
+import { analyzeCapabilityGaps } from '../../src/domain/capabilityGaps.ts';
 import type { Application, Capability } from '../../src/domain/catalogModel.ts';
 import { withSignalTheme } from './storyFrame.tsx';
 
@@ -54,6 +55,38 @@ type Story = StoryObj<typeof meta>;
 export const Mixte: Story = { args: props(currentApplications, targetApplications, true) };
 export const ActuellesUniquement: Story = { args: props(currentApplications, []) };
 export const SansApplications: Story = { args: props([], []) };
+
+export const CiblesUniquement: Story = { args: props([], targetApplications) };
+
+// Cas représentatif de la lecture en comité : trois applications, aucune cible,
+// maturité de 4 vers 5, un seul signal affiché avec sa description.
+const executiveCapability: Capability = {
+  ...capability,
+  name: 'Gestion des anomalies',
+  code: 'T',
+  assessment: { functionalCoverage: 'sufficient', currentMaturity: 4, targetMaturity: 5 },
+};
+const executiveApplications: Application[] = [
+  ...currentApplications,
+  { id: 'app-4', name: 'Service Snow', status: 'Actif', code: 'SN', capabilityIds: [executiveCapability.id] },
+];
+export const ActuellesAvecEcart: Story = {
+  args: {
+    capability: executiveCapability,
+    domainName: 'Relation propriétaire données de santé',
+    currentApplications: executiveApplications,
+    targetApplications: [],
+    readout: capabilityMapReadout(
+      executiveCapability,
+      getCapabilityCoverageState(executiveCapability.id, executiveApplications),
+      analyzeCapabilityGaps({
+        domains: [], capabilities: [executiveCapability], applications: executiveApplications,
+      })[0],
+    ),
+    onClose: () => {},
+  },
+};
+
 
 /** Catalogue volumineux : la fiche entière défile sans perdre les applications. */
 export const CatalogueVolumineux: Story = {

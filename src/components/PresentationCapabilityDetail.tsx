@@ -83,9 +83,8 @@ export default function PresentationCapabilityDetail({
     <section className="presentation-detail-landscape" aria-label="Patrimoine applicatif">
       <div className="presentation-detail-landscape-top">
         <div className="presentation-detail-landscape-heading">
-          <span className="presentation-detail-section-label">PATRIMOINE APPLICATIF</span>
           <h3>Applications associées</h3>
-          <p>Relations déclarées avec cette capacité métier</p>
+          <p>Liens applicatifs renseignés pour cette capacité</p>
         </div>
         <div className="presentation-detail-total">
           <strong data-testid="presentation-app-total">{applicationCount}</strong>
@@ -102,10 +101,9 @@ export default function PresentationCapabilityDetail({
     <section className="presentation-detail-assessment" aria-label="Évaluation métier">
       <div className="presentation-detail-assessment-heading">
         <div>
-          <span className="presentation-detail-section-label">LECTURE MÉTIER</span>
           <h3>Évaluation métier</h3>
         </div>
-        <p>Indicateurs déclarés, indépendants des applications</p>
+        <p>Évaluations métier distinctes des liens applicatifs</p>
       </div>
       <dl className="presentation-detail-assessment-list">
         <div data-coverage={readout.functionalCoverage}>
@@ -121,9 +119,13 @@ export default function PresentationCapabilityDetail({
         <div data-has-signals={readout.signals.length > 0}>
           <dt>Écarts</dt>
           <dd>{readout.signals.length
-            ? readout.signals.length + ' point(s) à examiner'
+            ? readout.signals.length === 1 ? '1 point à examiner' : readout.signals.length + ' points à examiner'
             : readout.needsQualification ? 'À qualifier' : 'Aucun signal détecté'}</dd>
-          <small>Points de vigilance déclarés</small>
+          {readout.signals.length > 0
+            ? <ul className="presentation-detail-signals" aria-label="Points de vigilance">
+              {readout.signals.map(signal => <li key={signal.kind}>{signal.description}</li>)}
+            </ul>
+            : <small>Signaux issus des données renseignées</small>}
         </div>
       </dl>
     </section>

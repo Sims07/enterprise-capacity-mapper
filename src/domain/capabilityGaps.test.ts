@@ -25,6 +25,7 @@ test('diagnoses current, future, functional and maturity gaps without assigning 
   assert.deepEqual(findings[0].currentApplications, ['app1']);
   assert.deepEqual(findings[0].targetApplications, ['app2']);
   assert.equal(findings[0].maturityDelta, 2);
+  assert.equal(findings[0].signals.find(signal => signal.kind === 'maturity')?.description, 'Écart de maturité de 2 niveaux');
   assert.deepEqual(findings[0].signals.map(signal => signal.kind), ['functional-partial', 'maturity', 'obsolete']);
   assert.equal(findings[1].maturityDelta, 0);
   assert.equal(findings[1].signals.length, 0);
@@ -45,6 +46,9 @@ test('reports explicit absence and supports absent maturity without guessing', (
   input.capabilities[0].assessment = { functionalCoverage: 'unknown', currentMaturity: 4, targetMaturity: 3 };
   assert.equal(analyzeCapabilityGaps(input)[0].maturityDelta, 0);
   assert.equal(analyzeCapabilityGaps(input)[0].needsQualification, true);
+  input.capabilities[0].assessment = { functionalCoverage: 'sufficient', currentMaturity: 4, targetMaturity: 5 };
+  assert.equal(analyzeCapabilityGaps(input)[0].signals.find(signal => signal.kind === 'maturity')?.description,
+    'Écart de maturité de 1 niveau');
 });
 
 test('treats an unknown application status as a declared current relation and supports empty catalogs', () => {

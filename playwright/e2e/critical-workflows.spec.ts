@@ -126,7 +126,7 @@ test.describe('Parcours de lecture métier depuis la cartographie', () => {
     const maturity = capability.getByTestId('capability-reading-detail');
     await expect(maturity).toContainText('Actuelle : 2/5');
     await expect(maturity).toContainText('Cible : 4/5');
-    await expect(maturity).toContainText('+2 niveau(x) à atteindre');
+    await expect(maturity).toContainText('+2 niveaux à atteindre');
     await page.getByTestId('map-reading-gaps').click();
     await expect(capability.getByTestId('capability-reading-detail')).toContainText('Écart de maturité');
     await page.getByTestId('map-reading-coverage').click();

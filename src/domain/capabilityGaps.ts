@@ -30,7 +30,7 @@ export function analyzeCapabilityGaps(model: CatalogModel): CapabilityGapFinding
     if (current.length === 0) signals.push({ kind: 'missing-current', description: 'Aucune application actuelle reliée' });
     if (functionalCoverage === 'none') signals.push({ kind: 'functional-none', description: 'Couverture fonctionnelle déclarée absente' });
     if (functionalCoverage === 'partial') signals.push({ kind: 'functional-partial', description: 'Couverture fonctionnelle déclarée partielle' });
-    if (maturityDelta !== null && maturityDelta > 0) signals.push({ kind: 'maturity', description: 'Écart de maturité de ' + maturityDelta + ' niveau(x)' });
+    if (maturityDelta !== null && maturityDelta > 0) signals.push({ kind: 'maturity', description: 'Écart de maturité de ' + maturityDelta + (maturityDelta === 1 ? ' niveau' : ' niveaux') });
     if (current.some(app => normalizedStatus(app) === 'obsolete')) signals.push({ kind: 'obsolete', description: 'Une application actuelle est déclarée obsolète' });
     return {
       id: capability.id, name: capability.name, domainId: capability.domainId,

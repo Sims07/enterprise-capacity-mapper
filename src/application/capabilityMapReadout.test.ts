@@ -40,9 +40,12 @@ test('functional coverage, maturity and gap signals reflect assessed facts only'
   assert.equal(readout.functionalLabel, 'Partielle');
   assert.equal(readout.currentMaturityLabel, '2/5');
   assert.equal(readout.targetMaturityLabel, '4/5');
-  assert.equal(readout.maturityGapLabel, '+2 niveau(x) à atteindre');
+  assert.equal(readout.maturityGapLabel, '+2 niveaux à atteindre');
   assert.deepEqual(readout.signals.map(signal => signal.kind), ['functional-partial', 'maturity']);
   assert.equal(readout.needsQualification, false);
+  input.capabilities[0].assessment = { functionalCoverage: 'sufficient', currentMaturity: 4, targetMaturity: 5 };
+  const singleLevel = capabilityMapReadout(input.capabilities[0], getCapabilityCoverageState('c', input.applications), analyzeCapabilityGaps(input)[0]);
+  assert.equal(singleLevel.maturityGapLabel, '+1 niveau à atteindre');
 });
 
 test('coverage states and reached maturity targets stay distinct', () => {

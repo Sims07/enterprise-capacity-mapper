@@ -42,7 +42,7 @@ export function capabilityMapReadout(
     maturityGapLabel: currentMaturity === undefined || targetMaturity === undefined
       ? 'Écart non calculable'
       : targetMaturity > currentMaturity
-        ? `+${targetMaturity - currentMaturity} niveau(x) à atteindre`
+        ? `+${targetMaturity - currentMaturity} ${(targetMaturity - currentMaturity) === 1 ? 'niveau' : 'niveaux'} à atteindre`
         : 'Cible atteinte ou dépassée',
     signals: finding?.signals ?? [],
     needsQualification: functionalCoverage === 'unknown',
