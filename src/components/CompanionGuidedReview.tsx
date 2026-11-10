@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { buildDecisionBrief } from '../domain/cartographyAnalysis.ts';
 import { GUIDED_REVIEW_LIMIT, resolveCompanionReview, type ReviewFinding } from '../domain/companionReview.ts';
 import { companionRemediation, type CompanionRemediationAction } from '../domain/companionRemediation.ts';
@@ -18,6 +18,7 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
   const [activeId, setActiveId] = useState<string | null>(null);
   const [answersById, setAnswersById] = useState<Record<string, string[]>>({});
   const [showOthers, setShowOthers] = useState(false);
+  const actionRef = useRef<HTMLDivElement>(null);
 
   if (!observations.length) return null;
   const priorities = buildDecisionBrief({ observations }).priorities;
@@ -27,10 +28,19 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
     ...observations.filter(item => !preferredIds.includes(item.id)),
   ];
   const visible = showOthers ? ordered : ordered.slice(0, GUIDED_REVIEW_LIMIT);
-  const active = observations.find(item => item.id === activeId);
+  // One finding needs no selection step: show its qualification immediately.
+  const singleFinding = ordered.length === 1;
+  const active = singleFinding ? ordered[0] : observations.find(item => item.id === activeId);
   const answers = active ? answersById[active.id] ?? [] : [];
   const step = active ? resolveCompanionReview(active, answers) : null;
   const remediation = active ? companionRemediation(active, answers, model) : null;
+
+  // Keep the proposed action visible in the scrollable companion after answering.
+  useEffect(() => {
+    if (step?.status === 'completed' && remediation?.state === 'available') {
+      actionRef.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [active?.id, step?.status, remediation?.state]);
 
   const selectAnswer = (id: string) => {
     if (!active) return;
@@ -38,12 +48,14 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
   };
 
   return (
-    <section className="companion-guided-review" data-testid="companion-guided-review" aria-label="Qualification guidée des constats">
+    <section className={`companion-guided-review${singleFinding ? ' is-single' : ''}`} data-testid="companion-guided-review" aria-label="Qualification guidée des constats">
       <div className="companion-guided-review-heading">
-        <h4>Approfondir un constat</h4>
-        <p>Choisissez un point de vigilance. Les réponses préparent une piste de décision, sans modifier la cartographie.</p>
+        <h4>{singleFinding ? 'Et maintenant ?' : 'Approfondir un constat'}</h4>
+        <p>{singleFinding
+          ? 'Un seul point à examiner : répondez à la question pour obtenir une action adaptée.'
+          : 'Choisissez un constat à examiner. Le compagnon vous guidera jusqu’à une action concrète.'}</p>
       </div>
-      <div className="companion-guided-review-list">
+      {!singleFinding && <div className="companion-guided-review-list">
         {visible.map(item => {
           const completed = resolveCompanionReview(item, answersById[item.id] ?? []).status === 'completed';
           return (
@@ -57,7 +69,7 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
             </Button>
           );
         })}
-      </div>
+      </div>}
       {ordered.length > GUIDED_REVIEW_LIMIT && (
         <Button variant="quiet" className="companion-guided-review-more" data-testid="companion-review-more" onClick={() => setShowOthers(value => !value)}>
           {showOthers ? 'Réduire la liste' : `Voir les autres constats (${ordered.length - GUIDED_REVIEW_LIMIT})`}
@@ -65,7 +77,10 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
       )}
       {active && step && (
         <div className="companion-guided-review-detail" data-testid="companion-review-detail" aria-live="polite">
-          <strong>{active.title}</strong>
+          <div className="companion-guided-review-focus">
+            <span className="companion-guided-review-eyebrow">Constat à qualifier</span>
+            <strong>{active.title}</strong>
+          </div>
           {active.detail && <p className="companion-guided-review-context">{active.detail}</p>}
           {active.evidence?.some(ref => Boolean(ref.id)) && (
             <div className="companion-guided-review-evidence">
@@ -91,16 +106,18 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
             <div className="companion-guided-review-conclusion" data-testid="companion-review-conclusion">
               <strong>{step.classification}</strong>
               <p><b>Piste à examiner :</b> {step.action}</p>
-              <small>Qualification déclarative, conservée uniquement pendant cette session. Aucune modification automatique ni score de risque déduit.</small>
               {remediation?.state === 'available' && onRemediation && (
-                <div className="companion-guided-review-actions" data-testid="companion-review-actions">
+                <div className="companion-guided-review-actions" ref={actionRef} data-testid="companion-review-actions">
+                  <span className="companion-guided-review-action-heading">Passer à l’action</span>
                   {remediation.actions.map((action, index) => (
                     <Button key={action.kind} variant={index === 0 ? 'primary' : 'secondary'}
                       data-testid={`companion-review-action-${action.kind}`}
                       onClick={() => onRemediation(action)}>{action.label}</Button>
                   ))}
+                  <small>Une fenêtre de confirmation s’ouvrira. Aucun changement n’est enregistré sans votre accord.</small>
                 </div>
               )}
+              {remediation?.state !== 'available' && <small>Ce constat demande une validation métier. Aucune modification automatique ni score de risque déduit.</small>}
               {remediation?.state === 'relation-added' && (
                 <p className="companion-guided-review-updated" data-testid="companion-review-updated" role="status">
                   Une relation est maintenant déclarée dans la cartographie. Relancez l’analyse pour actualiser les constats ; cela ne prouve pas à lui seul une couverture fonctionnelle suffisante.
