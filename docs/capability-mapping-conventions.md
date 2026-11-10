@@ -81,6 +81,19 @@ Toute nouvelle fonctionnalité qui introduit un concept d'architecture doit four
 
 Toute modification des conventions doit mettre à jour ce document et l'aide contextuelle correspondante dans l'interface.
 
+## Cycle de vie des applications et rôles de contribution (AS-IS / TO-BE)
+
+Une application possède un **cycle de vie global** dans le catalogue : `Actif` (en service), `Cible` (planifiée, nom technique conservé pour les anciens JSON), `Obsolète` (en service à retirer). Ce cycle ne doit pas être confondu avec le rôle de chaque lien application–capacité métier.
+
+Dans une relation `application.capabilityIds`, le champ facultatif `application.relationRoles[targetId]` peut valoir :
+- `current` : support actuel (AS-IS) uniquement ;
+- `target` : support futur (TO-BE) uniquement ;
+- `both` : support aujourd'hui **et** maintenu dans la cible.
+
+L'absence de rôle explicite est une compatibilité JSON V3 : `status: "Cible"` signifie « target », les autres statuts « current ». Cette interprétation n'est pas une affirmation selon laquelle une application active sera supprimée demain : une relation `both` doit être **déclarée**, elle n'est jamais inférée. Les changements de cycle de vie figent l'interprétation existante avant leur application, afin qu'un statut « Planifiée » ne transforme pas silencieusement les liens de l'application. Une suppression de lien supprime son rôle ; les identifiants inconnus et rôles invalides sont rejetés à l'import.
+
+La **couverture actuelle** ne compte que `current` et `both`. La **présentation cible** liste `target` et `both`. Une application `both` apparaît dans les deux listes mais n'est comptée qu'une fois dans le total des applications distinctes. Une couverture fonctionnelle « suffisante » reste une évaluation métier indépendante, jamais déduite du nombre de relations. L'existence de plusieurs liens présents ne démontre pas nécessairement une redondance fonctionnelle réelle.
+
 ## 8. Évaluation métier d'une capacité N1 (facultative)
 
 Une capacité peut maintenant porter `assessment` dans le même JSON V3, sans migration destructive :
