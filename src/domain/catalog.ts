@@ -1,6 +1,8 @@
 import { removeProcessCapabilityLinks } from './businessProcesses.ts';
 import type { Application, Capability, CatalogModel, Domain } from './catalogModel.ts';
 import { validateCapabilityAssessment } from './capabilityAssessment.ts';
+import { isRelationRole, retainRelationRoles, validateRelationRoles } from './applicationRelations.ts';
+import type { RelationRole } from './catalogModel.ts';
 
 const normalizedName = (name: string): string => name.trim();
 const cloneValue = <T>(value: T): T => {
@@ -12,6 +14,11 @@ const cloneValue = <T>(value: T): T => {
 };
 
 const copyApplication = (application: Application): Application => cloneValue(application);
+const withRelationIds = (application: Application, capabilityIds: string[]): Application => {
+  // Remove the old map before spreading the pruned roles: no dangling keys in JSON.
+  const { relationRoles: _previous, ...snapshot } = copyApplication(application);
+  return { ...snapshot, capabilityIds, ...retainRelationRoles(application, capabilityIds) };
+};
 
 /**
  * Rich aggregate for the cartography domain.
@@ -101,12 +108,10 @@ export class Catalog {
     return this.with({
       capabilities: this.model.capabilities.filter(capability => capability.id !== capabilityId),
       ...removeProcessCapabilityLinks(this.model, new Set([capabilityId])),
-      applications: this.model.applications.map(application => ({
-        ...copyApplication(application),
-        ...(application.capabilityIds === undefined ? {} : {
-          capabilityIds: application.capabilityIds.filter(id => id !== capabilityId),
-        }),
-      })),
+      applications: this.model.applications.map(application =>
+        application.capabilityIds?.includes(capabilityId)
+          ? withRelationIds(application, application.capabilityIds.filter(id => id !== capabilityId))
+          : copyApplication(application)),
     });
   }
 
@@ -115,9 +120,10 @@ export class Catalog {
     Catalog.requireUniqueId(this.model.applications, application.id, 'application');
     const capabilityIds = Catalog.unique(application.capabilityIds ?? []);
     capabilityIds.forEach(id => this.requireMappedTarget(id));
+    validateRelationRoles(application.relationRoles, capabilityIds);
     return this.with({
       applications: [...this.model.applications, {
-        ...application,
+        ...copyApplication(application),
         name,
         ...(application.capabilityIds === undefined ? {} : { capabilityIds }),
       }],
@@ -137,7 +143,7 @@ export class Catalog {
     return this.with({
       applications: this.model.applications.map(application => application.id === applicationId
         ? {
-          ...application,
+          ...withRelationIds(application, capabilityIds ?? []),
           ...otherChanges,
           id: application.id,
           name,
@@ -174,9 +180,23 @@ export class Catalog {
     if (!capabilityIds.includes(targetId)) return this;
     return this.with({
       applications: this.model.applications.map(candidate => candidate.id === applicationId
-        ? { ...copyApplication(candidate), capabilityIds: capabilityIds.filter(id => id !== targetId) }
+        ? withRelationIds(candidate, capabilityIds.filter(id => id !== targetId))
         : copyApplication(candidate)),
     });
+  }
+
+  /** Set an explicit horizon on an existing application/target link. */
+  setMappedRelationRole(applicationId: string, targetId: string, role: RelationRole): Catalog {
+    const application = this.requireApplication(applicationId);
+    this.requireMappedTarget(targetId);
+    if (!application.capabilityIds?.includes(targetId)) {
+      throw new Error('La relation doit exister avant de définir son rôle.');
+    }
+    if (!isRelationRole(role)) throw new Error('Rôle de relation invalide.');
+    if (application.relationRoles?.[targetId] === role) return this;
+    return this.with({ applications: this.model.applications.map(candidate => candidate.id === applicationId
+      ? { ...copyApplication(candidate), relationRoles: { ...(candidate.relationRoles ?? {}), [targetId]: role } }
+      : copyApplication(candidate)) });
   }
 
   replaceMappedRelations(applicationId: string, mappedItemIds: string[], selectedItemIds: string[]): Catalog {
@@ -188,7 +208,7 @@ export class Catalog {
     const next = [...current.filter(id => !allowed.has(id)), ...selected];
     if (next.length === current.length && next.every((id, index) => id === current[index])) return this;
     return this.with({ applications: this.model.applications.map(candidate => candidate.id === applicationId
-      ? { ...copyApplication(candidate), capabilityIds: next }
+      ? withRelationIds(candidate, next)
       : copyApplication(candidate)) });
   }
 
@@ -203,10 +223,8 @@ export class Catalog {
       ...removeProcessCapabilityLinks(this.model, removedRelationIds),
       domains: this.model.domains.filter(domain => domain.id !== domainId),
       capabilities: this.model.capabilities.filter(capability => capability.domainId !== domainId),
-      applications: this.model.applications.map(application => ({
-        ...copyApplication(application),
-        capabilityIds: (application.capabilityIds ?? []).filter(id => !removedRelationIds.has(id)),
-      })),
+      applications: this.model.applications.map(application =>
+        withRelationIds(application, (application.capabilityIds ?? []).filter(id => !removedRelationIds.has(id)))),
     });
   }
 
