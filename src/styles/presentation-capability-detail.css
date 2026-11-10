@@ -1,34 +1,77 @@
-/* Fiche N1 de restitution : les relations applicatives sont le sujet principal.
-   La cartographie derrière reste inchangée et la fiche fonctionne en clair/sombre. */
+/* Fiche N1 : restitution pensée pour une projection, sans modifier le modèle métier.
+   Les en-têtes internes neutralisent explicitement le header global de l'application. */
 .app.mosaic-presentation-mode .presentation-capability-detail {
   width: min(var(--presentation-detail-width), 100%);
   max-height: calc(100dvh - var(--presentation-detail-viewport-margin));
-  gap: var(--signal-space-4);
-  padding: var(--signal-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  background: var(--color-surface-raised);
   border-color: var(--color-border-strong);
+  background: var(--color-surface-raised);
 }
 
+/* Important : le sélecteur global "header" impose autrement une hauteur fixe,
+   un fond opaque, un positionnement sticky et une ombre aux en-têtes de la fiche. */
+.app.mosaic-presentation-mode .presentation-detail-header,
+.app.mosaic-presentation-mode .presentation-detail-app-heading {
+  position: static;
+  top: auto;
+  z-index: auto;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  background: transparent;
+  color: var(--color-text);
+}
 .app.mosaic-presentation-mode .presentation-detail-header {
+  position: relative;
+  flex: 0 0 auto;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--signal-space-4);
+  gap: var(--signal-space-5);
+  padding: var(--signal-space-5) var(--signal-space-6);
+  border-top: var(--signal-space-1) solid var(--color-accent);
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(115deg, var(--color-accent-soft), var(--color-surface-raised) 74%);
 }
 .app.mosaic-presentation-mode .presentation-detail-identity { min-width: 0; }
 .app.mosaic-presentation-mode .presentation-detail-eyebrow {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--signal-space-2);
+  gap: var(--signal-space-3);
   align-items: center;
-  margin: 0 0 var(--signal-space-2);
+  margin: 0 0 var(--signal-space-3);
   color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 600;
 }
-.app.mosaic-presentation-mode .presentation-detail-eyebrow > span {
+.app.mosaic-presentation-mode .presentation-detail-level {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--signal-space-1) var(--signal-space-2);
+  border-radius: var(--radius-control);
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+.app.mosaic-presentation-mode .presentation-detail-context {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--signal-space-2);
+  min-width: 0;
+}
+.app.mosaic-presentation-mode .presentation-detail-context > span {
   color: var(--color-border-strong);
 }
 .app.mosaic-presentation-mode .presentation-detail-title-row {
@@ -40,10 +83,10 @@
 .app.mosaic-presentation-mode .presentation-detail-title-row h2 {
   margin: 0;
   color: var(--color-text);
-  font-size: clamp(22px, 2.6vw, 32px);
+  font-size: clamp(24px, 2.8vw, 36px);
   font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   overflow-wrap: anywhere;
 }
 .app.mosaic-presentation-mode .presentation-detail-code {
@@ -51,9 +94,10 @@
   padding: var(--signal-space-1) var(--signal-space-2);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
   color: var(--color-text-muted);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 750;
 }
 .app.mosaic-presentation-mode .presentation-detail-description {
   margin: var(--signal-space-2) 0 0;
@@ -61,26 +105,35 @@
   font-size: 13px;
   line-height: 1.5;
 }
-.app.mosaic-presentation-mode .presentation-detail-header > .ds-button {
+.app.mosaic-presentation-mode .presentation-detail-header > .presentation-detail-close {
+  display: inline-flex;
   flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-target-size);
+  height: var(--control-target-size);
   min-width: var(--control-target-size);
   min-height: var(--control-target-size);
-  border: 1px solid var(--color-border);
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-control);
-  background: var(--color-surface-muted);
+  background: var(--color-surface-raised);
   color: var(--color-text);
-  font-size: 22px;
-  font-weight: 400;
+  box-shadow: var(--shadow-panel);
+  cursor: pointer;
 }
-.app.mosaic-presentation-mode .presentation-detail-header > .ds-button:hover {
+.app.mosaic-presentation-mode .presentation-detail-header > .presentation-detail-close:hover {
   background: var(--color-surface-hover);
   border-color: var(--color-accent-border);
 }
-.app.mosaic-presentation-mode .presentation-detail-header > .ds-button:focus-visible {
+.app.mosaic-presentation-mode .presentation-detail-header > .presentation-detail-close:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--focus-ring-offset);
 }
+
+/* Panorama applicatif : deux cartes éditoriales, séparées sans tableau administratif. */
 .app.mosaic-presentation-mode .presentation-detail-landscape {
+  margin: var(--signal-space-5) var(--signal-space-6) 0;
   padding: var(--signal-space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -92,8 +145,6 @@
   justify-content: space-between;
   gap: var(--signal-space-4);
   margin-bottom: var(--signal-space-4);
-  padding-bottom: var(--signal-space-3);
-  border-bottom: 1px solid var(--color-border);
 }
 .app.mosaic-presentation-mode .presentation-detail-landscape-heading { min-width: 0; }
 .app.mosaic-presentation-mode .presentation-detail-section-label {
@@ -106,7 +157,7 @@
 }
 .app.mosaic-presentation-mode .presentation-detail-landscape-heading h3 {
   margin: 0;
-  font-size: clamp(18px, 2vw, 23px);
+  font-size: clamp(19px, 2vw, 24px);
   line-height: 1.2;
   color: var(--color-text);
 }
@@ -118,39 +169,63 @@
 .app.mosaic-presentation-mode .presentation-detail-total {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
+  min-width: calc(var(--signal-space-6) * 2);
+  padding-left: var(--signal-space-4);
+  border-left: 1px solid var(--color-border-strong);
   color: var(--color-text-muted);
   font-size: 11px;
 }
 .app.mosaic-presentation-mode .presentation-detail-total strong {
-  color: var(--color-text);
-  font-size: 28px;
-  line-height: 1.05;
+  color: var(--color-accent-text);
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .app.mosaic-presentation-mode .presentation-detail-application-groups {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: var(--signal-space-4);
+  align-items: stretch;
+  gap: var(--signal-space-3);
 }
 .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"] {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.55fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.62fr);
 }
 .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"]:has(> .presentation-detail-app-group[data-kind="current"][data-empty="true"]) {
-  grid-template-columns: minmax(0, 0.55fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
 }
 .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"]:has(> .presentation-detail-app-group[data-kind="current"][data-empty="true"]):has(> .presentation-detail-app-group[data-kind="target"][data-empty="true"]) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.app.mosaic-presentation-mode .presentation-detail-app-group { min-width: 0; }
-.app.mosaic-presentation-mode .presentation-detail-app-heading { margin-bottom: var(--signal-space-3); }
+.app.mosaic-presentation-mode .presentation-detail-app-group {
+  min-width: 0;
+  padding: var(--signal-space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+.app.mosaic-presentation-mode .presentation-detail-app-group[data-kind="current"] {
+  border-top: var(--signal-space-1) solid var(--status-covered-text);
+}
+.app.mosaic-presentation-mode .presentation-detail-app-group[data-kind="target"] {
+  border-top: var(--signal-space-1) solid var(--color-accent);
+}
+.app.mosaic-presentation-mode .presentation-detail-app-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--signal-space-3);
+  padding-bottom: var(--signal-space-3);
+  border-bottom: 1px solid var(--color-border);
+}
 .app.mosaic-presentation-mode .presentation-detail-app-heading-label {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--signal-space-2);
+  min-width: 0;
 }
 .app.mosaic-presentation-mode .presentation-detail-app-heading h4 {
   margin: 0;
@@ -169,10 +244,13 @@
   background: var(--color-accent);
 }
 .app.mosaic-presentation-mode .presentation-detail-app-count {
-  padding: 1px var(--signal-space-2);
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  padding: var(--signal-space-1) var(--signal-space-2);
   border-radius: var(--radius-control);
-  background: var(--color-surface);
-  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
   font-size: 12px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -190,7 +268,7 @@
   align-items: center;
   gap: var(--signal-space-3);
   min-width: 0;
-  padding: var(--signal-space-3);
+  padding: var(--signal-space-2) var(--signal-space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-surface);
@@ -205,7 +283,6 @@
   border-radius: var(--radius-control);
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
-  font-size: 18px;
 }
 .app.mosaic-presentation-mode .presentation-detail-app-group[data-kind="target"] .presentation-detail-app-symbol {
   background: var(--color-accent-soft);
@@ -245,23 +322,29 @@
   background: var(--color-accent-soft);
 }
 .app.mosaic-presentation-mode .presentation-detail-app-empty {
+  display: grid;
+  place-items: center;
+  min-height: calc(var(--control-target-size) * 2);
   margin: 0;
   padding: var(--signal-space-3);
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
   color: var(--color-text-muted);
   font-size: 12px;
   line-height: 1.45;
+  text-align: center;
 }
+
+/* Évaluation : trois repères qui se lisent à distance, sans score inventé. */
 .app.mosaic-presentation-mode .presentation-detail-assessment {
   display: grid;
   gap: var(--signal-space-3);
-  padding-top: var(--signal-space-3);
-  border-top: 1px solid var(--color-border);
+  padding: var(--signal-space-5) var(--signal-space-6) var(--signal-space-6);
 }
 .app.mosaic-presentation-mode .presentation-detail-assessment-heading {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--signal-space-2);
@@ -269,8 +352,8 @@
 .app.mosaic-presentation-mode .presentation-detail-assessment-heading h3 {
   margin: 0;
   color: var(--color-text);
-  font-size: 13px;
-  font-weight: 750;
+  font-size: 18px;
+  font-weight: 800;
 }
 .app.mosaic-presentation-mode .presentation-detail-assessment-heading p {
   margin: 0;
@@ -286,36 +369,59 @@
 .app.mosaic-presentation-mode .presentation-detail-assessment-list > div {
   display: flex;
   flex-direction: column;
-  gap: var(--signal-space-1);
+  gap: var(--signal-space-2);
   min-width: 0;
-  padding: var(--signal-space-2) var(--signal-space-3);
-  border-left: 2px solid var(--color-border-strong);
+  padding: var(--signal-space-3) var(--signal-space-4);
+  border: 1px solid var(--color-border);
+  border-top: var(--signal-space-1) solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-muted);
 }
-.app.mosaic-presentation-mode .presentation-detail-assessment-list dt,
-.app.mosaic-presentation-mode .presentation-detail-assessment-list small {
+.app.mosaic-presentation-mode .presentation-detail-assessment-list > div[data-coverage="sufficient"] {
+  border-top-color: var(--status-covered-text);
+}
+.app.mosaic-presentation-mode .presentation-detail-assessment-list > div[data-coverage="none"],
+.app.mosaic-presentation-mode .presentation-detail-assessment-list > div[data-coverage="partial"],
+.app.mosaic-presentation-mode .presentation-detail-assessment-list > div[data-has-signals="true"] {
+  border-top-color: var(--status-gap-text);
+}
+.app.mosaic-presentation-mode .presentation-detail-assessment-list dt {
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 650;
 }
 .app.mosaic-presentation-mode .presentation-detail-assessment-list dd {
   margin: 0;
   color: var(--color-text);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: clamp(16px, 1.9vw, 21px);
+  line-height: 1.2;
+  font-weight: 800;
   overflow-wrap: anywhere;
 }
+.app.mosaic-presentation-mode .presentation-detail-assessment-list small {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 @media (max-width: 720px) {
-  .app.mosaic-presentation-mode .presentation-capability-detail { padding: var(--signal-space-3); }
+  .app.mosaic-presentation-mode .presentation-detail-header {
+    padding: var(--signal-space-4);
+    gap: var(--signal-space-2);
+  }
+  .app.mosaic-presentation-mode .presentation-detail-landscape {
+    margin: var(--signal-space-3) var(--signal-space-4) 0;
+    padding: var(--signal-space-3);
+  }
+  .app.mosaic-presentation-mode .presentation-detail-assessment {
+    padding: var(--signal-space-4);
+  }
   .app.mosaic-presentation-mode .presentation-detail-application-groups,
-  .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"] {
+  .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"],
+  .app.mosaic-presentation-mode .presentation-detail-application-groups[data-one-sided="true"]:has(> .presentation-detail-app-group[data-kind="current"][data-empty="true"]) {
     grid-template-columns: minmax(0, 1fr);
   }
   .app.mosaic-presentation-mode .presentation-detail-assessment-list {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--signal-space-2);
-  }
-  .app.mosaic-presentation-mode .presentation-detail-assessment-list > div {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
   }
 }
