@@ -64,3 +64,9 @@ Après une qualification humaine confirmant qu’une relation applicative manque
 - Les réponses de qualification restent en mémoire de session et ne sont pas exportées. Les tests du domaine et Playwright couvrent les refus, l’annulation sans modification, la confirmation, les contextes N0/N1 et les références obsolètes.
 
 L’application demeure statique, compatible GitHub Pages et hors ligne, sans appel à un LLM.
+
+## Présentation des constats uniques dans le compagnon
+
+Lorsque le diagnostic local retourne **exactement un constat**, la qualification s'ouvre immédiatement, sans clic sur une ligne de sélection. La carte « À retenir » n'est alors pas dupliquée : le constat, sa référence et la question sont visibles dans le même bloc. Une réponse qualifiée peut faire apparaître un encart « Passer à l'action » avec les **actions métier explicites** déjà reliées au parcours du compagnon (liaison ou création d'application) et une confirmation dans l'éditeur existant. Après la réponse, l'encart est amené dans la zone visible de la conversation. Le bouton « Recommencer la qualification » revient aux questions, sans mutation.
+
+Avec **plusieurs constats**, le Decision Brief et la liste sélectionnable sont conservés pour ne pas décider à la place de l'architecte. Un clic sur un constat ouvre son questionnaire ; les autres constats ne sont pas ouverts automatiquement. Les variantes simple et sombre sont documentées dans Storybook et l'ouverture automatique ainsi que la visibilité de l'action sont couvertes par Playwright.

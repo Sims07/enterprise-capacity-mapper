@@ -25,6 +25,7 @@ const meta = {
   component: CompanionGuidedReview,
   args: {
     observations: sampleFindings,
+    onRemediation: () => undefined,
     model: {
       layout: { depth: 2 },
       domains: [{ id: 'domain', code: 'ID', name: 'Identité' }],
@@ -40,5 +41,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const QualificationLocale: Story = {};
+export const ConstatUnique: Story = {
+  args: { observations: [sampleFindings[0]] },
+};
+
 export const Sombre: Story = { globals: { theme: 'dark' } };
+export const ConstatUniqueSombre: Story = {
+  globals: { theme: 'dark' },
+  args: { observations: [sampleFindings[0]] },
+};
 export const SansConstat: Story = { args: { observations: [] } };
