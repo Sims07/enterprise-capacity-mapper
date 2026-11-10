@@ -524,6 +524,19 @@ test.describe('Playwright regression — companion', () => {
     await review.getByTestId('companion-review-restart').click();
     await expect(review.getByTestId('companion-review-question')).toBeVisible();
     await expect(review.getByTestId('companion-review-actions')).toHaveCount(0);
+
+    // Completing the only remediation must refresh the entire diagnostic.
+    await review.getByTestId('companion-review-answer-incomplete').click();
+    await review.getByTestId('companion-review-action-link-target').click();
+    await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
+    await page.getByTestId('link-save').click();
+    await expect(review.getByTestId('companion-review-updated')).toContainText('Constat levé dans la cartographie actuelle');
+    await expect(review.getByTestId('companion-review-detail')).toHaveCount(0);
+    await expect(page.getByTestId('companion-decision-brief')).toHaveCount(0);
+    await expect(page.locator('.companion-observation')).toHaveCount(0);
+    await expect(page.getByTestId('companion-exchange').last().getByTestId('companion-answer')).toContainText('Aucun point de couverture');
+    await expect(page.getByTestId('companion-exchange').last()).toContainText('0 point(s) actuellement détecté(s)');
+    await expect(review.getByText('Donnée incomplète')).toHaveCount(0);
   });
 
   test('garde la sélection explicite lorsqu’il y a plusieurs constats', async ({ page }) => {
@@ -617,10 +630,50 @@ test.describe('Playwright regression — companion', () => {
     await launch.click();
     await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
     await page.getByTestId('link-save').click();
-    await expect(review.getByTestId('companion-review-updated')).toContainText('Une relation est maintenant déclarée');
+    await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
+    await expect(review.getByTestId('companion-review-conclusion')).toHaveCount(0);
+    await expect(review.getByText('Donnée incomplète')).toHaveCount(0);
+    await expect(review.getByTestId('companion-review-detail')).not.toContainText(targetName);
+    await expect(page.getByTestId('companion-decision-brief')).toHaveCount(0);
+    await expect(page.locator('.companion-observation')).toHaveCount(1);
+    await expect(page.getByTestId('companion-exchange').last()).toContainText('1 point(s) actuellement détecté(s)');
     await expect.poll(() => page.evaluate(id => JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}')
       .applications.some((app: { capabilityIds: string[] }) => app.capabilityIds.includes(id)), targetId)).toBe(true);
     await expect(review.getByTestId('companion-review-action-link-target')).toHaveCount(0);
+  });
+
+  test('ne laisse qu’un constat actif après la résolution partielle de deux écarts', async ({ page }) => {
+    await page.evaluate(() => {
+      const key = 'enterprise-capacity-mapper:model:v3';
+      const model = JSON.parse(localStorage.getItem(key) || '{}');
+      if (model.capabilities.length < 2 || !model.applications.length) throw new Error('Fixture incomplète');
+      const uncoveredIds = model.capabilities.slice(0, 2).map((item: { id: string }) => item.id);
+      const others = model.capabilities.filter((item: { id: string }) => !uncoveredIds.includes(item.id)).map((item: { id: string }) => item.id);
+      model.applications = model.applications.map((app: { capabilityIds?: string[] }) => ({
+        ...app,
+        capabilityIds: [...new Set([...(app.capabilityIds ?? []), ...others])].filter(id => !uncoveredIds.includes(id)),
+      }));
+      localStorage.setItem(key, JSON.stringify(model));
+    });
+    await page.reload();
+    await page.getByTestId('companion-launcher').click();
+    await page.getByTestId('companion-prompt-coverage').click();
+
+    const review = page.getByTestId('companion-guided-review');
+    await expect(review.getByTestId('companion-review-item')).toHaveCount(2);
+    await expect(page.getByTestId('companion-decision-brief')).toBeVisible();
+    await review.getByTestId('companion-review-item').first().click();
+    await review.getByTestId('companion-review-answer-incomplete').click();
+    await review.getByTestId('companion-review-action-link-target').click();
+    await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
+    await page.getByTestId('link-save').click();
+
+    await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
+    await expect(review.getByTestId('companion-review-item')).toHaveCount(0);
+    await expect(review.getByTestId('companion-review-question')).toBeVisible();
+    await expect(page.getByTestId('companion-exchange').last()).toContainText('1 point(s) actuellement détecté(s)');
+    await expect(page.getByTestId('companion-decision-brief')).toHaveCount(0);
+    await expect(page.locator('.companion-observation')).toHaveCount(1);
   });
 
   test('propose de créer une application préreliée et ne l’enregistre qu’après validation', async ({ page }) => {
@@ -642,7 +695,9 @@ test.describe('Playwright regression — companion', () => {
     await modal.getByLabel('Éditeur / fournisseur').fill('Éditeur de test');
     await modal.getByRole('button', { name: 'Créer' }).click();
     await expect(modal).toHaveCount(0);
-    await expect(review.getByTestId('companion-review-updated')).toBeVisible();
+    await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
+    await expect(review.getByTestId('companion-review-conclusion')).toHaveCount(0);
+    await expect(page.locator('.companion-observation')).toHaveCount(1);
     await expect.poll(() => page.evaluate(name => {
       const data = JSON.parse(localStorage.getItem('enterprise-capacity-mapper:model:v3') || '{}');
       const app = data.applications.find((item: { name: string }) => item.name === 'Application de test du compagnon');

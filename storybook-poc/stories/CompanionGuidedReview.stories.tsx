@@ -50,4 +50,11 @@ export const ConstatUniqueSombre: Story = {
   globals: { theme: 'dark' },
   args: { observations: [sampleFindings[0]] },
 };
+export const ConstatResolu: Story = {
+  args: { observations: [], resolvedCount: 1 },
+};
+export const PartiellementResolu: Story = {
+  args: { observations: [sampleFindings[0]], resolvedCount: 1 },
+};
+
 export const SansConstat: Story = { args: { observations: [] } };

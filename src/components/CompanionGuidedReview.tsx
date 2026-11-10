@@ -9,8 +9,10 @@ type Evidence = { type: 'domain' | 'capability' | 'application'; id: string | nu
 type Finding = ReviewFinding & { detail?: string; evidence?: Evidence[] };
 type NavigateEvidence = { type: Evidence['type']; id: string; name: string };
 
-export default function CompanionGuidedReview({ observations, model, onNavigateToEvidence, onRemediation }: {
+export default function CompanionGuidedReview({ observations, resolvedCount = 0, reviewCategory, model, onNavigateToEvidence, onRemediation }: {
   observations: Finding[];
+  resolvedCount?: number;
+  reviewCategory?: string;
   model: Pick<CatalogModel, 'domains' | 'capabilities' | 'applications'> & { layout?: { depth?: number } };
   onNavigateToEvidence?: (item: NavigateEvidence) => void;
   onRemediation?: (action: CompanionRemediationAction) => void;
@@ -46,16 +48,28 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
     setAnswersById(previous => ({ ...previous, [active.id]: [...(previous[active.id] ?? []), id] }));
   };
 
-  if (!observations.length) return null;
+  if (!observations.length && !resolvedCount) return null;
 
   return (
     <section className={`companion-guided-review${singleFinding ? ' is-single' : ''}`} data-testid="companion-guided-review" aria-label="Qualification guidée des constats">
-      <div className="companion-guided-review-heading">
+      {resolvedCount > 0 && (
+        <div className="companion-guided-review-resolved" data-testid="companion-review-updated" role="status">
+          <strong>{observations.length === 0
+            ? 'Constat levé dans la cartographie actuelle'
+            : `${resolvedCount} constat${resolvedCount > 1 ? 's' : ''} levé${resolvedCount > 1 ? 's' : ''} depuis l’analyse initiale`}</strong>
+          <p>{observations.length === 0
+            ? 'Ce constat n’est plus détecté dans la cartographie actuelle. Aucun écart de cette analyse ne reste actif.'
+            : `La cartographie a évolué : ${observations.length} constat${observations.length > 1 ? 's' : ''} reste${observations.length > 1 ? 'nt' : ''} à examiner.`}
+          </p>
+          <small>{reviewCategory === 'coverage' ? 'Une liaison déclarée ne garantit pas à elle seule une couverture fonctionnelle suffisante.' : 'La disparition d’un constat automatique ne remplace pas la validation métier.'}</small>
+        </div>
+      )}
+      {observations.length > 0 && <div className="companion-guided-review-heading">
         <h4>{singleFinding ? 'Et maintenant ?' : 'Approfondir un constat'}</h4>
         <p>{singleFinding
           ? 'Un seul point à examiner : répondez à la question pour obtenir une action adaptée.'
           : 'Choisissez un constat à examiner. Le compagnon vous guidera jusqu’à une action concrète.'}</p>
-      </div>
+      </div>}
       {!singleFinding && <div className="companion-guided-review-list">
         {visible.map(item => {
           const completed = resolveCompanionReview(item, answersById[item.id] ?? []).status === 'completed';
@@ -119,11 +133,6 @@ export default function CompanionGuidedReview({ observations, model, onNavigateT
                 </div>
               )}
               {remediation?.state !== 'available' && <small>Ce constat demande une validation métier. Aucune modification automatique ni score de risque déduit.</small>}
-              {remediation?.state === 'relation-added' && (
-                <p className="companion-guided-review-updated" data-testid="companion-review-updated" role="status">
-                  Une relation est maintenant déclarée dans la cartographie. Relancez l’analyse pour actualiser les constats ; cela ne prouve pas à lui seul une couverture fonctionnelle suffisante.
-                </p>
-              )}
             </div>
           )}
           {answers.length > 0 && (
