@@ -65,6 +65,15 @@ L'en-tête de restitution met d'abord en valeur le nom et le code de la capacit�
 Les applications actuelles et cibles restent exhaustives, mais se lisent dans deux cartes distinctes avec un décompte sans équivalence avec la couverture fonctionnelle. Sous ce panorama, trois cartes mettent en évidence la couverture déclarée, la maturité actuelle/cible et les points à examiner, sans inventer de risque ni score. Les couleurs reprennent les tokens sémantiques Signal, avec un rendu clair et sombre. Les petits écrans empilent les colonnes, les catalogues longs défilent à l'intérieur du dialogue. Les tests Playwright vérifient aussi le placement réel du bouton de fermeture et l'absence de débordement horizontal en mobile.
 
 
+
+### Affinage de la fiche exécutive
+
+En présentation, le panorama applicatif n'ajoute plus de grand cadre supplémentaire autour des deux groupes. Lorsqu'un seul groupe possède des applications, il exploite la largeur de la fiche, avec deux colonnes de relations sur grand écran (une seule sur mobile). Le groupe vide reste visible, sous la forme d'un message compact sur la ligne suivante, sans être confondu avec une absence de couverture fonctionnelle. Si les deux groupes sont vides, leurs messages restent tous deux lisibles.
+
+Les indicateurs métier forment une bande de trois mesures séparées par des filets plutôt que trois cartes imbriquées. Le nombre de signaux suit la grammaire singulier/pluriel et la fiche liste **les descriptions effectivement issues du diagnostic** pour permettre de comprendre le point à examiner (par exemple un écart de maturité déclaré). Une absence de signal ne signifie jamais absence de risque. Les champs existants et leurs règles métier restent inchangés, tout comme l'ouverture, la fermeture, les états clairs et sombres et la compatibilité GitHub Pages.
+
+La non-régression Playwright vérifie la largeur libérée par l'absence de cibles, la compacité du message vide, le nombre exact d'applications, le détail d'un signal, l'empilement mobile, l'absence de débordement horizontal et la fermeture. Les variantes Storybook couvrent aussi « cibles uniquement » et « applications actuelles avec écart ».
+
 ## Piloter l'écran projeté depuis l'éditeur (lot 3)
 
 Le panneau **Piloter la présentation**, dans la barre de lecture métier de l'éditeur (cartographie 2 niveaux), contrôle l'onglet de présentation ouvert **dans le même navigateur et sur la même origine**. Il permet de choisir la lecture Carte/Couverture/Maturité/Écarts, d'afficher ou masquer les applications, et de mettre en avant un domaine N0. Les boutons Précédent/Suivant parcourent les domaines dans l'ordre du catalogue ; « Tous les domaines » rétablit le rendu normal.
