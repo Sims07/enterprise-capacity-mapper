@@ -577,7 +577,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const presentationFocusedCapability = presentation ? model.capabilities.find(item => item.id === presentationFocusedCapabilityId) : undefined;
   const capabilityFindings = useMemo(() => new Map(analyzeCapabilityGaps(model).map(finding => [finding.id, finding])), [model]);
   const pickedValid = pickedApps.filter(id => apps.some(a => a.id === id));
-  const filteredApps = useMemo(() => apps.filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase())), [apps, query]);
+  const filteredApps = useMemo(() => apps
+    .filter(a => (a.name + ' ' + a.code + ' ' + a.vendor).toLowerCase().includes(query.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }) || a.id.localeCompare(b.id)), [apps, query]);
   const visibleDomains = useMemo(() => model.domains.filter(d => (d.name + ' ' + d.code + ' ' + (d.description || '')).toLowerCase().includes(mapQuery.toLowerCase())), [model.domains, mapQuery]);
   const { touched, gaps, redundancy } = deriveCoverageOverview({ mappedItems, applications: apps, selectedIds: selected });
   const notify = x => { setStatus(x); setTimeout(() => setStatus(''), 2500); };
@@ -1964,7 +1966,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </div>
       )}
 
-      {status && <div className="toast" role="status" aria-live="polite">{status}</div>}
+      {status && <div className="toast" data-testid="feedback-toast" role="status" aria-live="polite">{status}</div>}
       {modal === 'wizard' && <NewMapWizard model={model} onCancel={closeWizard} onCreate={createMap} />}
       {guideOpen && <TogafGuide onClose={() => setGuideOpen(false)} />}
 
