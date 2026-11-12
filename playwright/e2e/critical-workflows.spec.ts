@@ -191,3 +191,67 @@ test('du constat sur la carte à la fiche puis au même constat dans le diagnost
   await expect(capability.getByTestId('capability-qualification')).toContainText('Partielle');
   await expect(capability.getByTestId('capability-reading-detail')).toContainText('Écart de maturité');
 });
+
+test('tri alphabétique de l’inventaire SI et recherche sans modifier le catalogue', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('map-inventory-toggle').click();
+
+  const names = page.locator('#app-inventory .app-main b');
+  await expect(names).toHaveText([
+    'ADP Decidium',
+    'Excel Devis Ventes',
+    'Manhattan WMS',
+    'Odoo Invoice',
+    'Salesforce CRM',
+    'SAP S/4HANA Finance',
+    'Zendesk Service',
+  ]);
+
+  await page.getByRole('textbox', { name: 'Rechercher une application' }).fill('sa');
+  await expect(names).toHaveText(['Salesforce CRM', 'SAP S/4HANA Finance']);
+  await page.getByRole('textbox', { name: 'Rechercher une application' }).clear();
+  await expect(names).toHaveCount(7);
+});
+
+test('confirmation d’enregistrement visible avec le compagnon ouvert, sur grand et petit écran', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+
+  await openToolsMenu(page);
+  await page.getByTestId('save-local-map').click();
+  await page.getByTestId('local-map-name').fill('Carte de test des notifications');
+  await page.locator('.modal').getByRole('button', { name: 'Enregistrer' }).click();
+
+  await page.getByTestId('companion-launcher').click();
+  const companion = page.getByTestId('companion-panel');
+  await expect(companion).toBeVisible();
+
+  await page.keyboard.press('Control+s');
+  const toast = page.getByTestId('feedback-toast');
+  await expect(toast).toContainText('enregistrée sur cet appareil');
+  await expect(toast).toBeVisible();
+
+  const desktop = await page.evaluate(() => {
+    const feedback = document.querySelector('[data-testid="feedback-toast"]')!;
+    const companion = document.querySelector('[data-testid="companion-panel"]')!;
+    return {
+      feedback: feedback.getBoundingClientRect().toJSON(),
+      companion: companion.getBoundingClientRect().toJSON(),
+      toastLayer: Number(getComputedStyle(feedback).zIndex),
+      companionLayer: Number(getComputedStyle(companion).zIndex),
+    };
+  });
+  expect(desktop.feedback.right).toBeLessThan(desktop.companion.left);
+  expect(desktop.feedback.top).toBeLessThan(page.viewportSize()!.height / 2);
+  expect(desktop.toastLayer).toBeGreaterThan(desktop.companionLayer);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.keyboard.press('Control+s');
+  await expect(toast).toBeVisible();
+  const visibleAboveCompanion = await toast.evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    const front = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+    return front === element || element.contains(front);
+  });
+  expect(visibleAboveCompanion).toBe(true);
+});
