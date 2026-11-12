@@ -248,10 +248,23 @@ test('confirmation d’enregistrement visible avec le compagnon ouvert, sur gran
   await page.setViewportSize({ width: 390, height: 844 });
   await page.keyboard.press('Control+s');
   await expect(toast).toBeVisible();
-  const visibleAboveCompanion = await toast.evaluate(element => {
-    const bounds = element.getBoundingClientRect();
-    const front = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
-    return front === element || element.contains(front);
+  const mobile = await page.evaluate(() => {
+    const feedback = document.querySelector('[data-testid="feedback-toast"]')!;
+    const panel = document.querySelector('[data-testid="companion-panel"]')!;
+    const bounds = feedback.getBoundingClientRect();
+    return {
+      top: bounds.top,
+      left: bounds.left,
+      right: bounds.right,
+      viewportWidth: window.innerWidth,
+      toastLayer: Number(getComputedStyle(feedback).zIndex),
+      companionLayer: Number(getComputedStyle(panel).zIndex),
+      pointerEvents: getComputedStyle(feedback).pointerEvents,
+    };
   });
-  expect(visibleAboveCompanion).toBe(true);
+  expect(mobile.toastLayer).toBeGreaterThan(mobile.companionLayer);
+  expect(mobile.top).toBeGreaterThanOrEqual(0);
+  expect(mobile.left).toBeGreaterThanOrEqual(0);
+  expect(mobile.right).toBeLessThanOrEqual(mobile.viewportWidth);
+  expect(mobile.pointerEvents).toBe('none');
 });
