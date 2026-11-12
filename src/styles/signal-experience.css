@@ -334,3 +334,31 @@
   .app.signal-experience .toolbar button,
   .app.signal-experience .cap { transition: none !important; }
 }
+
+/* Notifications de l'éditeur : proches de l'identité du document, jamais sous le compagnon. */
+.app.signal-experience .toast {
+  top: var(--feedback-top-offset);
+  bottom: auto;
+  left: var(--signal-space-4);
+  right: auto;
+  z-index: var(--layer-toast);
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: var(--signal-space-3) var(--signal-space-4);
+  border: 1px solid var(--color-border-strong);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-panel);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  .app.signal-experience .toast {
+    top: calc(env(safe-area-inset-top, 0px) + var(--signal-space-3));
+    left: var(--signal-space-3);
+    right: var(--signal-space-3);
+    max-width: none;
+  }
+}

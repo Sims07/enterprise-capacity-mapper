@@ -71,7 +71,7 @@ function ToastDemo() {
   const [message, setMessage] = useState('Structure enregistrée');
   return <div style={storyPanel}>
     <h3>Notification non bloquante</h3>
-    <p style={storyHelp}>Même classe de notification que l'éditeur. Le message reste neutre en cas de succès.</p>
+    <p style={storyHelp}>Notification de l'éditeur, en haut à gauche et visible devant les panneaux flottants.</p>
     <Button type="button" onClick={() => setMessage('Cartographie sauvegardée en local')}>Déclencher une notification</Button>
     {message && <div className="toast" role="status" aria-live="polite">{message}</div>}
   </div>;
