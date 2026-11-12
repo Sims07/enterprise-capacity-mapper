@@ -50,3 +50,6 @@
 
 /* Éditeur de structure : portée isolée, après les variantes et le thème. */
 @import './structure-editor.css';
+
+/* Composition PDF plein cadre, chargée après les styles d'écran. */
+@import './presentation-print.css';
