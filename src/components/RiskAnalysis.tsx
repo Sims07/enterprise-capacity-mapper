@@ -23,13 +23,15 @@ function RiskEditor({ application, onSave, onClose }: { application: Application
       try { onSave(validateApplicationRisk(draft)); onClose(); }
       catch (failure) { setError(failure instanceof Error ? failure.message : 'Impossible d’enregistrer le risque.'); }
     }}>
-      <p>Qualifiez le principal risque de cette application. La fin de support produit une alerte indépendante du score déclaré.</p>
+      <p>Étape 1 : estimez le risque. Étape 2 : choisissez quoi faire et, si nécessaire, qui s’en charge. Vous pourrez revenir modifier cette décision.</p>
+      <h3 className="analysis-editor-step">1. Évaluer le risque</h3>
       <SelectField label="Catégorie du risque" value={draft.category ?? ''} options={[{ value: '', label: 'À qualifier' }, ...options(RISK_CATEGORIES)]} onChange={e => change('category', e.target.value)} />
       <div className="risk-form-grid">
         <SelectField label="Probabilité (1 à 5)" hint="1 : rare · 5 : quasi certaine" value={draft.likelihood ?? ''} options={scaleOptions} onChange={e => change('likelihood', e.target.value ? Number(e.target.value) : '')} />
         <SelectField label="Impact métier (1 à 5)" hint="1 : mineur · 5 : majeur" value={draft.impact ?? ''} options={scaleOptions} onChange={e => change('impact', e.target.value ? Number(e.target.value) : '')} />
       </div>
       <Field label="Fin de support" type="date" value={draft.supportEndDate ?? ''} onChange={e => change('supportEndDate', e.target.value)} hint={`Alerte à ${SUPPORT_WARNING_DAYS} jours, risque élevé à échéance.`} />
+      <h3 className="analysis-editor-step">2. Décider et suivre</h3>
       <TextareaField required={draft.status === 'accepted'} label="Justification et éléments constatés" value={draft.rationale ?? ''} onChange={e => change('rationale', e.target.value)} />
       <SelectField label="Décision de traitement" value={draft.status ?? 'open'} options={options(RISK_STATUSES)} onChange={e => change('status', e.target.value)} />
       <div className="risk-form-grid">
@@ -58,6 +60,8 @@ export default function RiskAnalysis({ model, onUpdateRisk, onExploreTarget, onE
   const urgent = analysis.applications.filter(item => item.actionable && ['high', 'critical'].includes(item.level));
   const unknown = analysis.applications.filter(item => item.needsQualification);
   const overdue = analysis.applications.filter(item => item.overdue);
+  // The first suggested action is a real, unresolved case, not a synthetic overall score.
+  const next = urgent[0] ?? overdue.find(item => item.actionable) ?? unknown.find(item => item.actionable) ?? null;
   const domainApps = domainId === 'all' ? null : new Set(analysis.domains.find(domain => domain.id === domainId)?.applications.map(item => item.application.id));
   const visible = analysis.applications.filter(item => (!domainApps || domainApps.has(item.application.id))
     && item.application.name.toLocaleLowerCase('fr').includes(query.trim().toLocaleLowerCase('fr'))
@@ -72,21 +76,27 @@ export default function RiskAnalysis({ model, onUpdateRisk, onExploreTarget, onE
         `- Justification : ${clean(item.risk.rationale)}`, `- Action : ${clean(item.risk.mitigation)}`, ''])].join('\n'));
   };
   return <section className="risk-analysis dashboard-panel" aria-label="Analyse des risques" data-testid="risk-analysis">
-    <div className="dashboard-panel-heading"><div><span className="attention-eyebrow">RISQUES ET RÉSILIENCE</span><h2>Quelles capacités sont exposées ?</h2><p>Identifiez les applications à traiter, puis suivez leur impact métier et les actions décidées.</p></div><Button onClick={exportReview} disabled={!visible.length}>Exporter l’analyse</Button></div>
-    <div className="risk-metrics" aria-label="Indicateurs de risque">
-      <div><strong>{urgent.length}</strong><span>Risques élevés à traiter</span></div>
-      <div><strong>{unknown.length}</strong><span>Applications à qualifier</span></div>
-      <div><strong>{overdue.length}</strong><span>Échéances dépassées</span></div>
-      <div><strong>{analysis.applications.filter(item => item.status === 'accepted').length}</strong><span>Risques acceptés</span></div>
+    <div className="dashboard-panel-heading"><div><span className="attention-eyebrow">RISQUES ET RÉSILIENCE</span><h2>Quelles capacités sont exposées ?</h2><p>Commencez par les situations qui demandent une décision. Les détails par domaine restent accessibles ensuite.</p></div><Button onClick={exportReview} disabled={!visible.length}>Exporter l’analyse</Button></div>
+    <div className="analysis-guidance" data-testid="risk-guidance">
+      <div className="analysis-guidance-copy">
+        <span className="attention-eyebrow">POUR COMMENCER</span>
+        <h3>{next ? next.actionable && ['high', 'critical'].includes(next.level) ? `Risque à examiner : ${next.application.name}` : next.overdue ? `Échéance dépassée : ${next.application.name}` : `À qualifier : ${next.application.name}` : 'Aucune action prioritaire identifiée'}</h3>
+        <p>{next ? next.needsQualification
+          ? 'Évaluez la probabilité et l’impact métier de cette application pour savoir si une action est nécessaire.'
+          : 'Examinez la situation, puis décidez de traiter, accepter avec justification ou résoudre le risque.'
+          : 'Les risques déclarés sont suivis. Vous pouvez parcourir les autres applications ou réviser une évaluation.'}</p>
+      </div>
+      {next && <Button variant="primary" data-testid="risk-next-action" onClick={() => setEditing(next.application)}>Commencer par cette application</Button>}
     </div>
-    <details className="risk-method"><summary>Comprendre les niveaux de risque</summary><p>Score déclaré = probabilité × impact, de 1 à 25 : faible 1–4, modéré 5–9, élevé 10–16, critique 17–25. Une fin de support atteinte impose au moins un niveau élevé ; une échéance dans les {SUPPORT_WARNING_DAYS} prochains jours impose au moins un niveau modéré. Le niveau retenu est le plus fort des deux signaux.</p><p>L’exposition d’une capacité ou d’un domaine est le niveau maximal de ses applications actuelles non résolues. Une acceptation conserve le risque visible et revient à traiter après sa date de réexamen. « En traitement » ne diminue pas le niveau. Une résolution déclarée sort de l’exposition ; vérifiez sa justification. Les données manquantes restent signalées séparément, même lorsqu’une alerte de support existe.</p><p>Cette évaluation porte sur le risque principal déclaré et la fin de support de l’application. {analysis.plannedCount} application(s) au statut Cible sont exclues de l’exposition actuelle. Aucun catalogue de composants ou de vulnérabilités externe n’est interrogé.</p></details>
-    <h3>Exposition par domaine</h3>
-    <div className="risk-domain-grid">{analysis.domains.map(domain => <article key={domain.id} className="risk-domain">
-      <strong>{domain.name}</strong>{domain.applications.length > 0 && domain.applications.every(item => item.status === 'resolved') ? <span className="risk-badge">Risques déclarés résolus</span> : <Badge level={domain.level} />}<small>{domain.applications.length} application(s) · {domain.unknownCount} à qualifier</small>
-      {domain.applications.length === 0 && <small>Aucun support actuel : couverture à examiner.</small>}
-      <Button variant="quiet" aria-pressed={domainId === domain.id} onClick={() => setDomainId(domainId === domain.id ? 'all' : domain.id)}>{domainId === domain.id ? 'Retirer le filtre' : 'Examiner ce domaine'}</Button>
-    </article>)}</div>
-    {(model.layout as { depth?: number })?.depth !== 1 && <details className="risk-method"><summary>Exposition des capacités N1</summary><div className="risk-capability-grid">{analysis.targets.map(target => <article key={target.id} className="risk-domain"><Button variant="quiet" onClick={() => onExploreTarget(target.id)}>{target.name}</Button>{target.applications.length > 0 && target.applications.every(item => item.status === 'resolved') ? <span className="risk-badge">Risques déclarés résolus</span> : <Badge level={target.level} />}<small>{target.applications.length} application(s) · {target.unknownCount} à qualifier</small></article>)}</div></details>}
+    <div className="analysis-quick-filters" role="group" aria-label="Accès rapides aux risques" data-testid="risk-quick-filters">
+      <button type="button" className={filter === 'urgent' ? 'is-active' : ''} aria-pressed={filter === 'urgent'} onClick={() => setFilter('urgent')}><strong>{urgent.length}</strong><span>Risques élevés à traiter</span></button>
+      <button type="button" className={filter === 'unknown' ? 'is-active' : ''} aria-pressed={filter === 'unknown'} onClick={() => setFilter('unknown')}><strong>{unknown.length}</strong><span>Applications à qualifier</span></button>
+      <button type="button" className={filter === 'overdue' ? 'is-active' : ''} aria-pressed={filter === 'overdue'} onClick={() => setFilter('overdue')}><strong>{overdue.length}</strong><span>Échéances dépassées</span></button>
+      <button type="button" className={filter === 'accepted' ? 'is-active' : ''} aria-pressed={filter === 'accepted'} onClick={() => setFilter('accepted')}><strong>{analysis.applications.filter(item => item.status === 'accepted').length}</strong><span>Risques acceptés (suivis)</span></button>
+    </div>
+    <div className="analysis-worklist-heading" data-testid="risk-worklist"><div><h3>Applications à examiner</h3><p>Les plus exposées apparaissent d’abord. Ouvrez une évaluation pour décider de la suite.</p></div>
+      <Button variant="quiet" onClick={() => { setFilter('all'); setDomainId('all'); setQuery(''); }}>Tout afficher</Button>
+    </div>
     <div className="risk-filters">
       <Field label="Rechercher une application" type="search" value={query} onChange={e => setQuery(e.target.value)} />
       <SelectField label="Afficher les risques" value={filter} onChange={e => setFilter(e.target.value)} options={[{ value: 'all', label: 'Tous les risques' }, { value: 'urgent', label: 'Élevés et critiques à traiter' }, { value: 'unknown', label: 'À qualifier' }, { value: 'overdue', label: 'Échéance dépassée' }, ...options(RISK_STATUSES)]} />
@@ -102,6 +112,14 @@ export default function RiskAnalysis({ model, onUpdateRisk, onExploreTarget, onE
       <Button onClick={() => setEditing(item.application)} aria-label={`Évaluer le risque de ${item.application.name}`}>Évaluer et traiter</Button>
     </article>)}</div>
     {!visible.length && <p className="attention-empty">Aucune application dans ce périmètre. Modifiez les filtres ou ajoutez des applications actuelles à la cartographie.</p>}
+    <details className="risk-method"><summary>Comprendre les niveaux de risque</summary><p>Score déclaré = probabilité × impact, de 1 à 25 : faible 1–4, modéré 5–9, élevé 10–16, critique 17–25. Une fin de support atteinte impose au moins un niveau élevé ; une échéance dans les {SUPPORT_WARNING_DAYS} prochains jours impose au moins un niveau modéré. Le niveau retenu est le plus fort des deux signaux.</p><p>L’exposition d’une capacité ou d’un domaine est le niveau maximal de ses applications actuelles non résolues. Une acceptation conserve le risque visible et revient à traiter après sa date de réexamen. « En traitement » ne diminue pas le niveau. Une résolution déclarée sort de l’exposition ; vérifiez sa justification. Les données manquantes restent signalées séparément, même lorsqu’une alerte de support existe.</p><p>Cette évaluation porte sur le risque principal déclaré et la fin de support de l’application. {analysis.plannedCount} application(s) au statut Cible sont exclues de l’exposition actuelle. Aucun catalogue de composants ou de vulnérabilités externe n’est interrogé.</p></details>
+    <details className="analysis-explore" data-testid="risk-domain-exploration"><summary>Explorer les domaines et leur exposition</summary>
+    <div className="risk-domain-grid">{analysis.domains.map(domain => <article key={domain.id} className="risk-domain">
+      <strong>{domain.name}</strong>{domain.applications.length > 0 && domain.applications.every(item => item.status === 'resolved') ? <span className="risk-badge">Risques déclarés résolus</span> : <Badge level={domain.level} />}<small>{domain.applications.length} application(s) · {domain.unknownCount} à qualifier</small>
+      {domain.applications.length === 0 && <small>Aucun support actuel : couverture à examiner.</small>}
+      <Button variant="quiet" aria-pressed={domainId === domain.id} onClick={() => setDomainId(domainId === domain.id ? 'all' : domain.id)}>{domainId === domain.id ? 'Retirer le filtre' : 'Examiner ce domaine'}</Button>
+    </article>)}</div></details>
+    {(model.layout as { depth?: number })?.depth !== 1 && <details className="risk-method"><summary>Exposition des capacités N1</summary><div className="risk-capability-grid">{analysis.targets.map(target => <article key={target.id} className="risk-domain"><Button variant="quiet" onClick={() => onExploreTarget(target.id)}>{target.name}</Button>{target.applications.length > 0 && target.applications.every(item => item.status === 'resolved') ? <span className="risk-badge">Risques déclarés résolus</span> : <Badge level={target.level} />}<small>{target.applications.length} application(s) · {target.unknownCount} à qualifier</small></article>)}</div></details>}
     {editing && <RiskEditor application={editing} onClose={() => setEditing(null)} onSave={risk => onUpdateRisk(editing.id, risk)} />}
   </section>;
 }
