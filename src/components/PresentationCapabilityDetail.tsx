@@ -15,11 +15,13 @@ export type PresentationCapabilityDetailProps = {
   onClose: () => void;
 };
 
-function ApplicationGroup({ title, applications, kind, capabilityId }: {
+function ApplicationGroup({ title, applications, kind, capabilityId, currentIds, targetIds }: {
   title: string;
   applications: Application[];
   kind: 'current' | 'target';
   capabilityId?: string;
+  currentIds: ReadonlySet<string>;
+  targetIds: ReadonlySet<string>;
 }) {
   return <section className="presentation-detail-app-group" data-kind={kind} data-empty={applications.length === 0}>
     <header className="presentation-detail-app-heading">
@@ -30,7 +32,12 @@ function ApplicationGroup({ title, applications, kind, capabilityId }: {
       </div>
     </header>
     {applications.length ? <ul className="presentation-detail-app-list" data-testid={kind === 'current' ? 'presentation-current-apps' : 'presentation-target-apps'}>
-      {applications.map(application => <li className="presentation-detail-app-item" key={application.id}>
+      {applications.map(application => {
+        const evolution = kind === 'current' && !targetIds.has(application.id)
+          ? 'removed' : kind === 'target' && !currentIds.has(application.id) ? 'new' : 'existing';
+        const evolutionLabel = evolution === 'removed' ? 'Sortante'
+          : evolution === 'new' ? 'Nouvelle' : kind === 'target' ? 'Maintenue' : 'Existante';
+        return <li className="presentation-detail-app-item" key={application.id} data-evolution={evolution}>
         <span className="presentation-detail-app-symbol" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <rect x="5" y="3" width="14" height="18" rx="2" />
@@ -43,8 +50,12 @@ function ApplicationGroup({ title, applications, kind, capabilityId }: {
           {capabilityId && relationRoleFor(application, capabilityId) === 'both'
             && <small>{kind === 'current' ? 'Maintenue dans la cible' : 'Déjà en service'}</small>}
         </div>
-        <span className="presentation-detail-app-status">{lifecycleLabel(application.status)}</span>
-      </li>)}
+        <div className="presentation-detail-app-meta">
+          <span className="presentation-detail-evolution-label">{evolutionLabel}</span>
+          <span className="presentation-detail-app-status">{lifecycleLabel(application.status)}</span>
+        </div>
+      </li>;
+      })}
     </ul> : <p className="presentation-detail-app-empty">{kind === 'current'
       ? 'Aucune application actuelle rattachée.'
       : 'Aucune application cible rattachée.'}</p>}
@@ -62,6 +73,8 @@ export default function PresentationCapabilityDetail({
 }: PresentationCapabilityDetailProps) {
   const applicationCount = new Set([...currentApplications, ...targetApplications].map(application => application.id)).size;
   const outgoingApplications = outgoingApplicationsForCapability(currentApplications, targetApplications);
+  const currentIds = new Set(currentApplications.map(application => application.id));
+  const targetIds = new Set(targetApplications.map(application => application.id));
 
   return <section className="presentation-focus-sheet presentation-capability-detail" role="dialog" aria-modal="true"
     aria-label={'Détail de ' + capability.name} data-testid="presentation-capability-detail">
@@ -98,8 +111,10 @@ export default function PresentationCapabilityDetail({
       </div>
       <div className="presentation-detail-application-groups"
         data-one-sided={currentApplications.length === 0 || targetApplications.length === 0}>
-        <ApplicationGroup kind="current" title="Applications actuelles" applications={currentApplications} capabilityId={capability.id} />
-        <ApplicationGroup kind="target" title="Applications cibles" applications={targetApplications} capabilityId={capability.id} />
+        <ApplicationGroup kind="current" title="Applications actuelles" applications={currentApplications}
+          capabilityId={capability.id} currentIds={currentIds} targetIds={targetIds} />
+        <ApplicationGroup kind="target" title="Applications cibles" applications={targetApplications}
+          capabilityId={capability.id} currentIds={currentIds} targetIds={targetIds} />
       </div>
       {outgoingApplications.length > 0 && <section className="presentation-detail-outgoing"
         aria-label="Applications sortantes" data-testid="presentation-outgoing-apps">
@@ -109,10 +124,10 @@ export default function PresentationCapabilityDetail({
           <p>Présentes en actuel, absentes de la cible de cette capacité. Leur retrait du SI reste à confirmer.</p>
         </div>
         <ul className="presentation-detail-outgoing-list">
-          {outgoingApplications.map(application => <li key={application.id}>
+          {outgoingApplications.map(application => <li key={application.id} data-evolution="removed">
             <strong>{application.name}</strong>
             {application.code && <span>{application.code}</span>}
-            <small>{lifecycleLabel(application.status)}</small>
+            <span className="presentation-detail-outgoing-status">{lifecycleLabel(application.status)}</span>
           </li>)}
         </ul>
       </section>}

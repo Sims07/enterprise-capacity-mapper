@@ -151,3 +151,23 @@ la rubrique n'occupe aucune place. Aucun changement de données, de couverture
 fonctionnelle ni de maturité n'est enregistré. Un test métier valide le calcul,
 un scénario Playwright couvre le cas sortant / maintenu / cible seule, et Storybook
 illustre la trajectoire mixte.
+
+### Convention couleur de trajectoire applicative (présentation)
+
+La fiche N1 emploie les codes architecturaux : **bleu = existant / maintenu**
+(application actuelle et cible), **vert = nouveau** (cible seulement),
+**rouge = sortant de la cible de cette capacité** (actuel seulement).
+Les applications sortantes apparaissent aussi dans le bandeau de synthèse rouge ;
+elles ne sont pas déclarées supprimées du SI dans son ensemble.
+
+**Orange = modifié**, mais un lien `both` ne prouve pas qu'une application
+a changé : les liens actuel/cible indiquent le maintien, pas une différence de
+fonctionnalité. Le design system possède les tokens `--map-evolution-modified-*`
+(en clair et en sombre), qui seront activés lorsque la modification sera
+explicitement documentée. Les statuts « Actif », « Obsolète », « Planifiée »
+restent affichés séparément : il ne faut pas les confondre avec la trajectoire.
+
+L'identité visuelle repose désormais sur le **fond des lignes, les bordures,
+les icônes et les badges textuels**, pas uniquement sur un liseré de section.
+Les tests E2E et Storybook (clair / sombre) vérifient la différenciation
+visuelle, les libellés, l'absence de faux « modifié » et le mobile.

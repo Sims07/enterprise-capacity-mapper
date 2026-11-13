@@ -63,6 +63,8 @@ const maintainedApplication: Application = {
   capabilityIds: [capability.id],
   relationRoles: { [capability.id]: 'both' },
 };
+/** Démonstration du code couleur d'architecture : bleu maintenu, vert nouveau, rouge sortant.
+ * L'orange est réservé aux modifications explicitement qualifiées : « both » ne suffit pas. */
 export const SortantesEtMaintenues: Story = {
   args: props(
     [maintainedApplication, { id: 'app-webps', name: 'Web PS', code: 'WPS', status: 'Obsolète', capabilityIds: [capability.id] }],

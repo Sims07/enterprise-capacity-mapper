@@ -97,6 +97,21 @@
   --status-normal-bg: #dcfce7;
   --status-neutral-text: #475569;
   --status-neutral-bg: #e2e8f0;
+
+  /* Convention d'évolution d'architecture (distincte de la couverture métier).
+     Le statut « modifié » sera utilisé lorsqu'une modification sera qualifiée. */
+  --map-evolution-existing-bg: #e8f1ff;
+  --map-evolution-existing-text: #174a8b;
+  --map-evolution-existing-border: #a6c6fa;
+  --map-evolution-new-bg: #e5f7eb;
+  --map-evolution-new-text: #146534;
+  --map-evolution-new-border: #8bcba0;
+  --map-evolution-modified-bg: #fff0df;
+  --map-evolution-modified-text: #8b4706;
+  --map-evolution-modified-border: #e5b27d;
+  --map-evolution-removed-bg: #ffebec;
+  --map-evolution-removed-text: #a1212b;
+  --map-evolution-removed-border: #e8a0a6;
 }
 
 .theme-dark {
@@ -152,6 +167,19 @@
   --status-normal-bg: #153322;
   --status-neutral-text: #cbd5e1;
   --status-neutral-bg: #343842;
+
+  --map-evolution-existing-bg: #192f4c;
+  --map-evolution-existing-text: #c2dbff;
+  --map-evolution-existing-border: #577fae;
+  --map-evolution-new-bg: #1d392b;
+  --map-evolution-new-text: #b8f0c7;
+  --map-evolution-new-border: #4b9e6e;
+  --map-evolution-modified-bg: #432d1b;
+  --map-evolution-modified-text: #ffd3a1;
+  --map-evolution-modified-border: #a57442;
+  --map-evolution-removed-bg: #46242b;
+  --map-evolution-removed-text: #ffc4c9;
+  --map-evolution-removed-border: #ad636c;
 }
 
 /* Respect the user's motion preference for transitions using shared tokens. */
