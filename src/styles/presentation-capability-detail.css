@@ -42,7 +42,14 @@
   border-bottom: 1px solid var(--color-border);
   background: linear-gradient(115deg, var(--color-accent-soft), var(--color-surface-raised) 74%);
 }
-.app.mosaic-presentation-mode .presentation-detail-identity { min-width: 0; }
+/* Le style mobile global `header > div:first-child` transforme sinon
+   l'identité N1 en ligne horizontale, chasse le bouton fermer et déborde. */
+.app.mosaic-presentation-mode .presentation-detail-header > .presentation-detail-identity {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+}
 .app.mosaic-presentation-mode .presentation-detail-eyebrow {
   display: flex;
   flex-wrap: wrap;
@@ -71,6 +78,8 @@
   flex-wrap: wrap;
   gap: var(--signal-space-2);
   min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .app.mosaic-presentation-mode .presentation-detail-context > span {
   color: var(--color-border-strong);
