@@ -79,7 +79,7 @@ export default function BusinessProcesses({ model, onSave, onRemove, onExploreTa
       || a.process.name.localeCompare(b.process.name, 'fr'));
   return <section className="dashboard-panel process-analysis" data-testid="business-processes" aria-label="Processus métier">
     <div className="dashboard-panel-heading"><div><span className="attention-eyebrow">ARCHITECTURE MÉTIER</span><h2>Quels processus mobilisent vos capacités ?</h2><p>Commencez par un processus métier, rattachez ses capacités, puis consultez les applications et expositions déduites.</p></div>
-      <Button variant="primary" onClick={() => setEditing({ id: '', name: '', capabilityIds: [] })}>Ajouter un processus</Button></div>
+      {analysis.length > 0 && <Button variant="primary" onClick={() => setEditing({ id: '', name: '', capabilityIds: [] })}>Ajouter un processus</Button>}</div>
     <div className="analysis-guidance" data-testid="process-guidance">
       <div className="analysis-guidance-copy">
         <span className="attention-eyebrow">POUR COMMENCER</span>
@@ -90,6 +90,7 @@ export default function BusinessProcesses({ model, onSave, onRemove, onExploreTa
           : exposed.length ? 'Au moins une application actuelle reliée à ses capacités présente un risque élevé ou critique. Ce signal est indirect : vérifiez l’usage réel.'
             : analysis.length ? 'Consultez les liens et applications déduits, ou ajoutez un nouveau processus.' : 'Par exemple : « Traiter une demande client ». Reliez ensuite les capacités nécessaires à sa réalisation.'}</p>
       </div>
+      {!analysis.length && <Button variant="primary" data-testid="process-next-action" onClick={() => setEditing({ id: '', name: '', capabilityIds: [] })}>Ajouter un processus</Button>}
       {nextProcess && <Button variant="primary" data-testid="process-next-action" onClick={() => unlinked.length ? setEditing(nextProcess.process) : onShowRisks()}>
         {unlinked.length ? 'Relier ses capacités' : 'Examiner les risques liés'}
       </Button>}
