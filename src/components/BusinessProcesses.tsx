@@ -96,9 +96,9 @@ export default function BusinessProcesses({ model, onSave, onRemove, onExploreTa
       </Button>}
     </div>
     <div className="analysis-quick-filters" role="group" aria-label="Accès rapides aux processus" data-testid="process-quick-filters">
-      <button type="button" className={filter === 'all' ? 'is-active' : ''} aria-pressed={filter === 'all'} onClick={() => setFilter('all')}><strong>{analysis.length}</strong><span>Tous les processus</span></button>
-      <button type="button" className={filter === 'unlinked' ? 'is-active' : ''} aria-pressed={filter === 'unlinked'} onClick={() => setFilter('unlinked')}><strong>{unlinked.length}</strong><span>À relier aux capacités</span></button>
-      <button type="button" className={filter === 'exposed' ? 'is-active' : ''} aria-pressed={filter === 'exposed'} onClick={() => setFilter('exposed')}><strong>{exposed.length}</strong><span>Avec exposition indirecte élevée</span></button>
+      <button type="button" className={filter === 'all' ? 'is-active' : ''} aria-pressed={filter === 'all'} onClick={() => { setFilter('all'); setTargetId('all'); setSearch(''); }}><strong>{analysis.length}</strong><span>Tous les processus</span></button>
+      <button type="button" className={filter === 'unlinked' ? 'is-active' : ''} aria-pressed={filter === 'unlinked'} onClick={() => { setFilter('unlinked'); setTargetId('all'); setSearch(''); }}><strong>{unlinked.length}</strong><span>À relier aux capacités</span></button>
+      <button type="button" className={filter === 'exposed' ? 'is-active' : ''} aria-pressed={filter === 'exposed'} onClick={() => { setFilter('exposed'); setTargetId('all'); setSearch(''); }}><strong>{exposed.length}</strong><span>Avec exposition indirecte élevée</span></button>
     </div>
     <div className="analysis-worklist-heading" data-testid="process-worklist"><div><h3>Vos processus métier</h3><p>Les processus à rattacher sont présentés d’abord. Modifiez les liens pour compléter leur analyse.</p></div></div>
     <div className="process-filters"><Field label="Rechercher un processus" type="search" value={search} onChange={e => setSearch(e.target.value)} />
