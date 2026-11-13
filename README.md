@@ -15,6 +15,8 @@ Consultez le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/sto
 
 Le **cycle de vie** d'une application (active, planifiée ou obsolète) est indépendant de sa contribution à chaque capacité N1. Dans **Relier…**, chaque relation peut être qualifiée « Actuelle », « Cible » ou « Actuelle et cible ». Une application conservée dans la trajectoire peut apparaître dans les deux listes sans être comptée deux fois dans le total des applications liées. La vue présentation, le Dashboard et les processus métier utilisent les mêmes rôles.
 
+Dans la fenêtre **Relier des applications à une capacité**, les applications déjà rattachées sont affichées en premier, puis les autres, avec tri alphabétique dans chaque groupe. Les cases cochées et leur rôle sont mis en évidence ; la recherche couvre toujours les deux groupes. Le classement repose sur les liens enregistrés pour ne pas déplacer une ligne pendant sa modification. Les libellés utilisent les couleurs sémantiques du design system dans les deux thèmes.
+
 **Compatibilité** : les JSON V3 existants restent valides. En l'absence de rôle explicite, l'ancien statut `Cible` est interprété comme « Cible uniquement », les autres statuts comme « Actuelle ». Une modification ultérieure du cycle de vie préserve les contributions déjà déclarées. Les rôles supplémentaires sont stockés dans l'objet facultatif `relationRoles`, indexé par l'identifiant de capacité (ou de domaine pour une carte N0). Aucun stockage distant n'est nécessaire.
 
 ## Design system Signal
