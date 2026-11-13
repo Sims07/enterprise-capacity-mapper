@@ -1182,7 +1182,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           } else if (depth === 1 && acceptsDrag(e, 'app')) hoverOn(e);
         }}
         onDragLeave={e => {
-          if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('capability-drop-target');
+          if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) e.currentTarget.classList.remove('capability-drop-target');
           if (!presentation && depth === 1) hoverOff(e);
         }}
         onDrop={e => {
