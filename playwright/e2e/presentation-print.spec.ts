@@ -104,6 +104,9 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
         layerId: layers[Math.floor(index / columnCount)].id,
       },
     }));
+    // Un ordre de données différent des positions empêche un faux positif :
+    // le PDF doit respecter les coordonnées métier, pas la liste des N0.
+    model.domains.reverse();
     model.capabilities = [
       ...capabilityNames.map((name, index) => ({
         id: `print-cap-${index}`, code: `N1-${index}`, domainId: 'print-domain-0', name,
@@ -127,10 +130,53 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
 
   const map = page.getByTestId('capability-map');
   await expect(map.locator('.mosaic-domain')).toHaveCount(domainCount);
-  const firstDomain = map.locator('.mosaic-domain').first();
+  const firstDomain = map.locator('.mosaic-domain').filter({ hasText: 'Services de santé et parcours usager' });
   await expect(firstDomain.locator('.cap')).toHaveCount(capabilityNames.length);
 
+  // Une carte 3 colonnes × 7 lignes doit impérativement garder ces trois
+  // colonnes et les N1 à leur taille lors de l'impression native du navigateur.
+  const measureGeometry = () => map.evaluate(element => {
+    const root = element.getBoundingClientRect();
+    const domains = Array.from(element.querySelectorAll<HTMLElement>(':scope > .mosaic-domain'));
+    return {
+      mapWidth: root.width,
+      mapHeight: root.height,
+      domains: domains.map(domain => {
+        const rect = domain.getBoundingClientRect();
+        const firstCapability = domain.querySelector<HTMLElement>('.cap');
+        const firstBounds = firstCapability?.getBoundingClientRect();
+        return {
+          x: rect.left - root.left,
+          y: rect.top - root.top,
+          width: rect.width,
+          height: rect.height,
+          n1Height: firstBounds?.height ?? 0,
+        };
+      }),
+    };
+  });
+  const screen = await measureGeometry();
+  const COLUMN_TOLERANCE_PX = 2;
+  expect(new Set(screen.domains.map(domain => Math.round(domain.x / COLUMN_TOLERANCE_PX))).size).toBe(columnCount);
+
+  await expect(map).toHaveAttribute('data-presentation-print-snapshot', 'true');
+  // Le cliché est pris en écran avant le passage au media print, sinon Safari
+  // recompose les N0 sur une seule colonne.
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
   await page.emulateMedia({ media: 'print' });
+  const printed = await measureGeometry();
+  const scale = printed.mapWidth / screen.mapWidth;
+  expect(scale).toBeGreaterThan(0);
+  expect(printed.mapHeight).toBeCloseTo(screen.mapHeight * scale, 0);
+  for (const [index, original] of screen.domains.entries()) {
+    const current = printed.domains[index];
+    expect(current.x).toBeCloseTo(original.x * scale, 0);
+    expect(current.y).toBeCloseTo(original.y * scale, 0);
+    expect(current.width).toBeCloseTo(original.width * scale, 0);
+    expect(current.height).toBeCloseTo(original.height * scale, 0);
+    expect(current.n1Height).toBeCloseTo(original.n1Height * scale, 0);
+  }
+  expect(new Set(printed.domains.map(domain => Math.round(domain.x / COLUMN_TOLERANCE_PX))).size).toBe(columnCount);
   const positions = await map.evaluate(element => {
     const bounds = element.getBoundingClientRect();
     return Array.from(element.querySelectorAll<HTMLElement>('.mosaic-domain')).map(domain => {
