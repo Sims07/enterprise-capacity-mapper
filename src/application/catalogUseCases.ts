@@ -54,6 +54,7 @@ export const updateCapability = ({ capabilities, capabilityId, form, domains = [
   const current = capabilities.find(capability => capability.id === capabilityId);
   if (!current) return capabilities;
   return catalogWith({ domains, capabilities, applications: [] }).updateCapability(capabilityId, {
+    domainId: form.domainId,
     name: form.name,
     description: form.description,
     priority: form.priority || 'unqualified',
@@ -76,6 +77,15 @@ export const updateApplication = ({ applications, applicationId, form, domains =
     name: form.name, code: form.code, type: form.type, status: form.status, vendor: form.vendor,
     capabilityIds: form.capabilityIds, description: form.description,
   }).toModel().applications;
+};
+
+/** Reparent a N1 without changing its ID, its applications or its process links. */
+export const moveCapabilityToDomain = ({ model, capabilityId, targetDomainId }: {
+  model: CatalogModel; capabilityId: string; targetDomainId: string;
+}): CatalogModel => {
+  const capability = model.capabilities.find(item => item.id === capabilityId);
+  if (!capability || capability.domainId === targetDomainId || !model.domains.some(domain => domain.id === targetDomainId)) return model;
+  return catalogWith(model).updateCapability(capabilityId, { domainId: targetDomainId }).toModel();
 };
 
 export const removeCapabilityAndDependents = ({ model, capabilityId }: { model: CatalogModel; capabilityId: string }): CatalogModel =>
