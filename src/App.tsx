@@ -1285,7 +1285,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
   const linkMatch = text => text.toLowerCase().includes(linkQuery.trim().toLowerCase());
   const linkOption = (id, title, sub) => (
-    <div className="link-option link-relation-option" key={id}>
+    <div className={`link-option link-relation-option${linkChecked.includes(id) ? ' is-selected' : ''}`} key={id}>
       <label className="link-relation-choice">
         <input type="checkbox" checked={linkChecked.includes(id)} onChange={() => toggleLinkChecked(id)} />
         <span><b>{title}</b>{sub && <small>{sub}</small>}</span>
@@ -1301,8 +1301,27 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   );
   let linkOptions = null;
   if (link?.kind === 'target') {
-    const list = apps.filter(a => linkMatch(`${a.name} ${a.code} ${a.vendor || ''}`));
-    linkOptions = list.length ? list.map(a => linkOption(a.id, a.name, `${a.code} · Cycle de vie : ${lifecycleLabel(a.status)}`)) : <p className="local-map-empty">Aucune application.</p>;
+    // Grouper selon les relations enregistrées : cocher une nouvelle application
+    // ne la fait pas sauter de ligne pendant que l'utilisateur choisit son rôle.
+    const linkedIds = new Set(apps.filter(a => relationIds(a).includes(link.id)).map(a => a.id));
+    const matches = apps
+      .filter(a => linkMatch(`${a.name} ${a.code} ${a.vendor || ''}`))
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
+    const linked = matches.filter(a => linkedIds.has(a.id));
+    const available = matches.filter(a => !linkedIds.has(a.id));
+    const renderApplication = a => linkOption(a.id, a.name, `${a.code} · Cycle de vie : ${lifecycleLabel(a.status)}`);
+    linkOptions = matches.length ? (
+      <>
+        {linked.length > 0 && <section className="link-relation-section" data-testid="linked-applications">
+          <h4 className="link-relation-section-title">Déjà reliées <span>{linked.length}</span></h4>
+          {linked.map(renderApplication)}
+        </section>}
+        {available.length > 0 && <section className="link-relation-section" data-testid="available-applications">
+          <h4 className="link-relation-section-title">Autres applications <span>{available.length}</span></h4>
+          {available.map(renderApplication)}
+        </section>}
+      </>
+    ) : <p className="local-map-empty">Aucune application.</p>;
   } else if (link?.kind === 'app') {
     const groups = (depth === 1 ? [{ d: null, items: model.domains }] : model.domains.map(d => ({ d, items: model.capabilities.filter(c => c.domainId === d.id) })))
       .map(g => ({ ...g, items: g.items.filter(i => linkMatch(`${i.code} ${i.name}`)) }))

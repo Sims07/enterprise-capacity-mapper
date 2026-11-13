@@ -13,6 +13,40 @@
   background: var(--color-surface-raised);
 }
 .app.signal-experience .link-relation-option:last-child { border-bottom: 0; }
+/* La règle legacy .link-option b utilise du texte sombre fixe : la neutraliser
+   ici pour le thème SIGNAL sombre sans introduire une nouvelle palette. */
+.app.signal-experience .link-relation-choice b {
+  color: var(--color-text);
+  font-weight: 700;
+}
+.app.signal-experience .link-relation-option.is-selected {
+  background: var(--color-accent-soft);
+}
+.app.signal-experience .link-relation-option:hover {
+  background: var(--color-surface-hover);
+}
+.app.signal-experience .link-relation-option.is-selected:hover {
+  background: var(--color-accent-soft);
+}
+.app.signal-experience .link-relation-section + .link-relation-section {
+  margin-top: var(--signal-space-2);
+}
+.app.signal-experience .link-relation-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--signal-space-2);
+  margin: 0;
+  padding: var(--signal-space-2) var(--signal-space-3);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-size: var(--ds-control-font-size);
+  font-weight: 700;
+}
+.app.signal-experience .link-relation-section-title span {
+  color: var(--color-text-muted);
+  font-weight: 650;
+}
 .app.signal-experience .link-relation-choice {
   display: flex;
   align-items: center;

@@ -528,7 +528,7 @@ test.describe('Playwright regression — companion', () => {
     // Completing the only remediation must refresh the entire diagnostic.
     await review.getByTestId('companion-review-answer-incomplete').click();
     await review.getByTestId('companion-review-action-link-target').click();
-    await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
+    await page.getByTestId('link-list').locator('input[type="checkbox"]:not(:checked)').first().check();
     await page.getByTestId('link-save').click();
     await expect(review.getByTestId('companion-review-updated')).toContainText('Constat levé dans la cartographie actuelle');
     await expect(review.getByTestId('companion-review-detail')).toHaveCount(0);
@@ -628,7 +628,7 @@ test.describe('Playwright regression — companion', () => {
     await expect(modal).toHaveCount(0);
     await expect(page.getByTestId('companion-panel')).toBeVisible();
     await launch.click();
-    await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
+    await page.getByTestId('link-list').locator('input[type="checkbox"]:not(:checked)').first().check();
     await page.getByTestId('link-save').click();
     await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
     await expect(review.getByTestId('companion-review-conclusion')).toHaveCount(0);
@@ -665,7 +665,7 @@ test.describe('Playwright regression — companion', () => {
     await review.getByTestId('companion-review-item').first().click();
     await review.getByTestId('companion-review-answer-incomplete').click();
     await review.getByTestId('companion-review-action-link-target').click();
-    await page.getByTestId('link-list').locator('input[type="checkbox"]').first().check();
+    await page.getByTestId('link-list').locator('input[type="checkbox"]:not(:checked)').first().check();
     await page.getByTestId('link-save').click();
 
     await expect(review.getByTestId('companion-review-updated')).toContainText('1 constat levé');
@@ -1028,6 +1028,58 @@ test.describe('Revue de décisions et scénarios de transformation', () => {
     await page.getByTestId('dashboard-view-overview').click();
     await expect(page.getByTestId('dashboard-coverage-rate')).toBeVisible();
   });
+});
+
+test('met les applications déjà reliées en premier avec un contraste accessible en thème sombre', async ({ page }) => {
+  await fresh(page);
+  await openTools(page);
+  await page.getByTestId('theme-toggle').click();
+  await page.getByTestId('nav-analysis').click();
+  await page.getByTestId('tab-relations').click();
+  const openDialog = () => page.getByRole('button', { name: 'Relier des applications à Gestion des Prospects & Leads' }).click();
+  await openDialog();
+
+  const list = page.getByTestId('link-list');
+  const linked = list.getByTestId('linked-applications');
+  const available = list.getByTestId('available-applications');
+  await expect(linked).toBeVisible();
+  await expect(available).toBeVisible();
+  await expect(linked).toContainText('Salesforce CRM');
+  await expect(linked.locator('.link-relation-option').first().locator('input[type="checkbox"]')).toBeChecked();
+  const linkedNames = await linked.locator('.link-relation-choice b').allTextContents();
+  expect(linkedNames).toEqual([...linkedNames].sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' })));
+
+  const contrastRatio = await linked.locator('.link-relation-choice b').first().evaluate(element => {
+    const background = getComputedStyle(element.closest('.link-relation-option')!).backgroundColor;
+    const foreground = getComputedStyle(element).color;
+    const luminance = (color: string) => {
+      const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+      if (channels.length !== 3) throw new Error('Couleur non RGB : ' + color);
+      const linear = channels.map(channel => {
+        const normalized = channel / 255;
+        return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+    };
+    const values = [luminance(background), luminance(foreground)].sort((a, b) => b - a);
+    return (values[0] + 0.05) / (values[1] + 0.05);
+  });
+  expect(contrastRatio).toBeGreaterThanOrEqual(4.5);
+
+  const search = page.getByRole('textbox', { name: 'Rechercher dans la liste' });
+  await search.fill('ADP');
+  await expect(available).toContainText('ADP Decidium');
+  await search.fill('');
+  const newRelation = available.locator('.link-relation-option').filter({ hasText: 'ADP Decidium' });
+  await newRelation.locator('input[type="checkbox"]').check();
+  await expect(newRelation).toHaveClass(/is-selected/);
+  await expect(linked).not.toContainText('ADP Decidium'); // Pas de déplacement pendant l'édition.
+  await newRelation.locator('select').selectOption('target');
+  await page.getByTestId('link-save').click();
+
+  await openDialog();
+  await expect(page.getByTestId('linked-applications')).toContainText('ADP Decidium');
+  await expect(page.getByTestId('linked-applications').locator('.link-relation-option').filter({ hasText: 'ADP Decidium' }).locator('select')).toHaveValue('target');
 });
 
 test('déclare une application actuelle et cible depuis la capacité puis la retrouve en présentation', async ({ page }) => {
