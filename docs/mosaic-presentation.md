@@ -134,3 +134,20 @@ Les tests Playwright produisent désormais les **deux PDF réels**, 16:9 et A4 p
 ### Test de l'impression réelle
 
 Le scénario `playwright/e2e/presentation-print.spec.ts` produit un **PDF Chromium**, et ne se limite pas à vérifier l'appel à `window.print()` : il contrôle l'unique page 16:9, la taille physique du PDF, la géométrie identique à la présentation 1536 × 864 et la mise à l'échelle uniforme des autres résolutions, le masquage des contrôles et la préservation des fonds. Une carte **3 colonnes × 7 lignes** avec capacités et applications, volontairement désordonnée dans les données, vérifie que les N0 conservent leurs trois colonnes, leur position et leur taille relatives (ainsi que celles des N1), restent dans les limites du document, que l'indicateur applicatif demeure visible et qu'une page supplémentaire n'est pas créée. Les PDF générés sont joints aux résultats du test dans les artefacts CI.
+
+### Applications sortantes dans la fiche N1
+
+Sous les listes « Applications actuelles » et « Applications cibles », une rubrique
+« Applications sortantes » apparaît uniquement si une application est liée
+à cette capacité en **actuel mais pas en cible**. Le calcul compare les identifiants
+entre les deux listes existantes (un rôle de relation `both` n'est pas sortant),
+indépendamment du statut du cycle de vie « Actif », « Obsolète » ou « Planifiée ».
+La rubrique réutilise les tokens visuels Signal et affiche le nombre et les noms.
+
+Ce signal signifie **sortie de la cible de cette capacité N1**, et non
+décommissionnement confirmé de l'application dans tout le SI : une même
+application peut servir d'autres capacités. En l'absence d'application sortante,
+la rubrique n'occupe aucune place. Aucun changement de données, de couverture
+fonctionnelle ni de maturité n'est enregistré. Un test métier valide le calcul,
+un scénario Playwright couvre le cas sortant / maintenu / cible seule, et Storybook
+illustre la trajectoire mixte.

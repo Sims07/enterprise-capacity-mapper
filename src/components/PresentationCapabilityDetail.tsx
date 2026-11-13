@@ -2,7 +2,7 @@ import React from 'react';
 import type { Application, Capability } from '../domain/catalogModel.ts';
 import type { capabilityMapReadout } from '../application/capabilityMapReadout.ts';
 import { Button } from './ui/Button.tsx';
-import { lifecycleLabel, relationRoleFor } from '../domain/applicationRelations.ts';
+import { lifecycleLabel, outgoingApplicationsForCapability, relationRoleFor } from '../domain/applicationRelations.ts';
 
 type CapabilityReadout = ReturnType<typeof capabilityMapReadout>;
 
@@ -61,6 +61,7 @@ export default function PresentationCapabilityDetail({
   onClose,
 }: PresentationCapabilityDetailProps) {
   const applicationCount = new Set([...currentApplications, ...targetApplications].map(application => application.id)).size;
+  const outgoingApplications = outgoingApplicationsForCapability(currentApplications, targetApplications);
 
   return <section className="presentation-focus-sheet presentation-capability-detail" role="dialog" aria-modal="true"
     aria-label={'Détail de ' + capability.name} data-testid="presentation-capability-detail">
@@ -100,6 +101,21 @@ export default function PresentationCapabilityDetail({
         <ApplicationGroup kind="current" title="Applications actuelles" applications={currentApplications} capabilityId={capability.id} />
         <ApplicationGroup kind="target" title="Applications cibles" applications={targetApplications} capabilityId={capability.id} />
       </div>
+      {outgoingApplications.length > 0 && <section className="presentation-detail-outgoing"
+        aria-label="Applications sortantes" data-testid="presentation-outgoing-apps">
+        <div className="presentation-detail-outgoing-heading">
+          <h4>Applications sortantes</h4>
+          <span className="presentation-detail-app-count">{outgoingApplications.length}</span>
+          <p>Présentes en actuel, absentes de la cible de cette capacité. Leur retrait du SI reste à confirmer.</p>
+        </div>
+        <ul className="presentation-detail-outgoing-list">
+          {outgoingApplications.map(application => <li key={application.id}>
+            <strong>{application.name}</strong>
+            {application.code && <span>{application.code}</span>}
+            <small>{lifecycleLabel(application.status)}</small>
+          </li>)}
+        </ul>
+      </section>}
     </section>
 
     <section className="presentation-detail-assessment" aria-label="Évaluation métier">
