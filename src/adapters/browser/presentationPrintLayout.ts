@@ -131,7 +131,9 @@ export const preparePresentationPrintSheet = (map: HTMLElement): void => {
 };
 
 const removePresentationPrintSheet = (map: HTMLElement): void => {
-  removePresentationPrintSheet(map);
+  const documentObject = map.ownerDocument;
+  documentObject.body.querySelector(':scope > .presentation-print-sheet')?.remove();
+  documentObject.body.classList.remove(PRINT_READY_CLASS);
 };
 
 const clearPrintBounds = (element: HTMLElement): void => {
@@ -150,9 +152,7 @@ export function clearPresentationPrintLayout(map: HTMLElement): void {
 
   map.querySelectorAll<HTMLElement>('.mosaic-domain, .caps-list > .cap')
     .forEach(clearPrintBounds);
-  const documentObject = map.ownerDocument;
-  documentObject.body.querySelector(':scope > .presentation-print-sheet')?.remove();
-  documentObject.body.classList.remove(PRINT_READY_CLASS);
+  removePresentationPrintSheet(map);
 }
 
 /** Capture initiale et mise à jour quand l'écran ou la mosaïque change. */
