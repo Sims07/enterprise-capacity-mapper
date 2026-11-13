@@ -61,6 +61,7 @@ En mode mosaïque, une carte N0 se déplace par glisser-déposer vers une zone d
 - gestion des relations ;
 - création de cartographies avec assistant ;
 - import/export JSON versionné ;
+- [rapport PDF d'architecture d'entreprise](docs/architecture-pdf-report.md) (Outils → Générer un rapport PDF) : vues cartographiques, couverture, écarts, risques, processus et annexes, impression locale A4 paysage ;
 - bibliothèque locale et cartographies récentes ;
   - bibliothèque compacte : sauvegardes triées par date de dernière modification et récents par date de dernière ouverture (plus récent en premier) ; repères verts « Versions conservées » versus indigo « Historique d’ouverture », boutons « Charger » et « Reprendre », et retrait de l’historique sans effacement d’une sauvegarde ;
 - historique annuler/rétablir ;

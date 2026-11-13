@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from './components/ui/Fields.tsx';
 import { Button } from './components/ui/Button.tsx';
 import PresentationCapabilityDetail from './components/PresentationCapabilityDetail.tsx';
+import ArchitectureReport from './components/ArchitectureReport.tsx';
 import { LibrarySectionHeading } from './components/LibrarySectionHeading.tsx';
 import { sortLibraryEntriesByDate } from './application/sortLibraryEntries.ts';
 import { FilePicker } from './components/ui/FilePicker.tsx';
@@ -135,6 +136,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const toolsMenuRef = useRef(null);
   const toolsMenuToggleRef = useRef(null);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapReadingMode, setMapReadingMode] = useState<MapReadingMode>('applications');
   const [presentationReadingMode, setPresentationReadingMode] = useState<PresentationReadingMode>('identity');
@@ -1587,6 +1589,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     </div>
   );
 
+  if (reportOpen) return <ArchitectureReport model={model} onClose={() => setReportOpen(false)} />;
+
   return (
     <div className={'app signal-experience' + (presentation ? ' presentation-mode' : '') + (presentation ? ' mosaic-presentation-mode' : '') + (darkMode ? ' theme-dark' : '')} data-ui-experience={experienceKind} data-presentation-reading={presentation ? presentationReadingMode : undefined}>
       <header>
@@ -1662,6 +1666,9 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   <h3 id="tools-group-data" className="toolbar-menu-heading">Données</h3>
                   <Button variant="quiet" className="toolbar-menu-action" data-testid="export-model" onClick={() => { closeToolsMenu(); repository.exportModel(model); }}>
                     <ToolMenuIcon name="download" /><span>Exporter en JSON</span>
+                  </Button>
+                  <Button variant="quiet" className="toolbar-menu-action" data-testid="export-architecture-report" onClick={() => { closeToolsMenu(); setReportOpen(true); }}>
+                    <ToolMenuIcon name="download" /><span>Générer un rapport PDF</span>
                   </Button>
                   <FilePicker label="Importer depuis JSON" variant="quiet" className="toolbar-import toolbar-menu-action"
                     leadingIcon={<ToolMenuIcon name="upload" />} data-testid="import-model" accept=".json,application/json"
