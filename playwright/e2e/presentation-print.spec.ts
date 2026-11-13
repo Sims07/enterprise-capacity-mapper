@@ -34,10 +34,10 @@ function inspectPdfOutput(pdfPath: string, sampleLabels: string[], pngPrefix?: s
 
   const printedText = execFileSync('pdftotext', [pdfPath, '-'], {
     encoding: 'utf8',
-  }).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
-    .replace(/\\s+/g, ' ').toLowerCase();
+  }).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ').toLowerCase();
   for (const label of sampleLabels) {
-    const normalizedLabel = label.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+    const normalizedLabel = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     expect(printedText, `Le PDF final doit contenir le domaine ${label}`).toContain(normalizedLabel);
   }
 
