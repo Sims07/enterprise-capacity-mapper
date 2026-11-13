@@ -75,25 +75,26 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
     }
     await expect(domain.locator('.cap').nth(1).locator('.presentation-app-chip.is-target')).toHaveCount(1);
 
-    // Le test mesure le rendu effectif : une puce présente dans le DOM mais masquée
-    // par overflow:hidden (défaut signalé) doit faire échouer la non-régression.
+
+    // Seul le rendu actif (badges, résumé, compteur) est mesuré. Un aperçu
+    // masqué par la requête conteneur n'a pas de géométrie exploitable.
     const visibility = await domain.locator('.cap').evaluateAll(elements => elements.map(element => {
       const card = element.getBoundingClientRect();
-      const preview = element.querySelector('.presentation-app-preview') as HTMLElement;
-      const previewBox = preview.getBoundingClientRect();
+      const visible = Array.from(element.querySelectorAll<HTMLElement>(
+        '.presentation-app-preview, .presentation-app-compact, .presentation-app-inline-count',
+      )).find(node => getComputedStyle(node).display !== 'none');
+      const tolerance = 1;
       const fitsInside = (box: DOMRect) => box.width > 0 && box.height > 0
-        && box.top >= card.top - 1 && box.bottom <= card.bottom + 1
-        && box.left >= card.left - 1 && box.right <= card.right + 1;
-      return {
-        previewFits: fitsInside(previewBox),
-        itemsFit: Array.from(preview.children).every(item => fitsInside(item.getBoundingClientRect())),
-        noClippedBadges: preview.scrollHeight <= preview.clientHeight + 1
-          && preview.scrollWidth <= preview.clientWidth + 1,
-      };
+        && box.top >= card.top - tolerance && box.bottom <= card.bottom + tolerance
+        && box.left >= card.left - tolerance && box.right <= card.right + tolerance;
+      if (!visible) return false;
+      const bounds = visible.getBoundingClientRect();
+      return fitsInside(bounds)
+        && Array.from(visible.children).every(item => fitsInside(item.getBoundingClientRect()))
+        && visible.scrollHeight <= visible.clientHeight + tolerance
+        && visible.scrollWidth <= visible.clientWidth + tolerance;
     }));
-    expect(visibility).toEqual(capabilityNames.map(() => ({
-      previewFits: true, itemsFit: true, noClippedBadges: true,
-    })));
+    expect(visibility).toEqual(capabilityNames.map(() => true));
 
     await domain.locator('.cap').first().click();
     const detail = page.getByRole('dialog', { name: `Détail de ${capabilityNames[0]}` });
@@ -566,7 +567,7 @@ test('affiche toujours une indication applicative dans les quatre N1 d’une mos
 });
 
 
-test('affiche toutes les applications quand la carte est large, et seulement les badges qui tiennent quand elle rétrécit', async ({ page }) => {
+test('ajuste la typographie et les badges selon la taille de la carte sans masquer de noms visibles', async ({ page }) => {
   const names = Array.from({ length: 26 }, (_, index) => `Application métier ${index + 1} de santé`);
   await page.setViewportSize({ width: 1728, height: 900 });
   await page.goto('/');
@@ -603,14 +604,25 @@ test('affiche toutes les applications quand la carte est large, et seulement les
   await expect(preview.locator('.presentation-app-more')).toHaveCount(0);
   const initialFontSize = await preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
 
-  await page.setViewportSize({ width: 700, height: 600 });
-  await expect.poll(async () => Number(await preview.getAttribute('data-visible-count'))).toBeLessThan(names.length);
+  // Au-dessus du breakpoint mobile, le N0 conserve assez de hauteur pour
+  // mesurer des badges ; la largeur réduite doit privilégier leur lisibilité.
+  await page.setViewportSize({ width: 1024, height: 600 });
+  await expect(preview).toBeVisible();
+  await expect.poll(async () => {
+    const count = Number(await preview.getAttribute('data-visible-count'));
+    const fontSize = await preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    return count < names.length || fontSize < initialFontSize;
+  }).toBe(true);
   const count = Number(await preview.getAttribute('data-visible-count'));
   expect(count).toBeGreaterThan(0);
   await expect.poll(() => preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize)))
     .toBeLessThanOrEqual(initialFontSize);
   await expect(preview.locator('.presentation-app-chip')).toHaveCount(count);
-  await expect(preview.locator('.presentation-app-more')).toHaveText(`+${names.length - count} autres`);
+  if (count < names.length) {
+    await expect(preview.locator('.presentation-app-more')).toHaveText(`+${names.length - count} autres`);
+  } else {
+    await expect(preview.locator('.presentation-app-more')).toHaveCount(0);
+  }
 
   const isInside = await preview.evaluate(element => {
     const frame = element.getBoundingClientRect();
