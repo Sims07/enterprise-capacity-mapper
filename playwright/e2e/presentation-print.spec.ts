@@ -151,6 +151,7 @@ test('imprime une diapositive 16:9 identique à la disposition projetée', async
   });
 
   const screen = await measure();
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
   const sheet = page.locator('body > .presentation-print-sheet');
   await expect(sheet).toHaveCount(1);
   await expect(sheet).toBeHidden();
@@ -286,6 +287,7 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(new Set(screen.domains.map(domain => Math.round(domain.x / COLUMN_TOLERANCE_PX))).size).toBe(columnCount);
 
   await expect(map).toHaveAttribute('data-presentation-print-snapshot', 'true');
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
   const sheet = page.locator('body > .presentation-print-sheet');
   await expect(sheet).toHaveCount(1);
   await expect(sheet).toBeHidden();
@@ -370,14 +372,17 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   // et fenêtre plus étroite que la diapositive. Les N0 ne doivent plus être
   // masqués au-delà de la largeur du conteneur de page.
   await page.emulateMedia({ media: 'screen' });
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await expect(sheet).toHaveCount(0);
   const narrowViewport = { width: 1152, height: 800 };
   await page.setViewportSize(narrowViewport);
   await expect.poll(async () => {
-    const printMap = sheet.locator('.map-mosaic');
-    const width = await printMap.evaluate(element =>
+    const width = await map.evaluate(element =>
       Number.parseFloat(element.style.getPropertyValue('--presentation-print-width')));
     return Math.round(width);
   }).toBe(narrowViewport.width);
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  await expect(sheet).toHaveCount(1);
 
   await page.emulateMedia({ media: 'print' });
   const pageCoverage = await sheet.evaluate(element => {
