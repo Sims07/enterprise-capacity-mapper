@@ -38,7 +38,7 @@ test.describe('Parcours guidés d’analyse', () => {
     await openAnalysis(page, 'processes');
     const guidance = page.getByTestId('process-guidance');
     await expect(guidance).toContainText('Décrivez votre premier processus métier');
-    await expect(page.getByTestId('process-next-action')).toHaveCount(0);
+    await expect(page.getByTestId('process-next-action')).toHaveText('Ajouter un processus');
 
     await page.getByRole('button', { name: 'Ajouter un processus', exact: true }).click();
     const dialog = page.getByRole('dialog');
