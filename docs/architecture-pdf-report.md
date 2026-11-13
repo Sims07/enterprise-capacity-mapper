@@ -10,7 +10,8 @@ Le menu **Outils → Générer un rapport PDF** ouvre une prévisualisation du d
 4. Écarts et maturité : signaux du domaine, maturité actuelle/cible quand saisies et couverture à qualifier.
 5. Risques : applications actuelles, niveau, catégorie, responsabilité, échéances, justification et actions déjà déclarées.
 6. Processus métier : capacités rattachées, applications indirectement associées, exposition élevée/critique et défauts de support.
-7. Annexes A–D : inventaires des domaines, capacités, applications et relations actuelles/cibles.
+7. Registre des actions et points à qualifier : écarts à instruire, actions et responsables enregistrés, décisions manquantes explicitement à définir.
+8. Annexes A–D : inventaires des domaines, capacités, applications et relations actuelles/cibles.
 
 Le rapport est **lecture seule** : aucun calcul n'enregistre de nouvelles évaluations. Une application cible ne constitue pas un support actuel. Un rattachement applicatif ne démontre pas une couverture fonctionnelle. L'exposition des processus est **indirecte**, déduite de leurs capacités, et ne prouve pas leur utilisation applicative. Les données manquantes sont marquées « À évaluer » / « À qualifier ». Les observations ne sont pas des priorités ou des décisions inventées.
 
