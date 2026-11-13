@@ -53,6 +53,23 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Mixte: Story = { args: props(currentApplications, targetApplications, true) };
+
+// La même application peut rester en cible ; seule la relation actuelle sans cible est sortante.
+const maintainedApplication: Application = {
+  id: 'app-maintained',
+  name: 'Ameli PRO',
+  status: 'Actif',
+  code: 'APR',
+  capabilityIds: [capability.id],
+  relationRoles: { [capability.id]: 'both' },
+};
+export const SortantesEtMaintenues: Story = {
+  args: props(
+    [maintainedApplication, { id: 'app-webps', name: 'Web PS', code: 'WPS', status: 'Obsolète', capabilityIds: [capability.id] }],
+    [maintainedApplication, ...targetApplications],
+    true,
+  ),
+};
 export const ActuellesUniquement: Story = { args: props(currentApplications, []) };
 export const SansApplications: Story = { args: props([], []) };
 

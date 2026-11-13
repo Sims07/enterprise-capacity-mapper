@@ -1,5 +1,57 @@
 import { expect, test } from '../fixtures';
 
+test('distingue les applications sortantes de celles maintenues en cible dans la fiche N1', async ({ page }) => {
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
+  await page.evaluate(() => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Cartographie de test absente');
+    const model = JSON.parse(raw);
+    const capabilityId = model.capabilities[0].id;
+    model.applications = [
+      { id: 'outgoing-webps', name: 'Web PS', status: 'Obsolète', capabilityIds: [capabilityId], relationRoles: { [capabilityId]: 'current' } },
+      { id: 'maintained-ameli', name: 'Ameli PRO', status: 'Actif', capabilityIds: [capabilityId], relationRoles: { [capabilityId]: 'both' } },
+      { id: 'target-new', name: 'Document de Santé', status: 'Actif', capabilityIds: [capabilityId], relationRoles: { [capabilityId]: 'target' } },
+    ];
+    localStorage.setItem(key, JSON.stringify(model));
+  });
+  await page.goto('/?view=presentation');
+  await page.locator('.mosaic-domain .cap').first().click();
+
+  const detail = page.getByTestId('presentation-capability-detail');
+  const outgoing = detail.getByTestId('presentation-outgoing-apps');
+  await expect(detail.getByTestId('presentation-app-total')).toHaveText('3');
+  await expect(detail.getByTestId('presentation-current-apps').locator('li')).toHaveCount(2);
+  await expect(detail.getByTestId('presentation-target-apps').locator('li')).toHaveCount(2);
+  await expect(outgoing).toBeVisible();
+  await expect(outgoing.getByRole('heading', { name: 'Applications sortantes' })).toBeVisible();
+  await expect(outgoing.locator('li')).toHaveCount(1);
+  await expect(outgoing.locator('li')).toContainText('Web PS');
+  await expect(outgoing.locator('li')).toContainText('Obsolète');
+  await expect(outgoing).toContainText('Leur retrait du SI reste à confirmer');
+  await expect(outgoing).not.toContainText('Ameli PRO');
+  await expect(outgoing).not.toContainText('Document de Santé');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => detail.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+  await detail.getByTestId('presentation-focus-close').click();
+
+  await page.evaluate(() => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Cartographie de test absente');
+    const model = JSON.parse(raw);
+    const app = model.applications.find((item: { id: string }) => item.id === 'outgoing-webps');
+    const capabilityId = model.capabilities[0].id;
+    app.relationRoles[capabilityId] = 'both';
+    localStorage.setItem(key, JSON.stringify(model));
+  });
+  await page.reload();
+  await page.locator('.mosaic-domain .cap').first().click();
+  await expect(page.getByTestId('presentation-outgoing-apps')).toHaveCount(0);
+});
+
 test('garde les applications visibles avec quatre N1 dans un N0 de présentation dense', async ({ page }) => {
   // Reproduit une mosaïque de 3 colonnes × 4 lignes, proche de la carte projetée.
   const domainColumns = 3;

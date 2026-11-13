@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultRelationRole, lifecycleLabel, relationRoleFor, retainRelationRoles, supportsCurrent, supportsTarget, validateRelationRoles } from './applicationRelations.ts';
+import { defaultRelationRole, lifecycleLabel, outgoingApplicationsForCapability, relationRoleFor, retainRelationRoles, supportsCurrent, supportsTarget, validateRelationRoles } from './applicationRelations.ts';
 import type { Application } from './catalogModel.ts';
 
 const app = (status = 'Actif'): Application => ({ id: 'a', name: 'Application', status, capabilityIds: ['c'] });
@@ -36,4 +36,20 @@ test('lifecycle label does not confuse planned applications with target-only rel
   assert.equal(lifecycleLabel('Cible'), 'Planifiée');
   assert.equal(lifecycleLabel('Actif'), 'Actif');
   assert.equal(lifecycleLabel(undefined), 'Non renseigné');
+});
+
+test('outgoing applications are current-only for the capability, regardless of lifecycle status', () => {
+  const old = { ...app('Actif'), id: 'old', name: 'Web PS' };
+  const shared = { ...app('Obsolète'), id: 'shared', name: 'Ameli Pro' };
+  const planned = { ...app('Actif'), id: 'planned', name: 'Dossier de santé' };
+  const current = [old, shared];
+  const target = [shared, planned];
+
+  assert.deepEqual(outgoingApplicationsForCapability(current, target), [old]);
+  assert.deepEqual(outgoingApplicationsForCapability(current, []), current);
+  assert.deepEqual(outgoingApplicationsForCapability([], target), []);
+  assert.deepEqual(outgoingApplicationsForCapability([shared], [shared]), []);
+  // The source projections must remain unchanged.
+  assert.deepEqual(current, [old, shared]);
+  assert.deepEqual(target, [shared, planned]);
 });

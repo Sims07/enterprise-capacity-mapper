@@ -45,6 +45,17 @@ export function validateRelationRoles(value: unknown, linkedIds: readonly string
   }
 }
 
+/** A current-only link exits the target of this capability, not necessarily the whole SI.
+ * Compare explicit current/target projections by identity, never by lifecycle status.
+ */
+export function outgoingApplicationsForCapability(
+  currentApplications: readonly Application[],
+  targetApplications: readonly Application[],
+): Application[] {
+  const targetIds = new Set(targetApplications.map(application => application.id));
+  return currentApplications.filter(application => !targetIds.has(application.id));
+}
+
 /** Also removes orphaned per-relation roles when links are removed. */
 export function retainRelationRoles(application: Application, linkedIds: readonly string[]): Pick<Application, 'relationRoles'> {
   if (!application.relationRoles) return {};
