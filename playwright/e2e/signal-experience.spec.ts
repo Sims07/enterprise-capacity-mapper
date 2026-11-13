@@ -195,9 +195,11 @@ test('la restitution distingue chaque légende, imprime sans contrôles et expli
     await expect(page.getByTestId('presentation-legend')).toHaveAttribute('data-reading', mode);
     await expect(page.getByTestId('presentation-legend')).toContainText(text);
   }
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.presentation-exit-bar')).toBeHidden();
-  await expect(page.getByTestId('capability-map')).toBeVisible();
+  await expect(page.getByTestId('capability-map')).toBeHidden();
+  await expect(page.locator('body > .presentation-print-sheet .map-mosaic')).toBeVisible();
 });
 
 test('la carte conserve les actions secondaires au survol et au clavier sans barres de dépôt répétées', async ({ page }) => {

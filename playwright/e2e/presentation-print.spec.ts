@@ -1,3 +1,5 @@
+import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync, unlinkSync } from 'node:fs';
 import { expect, test } from '../fixtures';
 
 const PRINT_PAGE = { widthInches: 16, heightInches: 9 } as const;
@@ -22,6 +24,106 @@ function verifyPresentationPdf(pdf: Buffer) {
   expect(mediaBox, 'Le PDF doit déclarer les dimensions de la diapositive').not.toBeNull();
   expect(Number(mediaBox![1])).toBeCloseTo(PRINT_PAGE.widthInches * PDF_POINTS_PER_INCH, 0);
   expect(Number(mediaBox![2])).toBeCloseTo(PRINT_PAGE.heightInches * PDF_POINTS_PER_INCH, 0);
+}
+
+
+/** Contrôle le fichier vraiment généré, pas seulement les rectangles du DOM.
+ * Les outils Poppler sont installés en CI ; l'inspection reste optionnelle
+ * lors d'une exécution de développement sans Poppler. */
+function inspectPdfOutput(pdfPath: string, sampleLabels: string[], pngPrefix?: string): void {
+  if (spawnSync('pdftotext', ['-v']).error) return;
+
+  const printedText = execFileSync('pdftotext', [pdfPath, '-'], {
+    encoding: 'utf8',
+  }).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ').toLowerCase();
+  for (const label of sampleLabels) {
+    const normalizedLabel = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    expect(printedText, `Le PDF final doit contenir le domaine ${label}`).toContain(normalizedLabel);
+  }
+
+  if (pngPrefix && !spawnSync('pdftoppm', ['-v']).error) {
+    // Artefact visuel lisible depuis la CI : PDF réel rasterisé.
+    execFileSync('pdftoppm', ['-f', '1', '-singlefile', '-r', '100', '-png', pdfPath, pngPrefix]);
+  }
+}
+
+type PdfBannerProbe = {
+  x: number;
+  y: number;
+  background: string;
+  label: string;
+};
+
+function assertBannerColorsInRenderedPdf(
+  pdfPath: string,
+  outputPrefix: string,
+  probes: PdfBannerProbe[],
+): void {
+  if (spawnSync('pdftoppm', ['-v']).error) return;
+
+  // Le PPM de Poppler évite toute dépendance image Node tierce :
+  // une couleur attendue peut être comparée directement aux pixels imprimés.
+  execFileSync('pdftoppm', ['-f', '1', '-singlefile', '-r', '96', pdfPath, outputPrefix]);
+  const ppmPath = outputPrefix + '.ppm';
+  const image = readFileSync(ppmPath);
+  const header = image.subarray(0, 128).toString('latin1').match(/^P6\n(\d+) (\d+)\n255\n/);
+  expect(header, 'En-tête binaire PPM du PDF rendu').not.toBeNull();
+  const [, widthString, heightString] = header!;
+  const width = Number(widthString);
+  const height = Number(heightString);
+  const pixelOffset = header![0].length;
+  // Un papier A4 conserve son ratio : la diapositive 16:9 est centrée
+  // avec du blanc au-dessus et en dessous, jamais rognée latéralement.
+  const scale = Math.min(width / PRINT_VIEWPORT.width, height / PRINT_VIEWPORT.height);
+  const horizontalMargin = (width - PRINT_VIEWPORT.width * scale) / 2;
+  const verticalMargin = (height - PRINT_VIEWPORT.height * scale) / 2;
+  for (const probe of probes) {
+    const x = Math.round(horizontalMargin + probe.x * scale);
+    const y = Math.round(verticalMargin + probe.y * scale);
+    expect(x).toBeGreaterThanOrEqual(0);
+    expect(x).toBeLessThan(width);
+    expect(y).toBeGreaterThanOrEqual(0);
+    expect(y).toBeLessThan(height);
+    const rgbStart = pixelOffset + (y * width + x) * 3;
+    const actual = [...image.subarray(rgbStart, rgbStart + 3)];
+    const expected = probe.background.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+    expect(expected?.length, 'Couleur CSS du domaine ' + probe.label).toBe(3);
+    const deviation = Math.max(...actual.map((value, index) => Math.abs(value - expected![index])));
+    expect(deviation, 'Le bandeau du domaine ' + probe.label + ' doit apparaître dans le PDF (colonne non coupée)')
+      .toBeLessThan(45);
+  }
+  unlinkSync(ppmPath);
+}
+
+/** Trois sondes dans les bandeaux des N0 de la première rangée.
+ * La troisième est volontairement située bien au-delà du bord qui était
+ * tronqué dans la capture de l'utilisateur. */
+async function readFirstRowBannerProbes(
+  sheet: import('@playwright/test').Locator,
+): Promise<PdfBannerProbe[]> {
+  return sheet.evaluate(element => {
+    const paper = element.getBoundingClientRect();
+    const bounds = Array.from(element.querySelectorAll<HTMLElement>('.mosaic-domain'))
+      .map(domain => ({
+        domain,
+        rect: domain.getBoundingClientRect(),
+      }));
+    const top = Math.min(...bounds.map(item => item.rect.top));
+    return bounds.filter(item => Math.abs(item.rect.top - top) < 2)
+      .sort((a, b) => a.rect.left - b.rect.left)
+      .slice(0, 3)
+      .map(item => {
+        const banner = item.domain.querySelector<HTMLElement>('.domain-banner')!;
+        const rect = banner.getBoundingClientRect();
+        return {
+          x: rect.left - paper.left + rect.width * 0.7,
+          y: rect.top - paper.top + Math.min(4, rect.height / 3),
+          background: getComputedStyle(banner).backgroundColor,
+          label: item.domain.textContent?.trim().slice(0, 50) ?? 'N0',
+        };
+      });
+  });
 }
 
 test('imprime une diapositive 16:9 identique à la disposition projetée', async ({ page }, testInfo) => {
@@ -49,15 +151,40 @@ test('imprime une diapositive 16:9 identique à la disposition projetée', async
   });
 
   const screen = await measure();
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  const sheet = page.locator('body > .presentation-print-sheet');
+  await expect(sheet).toHaveCount(1);
+  await expect(sheet).toBeHidden();
   await page.emulateMedia({ media: 'print' });
-  const printed = await measure();
 
-  expect(printed.width).toBe(PRINT_VIEWPORT.width);
-  expect(printed.height).toBe(PRINT_VIEWPORT.height);
+  // Ce sont les objets clonés SUR LA PAGE, pas le DOM original hors
+  // impression : l'ancien test validait une géométrie pourtant coupée.
+  await expect(map).toBeHidden();
+  await expect(sheet).toBeVisible();
+  const printedMap = sheet.locator('.map-mosaic');
+  const printed = await printedMap.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const domain = element.querySelector<HTMLElement>('.mosaic-domain')!;
+    const first = domain.getBoundingClientRect();
+    return {
+      width: rect.width,
+      height: rect.height,
+      firstX: first.x - rect.x,
+      firstY: first.y - rect.y,
+      firstWidth: first.width,
+      firstHeight: first.height,
+      domainSurface: getComputedStyle(domain.querySelector<HTMLElement>('.domain')!).backgroundColor,
+      title: domain.querySelector('.domain-banner')?.textContent?.trim(),
+    };
+  });
   expect(printed).toEqual(screen);
+  const paper = await sheet.boundingBox();
+  expect(paper).not.toBeNull();
+  expect(paper!.width).toBe(PRINT_VIEWPORT.width);
+  expect(paper!.height).toBe(PRINT_VIEWPORT.height);
   await expect(page.locator('.presentation-exit-bar')).toBeHidden();
-  await expect(page.locator('.presentation-focus-overlay')).toHaveCount(0);
-  expect(await map.evaluate(element => getComputedStyle(element).printColorAdjust)).toBe('exact');
+  await expect(page.locator('.presentation-focus-overlay')).toBeHidden();
+  expect(await printedMap.evaluate(element => getComputedStyle(element).printColorAdjust)).toBe('exact');
 
   const pdf = await page.pdf({
     path: testInfo.outputPath('presentation-16-9.pdf'),
@@ -160,11 +287,35 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(new Set(screen.domains.map(domain => Math.round(domain.x / COLUMN_TOLERANCE_PX))).size).toBe(columnCount);
 
   await expect(map).toHaveAttribute('data-presentation-print-snapshot', 'true');
-  // Le cliché est pris en écran avant le passage au media print, sinon Safari
-  // recompose les N0 sur une seule colonne.
-  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  const sheet = page.locator('body > .presentation-print-sheet');
+  await expect(sheet).toHaveCount(1);
+  await expect(sheet).toBeHidden();
+  await expect.poll(async () => sheet.locator('.mosaic-domain').count()).toBe(domainCount);
+
+  // Une imprimante A4 ou un aperçu dimensionné différemment ne doivent pas
+  // rogner la troisième colonne. Mesurer le SEUL arbre réellement imprimé.
   await page.emulateMedia({ media: 'print' });
-  const printed = await measureGeometry();
+  await expect(sheet).toBeVisible();
+  const printedMap = sheet.locator('.map-mosaic');
+  const printed = await printedMap.evaluate(element => {
+    const root = element.getBoundingClientRect();
+    return {
+      mapWidth: root.width,
+      mapHeight: root.height,
+      domains: Array.from(element.querySelectorAll<HTMLElement>(':scope > .mosaic-domain')).map(domain => {
+        const rect = domain.getBoundingClientRect();
+        const n1 = domain.querySelector<HTMLElement>('.cap')?.getBoundingClientRect();
+        return {
+          x: rect.left - root.left,
+          y: rect.top - root.top,
+          width: rect.width,
+          height: rect.height,
+          n1Height: n1?.height ?? 0,
+        };
+      }),
+    };
+  });
   const scale = printed.mapWidth / screen.mapWidth;
   expect(scale).toBeGreaterThan(0);
   expect(printed.mapHeight).toBeCloseTo(screen.mapHeight * scale, 0);
@@ -177,14 +328,15 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     expect(current.n1Height).toBeCloseTo(original.n1Height * scale, 0);
   }
   expect(new Set(printed.domains.map(domain => Math.round(domain.x / COLUMN_TOLERANCE_PX))).size).toBe(columnCount);
-  const positions = await map.evaluate(element => {
-    const bounds = element.getBoundingClientRect();
+  const positions = await sheet.evaluate(element => {
+    const paper = element.getBoundingClientRect();
     return Array.from(element.querySelectorAll<HTMLElement>('.mosaic-domain')).map(domain => {
       const { left, top, right, bottom } = domain.getBoundingClientRect();
+      const tolerance = 2;
       return {
-        visible: right > bounds.left && bottom > bounds.top
-          && left >= bounds.left && top >= bounds.top
-          && right <= bounds.right && bottom <= bounds.bottom,
+        visible: right > paper.left && bottom > paper.top
+          && left >= paper.left - tolerance && top >= paper.top - tolerance
+          && right <= paper.right + tolerance && bottom <= paper.bottom + tolerance,
         width: right - left,
         height: bottom - top,
       };
@@ -193,15 +345,89 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(positions).toHaveLength(domainCount);
   expect(positions.every(position => position.visible && position.width > 0 && position.height > 0)).toBe(true);
 
-  const firstApp = firstDomain.locator('.cap').first();
+  const firstApp = sheet.locator('.mosaic-domain').filter({
+    hasText: 'Services de santé et parcours usager',
+  }).locator('.cap').first();
   await expect(firstApp.locator(
     '.presentation-app-preview:visible, .presentation-app-compact:visible, .presentation-app-inline-count:visible',
   ).first()).toBeVisible();
 
+  const bannerProbes16 = await readFirstRowBannerProbes(sheet);
+  expect(bannerProbes16).toHaveLength(columnCount);
+  const pdfPath = testInfo.outputPath('presentation-dense-applications.pdf');
   const pdf = await page.pdf({
-    path: testInfo.outputPath('presentation-dense-applications.pdf'),
+    path: pdfPath,
     preferCSSPageSize: true,
     printBackground: true,
   });
   verifyPresentationPdf(pdf);
+  assertBannerColorsInRenderedPdf(pdfPath, testInfo.outputPath('presentation-16-9-pixels'), bannerProbes16);
+  inspectPdfOutput(pdfPath, [
+    'Services de santé et parcours usager',
+    'Domaine métier 2',
+    'Domaine métier 20',
+  ], testInfo.outputPath('presentation-16-9-rendue'));
+
+  // Régression observée par l'utilisateur : aperçu d'impression en feuille A4
+  // et fenêtre plus étroite que la diapositive. Les N0 ne doivent plus être
+  // masqués au-delà de la largeur du conteneur de page.
+  await page.emulateMedia({ media: 'screen' });
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await expect(sheet).toHaveCount(0);
+  const narrowViewport = { width: 1152, height: 800 };
+  await page.setViewportSize(narrowViewport);
+  await expect.poll(async () => {
+    const width = await map.evaluate(element =>
+      Number.parseFloat(element.style.getPropertyValue('--presentation-print-width')));
+    return Math.round(width);
+  }).toBe(narrowViewport.width);
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  await expect(sheet).toHaveCount(1);
+
+  await page.emulateMedia({ media: 'print' });
+  const pageCoverage = await sheet.evaluate(element => {
+    const pageBounds = element.getBoundingClientRect();
+    const cards = Array.from(element.querySelectorAll<HTMLElement>('.mosaic-domain'));
+    return {
+      sheetWidth: pageBounds.width,
+      sheetHeight: pageBounds.height,
+      leftmost: Math.min(...cards.map(card => card.getBoundingClientRect().left)),
+      rightmost: Math.max(...cards.map(card => card.getBoundingClientRect().right)),
+      topmost: Math.min(...cards.map(card => card.getBoundingClientRect().top)),
+      bottommost: Math.max(...cards.map(card => card.getBoundingClientRect().bottom)),
+      pageLeft: pageBounds.left,
+      pageRight: pageBounds.right,
+      pageTop: pageBounds.top,
+      pageBottom: pageBounds.bottom,
+    };
+  });
+  const pageTolerancePx = 2;
+  expect(pageCoverage.leftmost).toBeGreaterThanOrEqual(pageCoverage.pageLeft - pageTolerancePx);
+  expect(pageCoverage.rightmost).toBeLessThanOrEqual(pageCoverage.pageRight + pageTolerancePx);
+  expect(pageCoverage.topmost).toBeGreaterThanOrEqual(pageCoverage.pageTop - pageTolerancePx);
+  expect(pageCoverage.bottommost).toBeLessThanOrEqual(pageCoverage.pageBottom + pageTolerancePx);
+  expect(pageCoverage.sheetWidth).toBe(PRINT_VIEWPORT.width);
+  expect(pageCoverage.sheetHeight).toBe(PRINT_VIEWPORT.height);
+
+  // Un navigateur peut imposer un papier A4 malgré @page 16:9.
+  // Le contenu doit alors être réduit en bloc, jamais tronqué.
+  const bannerProbesA4 = await readFirstRowBannerProbes(sheet);
+  expect(bannerProbesA4).toHaveLength(columnCount);
+  const a4PdfPath = testInfo.outputPath('presentation-papier-a4.pdf');
+  const a4Pdf = await page.pdf({
+    path: a4PdfPath,
+    format: 'A4',
+    landscape: true,
+    preferCSSPageSize: false,
+    printBackground: true,
+  });
+  expect(a4Pdf.subarray(0, 5).toString('ascii')).toBe('%PDF-');
+  const a4PageDictionaries = a4Pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? [];
+  expect(a4PageDictionaries).toHaveLength(1);
+  assertBannerColorsInRenderedPdf(a4PdfPath, testInfo.outputPath('presentation-a4-pixels'), bannerProbesA4);
+  inspectPdfOutput(a4PdfPath, [
+    'Services de santé et parcours usager',
+    'Domaine métier 2',
+    'Domaine métier 20',
+  ], testInfo.outputPath('presentation-a4-rendue'));
 });
