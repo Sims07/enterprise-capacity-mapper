@@ -158,7 +158,10 @@
 .app.signal-experience:not(.mosaic-presentation-mode) .map-mosaic[data-density="compact"] .caps-list {
   display: flex;
   flex-flow: row wrap;
-  align-content: flex-start;
+  /* Les N0 partagent la hauteur de leur piste : répartir l'espace vertical
+     disponible entre les rangées de N1, sans agrandir leur contenu interne. */
+  flex-grow: 1;
+  align-content: stretch;
   align-items: stretch;
   gap: var(--signal-space-1);
 }
