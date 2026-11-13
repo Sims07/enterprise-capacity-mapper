@@ -409,13 +409,16 @@ test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et pe
   });
 
   // Le rendu dépend de la hauteur réelle : les noms restent visibles par
-  // badges complets si possible, sinon par résumé compact, sans chevauchement.
+  // badges complets si possible, sinon par résumé compact ou compteur, sans chevauchement.
   await page.getByTestId('presentation-show-applications').check();
   const firstCap = caps.first();
   const compact = firstCap.getByTestId('presentation-app-compact');
   const preview = firstCap.getByTestId('presentation-app-preview');
-  await expect(firstCap.locator('.presentation-app-preview:visible, .presentation-app-compact:visible')).toHaveCount(1);
-  if (await compact.isVisible()) {
+  const visibleApplicationSelector = '.presentation-app-preview:visible, .presentation-app-compact:visible, .presentation-app-inline-count:visible';
+  await expect(firstCap.locator(visibleApplicationSelector)).toHaveCount(1);
+  if (await firstCap.getByTestId('presentation-app-inline-count').isVisible()) {
+    await expect(firstCap.getByTestId('presentation-app-inline-count')).toHaveText('4 apps');
+  } else if (await compact.isVisible()) {
     await expect(compact).toContainText('Dossier Médical Partagé');
     await expect(compact).toContainText('+3');
   } else {
@@ -433,12 +436,15 @@ test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et pe
     const bounds = summary.getBoundingClientRect();
     const within = (box: DOMRect) => box.top >= card.top - 1 && box.bottom <= card.bottom + 1
       && box.left >= card.left - 1 && box.right <= card.right + 1;
-    return within(title) && within(bounds) && title.bottom <= bounds.top + 1;
+    const inline = summary.classList.contains('presentation-app-inline-count');
+    return within(title) && within(bounds) && (inline
+      ? title.right <= bounds.left + 1
+      : title.bottom <= bounds.top + 1);
   }));
   expect(presentationFits).toBe(true);
 
   await page.getByTestId('presentation-reading-coverage').click();
-  await expect(firstCap.locator('.presentation-app-preview:visible, .presentation-app-compact:visible')).toHaveCount(1);
+  await expect(firstCap.locator(visibleApplicationSelector)).toHaveCount(1);
   await page.getByTestId('presentation-show-applications').uncheck();
   await expect(firstCap.getByTestId('presentation-app-compact')).toHaveCount(0);
   await page.getByTestId('presentation-show-applications').check();
@@ -561,7 +567,7 @@ test('affiche toujours une indication applicative dans les quatre N1 d’une mos
 
 
 test('affiche toutes les applications quand la carte est large, et seulement les badges qui tiennent quand elle rétrécit', async ({ page }) => {
-  const names = Array.from({ length: 18 }, (_, index) => `Application métier ${index + 1} de santé`);
+  const names = Array.from({ length: 26 }, (_, index) => `Application métier ${index + 1} de santé`);
   await page.setViewportSize({ width: 1728, height: 900 });
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
@@ -571,12 +577,12 @@ test('affiche toutes les applications quand la carte est large, et seulement les
     if (!raw) throw new Error('Cartographie de test absente');
     const model = JSON.parse(raw);
     const columns = Array.from({ length: 3 }, (_, index) => ({ id: `wide-col-${index}`, name: `Colonne ${index}`, order: index }));
-    const layers = Array.from({ length: 6 }, (_, index) => ({ id: `wide-row-${index}`, name: `Ligne ${index}`, order: index }));
+    const layers = Array.from({ length: 3 }, (_, index) => ({ id: `wide-row-${index}`, name: `Ligne ${index}`, order: index }));
     model.layout = { ...model.layout, columns, layers };
     model.domains = [{
       id: 'wide-domain', name: 'Pilotage des applications métier', code: 'PAM', color: 'emerald',
       layout: { columnId: columns[0].id, layerId: layers[0].id, columnSpan: 3 },
-    }, ...Array.from({ length: 15 }, (_, index) => ({
+    }, ...Array.from({ length: 6 }, (_, index) => ({
       id: `other-domain-${index}`, name: `Domaine ${index}`, code: `N0-${index}`, color: 'indigo',
       layout: { columnId: columns[index % 3].id, layerId: layers[1 + Math.floor(index / 3)].id },
     }))];
