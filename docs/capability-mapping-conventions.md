@@ -172,3 +172,7 @@ Une ligne traversée par le `rowSpan` d'un N0 reste occupée. Les lignes métier
 Une ligne (layer) est un axe de lecture métier, pas un emplacement exclusif. Déplacer un N0 de Support à Cœur métier déjà occupée ne crée aucune ligne structurelle. Pour les domaines avec `rowSpan = 1`, les empreintes horizontales qui se croisent (même sur une partie de leurs colonnes) s’empilent sur des sous-rangées *visuelles* dans leur ligne métier. Les domaines disjoints utilisent la même sous-rangée. Le domaine déplacé est affiché après les domaines déjà présents.
 
 Le JSON local, les spans, les identifiants N0/N1 et leurs relations applicatives restent inchangés. La vue présentation suit la même règle d’affichage. Les collisions avec un domaine couvrant plusieurs lignes (`rowSpan > 1`) et les débordements de grille restent interdits pour les nouveaux déplacements. L’empilement n’ajoute aucune notion à la sémantique TOGAF ni aucun nouvel axe.
+
+## Suppression d'une capacité N1
+
+Dans la cartographie N0/N1, la commande **Supprimer la capacité** est accessible depuis le menu « ⋮ » de la carte N1 et depuis sa **Fiche**. Une confirmation explicite indique le nombre d'applications et de processus métier dont le rattachement sera retiré. La capacité N1 et ses évaluations disparaissent ; les applications et processus métier eux-mêmes sont conservés, ainsi que leurs autres liens. La suppression est enregistrée dans l'historique Annuler/Rétablir de la carte. Le mode présentation reste en lecture seule.
