@@ -195,6 +195,7 @@ test('la restitution distingue chaque légende, imprime sans contrôles et expli
     await expect(page.getByTestId('presentation-legend')).toHaveAttribute('data-reading', mode);
     await expect(page.getByTestId('presentation-legend')).toContainText(text);
   }
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.presentation-exit-bar')).toBeHidden();
   await expect(page.getByTestId('capability-map')).toBeHidden();
