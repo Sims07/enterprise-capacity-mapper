@@ -53,3 +53,6 @@
 
 /* Composition PDF plein cadre, chargée après les styles d'écran. */
 @import './presentation-print.css';
+
+/* Dossier d'architecture : impression A4 paysage indépendante des diapos 16:9. */
+@import './architecture-report.css';
