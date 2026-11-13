@@ -67,6 +67,7 @@ import { publishPresentationTheme, publishPresentationUpdate, publishPresentatio
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_CONTROLS_REVEAL_EDGE_PX = 64;
+const CONTEXT_MENU_ESTIMATED_SIZE_PX = { width: 180, domainHeight: 168, capabilityHeight: 136 } as const;
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
@@ -746,8 +747,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const openContextMenu = (event, menu) => {
     event.preventDefault();
     event.stopPropagation();
-    const menuWidth = 180;
-    const menuHeight = menu.type === 'domain' ? 168 : 136;
+    const menuWidth = CONTEXT_MENU_ESTIMATED_SIZE_PX.width;
+    const menuHeight = menu.type === 'domain' ? CONTEXT_MENU_ESTIMATED_SIZE_PX.domainHeight : CONTEXT_MENU_ESTIMATED_SIZE_PX.capabilityHeight;
     const position = browserInteractions.clampMenuPosition({
       x: event.clientX,
       y: event.clientY,
