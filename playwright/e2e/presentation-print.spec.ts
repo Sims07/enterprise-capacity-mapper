@@ -49,15 +49,39 @@ test('imprime une diapositive 16:9 identique à la disposition projetée', async
   });
 
   const screen = await measure();
+  const sheet = page.locator('body > .presentation-print-sheet');
+  await expect(sheet).toHaveCount(1);
+  await expect(sheet).toBeHidden();
   await page.emulateMedia({ media: 'print' });
-  const printed = await measure();
 
-  expect(printed.width).toBe(PRINT_VIEWPORT.width);
-  expect(printed.height).toBe(PRINT_VIEWPORT.height);
+  // Ce sont les objets clonés SUR LA PAGE, pas le DOM original hors
+  // impression : l'ancien test validait une géométrie pourtant coupée.
+  await expect(map).toBeHidden();
+  await expect(sheet).toBeVisible();
+  const printedMap = sheet.locator('.map-mosaic');
+  const printed = await printedMap.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const domain = element.querySelector<HTMLElement>('.mosaic-domain')!;
+    const first = domain.getBoundingClientRect();
+    return {
+      width: rect.width,
+      height: rect.height,
+      firstX: first.x - rect.x,
+      firstY: first.y - rect.y,
+      firstWidth: first.width,
+      firstHeight: first.height,
+      domainSurface: getComputedStyle(domain.querySelector<HTMLElement>('.domain')!).backgroundColor,
+      title: domain.querySelector('.domain-banner')?.textContent?.trim(),
+    };
+  });
   expect(printed).toEqual(screen);
+  const paper = await sheet.boundingBox();
+  expect(paper).not.toBeNull();
+  expect(paper!.width).toBe(PRINT_VIEWPORT.width);
+  expect(paper!.height).toBe(PRINT_VIEWPORT.height);
   await expect(page.locator('.presentation-exit-bar')).toBeHidden();
-  await expect(page.locator('.presentation-focus-overlay')).toHaveCount(0);
-  expect(await map.evaluate(element => getComputedStyle(element).printColorAdjust)).toBe('exact');
+  await expect(page.locator('.presentation-focus-overlay')).toBeHidden();
+  expect(await printedMap.evaluate(element => getComputedStyle(element).printColorAdjust)).toBe('exact');
 
   const pdf = await page.pdf({
     path: testInfo.outputPath('presentation-16-9.pdf'),
@@ -160,11 +184,34 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(new Set(screen.domains.map(domain => Math.round(domain.x / COLUMN_TOLERANCE_PX))).size).toBe(columnCount);
 
   await expect(map).toHaveAttribute('data-presentation-print-snapshot', 'true');
-  // Le cliché est pris en écran avant le passage au media print, sinon Safari
-  // recompose les N0 sur une seule colonne.
-  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+  const sheet = page.locator('body > .presentation-print-sheet');
+  await expect(sheet).toHaveCount(1);
+  await expect(sheet).toBeHidden();
+  await expect.poll(async () => sheet.locator('.mosaic-domain').count()).toBe(domainCount);
+
+  // Une imprimante A4 ou un aperçu dimensionné différemment ne doivent pas
+  // rogner la troisième colonne. Mesurer le SEUL arbre réellement imprimé.
   await page.emulateMedia({ media: 'print' });
-  const printed = await measureGeometry();
+  await expect(sheet).toBeVisible();
+  const printedMap = sheet.locator('.map-mosaic');
+  const printed = await printedMap.evaluate(element => {
+    const root = element.getBoundingClientRect();
+    return {
+      mapWidth: root.width,
+      mapHeight: root.height,
+      domains: Array.from(element.querySelectorAll<HTMLElement>(':scope > .mosaic-domain')).map(domain => {
+        const rect = domain.getBoundingClientRect();
+        const n1 = domain.querySelector<HTMLElement>('.cap')?.getBoundingClientRect();
+        return {
+          x: rect.left - root.left,
+          y: rect.top - root.top,
+          width: rect.width,
+          height: rect.height,
+          n1Height: n1?.height ?? 0,
+        };
+      }),
+    };
+  });
   const scale = printed.mapWidth / screen.mapWidth;
   expect(scale).toBeGreaterThan(0);
   expect(printed.mapHeight).toBeCloseTo(screen.mapHeight * scale, 0);
@@ -177,14 +224,15 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     expect(current.n1Height).toBeCloseTo(original.n1Height * scale, 0);
   }
   expect(new Set(printed.domains.map(domain => Math.round(domain.x / COLUMN_TOLERANCE_PX))).size).toBe(columnCount);
-  const positions = await map.evaluate(element => {
-    const bounds = element.getBoundingClientRect();
+  const positions = await sheet.evaluate(element => {
+    const paper = element.getBoundingClientRect();
     return Array.from(element.querySelectorAll<HTMLElement>('.mosaic-domain')).map(domain => {
       const { left, top, right, bottom } = domain.getBoundingClientRect();
+      const tolerance = 2;
       return {
-        visible: right > bounds.left && bottom > bounds.top
-          && left >= bounds.left && top >= bounds.top
-          && right <= bounds.right && bottom <= bounds.bottom,
+        visible: right > paper.left && bottom > paper.top
+          && left >= paper.left - tolerance && top >= paper.top - tolerance
+          && right <= paper.right + tolerance && bottom <= paper.bottom + tolerance,
         width: right - left,
         height: bottom - top,
       };
@@ -193,7 +241,9 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(positions).toHaveLength(domainCount);
   expect(positions.every(position => position.visible && position.width > 0 && position.height > 0)).toBe(true);
 
-  const firstApp = firstDomain.locator('.cap').first();
+  const firstApp = sheet.locator('.mosaic-domain').filter({
+    hasText: 'Services de santé et parcours usager',
+  }).locator('.cap').first();
   await expect(firstApp.locator(
     '.presentation-app-preview:visible, .presentation-app-compact:visible, .presentation-app-inline-count:visible',
   ).first()).toBeVisible();
