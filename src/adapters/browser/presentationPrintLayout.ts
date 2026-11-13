@@ -120,9 +120,19 @@ export function capturePresentationPrintLayout(map: HTMLElement): boolean {
   });
 
   map.dataset.presentationPrintSnapshot = 'true';
-  synchronizePresentationPrintSheet(map);
   return true;
 }
+
+/** Prépare uniquement au moment de l'impression (bouton ou Ctrl/Cmd+P).
+ * Aucun arbre dupliqué ne reste dans le DOM pendant la navigation normale. */
+export const preparePresentationPrintSheet = (map: HTMLElement): void => {
+  if (!map.dataset.presentationPrintSnapshot) capturePresentationPrintLayout(map);
+  synchronizePresentationPrintSheet(map);
+};
+
+const removePresentationPrintSheet = (map: HTMLElement): void => {
+  removePresentationPrintSheet(map);
+};
 
 const clearPrintBounds = (element: HTMLElement): void => {
   PRINT_STYLE_PROPERTIES.forEach(name => element.style.removeProperty(name));
@@ -174,9 +184,13 @@ export function installPresentationPrintLayout(
   // Cmd/Ctrl+P fonctionne aussi : la dernière géométrie de l'écran est déjà
   // disponible avant que Safari/Chromium ne passent à leur média d'impression.
   const beforePrint = () => {
-    if (map && !map.dataset.presentationPrintSnapshot) capturePresentationPrintLayout(map);
+    if (!map) return;
+    preparePresentationPrintSheet(map);
   };
-  const afterPrint = () => scheduleCapture();
+  const afterPrint = () => {
+    if (map) removePresentationPrintSheet(map);
+    scheduleCapture();
+  };
   view.addEventListener('resize', scheduleCapture);
   view.addEventListener('beforeprint', beforePrint);
   view.addEventListener('afterprint', afterPrint);
