@@ -47,6 +47,8 @@ test('distinguishes planned links, current coverage and declared functional cove
   assert(vente.signals.some(signal => signal.includes('maturité')));
   assert.equal(report.urgentRisks.length, 1);
   assert.equal(report.processes[0].exposedApplications.length, 1);
+  assert(report.actionItems.some(item => item.category === 'Capacité' && item.action === 'À définir avec le métier'));
+  assert(report.actionItems.some(item => item.category === 'Risque applicatif' && item.owner === 'À désigner'));
   assert.equal(reportSignal(vente, 'coverage').label, 'Partielle');
   assert.equal(reportSignal(vente, 'maturity').label, '2/5 → 4/5');
   assert.equal(reportSignal(vente, 'gaps').tone, 'critical');
