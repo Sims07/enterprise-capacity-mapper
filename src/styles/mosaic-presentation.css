@@ -550,7 +550,7 @@
   align-items: flex-start;
   gap: var(--signal-space-1);
   overflow: hidden;
-  font-size: clamp(10px, 1.6cqi, 12px);
+  font-size: var(--presentation-app-font-size, var(--map-presentation-app-font-min));
 }
 /* Miroir de mesure invisible : typographie identique aux badges réels,
    sans participation au layout de la carte et sans doublons accessibles. */
@@ -565,7 +565,7 @@
   gap: var(--signal-space-1);
   visibility: hidden;
   pointer-events: none;
-  font-size: clamp(10px, 1.6cqi, 12px);
+  font-size: var(--presentation-app-font-size, var(--map-presentation-app-font-min));
 }
 .app.mosaic-presentation-mode .presentation-app-chip,
 .app.mosaic-presentation-mode .presentation-app-measure-chip {
@@ -579,7 +579,9 @@
   border-radius: var(--radius-control);
   background: color-mix(in srgb, var(--map-card-surface) 76%, transparent);
   color: var(--map-capability-text);
-  padding: 2px 5px;
+  padding: .16em .4em;
+  font-weight: 650;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -587,12 +589,12 @@
 .app.mosaic-presentation-mode .presentation-app-chip.is-target,
 .app.mosaic-presentation-mode .presentation-app-measure-chip.is-target { border-style: dashed; }
 .app.mosaic-presentation-mode .presentation-app-chip em,
-.app.mosaic-presentation-mode .presentation-app-measure-chip em { font-size: 9px; font-style: normal; font-weight: 700; }
+.app.mosaic-presentation-mode .presentation-app-measure-chip em { font-size: .72em; font-style: normal; font-weight: 700; }
 .app.mosaic-presentation-mode .presentation-app-more,
 .app.mosaic-presentation-mode .presentation-app-measure-more,
 .app.mosaic-presentation-mode .presentation-app-empty {
   flex: 0 0 auto;
-  font-size: 10px;
+  font-size: .85em;
   color: var(--map-capability-muted);
   white-space: nowrap;
 }

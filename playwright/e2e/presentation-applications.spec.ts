@@ -75,6 +75,14 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
     }
     await expect(domain.locator('.cap').nth(1).locator('.presentation-app-chip.is-target')).toHaveCount(1);
 
+    // Une carte avec une seule application courte doit utiliser la plus grande
+    // taille du design system, et non rester bloquée au minimum historique.
+    const spaciousPreview = domain.locator('.cap').nth(2).getByTestId('presentation-app-preview');
+    await expect.poll(() => spaciousPreview.evaluate(element => {
+      const typography = getComputedStyle(element);
+      return typography.fontSize === typography.getPropertyValue('--map-presentation-app-font-large').trim();
+    })).toBe(true);
+
     // Le test mesure le rendu effectif : une puce présente dans le DOM mais masquée
     // par overflow:hidden (défaut signalé) doit faire échouer la non-régression.
     const visibility = await domain.locator('.cap').evaluateAll(elements => elements.map(element => {
@@ -551,11 +559,14 @@ test('affiche toutes les applications quand la carte est large, et seulement les
   await expect(preview).toHaveAttribute('data-visible-count', String(names.length));
   await expect(preview.locator('.presentation-app-chip')).toHaveCount(names.length);
   await expect(preview.locator('.presentation-app-more')).toHaveCount(0);
+  const initialFontSize = await preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
 
   await page.setViewportSize({ width: 700, height: 600 });
   await expect.poll(async () => Number(await preview.getAttribute('data-visible-count'))).toBeLessThan(names.length);
   const count = Number(await preview.getAttribute('data-visible-count'));
   expect(count).toBeGreaterThan(0);
+  await expect.poll(() => preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize)))
+    .toBeLessThanOrEqual(initialFontSize);
   await expect(preview.locator('.presentation-app-chip')).toHaveCount(count);
   await expect(preview.locator('.presentation-app-more')).toHaveText(`+${names.length - count} autres`);
 
