@@ -64,6 +64,7 @@ import type { CompanionRemediationAction } from './domain/companionRemediation.t
 import PresentationReadingLegend from './components/PresentationReadingLegend.tsx';
 import PresentationApplicationPreview from './components/PresentationApplicationPreview.tsx';
 import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, publishPresentationSelection, requestPresentationSelection, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
+import { capturePresentationPrintLayout, installPresentationPrintLayout } from './adapters/browser/presentationPrintLayout.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_CONTROLS_REVEAL_EDGE_PX = 64;
@@ -189,6 +190,14 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [showMosaicInventory, modal]);
+
+  // Geler la géométrie de l'écran pour éviter que l'impression ne remette
+  // les N0 en colonne unique, y compris via Ctrl/Cmd+P dans Safari.
+  useEffect(() => {
+    if (!presentation) return undefined;
+    return installPresentationPrintLayout(window, () =>
+      document.querySelector<HTMLElement>('.app.mosaic-presentation-mode .map-mosaic'));
+  }, [presentation]);
 
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
@@ -1929,7 +1938,11 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         </label>
         <PresentationReadingLegend mode={presentationReadingMode} />
         <button type="button" className="presentation-print-button" data-testid="print-presentation"
-          aria-label="Imprimer la cartographie ou enregistrer en PDF" onClick={() => window.print()}>
+          aria-label="Imprimer la cartographie ou enregistrer en PDF" onClick={() => {
+            const map = document.querySelector<HTMLElement>('.app.mosaic-presentation-mode .map-mosaic');
+            if (map) capturePresentationPrintLayout(map);
+            window.print();
+          }}>
           Imprimer / PDF
         </button>
         <label className="presentation-switch">

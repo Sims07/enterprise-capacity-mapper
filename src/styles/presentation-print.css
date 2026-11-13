@@ -78,3 +78,50 @@
     -webkit-print-color-adjust: exact;
   }
 }
+
+
+/* Impression fidèle : les moteurs WebKit/Chromium n'ont plus à reconstruire la
+   mosaïque depuis des grilles responsives. Les rectangles ont été mesurés à
+   l'écran avant l'ouverture du dialogue d'impression. Le PDF reste vectoriel. */
+@media print {
+  .app.mosaic-presentation-mode .map-mosaic[data-presentation-print-snapshot="true"] {
+    display: block !important;
+    position: absolute !important;
+    flex: none !important;
+    inset: auto !important;
+    top: var(--presentation-print-offset-y) !important;
+    left: var(--presentation-print-offset-x) !important;
+    width: var(--presentation-print-width) !important;
+    height: var(--presentation-print-height) !important;
+    transform: scale(var(--presentation-print-scale)) !important;
+    transform-origin: top left !important;
+    break-inside: avoid;
+  }
+
+  .app.mosaic-presentation-mode .map-mosaic[data-presentation-print-snapshot="true"] > .mosaic-domain {
+    position: absolute !important;
+    inset: auto !important;
+    top: var(--presentation-print-y) !important;
+    left: var(--presentation-print-x) !important;
+    width: var(--presentation-print-width) !important;
+    height: var(--presentation-print-height) !important;
+    margin: 0 !important;
+    break-inside: avoid;
+  }
+
+  .app.mosaic-presentation-mode .map-mosaic[data-presentation-print-snapshot="true"] .mosaic-domain .caps-list {
+    position: relative !important;
+    display: block !important;
+  }
+
+  .app.mosaic-presentation-mode .map-mosaic[data-presentation-print-snapshot="true"] .mosaic-domain .caps-list > .cap {
+    position: absolute !important;
+    inset: auto !important;
+    top: var(--presentation-print-y) !important;
+    left: var(--presentation-print-x) !important;
+    width: var(--presentation-print-width) !important;
+    height: var(--presentation-print-height) !important;
+    margin: 0 !important;
+    break-inside: avoid;
+  }
+}
