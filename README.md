@@ -193,6 +193,8 @@ En CI, `node scripts/verify-pwa-bundles.mjs dist` contrôle que tous les bundles
 
 ### Analyse des risques
 
+La vue présente d'abord **une application à examiner**, puis des raccourcis actifs (risques élevés, à qualifier, échéances, acceptés) ; l'exploration par domaine et par capacité est facultative. [Mode d'emploi des parcours guidés](docs/analysis-guided-review.md).
+
 Dans **Analyse → Analyser les risques**, qualifiez le risque principal de chaque application actuelle : probabilité et impact métier (1–5), catégorie, justification, fin de support, responsable, décision et plan d’action. Les domaines affichent l’exposition maximale de leurs applications ; les capacités concernées permettent d’ouvrir les relations. Les filtres isolent les risques élevés, données à qualifier et échéances dépassées. L’export Markdown respecte les filtres actifs.
 
 Le score est le produit probabilité × impact : faible 1–4, modéré 5–9, élevé 10–16, critique 17–25. Une fin de support atteinte impose au moins un niveau élevé ; une fin dans les 180 jours impose au moins un niveau modéré. Cette grille est propre à l’application, inspirée de la traçabilité et du suivi de traitement de SAP LeanIX ; elle ne reproduit pas son algorithme propriétaire. Les applications Cible sont exclues du périmètre actuel. Un risque accepté demeure visible ; sa date de réexamen dépassée le ramène parmi les risques à traiter. La résolution exige une action documentée et retire le risque de l’exposition agrégée. Une information absente n’est jamais interprétée comme une absence de risque.
@@ -202,6 +204,8 @@ Les évaluations sont facultatives pour les anciens modèles JSON v3, validées 
 Références : [SAP LeanIX — Obsolescence Risk Management](https://help.sap.com/docs/leanix/ea/obsolescence-risk-management), [statuts et vues de risque](https://help.sap.com/docs/leanix/ea/technology-obsolescence-risk-statuses-and-views-in-reports). Le composant interactif est disponible dans Storybook → Application → Modules métier → Analyse des risques.
 
 ### Processus métier et capacités
+
+La vue présente d'abord **l'action suivante** : créer le premier processus, rattacher un processus sans capacité ou vérifier son exposition indirecte. Les indicateurs filtrent le registre. [Mode d'emploi des parcours guidés](docs/analysis-guided-review.md).
 
 Dans **Analyse → Processus métier**, ajoutez les processus métier, leur code, responsable, description et un lien vers une procédure ou un diagramme (HTTP/HTTPS). Sélectionnez une ou plusieurs capacités N1, ou des domaines N0 dans une cartographie à un seul niveau. Une capacité peut participer à plusieurs processus. Un processus sans rattachement reste visible dans le filtre **À rattacher** ; le filtre par capacité permet de retrouver les processus qui la mobilisent.
 

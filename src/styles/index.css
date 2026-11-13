@@ -53,3 +53,6 @@
 
 /* Composition PDF plein cadre, chargée après les styles d'écran. */
 @import './presentation-print.css';
+
+/* Parcours guidés de qualification, après les styles globaux des registres. */
+@import './analysis-guided.css';

@@ -1,0 +1,81 @@
+/* Parcours guidés Risques et Processus : réutilise uniquement les tokens Signal.
+ * Une priorité lisible avant les registres ; l'exploration est secondaire. */
+.app .risk-analysis,
+.app .process-analysis { gap: 14px; }
+.app .analysis-guidance {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px; padding: 17px 20px;
+  border: 1px solid var(--color-accent-border); border-radius: var(--radius-card);
+  background: var(--color-accent-soft); color: var(--color-text);
+}
+.app .analysis-guidance-copy { display: grid; gap: 7px; min-width: 0; max-width: 740px; }
+.app .analysis-guidance h3 {
+  font-size: clamp(16px, 1.8vw, 21px); font-weight: 780;
+  line-height: 1.3; margin: 0; letter-spacing: -.02em;
+}
+.app .analysis-guidance p { font-size: 12px; color: var(--color-text-muted); line-height: 1.55; margin: 0; }
+.app .analysis-guidance > .ds-button { flex: 0 0 auto; }
+.app .analysis-quick-filters {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 9px;
+}
+.app .analysis-quick-filters button {
+  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+  min-width: 0; min-height: 64px; padding: 11px 14px;
+  text-align: left; cursor: pointer; color: var(--color-text);
+  border: 1px solid var(--color-border); background: var(--color-surface-muted);
+  border-radius: var(--radius-control); box-shadow: none; font: inherit;
+}
+.app .analysis-quick-filters button:hover { background: var(--color-surface-hover); border-color: var(--color-border-strong); }
+.app .analysis-quick-filters button.is-active {
+  background: var(--color-accent-soft); border-color: var(--color-accent-border);
+  box-shadow: inset 0 0 0 1px var(--color-accent-border);
+}
+.app .analysis-quick-filters strong { font-size: 23px; line-height: 1; font-variant-numeric: tabular-nums; }
+.app .analysis-quick-filters span { font-size: 11px; line-height: 1.4; color: var(--color-text-muted); font-weight: 650; }
+.app .analysis-quick-filters .is-active span { color: var(--color-accent-text); }
+.app .analysis-worklist-heading { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding-top: 6px; }
+.app .analysis-worklist-heading h3 { margin: 0 0 4px; font-size: 15px; font-weight: 750; }
+.app .analysis-worklist-heading p { margin: 0; color: var(--color-text-muted); font-size: 11px; }
+.app .risk-analysis .risk-filters, .app .process-analysis .process-filters { gap: 9px; }
+.app .risk-analysis .risk-entry, .app .process-analysis .process-entry {
+  padding: 15px 17px; gap: 10px; border-color: var(--color-border);
+  box-shadow: none;
+}
+.app .risk-analysis .risk-entry-heading h3, .app .process-analysis .process-entry-heading h3 {
+  margin: 0; font-size: 14px; font-weight: 780; line-height: 1.4;
+}
+.app .risk-entry-heading > div, .app .process-entry-heading > div:first-child { display: grid; gap: 6px; }
+.app .risk-analysis .risk-entry-facts, .app .risk-analysis .risk-targets { gap: 7px 13px; font-size: 11px; }
+.app .risk-analysis .risk-targets > span { font-weight: 650; }
+.app .risk-analysis .risk-register, .app .process-analysis .process-register { gap: 10px; }
+.app .risk-analysis .risk-method, .app .process-analysis .process-method { background: var(--color-surface-muted); }
+.app .risk-analysis .analysis-explore { padding: 13px 15px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-muted); }
+.app .analysis-explore summary { font-size: 12px; font-weight: 750; cursor: pointer; color: var(--color-text); }
+.app .risk-analysis .risk-domain-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
+  gap: 9px; margin-top: 13px;
+}
+.app .risk-analysis .risk-domain { padding: 12px; gap: 7px; }
+.app .risk-analysis .risk-domain strong { font-size: 12px; line-height: 1.4; }
+.app .risk-analysis .risk-domain small { font-size: 11px; }
+.app .analysis-editor-step {
+  margin: 3px 0 0; padding-top: 12px;
+  border-top: 1px solid var(--color-border); color: var(--color-text);
+  font-size: 13px; font-weight: 750; line-height: 1.45;
+}
+.app .analysis-quick-filters button:focus-visible,
+.app .analysis-explore summary:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+@media (max-width: 760px) {
+  .app .analysis-guidance { align-items: stretch; flex-direction: column; padding: 14px; }
+  .app .analysis-guidance > .ds-button { width: 100%; }
+  .app .analysis-quick-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app .analysis-quick-filters button { padding: 10px; gap: 9px; }
+}
+@media (max-width: 420px) {
+  .app .analysis-quick-filters { grid-template-columns: 1fr; }
+  .app .risk-analysis .risk-entry, .app .process-analysis .process-entry { padding: 12px; }
+}
