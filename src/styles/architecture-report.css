@@ -118,7 +118,8 @@
   .architecture-report-pages { align-items: flex-start; padding: 14px; }
 }
 @media print {
-  @page { size: A4 landscape; margin: 0; }
+  /* Named pages keep the existing presentation's default 16:9 @page untouched. */
+  @page architecture-report-a4 { size: A4 landscape; margin: 0; }
   html, body, #root { width: auto !important; height: auto !important; margin: 0 !important; padding: 0 !important; background: white !important; }
   .architecture-report {
     --report-paper: #fff;
@@ -139,6 +140,7 @@
   .architecture-report-toolbar { display: none !important; }
   .architecture-report-pages { display: block !important; padding: 0 !important; margin: 0 !important; }
   .architecture-report-page {
+    page: architecture-report-a4;
     width: 297mm !important;
     min-height: 210mm !important;
     height: auto !important;
