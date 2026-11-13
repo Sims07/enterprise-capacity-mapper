@@ -75,13 +75,25 @@ export function buildArchitectureReport(model: CatalogModel, asOf: string) {
   const withSignals = reportTargets.filter(target => target.signals.length > 0);
   const urgentRisks = risks.applications.filter(item => item.actionable && ['high', 'critical'].includes(item.level));
   const modelName = (model.metadata as { name?: string } | undefined)?.name || 'Cartographie sans nom';
+  const actionItems = [
+    ...reportTargets.filter(target => target.signals.length || target.functionalCoverage === 'À évaluer').map(target => ({
+      id: 'capability-' + target.id, subject: target.name, category: 'Capacité',
+      observation: target.signals.join(' ; ') || 'Couverture fonctionnelle non évaluée',
+      action: 'À définir avec le métier', owner: 'À désigner',
+    })),
+    ...risks.applications.filter(item => item.actionable && (['high', 'critical'].includes(item.level) || item.risk.mitigation)).map(item => ({
+      id: 'risk-' + item.application.id, subject: item.application.name, category: 'Risque applicatif',
+      observation: reportRiskLabel(item.level) + ' · ' + (item.risk.rationale || 'Justification à compléter'),
+      action: item.risk.mitigation || 'À définir', owner: item.risk.owner || 'À désigner',
+    })),
+  ];
 
   return {
     modelName, date, depth,
     domainCount: model.domains.length, targetCount: targets.length, applicationCount: model.applications.length,
     processesCount: processes.length,
     targets: reportTargets, withoutCurrent, withRedundancy, unqualified, missingMaturity, withSignals,
-    risks, urgentRisks, processes,
+    risks, urgentRisks, processes, actionItems,
     coverage: {
       sufficient: reportTargets.filter(item => item.functionalCoverage === 'Suffisante').length,
       partial: reportTargets.filter(item => item.functionalCoverage === 'Partielle').length,
