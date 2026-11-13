@@ -303,5 +303,6 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     printBackground: true,
   });
   expect(a4Pdf.subarray(0, 5).toString('ascii')).toBe('%PDF-');
-  expect(a4Pdf.toString('latin1').match(/\\/Type\\s*\\/Page\\b/g)).toHaveLength(1);
+  const a4PageDictionaries = a4Pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? [];
+  expect(a4PageDictionaries).toHaveLength(1);
 });
