@@ -1,3 +1,4 @@
+import { execFileSync, spawnSync } from 'node:child_process';
 import { expect, test } from '../fixtures';
 
 const PRINT_PAGE = { widthInches: 16, heightInches: 9 } as const;
@@ -22,6 +23,28 @@ function verifyPresentationPdf(pdf: Buffer) {
   expect(mediaBox, 'Le PDF doit déclarer les dimensions de la diapositive').not.toBeNull();
   expect(Number(mediaBox![1])).toBeCloseTo(PRINT_PAGE.widthInches * PDF_POINTS_PER_INCH, 0);
   expect(Number(mediaBox![2])).toBeCloseTo(PRINT_PAGE.heightInches * PDF_POINTS_PER_INCH, 0);
+}
+
+
+/** Contrôle le fichier vraiment généré, pas seulement les rectangles du DOM.
+ * Les outils Poppler sont installés en CI ; l'inspection reste optionnelle
+ * lors d'une exécution de développement sans Poppler. */
+function inspectPdfOutput(pdfPath: string, sampleLabels: string[], pngPrefix?: string): void {
+  if (spawnSync('pdftotext', ['-v']).error) return;
+
+  const printedText = execFileSync('pdftotext', [pdfPath, '-'], {
+    encoding: 'utf8',
+  }).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/\\s+/g, ' ').toLowerCase();
+  for (const label of sampleLabels) {
+    const normalizedLabel = label.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+    expect(printedText, `Le PDF final doit contenir le domaine ${label}`).toContain(normalizedLabel);
+  }
+
+  if (pngPrefix && !spawnSync('pdftoppm', ['-v']).error) {
+    // Artefact visuel lisible depuis la CI : PDF réel rasterisé.
+    execFileSync('pdftoppm', ['-f', '1', '-singlefile', '-r', '100', '-png', pdfPath, pngPrefix]);
+  }
 }
 
 test('imprime une diapositive 16:9 identique à la disposition projetée', async ({ page }, testInfo) => {
@@ -248,12 +271,18 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     '.presentation-app-preview:visible, .presentation-app-compact:visible, .presentation-app-inline-count:visible',
   ).first()).toBeVisible();
 
+  const pdfPath = testInfo.outputPath('presentation-dense-applications.pdf');
   const pdf = await page.pdf({
-    path: testInfo.outputPath('presentation-dense-applications.pdf'),
+    path: pdfPath,
     preferCSSPageSize: true,
     printBackground: true,
   });
   verifyPresentationPdf(pdf);
+  inspectPdfOutput(pdfPath, [
+    'Services de santé et parcours usager',
+    'Domaine métier 2',
+    'Domaine métier 20',
+  ], testInfo.outputPath('presentation-16-9-rendue'));
 
   // Régression observée par l'utilisateur : aperçu d'impression en feuille A4
   // et fenêtre plus étroite que la diapositive. Les N0 ne doivent plus être
@@ -295,8 +324,9 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
 
   // Un navigateur peut imposer un papier A4 malgré @page 16:9.
   // Le contenu doit alors être réduit en bloc, jamais tronqué.
+  const a4PdfPath = testInfo.outputPath('presentation-papier-a4.pdf');
   const a4Pdf = await page.pdf({
-    path: testInfo.outputPath('presentation-papier-a4.pdf'),
+    path: a4PdfPath,
     format: 'A4',
     landscape: true,
     preferCSSPageSize: false,
@@ -305,4 +335,9 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(a4Pdf.subarray(0, 5).toString('ascii')).toBe('%PDF-');
   const a4PageDictionaries = a4Pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? [];
   expect(a4PageDictionaries).toHaveLength(1);
+  inspectPdfOutput(a4PdfPath, [
+    'Services de santé et parcours usager',
+    'Domaine métier 2',
+    'Domaine métier 20',
+  ], testInfo.outputPath('presentation-a4-rendue'));
 });
