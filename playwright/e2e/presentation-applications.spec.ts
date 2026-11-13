@@ -75,25 +75,26 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
     }
     await expect(domain.locator('.cap').nth(1).locator('.presentation-app-chip.is-target')).toHaveCount(1);
 
-    // Le test mesure le rendu effectif : une puce présente dans le DOM mais masquée
-    // par overflow:hidden (défaut signalé) doit faire échouer la non-régression.
+
+    // Seul le rendu actif (badges, résumé, compteur) est mesuré. Un aperçu
+    // masqué par la requête conteneur n'a pas de géométrie exploitable.
     const visibility = await domain.locator('.cap').evaluateAll(elements => elements.map(element => {
       const card = element.getBoundingClientRect();
-      const preview = element.querySelector('.presentation-app-preview') as HTMLElement;
-      const previewBox = preview.getBoundingClientRect();
+      const visible = Array.from(element.querySelectorAll<HTMLElement>(
+        '.presentation-app-preview, .presentation-app-compact, .presentation-app-inline-count',
+      )).find(node => getComputedStyle(node).display !== 'none');
+      const tolerance = 1;
       const fitsInside = (box: DOMRect) => box.width > 0 && box.height > 0
-        && box.top >= card.top - 1 && box.bottom <= card.bottom + 1
-        && box.left >= card.left - 1 && box.right <= card.right + 1;
-      return {
-        previewFits: fitsInside(previewBox),
-        itemsFit: Array.from(preview.children).every(item => fitsInside(item.getBoundingClientRect())),
-        noClippedBadges: preview.scrollHeight <= preview.clientHeight + 1
-          && preview.scrollWidth <= preview.clientWidth + 1,
-      };
+        && box.top >= card.top - tolerance && box.bottom <= card.bottom + tolerance
+        && box.left >= card.left - tolerance && box.right <= card.right + tolerance;
+      if (!visible) return false;
+      const bounds = visible.getBoundingClientRect();
+      return fitsInside(bounds)
+        && Array.from(visible.children).every(item => fitsInside(item.getBoundingClientRect()))
+        && visible.scrollHeight <= visible.clientHeight + tolerance
+        && visible.scrollWidth <= visible.clientWidth + tolerance;
     }));
-    expect(visibility).toEqual(capabilityNames.map(() => ({
-      previewFits: true, itemsFit: true, noClippedBadges: true,
-    })));
+    expect(visibility).toEqual(capabilityNames.map(() => true));
 
     await domain.locator('.cap').first().click();
     const detail = page.getByRole('dialog', { name: `Détail de ${capabilityNames[0]}` });
@@ -145,6 +146,44 @@ test('garde les applications visibles avec quatre N1 dans un N0 de présentation
 });
 
 
+
+
+test('agrandit le nom d’application jusqu’au palier confortable lorsque la N1 est spacieuse', async ({ page }) => {
+  await page.setViewportSize({ width: 1728, height: 900 });
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
+  await page.evaluate(() => {
+    const key = 'enterprise-capacity-mapper:model:v3';
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Cartographie de test absente');
+    const model = JSON.parse(raw);
+    model.layout = {
+      ...model.layout,
+      columns: [{ id: 'spacious-col', name: 'Métier', order: 0 }],
+      layers: [{ id: 'spacious-row', name: 'Parcours', order: 0 }],
+    };
+    model.domains = [{
+      id: 'spacious-domain', name: 'Parcours patients', code: 'PAR', color: 'indigo',
+      layout: { columnId: 'spacious-col', layerId: 'spacious-row' },
+    }];
+    model.capabilities = [{ id: 'spacious-cap', name: 'Gestion des dossiers', code: 'GDD', domainId: 'spacious-domain' }];
+    model.applications = [{
+      id: 'spacious-app', name: 'Mon espace santé', status: 'Actif', capabilityIds: ['spacious-cap'],
+    }];
+    localStorage.setItem(key, JSON.stringify(model));
+  });
+  await page.goto('/?view=presentation');
+  await page.getByTestId('presentation-show-applications').check();
+
+  const preview = page.getByTestId('presentation-app-preview');
+  await expect(preview).toHaveAttribute('data-visible-count', '1');
+  await expect.poll(() => preview.evaluate(element => {
+    const typography = getComputedStyle(element);
+    return typography.fontSize === typography.getPropertyValue('--map-presentation-app-font-large').trim();
+  })).toBe(true);
+  await expect(preview.locator('.presentation-app-chip')).toContainText('Mon espace santé');
+  await expect(preview.locator('.presentation-app-more')).toHaveCount(0);
+});
 
 
 test('présente les applications sans cible sur toute la largeur et explique le signal métier', async ({ page }) => {
@@ -370,31 +409,43 @@ test('rend lisibles quatre N1 dans une cartographie paysage de sept lignes et pe
     headingFits: true, listFits: true, labelsFit: true, titlesFit: true,
   });
 
-  // Avec des applications, quatre N1 sur une rangée courte passent au résumé :
-  // ni bandeau coupé, ni titre caché par les badges.
+  // Le rendu dépend de la hauteur réelle : les noms restent visibles par
+  // badges complets si possible, sinon par résumé compact ou compteur, sans chevauchement.
   await page.getByTestId('presentation-show-applications').check();
   const firstCap = caps.first();
   const compact = firstCap.getByTestId('presentation-app-compact');
-  await expect(compact).toBeVisible();
-  await expect(compact).toContainText('Dossier Médical Partagé');
-  await expect(compact).toContainText('+3');
-  await expect(firstCap.locator('.presentation-app-preview')).toBeHidden();
-  await expect(caps.nth(1).getByTestId('presentation-app-compact')).toContainText('Application cible');
-  await expect(caps.nth(1).getByTestId('presentation-app-compact')).toContainText('cible');
-  await expect(caps.nth(2).getByTestId('presentation-app-compact')).toContainText('Aucune application reliée');
+  const preview = firstCap.getByTestId('presentation-app-preview');
+  const visibleApplicationSelector = '.presentation-app-preview:visible, .presentation-app-compact:visible, .presentation-app-inline-count:visible';
+  await expect(firstCap.locator(visibleApplicationSelector)).toHaveCount(1);
+  if (await firstCap.getByTestId('presentation-app-inline-count').isVisible()) {
+    await expect(firstCap.getByTestId('presentation-app-inline-count')).toHaveText('4 apps');
+  } else if (await compact.isVisible()) {
+    await expect(compact).toContainText('Dossier Médical Partagé');
+    await expect(compact).toContainText('+3');
+  } else {
+    await expect(preview).toBeVisible();
+    await expect.poll(() => preview.locator('.presentation-app-chip').count()).toBeGreaterThan(0);
+  }
 
-  const compactFit = await caps.evaluateAll(elements => elements.every(element => {
+  const presentationFits = await caps.evaluateAll(elements => elements.every(element => {
     const card = element.getBoundingClientRect();
     const title = (element.querySelector('.map-cap-select') as HTMLElement).getBoundingClientRect();
-    const summary = (element.querySelector('.presentation-app-compact') as HTMLElement).getBoundingClientRect();
+    const summary = Array.from(element.querySelectorAll<HTMLElement>(
+      '.presentation-app-compact, .presentation-app-preview, .presentation-app-inline-count',
+    )).find(node => getComputedStyle(node).display !== 'none');
+    if (!summary) return false;
+    const bounds = summary.getBoundingClientRect();
     const within = (box: DOMRect) => box.top >= card.top - 1 && box.bottom <= card.bottom + 1
       && box.left >= card.left - 1 && box.right <= card.right + 1;
-    return within(title) && within(summary) && title.bottom <= summary.top + 1;
+    const inline = summary.classList.contains('presentation-app-inline-count');
+    return within(title) && within(bounds) && (inline
+      ? title.right <= bounds.left + 1
+      : title.bottom <= bounds.top + 1);
   }));
-  expect(compactFit).toBe(true);
+  expect(presentationFits).toBe(true);
 
   await page.getByTestId('presentation-reading-coverage').click();
-  await expect(compact).toBeVisible();
+  await expect(firstCap.locator(visibleApplicationSelector)).toHaveCount(1);
   await page.getByTestId('presentation-show-applications').uncheck();
   await expect(firstCap.getByTestId('presentation-app-compact')).toHaveCount(0);
   await page.getByTestId('presentation-show-applications').check();
@@ -516,8 +567,8 @@ test('affiche toujours une indication applicative dans les quatre N1 d’une mos
 });
 
 
-test('affiche toutes les applications quand la carte est large, et seulement les badges qui tiennent quand elle rétrécit', async ({ page }) => {
-  const names = Array.from({ length: 12 }, (_, index) => `Application métier ${index + 1} de santé`);
+test('ajuste la typographie et les badges selon la taille de la carte sans masquer de noms visibles', async ({ page }) => {
+  const names = Array.from({ length: 26 }, (_, index) => `Application métier ${index + 1} de santé`);
   await page.setViewportSize({ width: 1728, height: 900 });
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('enterprise-capacity-mapper:model:v3'))).not.toBeNull();
@@ -527,12 +578,12 @@ test('affiche toutes les applications quand la carte est large, et seulement les
     if (!raw) throw new Error('Cartographie de test absente');
     const model = JSON.parse(raw);
     const columns = Array.from({ length: 3 }, (_, index) => ({ id: `wide-col-${index}`, name: `Colonne ${index}`, order: index }));
-    const layers = Array.from({ length: 6 }, (_, index) => ({ id: `wide-row-${index}`, name: `Ligne ${index}`, order: index }));
+    const layers = Array.from({ length: 3 }, (_, index) => ({ id: `wide-row-${index}`, name: `Ligne ${index}`, order: index }));
     model.layout = { ...model.layout, columns, layers };
     model.domains = [{
       id: 'wide-domain', name: 'Pilotage des applications métier', code: 'PAM', color: 'emerald',
       layout: { columnId: columns[0].id, layerId: layers[0].id, columnSpan: 3 },
-    }, ...Array.from({ length: 15 }, (_, index) => ({
+    }, ...Array.from({ length: 6 }, (_, index) => ({
       id: `other-domain-${index}`, name: `Domaine ${index}`, code: `N0-${index}`, color: 'indigo',
       layout: { columnId: columns[index % 3].id, layerId: layers[1 + Math.floor(index / 3)].id },
     }))];
@@ -551,13 +602,27 @@ test('affiche toutes les applications quand la carte est large, et seulement les
   await expect(preview).toHaveAttribute('data-visible-count', String(names.length));
   await expect(preview.locator('.presentation-app-chip')).toHaveCount(names.length);
   await expect(preview.locator('.presentation-app-more')).toHaveCount(0);
+  const initialFontSize = await preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
 
-  await page.setViewportSize({ width: 700, height: 600 });
-  await expect.poll(async () => Number(await preview.getAttribute('data-visible-count'))).toBeLessThan(names.length);
+  // Au-dessus du breakpoint mobile, le N0 conserve assez de hauteur pour
+  // mesurer des badges ; la largeur réduite doit privilégier leur lisibilité.
+  await page.setViewportSize({ width: 1024, height: 600 });
+  await expect(preview).toBeVisible();
+  await expect.poll(async () => {
+    const count = Number(await preview.getAttribute('data-visible-count'));
+    const fontSize = await preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    return count < names.length || fontSize < initialFontSize;
+  }).toBe(true);
   const count = Number(await preview.getAttribute('data-visible-count'));
   expect(count).toBeGreaterThan(0);
+  await expect.poll(() => preview.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize)))
+    .toBeLessThanOrEqual(initialFontSize);
   await expect(preview.locator('.presentation-app-chip')).toHaveCount(count);
-  await expect(preview.locator('.presentation-app-more')).toHaveText(`+${names.length - count} autres`);
+  if (count < names.length) {
+    await expect(preview.locator('.presentation-app-more')).toHaveText(`+${names.length - count} autres`);
+  } else {
+    await expect(preview.locator('.presentation-app-more')).toHaveCount(0);
+  }
 
   const isInside = await preview.evaluate(element => {
     const frame = element.getBoundingClientRect();

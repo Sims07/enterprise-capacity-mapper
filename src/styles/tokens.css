@@ -54,6 +54,11 @@
   --map-presentation-muted-domain-share: 22%;
   --map-presentation-spotlight-border-width: var(--focus-ring-width);
   --map-presentation-spotlight-fill-share: 30%;
+  /* Projection : du libellé confortable au format dense, testé à taille réelle. */
+  --map-presentation-app-font-large: 18px;
+  --map-presentation-app-font-regular: 16px;
+  --map-presentation-app-font-small: 14px;
+  --map-presentation-app-font-min: 12px;
   --presentation-detail-width: 1020px;
   --presentation-detail-viewport-margin: 40px;
 
