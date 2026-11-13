@@ -36,6 +36,7 @@ test('distinguishes planned links, current coverage and declared functional cove
   const model = fixture();
   const report = buildArchitectureReport(model, '2026-11-13');
   assert.equal(report.modelName, 'Cartographie de test');
+  assert.equal(report.modelDescription, '');
   assert.equal(report.targetCount, 3);
   assert.deepEqual(report.withoutCurrent.map(item => item.name), ['Support']);
   assert.equal(report.coverage.partial, 1);
