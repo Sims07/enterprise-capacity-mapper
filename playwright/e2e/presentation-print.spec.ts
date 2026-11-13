@@ -1,4 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync, unlinkSync } from 'node:fs';
 import { expect, test } from '../fixtures';
 
 const PRINT_PAGE = { widthInches: 16, heightInches: 9 } as const;
@@ -45,6 +46,84 @@ function inspectPdfOutput(pdfPath: string, sampleLabels: string[], pngPrefix?: s
     // Artefact visuel lisible depuis la CI : PDF réel rasterisé.
     execFileSync('pdftoppm', ['-f', '1', '-singlefile', '-r', '100', '-png', pdfPath, pngPrefix]);
   }
+}
+
+type PdfBannerProbe = {
+  x: number;
+  y: number;
+  background: string;
+  label: string;
+};
+
+function assertBannerColorsInRenderedPdf(
+  pdfPath: string,
+  outputPrefix: string,
+  probes: PdfBannerProbe[],
+): void {
+  if (spawnSync('pdftoppm', ['-v']).error) return;
+
+  // Le PPM de Poppler évite toute dépendance image Node tierce :
+  // une couleur attendue peut être comparée directement aux pixels imprimés.
+  execFileSync('pdftoppm', ['-f', '1', '-singlefile', '-r', '96', '-ppm', pdfPath, outputPrefix]);
+  const ppmPath = outputPrefix + '.ppm';
+  const image = readFileSync(ppmPath);
+  const header = image.subarray(0, 128).toString('latin1').match(/^P6\n(\d+) (\d+)\n255\n/);
+  expect(header, 'En-tête binaire PPM du PDF rendu').not.toBeNull();
+  const [, widthString, heightString] = header!;
+  const width = Number(widthString);
+  const height = Number(heightString);
+  const pixelOffset = header![0].length;
+  // Un papier A4 conserve son ratio : la diapositive 16:9 est centrée
+  // avec du blanc au-dessus et en dessous, jamais rognée latéralement.
+  const scale = Math.min(width / PRINT_VIEWPORT.width, height / PRINT_VIEWPORT.height);
+  const horizontalMargin = (width - PRINT_VIEWPORT.width * scale) / 2;
+  const verticalMargin = (height - PRINT_VIEWPORT.height * scale) / 2;
+  for (const probe of probes) {
+    const x = Math.round(horizontalMargin + probe.x * scale);
+    const y = Math.round(verticalMargin + probe.y * scale);
+    expect(x).toBeGreaterThanOrEqual(0);
+    expect(x).toBeLessThan(width);
+    expect(y).toBeGreaterThanOrEqual(0);
+    expect(y).toBeLessThan(height);
+    const rgbStart = pixelOffset + (y * width + x) * 3;
+    const actual = [...image.subarray(rgbStart, rgbStart + 3)];
+    const expected = probe.background.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+    expect(expected?.length, 'Couleur CSS du domaine ' + probe.label).toBe(3);
+    const deviation = Math.max(...actual.map((value, index) => Math.abs(value - expected![index])));
+    expect(deviation, 'Le bandeau du domaine ' + probe.label + ' doit apparaître dans le PDF (colonne non coupée)')
+      .toBeLessThan(45);
+  }
+  unlinkSync(ppmPath);
+}
+
+/** Trois sondes dans les bandeaux des N0 de la première rangée.
+ * La troisième est volontairement située bien au-delà du bord qui était
+ * tronqué dans la capture de l'utilisateur. */
+async function readFirstRowBannerProbes(
+  sheet: import('@playwright/test').Locator,
+): Promise<PdfBannerProbe[]> {
+  return sheet.evaluate(element => {
+    const paper = element.getBoundingClientRect();
+    const bounds = Array.from(element.querySelectorAll<HTMLElement>('.mosaic-domain'))
+      .map(domain => ({
+        domain,
+        rect: domain.getBoundingClientRect(),
+      }));
+    const top = Math.min(...bounds.map(item => item.rect.top));
+    return bounds.filter(item => Math.abs(item.rect.top - top) < 2)
+      .sort((a, b) => a.rect.left - b.rect.left)
+      .slice(0, 3)
+      .map(item => {
+        const banner = item.domain.querySelector<HTMLElement>('.domain-banner')!;
+        const rect = banner.getBoundingClientRect();
+        return {
+          x: rect.left - paper.left + rect.width * 0.7,
+          y: rect.top - paper.top + Math.min(4, rect.height / 3),
+          background: getComputedStyle(banner).backgroundColor,
+          label: item.domain.textContent?.trim().slice(0, 50) ?? 'N0',
+        };
+      });
+  });
 }
 
 test('imprime une diapositive 16:9 identique à la disposition projetée', async ({ page }, testInfo) => {
@@ -271,6 +350,8 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     '.presentation-app-preview:visible, .presentation-app-compact:visible, .presentation-app-inline-count:visible',
   ).first()).toBeVisible();
 
+  const bannerProbes16 = await readFirstRowBannerProbes(sheet);
+  expect(bannerProbes16).toHaveLength(columnCount);
   const pdfPath = testInfo.outputPath('presentation-dense-applications.pdf');
   const pdf = await page.pdf({
     path: pdfPath,
@@ -278,6 +359,7 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     printBackground: true,
   });
   verifyPresentationPdf(pdf);
+  assertBannerColorsInRenderedPdf(pdfPath, testInfo.outputPath('presentation-16-9-pixels'), bannerProbes16);
   inspectPdfOutput(pdfPath, [
     'Services de santé et parcours usager',
     'Domaine métier 2',
@@ -324,6 +406,8 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
 
   // Un navigateur peut imposer un papier A4 malgré @page 16:9.
   // Le contenu doit alors être réduit en bloc, jamais tronqué.
+  const bannerProbesA4 = await readFirstRowBannerProbes(sheet);
+  expect(bannerProbesA4).toHaveLength(columnCount);
   const a4PdfPath = testInfo.outputPath('presentation-papier-a4.pdf');
   const a4Pdf = await page.pdf({
     path: a4PdfPath,
@@ -335,6 +419,7 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(a4Pdf.subarray(0, 5).toString('ascii')).toBe('%PDF-');
   const a4PageDictionaries = a4Pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? [];
   expect(a4PageDictionaries).toHaveLength(1);
+  assertBannerColorsInRenderedPdf(a4PdfPath, testInfo.outputPath('presentation-a4-pixels'), bannerProbesA4);
   inspectPdfOutput(a4PdfPath, [
     'Services de santé et parcours usager',
     'Domaine métier 2',
