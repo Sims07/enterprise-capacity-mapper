@@ -4,6 +4,7 @@ import {
   createApplication,
   createCapability,
   createDomain,
+  moveCapabilityToDomain,
   removeCapabilityAndDependents,
   removeDomainAndDependents,
   updateApplication,
@@ -196,4 +197,29 @@ test('capability use cases persist optional assessment without losing earlier va
   assert.deepEqual(updated[0].assessment, { functionalCoverage: 'sufficient' });
   const retained = updateCapability({ domains, capabilities: created, capabilityId: 'cap-a', form: { domainId: 'domain-1', name: 'Contrats revus' } });
   assert.deepEqual(retained[0].assessment, assessment);
+});
+
+test('moves a N1 to another N0 while preserving assessments, app roles and process relations', () => {
+  const assessment = { functionalCoverage: 'partial' as const, currentMaturity: 2, targetMaturity: 4 };
+  const model = {
+    domains: [{ id: 'd1', name: 'Source', code: 'SRC' }, { id: 'd2', name: 'Destination', code: 'DST' }],
+    capabilities: [
+      { id: 'c1', domainId: 'd1', name: 'Customer knowledge', code: 'CUS', assessment },
+      { id: 'c2', domainId: 'd2', name: 'Billing' },
+    ],
+    applications: [{ id: 'app', name: 'CRM', capabilityIds: ['c1'], relationRoles: { c1: 'both' as const } }],
+    businessProcesses: [{ id: 'process', name: 'Acquire clients', capabilityIds: ['c1'] }],
+    metadata: { name: 'Enterprise' },
+  };
+  const moved = moveCapabilityToDomain({ model, capabilityId: 'c1', targetDomainId: 'd2' });
+  assert.equal(moved.capabilities.find(cap => cap.id === 'c1')?.domainId, 'd2');
+  assert.deepEqual(moved.capabilities[0].assessment, assessment);
+  assert.deepEqual(moved.applications, model.applications);
+  assert.deepEqual(moved.businessProcesses, model.businessProcesses);
+  assert.deepEqual(moved.domains, model.domains);
+  assert.deepEqual(moved.metadata, model.metadata);
+  assert.equal(model.capabilities[0].domainId, 'd1');
+  assert.deepEqual(moveCapabilityToDomain({ model: moved, capabilityId: 'c1', targetDomainId: 'd2' }), moved);
+  assert.deepEqual(moveCapabilityToDomain({ model, capabilityId: 'missing', targetDomainId: 'd2' }), model);
+  assert.deepEqual(moveCapabilityToDomain({ model, capabilityId: 'c1', targetDomainId: 'missing' }), model);
 });

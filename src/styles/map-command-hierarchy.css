@@ -105,3 +105,29 @@
     transition: none;
   }
 }
+
+/* N1 relocation: distinct from an application's drop target. */
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap[draggable="true"] {
+  cursor: grab;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .cap[draggable="true"]:active {
+  cursor: grabbing;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .domain-card.capability-drop-target {
+  outline: 3px dashed var(--color-focus);
+  outline-offset: 2px;
+  background: var(--color-accent-soft);
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .capability-drop-hint {
+  display: none;
+}
+.app.signal-experience:not(.mosaic-presentation-mode) .mosaic-domain .capability-drop-target > .capability-drop-hint {
+  display: block;
+  margin: var(--signal-space-2);
+  padding: var(--signal-space-2);
+  border: 1px dashed var(--color-focus);
+  border-radius: var(--radius-control);
+  color: var(--color-accent-text);
+  font-weight: 700;
+  text-align: center;
+}

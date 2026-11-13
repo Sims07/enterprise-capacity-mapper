@@ -48,6 +48,7 @@ import {
   removeDomainAndDependents,
   removeCapabilityAndDependents,
   updateCapability,
+  moveCapabilityToDomain,
   updateDomain,
 } from './application/catalogUseCases.ts';
 import { deriveCoverageOverview, getCapabilityCoverageState } from './application/coverageUseCases.ts';
@@ -113,6 +114,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   }
   const { repository, map: mapService, navigation, aiCompanion, preferences, companionPreferences, viewport, browserInteractions } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
+  const draggingCapabilityIdRef = useRef<string | null>(null);
   const [capabilityReference, setCapabilityReference] = useState(null);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -976,7 +978,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const openEditCapability = c => {
     setEditingCapabilityId(c.id);
     setFormErrors({});
-    setForm({ ...emptyForm, name: c.name, code: c.code || '', description: c.description || '', priority: c.priority || 'unqualified', assessment: { ...emptyForm.assessment, ...c.assessment } });
+    setForm({ ...emptyForm, domainId: c.domainId, name: c.name, code: c.code || '', description: c.description || '', priority: c.priority || 'unqualified', assessment: { ...emptyForm.assessment, ...c.assessment } });
     setModal('edit-capability');
   };
 
@@ -991,7 +993,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     const errors: Record<string, string> = {};
     if (!form.name.trim()) errors.name = 'Le nom est obligatoire.';
     if (modal !== 'edit-capability' && !form.code.trim()) errors.code = 'Le code est obligatoire.';
-    if (modal === 'capability' && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
+    if ((modal === 'capability' || modal === 'edit-capability') && !form.domainId) errors.domainId = 'Le domaine est obligatoire.';
     if (['app', 'edit-app'].includes(modal) && !form.vendor.trim()) errors.vendor = 'L’éditeur / fournisseur est obligatoire.';
     if ((modal === 'domain' || modal === 'edit-domain') && !/^#[\da-f]{6}$/i.test(form.color)) errors.color = 'Saisissez une couleur hexadécimale au format #RRGGBB.';
     if ((modal === 'domain' || modal === 'edit-domain') && !placementAvailable(modal === 'edit-domain' ? editingDomainId : null, form.columnId || columns[0].id, form.layerId || layers[0].id, form.columnSpan)) errors.columnSpan = 'Cette position dépasse la grille ou croise un domaine étendu sur plusieurs lignes.';
@@ -1066,9 +1068,16 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
   const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
+  const moveCapability = (capabilityId: string, targetDomainId: string) => {
+    const capability = model.capabilities.find(item => item.id === capabilityId);
+    if (!capability || capability.domainId === targetDomainId || !model.domains.some(domain => domain.id === targetDomainId)) return;
+    update(moveCapabilityToDomain({ model, capabilityId, targetDomainId }));
+    notify('Capacité N1 déplacée vers le domaine N0');
+  };
   const hoverOn = e => { e.preventDefault(); e.currentTarget.classList.add('drop-over'); };
   const hoverOff = e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-over'); };
   const onDrop = (e, capId) => { e.preventDefault(); e.currentTarget.classList.remove('drop-over'); const id = e.dataTransfer.getData('app'); if (id) assign(id, capId); };
+  const acceptsDrag = (event, type: string) => Array.from(event.dataTransfer.types).includes(type);
 
   const togglePicked = id => setPickedApps(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const linkPicked = targetId => {
@@ -1158,10 +1167,34 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         style={{ '--domain-color': domainColor, '--domain-text-color': domainTextColor(d.color), '--presentation-domain-color': presentationColor, '--presentation-domain-text-color': presentationText } as React.CSSProperties}
         draggable={!presentation}
         onContextMenu={e => { if (!presentation) openContextMenu(e, { type: 'domain', item: d }); }}
-        onDragStart={e => { if (presentation) { e.preventDefault(); return; } e.dataTransfer.setData('domain', d.id); }}
-        onDragOver={e => { if (!presentation && depth === 1) hoverOn(e); }}
-        onDragLeave={e => { if (!presentation && depth === 1) hoverOff(e); }}
-        onDrop={e => { if (!presentation && depth === 1) { e.preventDefault(); onDrop(e, d.id); } }}
+        onDragStart={e => {
+          if (presentation) { e.preventDefault(); return; }
+          // A N1 or application has its own drag payload: never replace it with the N0.
+          if (e.target !== e.currentTarget) return;
+          e.dataTransfer.setData('domain', d.id);
+        }}
+        onDragOver={e => {
+          if (presentation) return;
+          if (depth === 2 && acceptsDrag(e, 'capability') && model.capabilities.some(c => c.id === draggingCapabilityIdRef.current && c.domainId !== d.id)) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('capability-drop-target');
+          } else if (depth === 1 && acceptsDrag(e, 'app')) hoverOn(e);
+        }}
+        onDragLeave={e => {
+          if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) e.currentTarget.classList.remove('capability-drop-target');
+          if (!presentation && depth === 1) hoverOff(e);
+        }}
+        onDrop={e => {
+          if (presentation) return;
+          e.currentTarget.classList.remove('capability-drop-target');
+          const capabilityId = e.dataTransfer.getData('capability');
+          if (depth === 2 && capabilityId) {
+            e.preventDefault();
+            e.stopPropagation();
+            moveCapability(capabilityId, d.id);
+          } else if (depth === 1 && e.dataTransfer.getData('app')) onDrop(e, d.id);
+        }}
         key={d.id}
       >
         <div className="domain-banner" style={{ backgroundColor: bannerColor, color: bannerText, "--n0-header-color": bannerColor, "--n0-header-text-color": bannerText } as React.CSSProperties}>
@@ -1182,6 +1215,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           </div>}
         </div>
 
+        {!presentation && depth === 2 && <span className="capability-drop-hint" aria-hidden="true">Déposer la capacité N1 dans ce domaine</span>}
         {d.description?.trim() && <p className="cap-desc domain-desc">{d.description.trim()}</p>}
 
         {depth === 1 ? (
@@ -1220,10 +1254,19 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
                   data-entity-id={c.id}
                   data-entity-type="capability"
                   key={c.id}
+                  draggable={!presentation}
+                  onDragStart={e => {
+                    if (presentation || e.target !== e.currentTarget) return;
+                    e.stopPropagation();
+                    draggingCapabilityIdRef.current = c.id;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('capability', c.id);
+                  }}
+                  onDragEnd={() => { draggingCapabilityIdRef.current = null; }}
                   onContextMenu={e => { if (!presentation) openContextMenu(e, { type: 'capability', item: c }); }}
-                  onDragOver={e => { if (!presentation) hoverOn(e); }}
+                  onDragOver={e => { if (!presentation && acceptsDrag(e, 'app')) hoverOn(e); }}
                   onDragLeave={e => { if (!presentation) hoverOff(e); }}
-                  onDrop={e => { if (!presentation) onDrop(e, c.id); }}
+                  onDrop={e => { if (!presentation && e.dataTransfer.getData('app')) onDrop(e, c.id); }}
                 >
                   <div className="cap-head">
                     {presentation ? <span className="map-cap-select" title={c.name}>{c.name}</span> : <button type="button" className="map-cap-select" data-testid="map-cap-select" aria-pressed={selected.includes(c.id)} onClick={() => toggleCap(c.id)}>{c.name}</button>}
@@ -2155,6 +2198,15 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
           <Field label="Nom" required error={formErrors.name} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
 
+          {modal === 'edit-capability' && (
+            <label className={'field ' + (formErrors.domainId ? 'has-error' : '')}>
+              <span>Domaine N0 de rattachement</span>
+              <select data-testid="capability-domain-select" value={form.domainId} onChange={e => setForm({ ...form, domainId: e.target.value })}>
+                {model.domains.map(domain => <option value={domain.id} key={domain.id}>{domain.name}</option>)}
+              </select>
+              {formErrors.domainId && <small className="field-error">{formErrors.domainId}</small>}
+            </label>
+          )}
           {modal !== 'edit-capability' && (
             <>
               <Field label="Code" required error={formErrors.code} value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} />

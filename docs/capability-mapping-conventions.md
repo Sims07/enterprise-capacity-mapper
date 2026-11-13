@@ -176,3 +176,9 @@ Le JSON local, les spans, les identifiants N0/N1 et leurs relations applicatives
 ## Suppression d'une capacité N1
 
 Dans la cartographie N0/N1, la commande **Supprimer la capacité** est accessible depuis le menu « ⋮ » de la carte N1 et depuis sa **Fiche**. Une confirmation explicite indique le nombre d'applications et de processus métier dont le rattachement sera retiré. La capacité N1 et ses évaluations disparaissent ; les applications et processus métier eux-mêmes sont conservés, ainsi que leurs autres liens. La suppression est enregistrée dans l'historique Annuler/Rétablir de la carte. Le mode présentation reste en lecture seule.
+
+## Déplacement d'une capacité N1 entre domaines N0
+
+En mode édition, une carte N1 peut être glissée sur le domaine N0 de destination, y compris sur son en-tête et même s'il n'a pas de capacités. Un retour visuel distingue ce dépôt des dépôts d'applications. Déposer dans le N0 déjà propriétaire ne modifie rien. En alternative clavier ou tactile, la **Fiche** N1 permet de choisir le **Domaine N0 de rattachement** avant d'enregistrer.
+
+Le déplacement modifie uniquement le `domainId` de la capacité : son identifiant stable, son code, sa description, sa couverture, ses maturités, ses relations applicatives (dont les rôles actuel/cible) et ses liens aux processus métier sont conservés. La grille et les N0 eux-mêmes ne changent pas. L'historique Annuler/Rétablir, l'enregistrement local et le mode présentation reflètent le nouveau rattachement ; la présentation reste en lecture seule.

@@ -65,6 +65,7 @@ export const createBrowserViewport = ({
     };
     const clearDragState = () => {
       documentObject.querySelectorAll('.drop-over').forEach(node => node.classList.remove('drop-over'));
+      documentObject.querySelectorAll('.capability-drop-target').forEach(node => node.classList.remove('capability-drop-target'));
       // Ended or canceled HTML drag-and-drop must never leave a temporary CSS
       // grid position behind, even when the model placement is unchanged.
       documentObject.querySelectorAll('.map-mosaic .mosaic-domain[data-layout-grid-column][data-layout-grid-row]')
