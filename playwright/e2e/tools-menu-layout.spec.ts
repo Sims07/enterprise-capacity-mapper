@@ -19,7 +19,8 @@ for (const viewport of VIEWPORTS) {
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 
     const commands = menu.locator('.toolbar-menu-action');
-    await expect(commands).toHaveCount(5);
+    await expect(commands).toHaveCount(6);
+    await expect(menu.getByTestId('export-architecture-report')).toBeVisible();
     await expect(menu.getByTestId('import-model')).toHaveCount(1);
     await expect(menu.getByTestId('pwa-version')).toBeVisible();
 
