@@ -197,3 +197,33 @@ for (const theme of ['light', 'dark'] as const) {
     expect(borders[0]).not.toBe(borders[1]);
   });
 }
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`fiche N1 : code couleur d'évolution lisible et contrasté (${theme})`, async ({ page }) => {
+    await page.goto(story('design-system-fiche-n1-presentation--sortantes-et-maintenues', theme));
+    const dialog = page.getByTestId('presentation-capability-detail');
+    await expect(dialog).toBeVisible();
+    const current = dialog.getByTestId('presentation-current-apps');
+    const target = dialog.getByTestId('presentation-target-apps');
+    await expect(current.locator('[data-evolution="removed"]')).toContainText('Web PS');
+    await expect(current.locator('[data-evolution="existing"]')).toContainText('Ameli PRO');
+    await expect(target.locator('[data-evolution="existing"]')).toContainText('Ameli PRO');
+    await expect(target.locator('[data-evolution="new"]')).toContainText('Portail européen');
+    const tokens = await dialog.evaluate(node => {
+      const styles = getComputedStyle(node);
+      const read = (name: string) => styles.getPropertyValue(name).trim();
+      const background = (selector: string) => getComputedStyle(node.querySelector<HTMLElement>(selector)!).backgroundColor;
+      return {
+        existing: background('[data-evolution="existing"]'),
+        new: background('[data-evolution="new"]'),
+        removed: background('[data-evolution="removed"]'),
+        outgoing: background('.presentation-detail-outgoing'),
+        modifiedToken: read('--map-evolution-modified-bg'),
+      };
+    });
+    expect(new Set([tokens.existing, tokens.new, tokens.removed]).size).toBe(3);
+    expect(tokens.outgoing).toBe(tokens.removed);
+    expect(tokens.modifiedToken).not.toBe('');
+    expect(tokens.existing).not.toBe('rgba(0, 0, 0, 0)');
+  });
+}

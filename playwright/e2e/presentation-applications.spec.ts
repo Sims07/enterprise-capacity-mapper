@@ -24,6 +24,30 @@ test('distingue les applications sortantes de celles maintenues en cible dans la
   await expect(detail.getByTestId('presentation-app-total')).toHaveText('3');
   await expect(detail.getByTestId('presentation-current-apps').locator('li')).toHaveCount(2);
   await expect(detail.getByTestId('presentation-target-apps').locator('li')).toHaveCount(2);
+  const existing = detail.getByTestId('presentation-current-apps').locator('li').filter({ hasText: 'Ameli PRO' });
+  const removed = detail.getByTestId('presentation-current-apps').locator('li').filter({ hasText: 'Web PS' });
+  const maintained = detail.getByTestId('presentation-target-apps').locator('li').filter({ hasText: 'Ameli PRO' });
+  const added = detail.getByTestId('presentation-target-apps').locator('li').filter({ hasText: 'Document de Santé' });
+  await expect(existing).toHaveAttribute('data-evolution', 'existing');
+  await expect(maintained).toHaveAttribute('data-evolution', 'existing');
+  await expect(added).toHaveAttribute('data-evolution', 'new');
+  await expect(removed).toHaveAttribute('data-evolution', 'removed');
+  await expect(existing.getByText('Existante')).toBeVisible();
+  await expect(maintained.getByText('Maintenue')).toBeVisible();
+  await expect(added.getByText('Nouvelle')).toBeVisible();
+  await expect(removed.getByText('Sortante')).toBeVisible();
+  const colors = await detail.evaluate(root => {
+    const background = (attribute: string) => getComputedStyle(root.querySelector<HTMLElement>(attribute)!).backgroundColor;
+    return {
+      existing: background('[data-testid="presentation-current-apps"] [data-evolution="existing"]'),
+      new: background('[data-testid="presentation-target-apps"] [data-evolution="new"]'),
+      removed: background('[data-testid="presentation-current-apps"] [data-evolution="removed"]'),
+      outgoing: background('[data-testid="presentation-outgoing-apps"]'),
+    };
+  });
+  expect(new Set([colors.existing, colors.new, colors.removed]).size).toBe(3);
+  expect(colors.outgoing).toBe(colors.removed);
+  expect(colors.existing).not.toBe('rgba(0, 0, 0, 0)');
   await expect(outgoing).toBeVisible();
   await expect(outgoing.getByRole('heading', { name: 'Applications sortantes' })).toBeVisible();
   await expect(outgoing.locator('li')).toHaveCount(1);
@@ -50,6 +74,8 @@ test('distingue les applications sortantes de celles maintenues en cible dans la
   await page.reload();
   await page.locator('.mosaic-domain .cap').first().click();
   await expect(page.getByTestId('presentation-outgoing-apps')).toHaveCount(0);
+  await expect(page.getByTestId('presentation-current-apps').locator('li').filter({ hasText: 'Web PS' }))
+    .toHaveAttribute('data-evolution', 'existing');
 });
 
 test('garde les applications visibles avec quatre N1 dans un N0 de présentation dense', async ({ page }) => {
