@@ -34,22 +34,32 @@ const setPrintBounds = (element: HTMLElement, origin: DOMRect, bounds: DOMRect):
   });
 };
 
-export function capturePresentationPrintLayout(map: HTMLElement): boolean {
-  const bounds = map.getBoundingClientRect();
-  if (bounds.width <= 0 || bounds.height <= 0) return false;
-
+export function calculatePresentationPrintFit(
+  bounds: { width: number; height: number },
+): { scale: number; offsetX: number; offsetY: number } | null {
+  if (!Number.isFinite(bounds.width) || !Number.isFinite(bounds.height)
+    || bounds.width <= 0 || bounds.height <= 0) return null;
   const scale = Math.min(
     PRESENTATION_PRINT_PAGE.width / bounds.width,
     PRESENTATION_PRINT_PAGE.height / bounds.height,
   );
-  const offsetX = (PRESENTATION_PRINT_PAGE.width - bounds.width * scale) / 2;
-  const offsetY = (PRESENTATION_PRINT_PAGE.height - bounds.height * scale) / 2;
+  return {
+    scale,
+    offsetX: (PRESENTATION_PRINT_PAGE.width - bounds.width * scale) / 2,
+    offsetY: (PRESENTATION_PRINT_PAGE.height - bounds.height * scale) / 2,
+  };
+}
+
+export function capturePresentationPrintLayout(map: HTMLElement): boolean {
+  const bounds = map.getBoundingClientRect();
+  const fit = calculatePresentationPrintFit(bounds);
+  if (!fit) return false;
 
   map.style.setProperty('--presentation-print-width', `${bounds.width}px`);
   map.style.setProperty('--presentation-print-height', `${bounds.height}px`);
-  map.style.setProperty('--presentation-print-scale', String(scale));
-  map.style.setProperty('--presentation-print-offset-x', `${offsetX}px`);
-  map.style.setProperty('--presentation-print-offset-y', `${offsetY}px`);
+  map.style.setProperty('--presentation-print-scale', String(fit.scale));
+  map.style.setProperty('--presentation-print-offset-x', `${fit.offsetX}px`);
+  map.style.setProperty('--presentation-print-offset-y', `${fit.offsetY}px`);
 
   // Utiliser les rectangles en pixels de l'écran et non les numéros de piste :
   // le PDF n'a ainsi pas à recalculer grid-template-columns/rows.
