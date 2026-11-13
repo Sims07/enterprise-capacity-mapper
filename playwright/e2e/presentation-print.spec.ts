@@ -254,4 +254,54 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     printBackground: true,
   });
   verifyPresentationPdf(pdf);
+
+  // Régression observée par l'utilisateur : aperçu d'impression en feuille A4
+  // et fenêtre plus étroite que la diapositive. Les N0 ne doivent plus être
+  // masqués au-delà de la largeur du conteneur de page.
+  await page.emulateMedia({ media: 'screen' });
+  const narrowViewport = { width: 1152, height: 800 };
+  await page.setViewportSize(narrowViewport);
+  await expect.poll(async () => {
+    const printMap = sheet.locator('.map-mosaic');
+    const width = await printMap.evaluate(element =>
+      Number.parseFloat(element.style.getPropertyValue('--presentation-print-width')));
+    return Math.round(width);
+  }).toBe(narrowViewport.width);
+
+  await page.emulateMedia({ media: 'print' });
+  const pageCoverage = await sheet.evaluate(element => {
+    const pageBounds = element.getBoundingClientRect();
+    const cards = Array.from(element.querySelectorAll<HTMLElement>('.mosaic-domain'));
+    return {
+      sheetWidth: pageBounds.width,
+      sheetHeight: pageBounds.height,
+      leftmost: Math.min(...cards.map(card => card.getBoundingClientRect().left)),
+      rightmost: Math.max(...cards.map(card => card.getBoundingClientRect().right)),
+      topmost: Math.min(...cards.map(card => card.getBoundingClientRect().top)),
+      bottommost: Math.max(...cards.map(card => card.getBoundingClientRect().bottom)),
+      pageLeft: pageBounds.left,
+      pageRight: pageBounds.right,
+      pageTop: pageBounds.top,
+      pageBottom: pageBounds.bottom,
+    };
+  });
+  const pageTolerancePx = 2;
+  expect(pageCoverage.leftmost).toBeGreaterThanOrEqual(pageCoverage.pageLeft - pageTolerancePx);
+  expect(pageCoverage.rightmost).toBeLessThanOrEqual(pageCoverage.pageRight + pageTolerancePx);
+  expect(pageCoverage.topmost).toBeGreaterThanOrEqual(pageCoverage.pageTop - pageTolerancePx);
+  expect(pageCoverage.bottommost).toBeLessThanOrEqual(pageCoverage.pageBottom + pageTolerancePx);
+  expect(pageCoverage.sheetWidth).toBe(PRINT_VIEWPORT.width);
+  expect(pageCoverage.sheetHeight).toBe(PRINT_VIEWPORT.height);
+
+  // Un navigateur peut imposer un papier A4 malgré @page 16:9.
+  // Le contenu doit alors être réduit en bloc, jamais tronqué.
+  const a4Pdf = await page.pdf({
+    path: testInfo.outputPath('presentation-papier-a4.pdf'),
+    format: 'A4',
+    landscape: true,
+    preferCSSPageSize: false,
+    printBackground: true,
+  });
+  expect(a4Pdf.subarray(0, 5).toString('ascii')).toBe('%PDF-');
+  expect(a4Pdf.toString('latin1').match(/\\/Type\\s*\\/Page\\b/g)).toHaveLength(1);
 });
