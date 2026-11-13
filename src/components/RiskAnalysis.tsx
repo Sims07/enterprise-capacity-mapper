@@ -89,10 +89,10 @@ export default function RiskAnalysis({ model, onUpdateRisk, onExploreTarget, onE
       {next && <Button variant="primary" data-testid="risk-next-action" onClick={() => setEditing(next.application)}>Commencer par cette application</Button>}
     </div>
     <div className="analysis-quick-filters" role="group" aria-label="Accès rapides aux risques" data-testid="risk-quick-filters">
-      <button type="button" className={filter === 'urgent' ? 'is-active' : ''} aria-pressed={filter === 'urgent'} onClick={() => setFilter('urgent')}><strong>{urgent.length}</strong><span>Risques élevés à traiter</span></button>
-      <button type="button" className={filter === 'unknown' ? 'is-active' : ''} aria-pressed={filter === 'unknown'} onClick={() => setFilter('unknown')}><strong>{unknown.length}</strong><span>Applications à qualifier</span></button>
-      <button type="button" className={filter === 'overdue' ? 'is-active' : ''} aria-pressed={filter === 'overdue'} onClick={() => setFilter('overdue')}><strong>{overdue.length}</strong><span>Échéances dépassées</span></button>
-      <button type="button" className={filter === 'accepted' ? 'is-active' : ''} aria-pressed={filter === 'accepted'} onClick={() => setFilter('accepted')}><strong>{analysis.applications.filter(item => item.status === 'accepted').length}</strong><span>Risques acceptés (suivis)</span></button>
+      <button type="button" className={filter === 'urgent' ? 'is-active' : ''} aria-pressed={filter === 'urgent'} onClick={() => { setFilter('urgent'); setDomainId('all'); setQuery(''); }}><strong>{urgent.length}</strong><span>Risques élevés à traiter</span></button>
+      <button type="button" className={filter === 'unknown' ? 'is-active' : ''} aria-pressed={filter === 'unknown'} onClick={() => { setFilter('unknown'); setDomainId('all'); setQuery(''); }}><strong>{unknown.length}</strong><span>Applications à qualifier</span></button>
+      <button type="button" className={filter === 'overdue' ? 'is-active' : ''} aria-pressed={filter === 'overdue'} onClick={() => { setFilter('overdue'); setDomainId('all'); setQuery(''); }}><strong>{overdue.length}</strong><span>Échéances dépassées</span></button>
+      <button type="button" className={filter === 'accepted' ? 'is-active' : ''} aria-pressed={filter === 'accepted'} onClick={() => { setFilter('accepted'); setDomainId('all'); setQuery(''); }}><strong>{analysis.applications.filter(item => item.status === 'accepted').length}</strong><span>Risques acceptés (suivis)</span></button>
     </div>
     <div className="analysis-worklist-heading" data-testid="risk-worklist"><div><h3>Applications à examiner</h3><p>Les plus exposées apparaissent d’abord. Ouvrez une évaluation pour décider de la suite.</p></div>
       <Button variant="quiet" onClick={() => { setFilter('all'); setDomainId('all'); setQuery(''); }}>Tout afficher</Button>
