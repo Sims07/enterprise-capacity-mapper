@@ -87,6 +87,7 @@ function Report({ model, onClose }: { model: CatalogModel; onClose: () => void }
   const riskPages = paginateReport(report.risks.applications);
   const processPages = paginateReport(report.processes);
   const relationPages = paginateReport(report.targets);
+  const actionPages = paginateReport(report.actionItems);
   return <div className="architecture-report" data-testid="architecture-report">
     <div className="architecture-report-toolbar" role="toolbar" aria-label="Actions du rapport">
       <div><strong>Rapport d'architecture</strong><small>Prévisualisation · {report.modelName} · {formatted(report.date)}</small></div>
@@ -199,6 +200,17 @@ function Report({ model, onClose }: { model: CatalogModel; onClose: () => void }
           {!items.length && <tr><td colSpan={4}>Aucun processus métier renseigné.</td></tr>}
         </ReportTable>
         <p className="architecture-report-note">Les associations et risques sont indirects via les capacités ; aucune utilisation directe des applications par les processus n'est déduite.</p>
+      </ReportPage>)}
+
+      {actionPages.map((items, index) => <ReportPage key={'action-' + index} title="Registre d'actions et points à qualifier"
+        subtitle={'Décisions documentées et observations · ' + (index + 1) + '/' + actionPages.length} kind="actions">
+        <ReportTable headers={['Sujet', 'Nature', 'Observation', 'Action documentée / pilote']}>
+          {items.map(item => <tr key={item.id}><td><strong>{item.subject}</strong></td>
+            <td>{item.category}</td><td>{item.observation}</td>
+            <td>{item.action}<small>Responsable : {item.owner}</small></td></tr>)}
+          {!items.length && <tr><td colSpan={4}>Aucun point supplémentaire à instruire dans le périmètre renseigné.</td></tr>}
+        </ReportTable>
+        <p className="architecture-report-note">Les actions manquantes sont explicitement indiquées « À définir » ; le rapport n'attribue pas de décision, de responsable ou de priorité métier par déduction.</p>
       </ReportPage>)}
 
       {domainPages.map((domains, index) => <ReportPage key={'domain-' + index} title="Annexe A · Domaines N0"
