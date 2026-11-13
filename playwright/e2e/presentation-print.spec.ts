@@ -64,7 +64,7 @@ function assertBannerColorsInRenderedPdf(
 
   // Le PPM de Poppler évite toute dépendance image Node tierce :
   // une couleur attendue peut être comparée directement aux pixels imprimés.
-  execFileSync('pdftoppm', ['-f', '1', '-singlefile', '-r', '96', '-ppm', pdfPath, outputPrefix]);
+  execFileSync('pdftoppm', ['-f', '1', '-singlefile', '-r', '96', pdfPath, outputPrefix]);
   const ppmPath = outputPrefix + '.ppm';
   const image = readFileSync(ppmPath);
   const header = image.subarray(0, 128).toString('latin1').match(/^P6\n(\d+) (\d+)\n255\n/);
