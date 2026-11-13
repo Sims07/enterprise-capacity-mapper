@@ -102,6 +102,7 @@ function Report({ model, onClose }: { model: CatalogModel; onClose: () => void }
           <div className="architecture-report-cover-kicker">DOSSIER D'ARCHITECTURE D'ENTREPRISE</div>
           <h1>Cartographie, couverture, écarts et risques</h1>
           <p>Rapport complet généré le {formatted(report.date)} à partir de la cartographie active.</p>
+          {report.modelDescription && <p>{report.modelDescription}</p>}
           <div className="architecture-report-metrics">
             <Metric value={report.domainCount} label="Domaines N0" />
             <Metric value={report.targetCount} label={report.depth === 2 ? 'Capacités N1' : 'Domaines cartographiés'} />
@@ -191,7 +192,7 @@ function Report({ model, onClose }: { model: CatalogModel; onClose: () => void }
         subtitle={'Processus documentés · ' + (index + 1) + '/' + processPages.length} kind="processes">
         <ReportTable headers={['Processus / responsable', 'Capacités rattachées', 'Applications associées', 'Points d’exposition']}>
           {items.map(item => <tr key={item.process.id}>
-            <td><strong>{item.process.name}</strong><small>{empty(item.process.owner)} · {empty(item.process.description)}</small></td>
+            <td><strong>{empty(item.process.code)} · {item.process.name}</strong><small>{empty(item.process.owner)} · {empty(item.process.description)}</small>{item.process.documentationUrl && <small>Documentation : {item.process.documentationUrl}</small>}</td>
             <td>{joinNames(item.capabilities)}</td>
             <td>Actuelles : {joinNames(item.currentApplications)}<small>Cibles : {joinNames(item.plannedApplications)}</small></td>
             <td>{item.unsupportedCapabilities.length ? item.unsupportedCapabilities.length + ' sans support actuel. ' : ''}
@@ -225,7 +226,7 @@ function Report({ model, onClose }: { model: CatalogModel; onClose: () => void }
         subtitle={'Fiches exhaustives · ' + (index + 1) + '/' + capabilityPages.length} kind="annex-capabilities">
         <ReportTable headers={['Code et capacité', 'Description / domaine', 'Évaluation', 'Justification et écarts']}>
           {targets.map(target => <tr key={target.id}><td><strong>{target.code} · {target.name}</strong></td>
-            <td>{empty(target.description)}<small>Domaine : {target.domain}</small></td>
+            <td>{empty(target.description)}<small>Domaine : {target.domain} · Priorité : {empty(target.priority === 'unqualified' ? '' : target.priority)}</small></td>
             <td>Couverture : {target.functionalCoverage}<small>Maturité : {target.currentMaturity ?? 'À évaluer'} / cible {target.targetMaturity ?? 'À définir'}</small></td>
             <td>{empty(target.rationale)}<small>{target.signals.join(' ; ') || 'Aucun signal documenté'}</small></td></tr>)}
           {!targets.length && <tr><td colSpan={4}>Aucune capacité renseignée.</td></tr>}
@@ -238,7 +239,7 @@ function Report({ model, onClose }: { model: CatalogModel; onClose: () => void }
           {applications.map(application => <tr key={application.id}>
             <td><strong>{empty(application.code)} · {application.name}</strong></td>
             <td>{empty(application.status)}<small>{empty(application.type)} · {empty(application.vendor)}</small></td>
-            <td>{empty(application.description)}</td>
+            <td>{empty(application.description)}{application.risk && <small>Risque : {application.risk.category ? RISK_CATEGORIES[application.risk.category] : 'À qualifier'} · Support : {empty(application.risk.supportEndDate)} · Pilote : {empty(application.risk.owner)} · Échéance : {empty(application.risk.dueDate)} · Justification : {empty(application.risk.rationale)} · Action : {empty(application.risk.mitigation)}</small>}</td>
             <td>{(application.capabilityIds ?? []).map(id => report.targets.find(item => item.id === id)?.name ?? model.capabilities.find(item => item.id === id)?.name ?? model.domains.find(item => item.id === id)?.name ?? id).join(' · ') || 'Aucune relation'}</td>
           </tr>)}
           {!applications.length && <tr><td colSpan={4}>Aucune application renseignée.</td></tr>}
