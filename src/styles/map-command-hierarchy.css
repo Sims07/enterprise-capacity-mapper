@@ -126,7 +126,7 @@
   margin: var(--signal-space-2);
   padding: var(--signal-space-2);
   border: 1px dashed var(--color-focus);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   color: var(--color-accent-text);
   font-weight: 700;
   text-align: center;
