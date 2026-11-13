@@ -1,0 +1,156 @@
+/* Rapport indépendant de l'impression de la présentation 16:9.
+ * Tokens du design system Signal, sortie claire et lisible en A4 paysage. */
+.architecture-report {
+  --report-paper: var(--color-surface, #fff);
+  --report-ink: var(--color-text, #233146);
+  --report-muted: var(--color-text-muted, #596d87);
+  --report-rule: var(--color-border, #d2dbea);
+  --report-accent: var(--color-accent, #425bc7);
+  min-height: 100dvh;
+  background: var(--color-bg, #f3f6fb);
+  color: var(--report-ink);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+}
+.architecture-report * { box-sizing: border-box; }
+.architecture-report-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px max(16px, calc((100% - 1120px) / 2));
+  background: var(--color-surface-raised, white);
+  border-bottom: 1px solid var(--report-rule);
+  box-shadow: var(--shadow-panel, 0 4px 14px rgb(0 0 0 / 5%));
+}
+.architecture-report-toolbar > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.architecture-report-toolbar strong { font-size: 15px; }
+.architecture-report-toolbar small { font-size: 12px; color: var(--report-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.architecture-report-toolbar-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.architecture-report-toolbar button {
+  border-radius: var(--radius-control, 7px);
+  border: 1px solid var(--report-rule);
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 650;
+  color: var(--report-ink);
+  background: var(--color-surface, white);
+  cursor: pointer;
+}
+.architecture-report-toolbar button:focus-visible { outline: var(--focus-ring-width, 2px) solid var(--color-focus, #425bc7); outline-offset: 2px; }
+.architecture-report-toolbar .architecture-report-print { background: var(--report-accent); color: var(--color-accent-on, white); border-color: var(--report-accent); }
+.architecture-report-pages { display: grid; justify-items: center; gap: 26px; padding: 28px 18px 48px; }
+.architecture-report-page {
+  display: flex;
+  flex-direction: column;
+  width: 297mm;
+  min-height: 210mm;
+  padding: 13mm 14mm 10mm;
+  background: var(--report-paper);
+  box-shadow: var(--shadow-panel, 0 6px 28px rgb(0 0 0 / 12%));
+  color: var(--report-ink);
+}
+.architecture-report-page-header { padding-bottom: 5mm; border-bottom: 1px solid var(--report-rule); }
+.architecture-report-eyebrow { display: block; font-size: 9px; font-weight: 750; color: var(--report-accent); letter-spacing: .12em; }
+.architecture-report-page-header h2 { margin: 7px 0 2px; font-size: 22px; line-height: 1.2; font-weight: 750; }
+.architecture-report-page-header p { margin: 0; font-size: 11px; color: var(--report-muted); }
+.architecture-report-page-body { flex: 1 1 auto; min-height: 0; padding-top: 6mm; }
+.architecture-report-page-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 3mm;
+  border-top: 1px solid var(--report-rule);
+  color: var(--report-muted);
+  font-size: 9px;
+}
+.architecture-report-page h3 { margin: 0 0 8px; font-size: 14px; }
+.architecture-report-page p { line-height: 1.48; overflow-wrap: anywhere; }
+.architecture-report-cover { padding: 14mm 4mm; }
+.architecture-report-cover-kicker { color: var(--report-accent); font-size: 13px; font-weight: 750; letter-spacing: .13em; }
+.architecture-report-cover h1 { font-size: 34px; line-height: 1.16; max-width: 210mm; margin: 7mm 0 4mm; }
+.architecture-report-cover > p { font-size: 14px; color: var(--report-muted); }
+.architecture-report-metrics, .architecture-report-coverage { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3mm; margin: 5mm 0 6mm; }
+.architecture-report-metric { display: grid; align-content: center; gap: 2mm; min-height: 24mm; padding: 4mm; background: var(--color-surface-muted, #f7f9fd); border: 1px solid var(--report-rule); border-radius: var(--radius-card, 10px); }
+.architecture-report-metric strong { font-size: 23px; line-height: 1; color: var(--report-accent); font-variant-numeric: tabular-nums; }
+.architecture-report-metric span { font-size: 10px; line-height: 1.3; }
+.architecture-report-two-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8mm; margin-top: 8mm; }
+.architecture-report-two-columns section { padding: 5mm; background: var(--color-surface-muted, #f8fafc); border: 1px solid var(--report-rule); border-radius: var(--radius-card, 10px); }
+.architecture-report-note { padding: 4mm 5mm; margin-top: 6mm; border-left: 3px solid var(--report-accent); background: var(--color-surface-muted, #f8fafc); font-size: 11px; }
+.architecture-report-map { display: grid; gap: 3mm; width: 100%; height: 133mm; padding: 2mm; background: var(--color-surface-muted, #f8fafc); border: 1px solid var(--report-rule); }
+.architecture-report-map-legend { margin: 4mm 0 0; font-size: 10px; color: var(--report-muted); }
+.architecture-report-domain { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; padding: 2mm; background: var(--report-paper); border: 1px solid var(--report-rule); border-radius: 2mm; }
+.architecture-report-domain-heading { border-left: 3mm solid var(--report-accent); padding: 1mm 2mm; display: flex; gap: 2mm; justify-content: space-between; align-items: baseline; min-width: 0; font-size: 11px; }
+.architecture-report-domain-heading b { overflow-wrap: anywhere; line-height: 1.1; }
+.architecture-report-domain-heading span { flex-shrink: 0; font-size: 8px; color: var(--report-muted); }
+.architecture-report-domain-targets { display: grid; gap: 1mm; padding-top: 2mm; min-height: 0; overflow: hidden; align-content: start; grid-template-columns: repeat(auto-fit, minmax(min(100%, 32mm), 1fr)); }
+.architecture-report-capability { min-width: 0; min-height: 0; padding: 2mm 2.5mm; border: 1px solid var(--report-rule); border-radius: 1.5mm; background: var(--color-surface-muted, #f8fafc); }
+.architecture-report-capability strong { display: block; font-size: 9px; line-height: 1.22; overflow-wrap: anywhere; }
+.architecture-report-capability small { display: block; font-size: 8px; line-height: 1.25; margin-top: .7mm; overflow-wrap: anywhere; color: var(--report-muted); }
+.architecture-report-capability.tone-good { background: var(--status-covered-bg); color: var(--status-covered-text); }
+.architecture-report-capability.tone-warning { background: var(--status-high-bg); color: var(--status-high-text); }
+.architecture-report-capability.tone-critical { background: var(--status-critical-bg); color: var(--status-critical-text); }
+.architecture-report-capability.tone-neutral { background: var(--status-neutral-bg); color: var(--status-neutral-text); }
+.architecture-report-capability.tone-good small, .architecture-report-capability.tone-warning small,
+.architecture-report-capability.tone-critical small, .architecture-report-capability.tone-neutral small { color: inherit; }
+.architecture-report-none { color: var(--report-muted); padding: 3mm; font-size: 10px; }
+.architecture-report-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; }
+.architecture-report-table th { padding: 3mm 2mm; text-align: left; color: var(--report-accent); background: var(--color-surface-muted, #f8fafc); border-bottom: 2px solid var(--report-rule); }
+.architecture-report-table td { vertical-align: top; padding: 3mm 2mm; line-height: 1.38; border-bottom: 1px solid var(--report-rule); overflow-wrap: anywhere; word-break: normal; }
+.architecture-report-table td strong { font-size: 10px; display: block; margin-bottom: 1mm; }
+.architecture-report-table td small { display: block; margin-top: 1.5mm; color: var(--report-muted); line-height: 1.38; }
+.architecture-report-table tr { break-inside: avoid; page-break-inside: avoid; }
+.architecture-report-domain-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6mm; }
+.architecture-report-domain-details section { padding: 5mm; border: 1px solid var(--report-rule); border-radius: var(--radius-card, 10px); background: var(--color-surface-muted, #f8fafc); overflow-wrap: anywhere; }
+.architecture-report-domain-details p { font-size: 12px; }
+
+@media screen and (max-width: 1120px) {
+  .architecture-report-pages { display: flex; flex-direction: column; align-items: center; overflow-x: auto; }
+  .architecture-report-page { flex: none; transform-origin: top center; }
+}
+@media screen and (max-width: 720px) {
+  .architecture-report-toolbar { flex-direction: column; align-items: stretch; }
+  .architecture-report-toolbar-buttons button { flex: 1 1 auto; }
+  .architecture-report-pages { align-items: flex-start; padding: 14px; }
+}
+@media print {
+  @page { size: A4 landscape; margin: 0; }
+  html, body, #root { width: auto !important; height: auto !important; margin: 0 !important; padding: 0 !important; background: white !important; }
+  .architecture-report {
+    --report-paper: #fff;
+    --report-ink: #233146;
+    --report-muted: #596d87;
+    --report-rule: #d2dbea;
+    --report-accent: #425bc7;
+    --color-surface-muted: #f7f9fd;
+    --status-covered-bg: #dcfce7; --status-covered-text: #166534;
+    --status-high-bg: #fef3c7; --status-high-text: #92400e;
+    --status-critical-bg: #fee2e2; --status-critical-text: #991b1b;
+    --status-neutral-bg: #e2e8f0; --status-neutral-text: #475569;
+    min-height: 0 !important; padding: 0 !important; margin: 0 !important;
+    background: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .architecture-report-toolbar { display: none !important; }
+  .architecture-report-pages { display: block !important; padding: 0 !important; margin: 0 !important; }
+  .architecture-report-page {
+    width: 297mm !important;
+    min-height: 210mm !important;
+    height: auto !important;
+    padding: 13mm 14mm 10mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    break-after: page;
+    page-break-after: always;
+    break-inside: auto;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .architecture-report-page:last-child { break-after: auto; page-break-after: auto; }
+  .architecture-report-map { break-inside: avoid; }
+}
