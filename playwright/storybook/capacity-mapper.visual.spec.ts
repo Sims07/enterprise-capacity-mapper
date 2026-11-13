@@ -38,7 +38,7 @@ async function openUnifiedMapPresentation(page: import('@playwright/test').Page,
   const presentationPage = await presentationPagePromise;
   await presentationPage.waitForLoadState();
   await presentationPage.setViewportSize({ width: 1600, height: 900 });
-  await expect(presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic')).toBeVisible({ timeout: 15000 });
+  await expect(presentationPage.getByTestId('capability-map')).toBeVisible({ timeout: 15000 });
   await presentationPage.evaluate(() => document.fonts.ready);
   await presentationPage.waitForTimeout(200);
   return presentationPage;
@@ -46,7 +46,7 @@ async function openUnifiedMapPresentation(page: import('@playwright/test').Page,
 test.describe('Storybook visual checks — Unified Capability Map', () => {
   test('cartographie présentation — paysage 16:9, thème clair', async ({ page }) => {
     const presentationPage = await openUnifiedMapPresentation(page, 'light');
-    const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
+    const mosaic = presentationPage.getByTestId('capability-map');
     await expect(mosaic).toHaveCSS('background-image', /radial-gradient/);
     await expect(mosaic.locator('.mosaic-domain')).not.toHaveCount(0);
     await expect(mosaic.locator('.mosaic-zone, .mosaic-column-heading, .mosaic-row-heading')).toHaveCount(0);
@@ -82,7 +82,7 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
 
   test('mosaïque présentation — paysage 16:9, thème sombre', async ({ page }) => {
     const presentationPage = await openUnifiedMapPresentation(page, 'dark');
-    const mosaic = presentationPage.locator('.app.mosaic-presentation-mode .map-mosaic');
+    const mosaic = presentationPage.getByTestId('capability-map');
     await expect(mosaic.locator('.mosaic-domain').first()).toHaveCSS('border-style', 'solid');
     // Le thème de présentation doit reprendre le token SIGNAL, pas l'ancien graphite.
     const signalPresentationSurface = await mosaic.evaluate(element => {
@@ -130,7 +130,7 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
       const presentationPage = await presentationPromise;
       await presentationPage.waitForLoadState();
       await presentationPage.setViewportSize({ width: 1600, height: 900 });
-      const selected = presentationPage.locator(`.cap[data-entity-id="${selectedId}"]`);
+      const selected = presentationPage.getByTestId('capability-map').locator(`.cap[data-entity-id="${selectedId}"]`);
       await expect(selected).toHaveClass(/is-presentation-selected/);
       await expect(selected).toHaveCSS('border-style', 'solid');
       await expect(presentationPage.getByTestId('capability-map')).toHaveClass(/has-presentation-spotlight/);
@@ -157,8 +157,8 @@ test.describe('Storybook visual checks — Unified Capability Map', () => {
       await page.getByTestId('map-more-actions').locator('summary').click();
       await page.getByTestId('presentation-director-toggle').click();
       await page.getByTestId('presentation-director-domain').selectOption({ index: 1 });
-      const focused = presentationPage.locator('.mosaic-domain.is-presentation-focused');
-      const dimmed = presentationPage.locator('.mosaic-domain.is-presentation-dimmed');
+      const focused = presentationPage.getByTestId('capability-map').locator('.mosaic-domain.is-presentation-focused');
+      const dimmed = presentationPage.getByTestId('capability-map').locator('.mosaic-domain.is-presentation-dimmed');
       await expect(focused).toHaveCount(1);
       await expect(dimmed.first()).toHaveCSS('opacity', '1');
       await mkdir('playwright/storybook/__screenshots__', { recursive: true });
