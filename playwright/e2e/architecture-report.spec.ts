@@ -17,7 +17,7 @@ test('generates a readable landscape PDF with four maps and detailed appendices'
   for (const mode of ['identity', 'coverage', 'maturity', 'gaps']) {
     await expect(page.getByTestId('report-map-' + mode).first()).toBeAttached();
   }
-  for (const section of ['annex-domains', 'annex-capabilities', 'annex-applications', 'annex-relations', 'risks', 'processes']) {
+  for (const section of ['annex-domains', 'annex-capabilities', 'annex-applications', 'annex-relations', 'risks', 'processes', 'actions']) {
     await expect(report.locator('[data-report-section="' + section + '"]').first()).toBeAttached();
   }
   await expect(report.getByText('Gestion des Prospects & Leads').first()).toBeAttached();
