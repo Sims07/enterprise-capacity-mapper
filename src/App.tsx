@@ -64,7 +64,7 @@ import type { CompanionRemediationAction } from './domain/companionRemediation.t
 import PresentationReadingLegend from './components/PresentationReadingLegend.tsx';
 import PresentationApplicationPreview from './components/PresentationApplicationPreview.tsx';
 import { publishPresentationTheme, publishPresentationUpdate, publishPresentationView, publishPresentationSelection, requestPresentationSelection, subscribeToPresentationUpdates, type PresentationViewState } from './adapters/browser/presentationSync.ts';
-import { capturePresentationPrintLayout, installPresentationPrintLayout } from './adapters/browser/presentationPrintLayout.ts';
+import { capturePresentationPrintLayout, installPresentationPrintLayout, preparePresentationPrintSheet } from './adapters/browser/presentationPrintLayout.ts';
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_CONTROLS_REVEAL_EDGE_PX = 64;
@@ -1940,7 +1940,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
         <button type="button" className="presentation-print-button" data-testid="print-presentation"
           aria-label="Imprimer la cartographie ou enregistrer en PDF" onClick={() => {
             const map = document.querySelector<HTMLElement>('.app.mosaic-presentation-mode .map-mosaic');
-            if (map) capturePresentationPrintLayout(map);
+            if (map) {
+              capturePresentationPrintLayout(map);
+              preparePresentationPrintSheet(map);
+            }
             window.print();
           }}>
           Imprimer / PDF
