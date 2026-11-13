@@ -16,7 +16,9 @@ test.describe('Parcours guidés d’analyse', () => {
     await expect(guidance).toContainText('POUR COMMENCER');
 
     const shortcuts = page.getByTestId('risk-quick-filters');
+    await page.getByRole('searchbox', { name: 'Rechercher une application' }).fill('aucun-résultat');
     await shortcuts.getByRole('button', { name: /Applications à qualifier/ }).click();
+    await expect(page.getByRole('searchbox', { name: 'Rechercher une application' })).toHaveValue('');
     await expect(page.getByLabel('Afficher les risques')).toHaveValue('unknown');
     await expect(shortcuts.getByRole('button', { name: /Applications à qualifier/ })).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: 'Tout afficher' }).click();
@@ -48,7 +50,9 @@ test.describe('Parcours guidés d’analyse', () => {
     await dialog.getByRole('button', { name: 'Enregistrer le processus' }).click();
 
     await expect(guidance).toContainText('Relier « Traiter une demande citoyen »');
+    await page.getByRole('searchbox', { name: 'Rechercher un processus' }).fill('aucun-résultat');
     await page.getByTestId('process-quick-filters').getByRole('button', { name: /À relier aux capacités/ }).click();
+    await expect(page.getByRole('searchbox', { name: 'Rechercher un processus' })).toHaveValue('');
     await expect(page.getByLabel('Afficher les processus')).toHaveValue('unlinked');
     await expect(page.getByTestId('business-processes').locator('.process-entry')).toHaveCount(1);
 
