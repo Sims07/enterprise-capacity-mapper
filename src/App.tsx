@@ -46,6 +46,7 @@ import {
   createCapability,
   createDomain,
   removeDomainAndDependents,
+  removeCapabilityAndDependents,
   updateCapability,
   updateDomain,
 } from './application/catalogUseCases.ts';
@@ -66,6 +67,7 @@ import { publishPresentationTheme, publishPresentationUpdate, publishPresentatio
 
 const LOCAL_AUTOSAVE_DELAY_MS = 450;
 const PRESENTATION_CONTROLS_REVEAL_EDGE_PX = 64;
+const CONTEXT_MENU_ESTIMATED_SIZE_PX = { width: 180, domainHeight: 168, capabilityHeight: 136 } as const;
 
 const uid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const DOMAIN_COLORS = { indigo: '#5b46be', emerald: '#0d6e53', amber: '#a43a18', rose: '#9d2b52' };
@@ -161,6 +163,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [status, setStatus] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
   const [modal, setModal] = useState(null);
+  const [pendingCapabilityDeletionId, setPendingCapabilityDeletionId] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -190,6 +193,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const depth = model.layout?.depth === 1 ? 1 : 2;
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
   const relationIds = item => item.capabilityIds || [];
+  const pendingCapabilityDeletion = model.capabilities.find(capability => capability.id === pendingCapabilityDeletionId);
 
   useEffect(() => {
     if (!presentation) {
@@ -743,8 +747,8 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const openContextMenu = (event, menu) => {
     event.preventDefault();
     event.stopPropagation();
-    const menuWidth = 180;
-    const menuHeight = menu.type === 'domain' ? 168 : 96;
+    const menuWidth = CONTEXT_MENU_ESTIMATED_SIZE_PX.width;
+    const menuHeight = menu.type === 'domain' ? CONTEXT_MENU_ESTIMATED_SIZE_PX.domainHeight : CONTEXT_MENU_ESTIMATED_SIZE_PX.capabilityHeight;
     const position = browserInteractions.clampMenuPosition({
       x: event.clientX,
       y: event.clientY,
@@ -1032,6 +1036,22 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     const remaining = removeDomainAndDependents({ model, domainId: id, depth });
     update({ ...remaining, layout: collapseLayoutAfterDomainRemoval(layout, remaining.domains) });
     notify('Domaine et dépendances supprimés');
+  };
+
+  const askRemoveCapability = (capabilityId: string) => {
+    closeContextMenu();
+    setPendingCapabilityDeletionId(capabilityId);
+  };
+  const confirmRemoveCapability = () => {
+    if (!pendingCapabilityDeletion || presentation) return;
+    const capabilityId = pendingCapabilityDeletion.id;
+    update(removeCapabilityAndDependents({ model, capabilityId }));
+    setSelected(ids => ids.filter(id => id !== capabilityId));
+    setExpandedCapId(id => id === capabilityId ? null : id);
+    setPresentationFocusedCapabilityId(id => id === capabilityId ? null : id);
+    setPendingCapabilityDeletionId(null);
+    if (modal === 'edit-capability') setModal(null);
+    notify('Capacité N1 supprimée · rattachements mis à jour');
   };
 
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
@@ -1980,6 +2000,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
             <>
               <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openLinkForTarget(contextMenu.item); }}>Relier des applications…</button>
               <button type="button" onClick={e => { e.stopPropagation(); closeContextMenu(); openEditCapability(contextMenu.item); }}>Ouvrir la fiche de capacité</button>
+              <button type="button" className="danger" onClick={e => { e.stopPropagation(); askRemoveCapability(contextMenu.item.id); }}>Supprimer la capacité</button>
             </>
           )}
         </div>
@@ -2292,8 +2313,20 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           )}
 
           <div className="modal-actions">
+            {modal === 'edit-capability' && <Button variant="danger" className="capability-delete-action" onClick={() => askRemoveCapability(editingCapabilityId)}>Supprimer la capacité</Button>}
             <Button onClick={() => setModal(null)}>Annuler</Button>
             <Button variant="primary" onClick={save}>{['edit-domain', 'edit-capability', 'edit-app'].includes(modal) ? 'Enregistrer' : 'Créer'}</Button>
+          </div>
+        </Modal>
+      )}
+      {pendingCapabilityDeletion && !presentation && (
+        <Modal title="Supprimer la capacité N1" onClose={() => setPendingCapabilityDeletionId(null)}>
+          <p>Supprimer définitivement la capacité <strong>{pendingCapabilityDeletion.name}</strong> ({pendingCapabilityDeletion.code}) ?</p>
+          <p>Cette action détachera {model.applications.filter(application => application.capabilityIds?.includes(pendingCapabilityDeletion.id)).length} application(s) et {(model.businessProcesses ?? []).filter(process => process.capabilityIds.includes(pendingCapabilityDeletion.id)).length} processus métier. Les applications et les processus resteront dans le catalogue.</p>
+          <p className="structure-hint">La suppression peut être annulée avec l’historique de la cartographie.</p>
+          <div className="modal-actions">
+            <Button onClick={() => setPendingCapabilityDeletionId(null)}>Annuler</Button>
+            <Button variant="danger" onClick={confirmRemoveCapability}>Confirmer la suppression</Button>
           </div>
         </Modal>
       )}

@@ -276,3 +276,6 @@
   border-color: var(--color-accent-border);
   background: var(--color-accent-soft);
 }
+
+/* L'action destructive de la fiche N1 reste séparée des actions de sauvegarde. */
+.app.signal-experience .capability-delete-action { margin-inline-end: auto; }
