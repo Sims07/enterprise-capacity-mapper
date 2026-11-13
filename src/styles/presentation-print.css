@@ -125,3 +125,43 @@
     break-inside: avoid;
   }
 }
+
+/*
+ * L'impression ne doit jamais réutiliser le main / workspace du navigateur :
+ * leurs dimensions calculées depuis le viewport du dialogue d'impression
+ * peuvent être plus étroites que la page 16:9 et rogner la dernière colonne.
+ */
+.presentation-print-sheet {
+  display: none !important;
+}
+
+@media print {
+  body.presentation-print-ready > #root {
+    display: none !important;
+  }
+
+  body.presentation-print-ready > .presentation-print-sheet.app.mosaic-presentation-mode {
+    display: block !important;
+    position: relative !important;
+    inset: auto !important;
+    box-sizing: border-box !important;
+    width: 16in !important;
+    height: 9in !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: var(--map-canvas-bg) !important;
+    break-before: auto;
+    break-after: auto;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Surface clonée : seul le conteneur de page sert de containing block. */
+  body.presentation-print-ready > .presentation-print-sheet .map-mosaic[data-presentation-print-snapshot="true"] {
+    position: absolute !important;
+    overflow: visible !important;
+  }
+}
