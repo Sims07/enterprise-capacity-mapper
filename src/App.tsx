@@ -32,6 +32,7 @@ import {
   prepareLayoutForSave,
   prepareDomainPlacement,
   removeLayoutDraftItem,
+  swapDomainPositions,
   renameLayoutDraftItem,
   renameLayoutZone,
 } from './application/layoutUseCases.ts';
@@ -116,6 +117,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const { repository, map: mapService, navigation, aiCompanion, preferences, companionPreferences, viewport, browserInteractions } = applicationRef.current;
   const [model, setModel] = useState(() => mapService.snapshot().current);
   const draggingCapabilityIdRef = useRef<string | null>(null);
+  const draggingDomainIdRef = useRef<string | null>(null);
   const [capabilityReference, setCapabilityReference] = useState(null);
   const modelRef = useRef(model);
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
@@ -1070,6 +1072,17 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
   const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
+  const swapDomains = (sourceDomainId: string, targetDomainId: string) => {
+    const domains = swapDomainPositions({
+      domains: model.domains, columns, layers, sourceDomainId, targetDomainId,
+    });
+    if (!domains) {
+      notify('Échange impossible : les dimensions des N0 ne permettent pas ces emplacements.');
+      return;
+    }
+    update({ domains });
+    notify('Positions des deux domaines N0 échangées');
+  };
   const moveCapability = (capabilityId: string, targetDomainId: string) => {
     const capability = model.capabilities.find(item => item.id === capabilityId);
     if (!capability || capability.domainId === targetDomainId || !model.domains.some(domain => domain.id === targetDomainId)) return;
@@ -1173,23 +1186,39 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           if (presentation) { e.preventDefault(); return; }
           // A N1 or application has its own drag payload: never replace it with the N0.
           if (e.target !== e.currentTarget) return;
+          draggingDomainIdRef.current = d.id;
+          e.dataTransfer.effectAllowed = 'move';
           e.dataTransfer.setData('domain', d.id);
         }}
+        onDragEnd={() => { draggingDomainIdRef.current = null; }}
         onDragOver={e => {
           if (presentation) return;
-          if (depth === 2 && acceptsDrag(e, 'capability') && model.capabilities.some(c => c.id === draggingCapabilityIdRef.current && c.domainId !== d.id)) {
+          if (acceptsDrag(e, 'domain') && draggingDomainIdRef.current && draggingDomainIdRef.current !== d.id) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('domain-swap-target');
+          } else if (depth === 2 && acceptsDrag(e, 'capability') && model.capabilities.some(c => c.id === draggingCapabilityIdRef.current && c.domainId !== d.id)) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
             e.currentTarget.classList.add('capability-drop-target');
           } else if (depth === 1 && acceptsDrag(e, 'app')) hoverOn(e);
         }}
         onDragLeave={e => {
-          if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) e.currentTarget.classList.remove('capability-drop-target');
+          if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
+            e.currentTarget.classList.remove('capability-drop-target', 'domain-swap-target');
+          }
           if (!presentation && depth === 1) hoverOff(e);
         }}
         onDrop={e => {
           if (presentation) return;
-          e.currentTarget.classList.remove('capability-drop-target');
+          e.currentTarget.classList.remove('capability-drop-target', 'domain-swap-target');
+          const sourceDomainId = e.dataTransfer.getData('domain');
+          if (sourceDomainId) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (sourceDomainId !== d.id) swapDomains(sourceDomainId, d.id);
+            return;
+          }
           const capabilityId = e.dataTransfer.getData('capability');
           if (depth === 2 && capabilityId) {
             e.preventDefault();
