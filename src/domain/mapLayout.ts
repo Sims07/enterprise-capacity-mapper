@@ -303,6 +303,52 @@ export class MapLayout {
     });
   }
 
+  /**
+   * Exchange two N0 positions without transferring their capabilities, geometry
+   * or business metadata. For N0 stacked in the same cell, exchange their
+   * ordering so that the visual tiers are swapped as well.
+   *
+   * Refuse exchanges that would put either existing span outside the grid or
+   * intersect another multi-layer domain. Single-layer stacks remain legal.
+   */
+  swapDomainPositions<T extends DomainPlacement>({
+    domains, columns, layers, sourceDomainId, targetDomainId,
+  }: {
+    domains: T[];
+    columns: LayoutAxis[];
+    layers: LayoutAxis[];
+    sourceDomainId: string;
+    targetDomainId: string;
+  }): T[] | null {
+    if (!sourceDomainId || sourceDomainId === targetDomainId || !columns.length || !layers.length) return null;
+    const sourceIndex = domains.findIndex(domain => domain.id === sourceDomainId);
+    const targetIndex = domains.findIndex(domain => domain.id === targetDomainId);
+    if (sourceIndex < 0 || targetIndex < 0) return null;
+    const source = domains[sourceIndex];
+    const target = domains[targetIndex];
+    const sourcePosition = {
+      columnId: source.layout?.columnId || columns[0].id,
+      layerId: source.layout?.layerId || layers[0].id,
+    };
+    const targetPosition = {
+      columnId: target.layout?.columnId || columns[0].id,
+      layerId: target.layout?.layerId || layers[0].id,
+    };
+    const relocatedSource = cloneValue({ ...source, layout: { ...(source.layout || {}), ...targetPosition } });
+    const relocatedTarget = cloneValue({ ...target, layout: { ...(target.layout || {}), ...sourcePosition } });
+    // The order also determines visual tiers within a shared business row.
+    const swapped = domains.map((domain, index) =>
+      index === sourceIndex ? relocatedTarget : index === targetIndex ? relocatedSource : cloneValue(domain)
+    );
+    const isValid = [relocatedSource, relocatedTarget].every(domain => this.isPlacementAvailable({
+      domains: swapped, columns, layers, domainId: domain.id,
+      columnId: domain.layout.columnId, layerId: domain.layout.layerId,
+      columnSpan: domain.layout.columnSpan ?? 1, rowSpan: domain.layout.rowSpan ?? 1,
+      allowExactOverlap: true, allowStackingInLayer: true,
+    }));
+    return isValid ? swapped : null;
+  }
+
   prepareDomainPlacement({
     domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap = true, allowStackingInLayer = false,
   }: {
