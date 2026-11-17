@@ -221,6 +221,20 @@ export const prepareDomainPlacement = ({
     domains, layout, columns, layers, domainId, columnId, layerId, columnSpan, rowSpan, allowExactOverlap, allowStackingInLayer,
   });
 
+/** Exchange N0 visual positions atomically, preserving each domain and its N1 relationships. */
+export const swapDomainPositions = <T extends Domain>({
+  domains, columns, layers, sourceDomainId, targetDomainId,
+}: {
+  domains: T[];
+  columns: LayoutAxis[];
+  layers: LayoutAxis[];
+  sourceDomainId: string;
+  targetDomainId: string;
+}): T[] | null =>
+  MapLayout.fromDraft({ columns, layers, zones: [] }).swapDomainPositions({
+    domains, columns, layers, sourceDomainId, targetDomainId,
+  });
+
 /** Keep a relocated N0 below the domains already in its target layer. */
 export const appendRelocatedDomain = <T extends Domain>(
   original: T[], updated: T[], domainId: string,
