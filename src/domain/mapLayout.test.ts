@@ -320,3 +320,61 @@ test('MapLayout accepts relocation into the same occupied layer with partial wid
   assert.equal(allowed?.layout.layers?.length, 2);
   assert.notEqual(subject.prepareForSave(source, allowed!.domains), null);
 });
+
+test('exchanges two N0 locations while preserving spans, metadata and input immutability', () => {
+  const source = draft();
+  const domains = [
+    { id: 'a', name: 'Vente', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1, custom: { label: 'source' } } },
+    { id: 'b', name: 'Finance', layout: { columnId: 'c2', layerId: 'l2', rowSpan: 1, custom: { label: 'target' } } },
+    { id: 'c', name: 'Autre', layout: { columnId: 'c1', layerId: 'l2' } },
+  ];
+  const swapped = MapLayout.fromDraft(source).swapDomainPositions({
+    domains, columns: source.columns, layers: source.layers, sourceDomainId: 'a', targetDomainId: 'b',
+  });
+  assert.deepEqual(swapped?.map(domain => domain.id), ['b', 'a', 'c']);
+  assert.deepEqual(swapped?.find(domain => domain.id === 'a')?.layout, {
+    columnId: 'c2', layerId: 'l2', columnSpan: 1, custom: { label: 'source' },
+  });
+  assert.deepEqual(swapped?.find(domain => domain.id === 'b')?.layout, {
+    columnId: 'c1', layerId: 'l1', rowSpan: 1, custom: { label: 'target' },
+  });
+  assert.deepEqual(domains[0].layout, { columnId: 'c1', layerId: 'l1', columnSpan: 1, custom: { label: 'source' } });
+  swapped!.find(domain => domain.id === 'a')!.layout!.custom.label = 'changed';
+  assert.equal(domains[0].layout.custom.label, 'source');
+});
+
+test('exchanges the visual order for N0 stacked in the same grid cell', () => {
+  const source = draft();
+  const domains = [
+    { id: 'a', layout: { columnId: 'c1', layerId: 'l1' } },
+    { id: 'b', layout: { columnId: 'c1', layerId: 'l1' } },
+    { id: 'c', layout: { columnId: 'c2', layerId: 'l1' } },
+  ];
+  const swapped = MapLayout.fromDraft(source).swapDomainPositions({
+    domains, columns: source.columns, layers: source.layers, sourceDomainId: 'a', targetDomainId: 'b',
+  });
+  assert.deepEqual(swapped?.map(domain => domain.id), ['b', 'a', 'c']);
+  assert.deepEqual(swapped?.find(domain => domain.id === 'a')?.layout, domains[0].layout);
+});
+
+test('refuses swaps outside grid bounds or into multi-layer collisions', () => {
+  const source = draft();
+  const layout = MapLayout.fromDraft(source);
+  const outOfBounds = [
+    { id: 'wide', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 2 } },
+    { id: 'other', layout: { columnId: 'c2', layerId: 'l2', columnSpan: 1 } },
+  ];
+  const swap = (domains: typeof outOfBounds, sourceDomainId = 'wide', targetDomainId = 'other') =>
+    layout.swapDomainPositions({ domains, columns: source.columns, layers: source.layers, sourceDomainId, targetDomainId });
+  assert.equal(swap(outOfBounds), null, 'a wide domain cannot start in the final column');
+  assert.equal(swap(outOfBounds, 'wide', 'wide'), null, 'dropping on itself is not a swap');
+  assert.equal(swap(outOfBounds, 'missing', 'other'), null);
+
+  const blocked = [
+    { id: 'wide', layout: { columnId: 'c1', layerId: 'l1', columnSpan: 1, rowSpan: 2 } },
+    { id: 'other', layout: { columnId: 'c2', layerId: 'l1', columnSpan: 1 } },
+    { id: 'third', layout: { columnId: 'c2', layerId: 'l2', columnSpan: 1 } },
+  ];
+  assert.equal(swap(blocked), null, 'relocation must not overlap an independent N0 spanning the second row');
+  assert.equal(blocked[0].layout.columnId, 'c1', 'rejected swaps leave the model unchanged');
+});
