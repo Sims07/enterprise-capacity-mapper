@@ -53,6 +53,39 @@ test.describe('Playwright POC — critical browser workflows', () => {
     await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toContainText('Salesforce CRM — renommé');
   });
 
+  test('supprime une application liée depuis la cartographie SI après confirmation et conserve la suppression', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('map-inventory-toggle').click();
+
+    const application = page.locator('.app-item').filter({ hasText: 'Salesforce CRM' });
+    await expect(application).toHaveCount(1);
+    await application.getByRole('button', { name: 'Supprimer Salesforce CRM' }).click();
+    const confirmation = page.getByRole('dialog', { name: 'Supprimer l’application' });
+    await expect(confirmation).toContainText('rattachement(s)');
+    await expect(confirmation).toContainText('Les capacités N0/N1 et les processus métier resteront inchangés.');
+    await confirmation.getByRole('button', { name: 'Annuler' }).click();
+    await expect(application).toHaveCount(1);
+
+    // Second entry point: deletion from the edit sheet instead of the inventory action.
+    await application.getByRole('button', { name: 'Modifier Salesforce CRM' }).click();
+    const editSheet = page.getByRole('dialog', { name: 'Modifier l’application' });
+    await editSheet.getByRole('button', { name: 'Supprimer l’application' }).click();
+    await confirmation.getByRole('button', { name: 'Confirmer la suppression' }).click();
+    await expect(page.getByRole('dialog', { name: 'Modifier l’application' })).toHaveCount(0);
+    await expect(application).toHaveCount(0);
+    await expect(page.getByTestId('feedback-toast')).toContainText('Application supprimée');
+    const capability = page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' });
+    await expect(capability).toHaveCount(1);
+    await expect(capability).not.toContainText('Salesforce CRM');
+    await expect(page.locator('#app-inventory .app-item')).toHaveCount(6);
+
+    await page.reload();
+    await page.getByTestId('map-inventory-toggle').click();
+    await expect(page.locator('.app-item').filter({ hasText: 'Salesforce CRM' })).toHaveCount(0);
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).toHaveCount(1);
+    await expect(page.locator('.cap:visible').filter({ hasText: 'Gestion des Prospects & Leads' })).not.toContainText('Salesforce CRM');
+  });
+
   test('ouvre le menu Outils et crée une cartographie vierge avec l’assistant', async ({ page }) => {
     await page.goto('/');
     await openToolsMenu(page);
