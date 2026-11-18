@@ -45,6 +45,7 @@ import {
 import {
   createApplication,
   updateApplication,
+  removeApplicationFromCatalog,
   createCapability,
   createDomain,
   removeDomainAndDependents,
@@ -171,6 +172,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const [contextMenu, setContextMenu] = useState(null);
   const [modal, setModal] = useState(null);
   const [pendingCapabilityDeletionId, setPendingCapabilityDeletionId] = useState<string | null>(null);
+  const [pendingApplicationDeletionId, setPendingApplicationDeletionId] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -209,6 +211,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
   const mappedItems = depth === 1 ? model.domains : model.capabilities;
   const relationIds = item => item.capabilityIds || [];
   const pendingCapabilityDeletion = model.capabilities.find(capability => capability.id === pendingCapabilityDeletionId);
+  const pendingApplicationDeletion = model.applications.find(application => application.id === pendingApplicationDeletionId);
 
   useEffect(() => {
     if (!presentation) {
@@ -1069,6 +1072,18 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
     notify('Capacité N1 supprimée · rattachements mis à jour');
   };
 
+  const confirmRemoveApplication = () => {
+    if (!pendingApplicationDeletion || presentation) return;
+    const applicationId = pendingApplicationDeletion.id;
+    update(removeApplicationFromCatalog({ model, applicationId }));
+    setPickedApps(ids => ids.filter(id => id !== applicationId));
+    setLinkChecked(ids => ids.filter(id => id !== applicationId));
+    if (link?.kind === 'app' && link.id === applicationId) setLink(null);
+    if (modal === 'edit-app' && editingApplicationId === applicationId) setModal(null);
+    setPendingApplicationDeletionId(null);
+    notify('Application supprimée de l’inventaire SI · relations retirées');
+  };
+
   const toggleCap = id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const assign = (appId, capId) => update({ applications: assignApplicationToCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
   const unassign = (appId, capId) => update({ applications: unassignApplicationFromCapability(apps, appId, capId, model.domains, model.capabilities, depth) });
@@ -1842,7 +1857,10 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
               <div className="app-main"><b>{a.name}</b><small>{a.code} · {a.vendor || '—'}</small></div>
               <div className="app-side">
                 <span className={'badge ' + String(a.status || '').toLowerCase().replace('é', 'e')}>{lifecycleLabel(a.status)}</span>
-                <button type="button" className="app-edit" aria-label={`Modifier ${a.name}`} title={`Modifier ${a.name}`} onClick={() => openEditApplication(a)}><svg aria-hidden="true" viewBox="0 0 16 16" focusable="false"><path d="M11.8 2.2a1.4 1.4 0 0 1 2 2L6 12l-3 .8.8-3zM10.8 3.2l2 2" /></svg></button>
+                <div className="app-actions">
+                  <button type="button" className="app-edit" aria-label={`Modifier ${a.name}`} title={`Modifier ${a.name}`} onClick={() => openEditApplication(a)}><svg aria-hidden="true" viewBox="0 0 16 16" focusable="false"><path d="M11.8 2.2a1.4 1.4 0 0 1 2 2L6 12l-3 .8.8-3zM10.8 3.2l2 2" /></svg></button>
+                  <button type="button" className="app-edit app-delete" aria-label={`Supprimer ${a.name}`} title={`Supprimer ${a.name}`} onClick={() => setPendingApplicationDeletionId(a.id)}><svg aria-hidden="true" viewBox="0 0 16 16" focusable="false"><path d="M3 4h10M6 4V2.8h4V4M5 6v7h6V6M7 7.5v4M9 7.5v4" /></svg></button>
+                </div>
                 <button type="button" className="app-link" aria-label={`Relier ${a.name} à des ${depth === 1 ? 'domaines N0' : 'capacités N1'}`} onClick={() => openLinkForApp(a)}>Relier à…</button>
               </div>
             </div>
@@ -2418,6 +2436,7 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
 
           <div className="modal-actions">
             {modal === 'edit-capability' && <Button variant="danger" className="capability-delete-action" onClick={() => askRemoveCapability(editingCapabilityId)}>Supprimer la capacité</Button>}
+            {modal === 'edit-app' && <Button variant="danger" onClick={() => setPendingApplicationDeletionId(editingApplicationId)}>Supprimer l’application</Button>}
             <Button onClick={() => setModal(null)}>Annuler</Button>
             <Button variant="primary" onClick={save}>{['edit-domain', 'edit-capability', 'edit-app'].includes(modal) ? 'Enregistrer' : 'Créer'}</Button>
           </div>
@@ -2431,6 +2450,17 @@ function App({ experienceKind = 'desktop' }: { experienceKind?: 'desktop' | 'mob
           <div className="modal-actions">
             <Button onClick={() => setPendingCapabilityDeletionId(null)}>Annuler</Button>
             <Button variant="danger" onClick={confirmRemoveCapability}>Confirmer la suppression</Button>
+          </div>
+        </Modal>
+      )}
+      {pendingApplicationDeletion && !presentation && (
+        <Modal title="Supprimer l’application" onClose={() => setPendingApplicationDeletionId(null)}>
+          <p>Supprimer définitivement <strong>{pendingApplicationDeletion.name}</strong> ({pendingApplicationDeletion.code || 'sans code'}) de l’inventaire SI ?</p>
+          <p>Cette application possède {pendingApplicationDeletion.capabilityIds?.length ?? 0} rattachement(s) à la cartographie. Toutes ses relations actuelles et cibles seront supprimées. Les capacités N0/N1 et les processus métier resteront inchangés.</p>
+          <p className="structure-hint">Il ne s’agit pas d’un décommissionnement : l’application disparaîtra du catalogue. Vous pouvez annuler cette action via l’historique de la cartographie.</p>
+          <div className="modal-actions">
+            <Button onClick={() => setPendingApplicationDeletionId(null)}>Annuler</Button>
+            <Button variant="danger" onClick={confirmRemoveApplication}>Confirmer la suppression</Button>
           </div>
         </Modal>
       )}
