@@ -11,6 +11,12 @@ Application PWA de cartographie des capacités métier et de leur couverture app
 
 Consultez le [Storybook](https://sims07.github.io/enterprise-capacity-mapper/storybook/) : formulaires, inputs, dropdowns, boutons, navigation, menus, pop-ups, messages, tokens et composants métier en thèmes clair/sombre. [Inventaire et scénarios de test](docs/storybook-poc.md).
 
+## Supprimer une application de l’inventaire SI
+
+Dans **Cartographie → Inventaire SI**, utilisez l’icône de suppression de la ligne d’une application, ou ouvrez sa fiche avec **Modifier** puis cliquez sur **Supprimer l’application**. Une confirmation affiche le nombre de rattachements qui seront retirés. **Annuler** ne modifie pas la cartographie.
+
+Après confirmation, l’application disparaît du catalogue et de toutes ses relations actuelles et cibles (N0 ou N1). Les capacités et processus métier restent présents. Il ne faut pas confondre cette suppression avec le **décommissionnement** : ce dernier est représenté dans les vues « actuel / cible » sans retirer l’application du catalogue. La suppression suit la sauvegarde locale normale et reste annulable depuis l’historique de la cartographie.
+
 ## Rôle des applications dans une capacité (existant / cible)
 
 Le **cycle de vie** d'une application (active, planifiée ou obsolète) est indépendant de sa contribution à chaque capacité N1. Dans **Relier…**, chaque relation peut être qualifiée « Actuelle », « Cible » ou « Actuelle et cible ». Une application conservée dans la trajectoire peut apparaître dans les deux listes sans être comptée deux fois dans le total des applications liées. La vue présentation, le Dashboard et les processus métier utilisent les mêmes rôles.
