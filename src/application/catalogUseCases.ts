@@ -79,6 +79,10 @@ export const updateApplication = ({ applications, applicationId, form, domains =
   }).toModel().applications;
 };
 
+/** Delete the catalog entry, not merely a relation or its lifecycle status. */
+export const removeApplicationFromCatalog = ({ model, applicationId }: { model: CatalogModel; applicationId: string }): CatalogModel =>
+  catalogWith(model).removeApplication(applicationId).toModel();
+
 /** Reparent a N1 without changing its ID, its applications or its process links. */
 export const moveCapabilityToDomain = ({ model, capabilityId, targetDomainId }: {
   model: CatalogModel; capabilityId: string; targetDomainId: string;

@@ -53,6 +53,29 @@ test('Catalog validates application names, IDs and linked capabilities', () => {
   assert.throws(() => created.updateApplication('a2', { capabilityIds: ['unknown'] }), /Capacité introuvable/);
 });
 
+test('Catalog removes an application and its current/target links without touching capabilities or processes', () => {
+  const input = {
+    ...model,
+    businessProcesses: [{ id: 'p1', name: 'Process', capabilityIds: ['c1'] }],
+    applications: [
+      { id: 'a1', name: 'Application', capabilityIds: ['c1'], relationRoles: { c1: 'both' as const } },
+      { id: 'a2', name: 'Other application', capabilityIds: ['c1'], relationRoles: { c1: 'target' as const } },
+    ],
+  };
+  const catalog = Catalog.fromModel(input);
+  const removed = catalog.removeApplication('a1').toModel();
+  assert.deepEqual(removed.applications, [input.applications[1]]);
+  assert.deepEqual(removed.capabilities, input.capabilities);
+  assert.deepEqual(removed.domains, input.domains);
+  assert.deepEqual(removed.businessProcesses, input.businessProcesses);
+  assert.deepEqual(catalog.toModel(), input);
+  assert.equal(catalog.removeApplication('missing'), catalog);
+
+  const depthOne = Catalog.fromModel({ ...input, layout: { depth: 1 }, applications: [{ id: 'a1', name: 'N0 app', capabilityIds: ['d1'], relationRoles: { d1: 'current' as const } }] });
+  assert.deepEqual(depthOne.removeApplication('a1').toModel().applications, []);
+  assert.deepEqual(depthOne.toModel().applications[0].capabilityIds, ['d1']);
+});
+
 test('Catalog removes a capability and cleans up dependent application links', () => {
   const catalog = Catalog.fromModel({
     ...model,

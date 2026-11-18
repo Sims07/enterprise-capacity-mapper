@@ -6,6 +6,7 @@ import {
   createDomain,
   moveCapabilityToDomain,
   removeCapabilityAndDependents,
+  removeApplicationFromCatalog,
   removeDomainAndDependents,
   updateApplication,
   updateCapability,
@@ -109,6 +110,22 @@ test('creates applications with their selected relations', () => {
     capabilityIds: ['cap-1'],
     description: 'Description',
   });
+});
+
+test('removes an application from the inventory without removing related capabilities', () => {
+  const model = {
+    domains: [{ id: 'd1', name: 'Domain' }],
+    capabilities: [{ id: 'c1', name: 'Capability', domainId: 'd1' }],
+    applications: [
+      { id: 'a1', name: 'Old app', capabilityIds: ['c1'], relationRoles: { c1: 'both' as const } },
+      { id: 'a2', name: 'Retained app', capabilityIds: ['c1'] },
+    ],
+  };
+  const removed = removeApplicationFromCatalog({ model, applicationId: 'a1' });
+  assert.deepEqual(removed.applications, [model.applications[1]]);
+  assert.deepEqual(removed.capabilities, model.capabilities);
+  assert.equal(model.applications.length, 2);
+  assert.deepEqual(removeApplicationFromCatalog({ model, applicationId: 'unknown' }), model);
 });
 
 test('removes a domain, its capabilities and the correct dependent application links', () => {

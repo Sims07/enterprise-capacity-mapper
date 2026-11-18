@@ -158,6 +158,12 @@ export class Catalog {
     });
   }
 
+  /** Removing a catalog application also removes its N0/N1 links, which it owns. */
+  removeApplication(applicationId: string): Catalog {
+    if (!this.model.applications.some(application => application.id === applicationId)) return this;
+    return this.with({ applications: this.model.applications.filter(application => application.id !== applicationId) });
+  }
+
   linkApplicationToCapability(applicationId: string, capabilityId: string): Catalog {
     this.requireCapability(capabilityId);
     return this.linkApplicationToMappedItem(applicationId, capabilityId);
