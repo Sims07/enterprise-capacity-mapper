@@ -9,10 +9,19 @@
  * changée et les mêmes éléments restent vectoriels/sélectionnables en PDF.
  */
 const CSS_PIXELS_PER_INCH = 96;
+const MILLIMETERS_PER_INCH = 25.4;
+
+/** L'impression physique utilise le même papier A4 paysage que le dialogue
+ * Windows/Edge : une page virtuelle 16 × 9 pouces était réduite une seconde
+ * fois par le pilote PDF, avec un énorme blanc sur la droite et en bas. */
+export const PRESENTATION_PRINT_A4_MM = Object.freeze({
+  width: 297,
+  height: 210,
+});
 
 export const PRESENTATION_PRINT_PAGE = Object.freeze({
-  width: 16 * CSS_PIXELS_PER_INCH,
-  height: 9 * CSS_PIXELS_PER_INCH,
+  width: PRESENTATION_PRINT_A4_MM.width / MILLIMETERS_PER_INCH * CSS_PIXELS_PER_INCH,
+  height: PRESENTATION_PRINT_A4_MM.height / MILLIMETERS_PER_INCH * CSS_PIXELS_PER_INCH,
 });
 
 const PRINT_STYLE_PROPERTIES = [
@@ -54,7 +63,7 @@ export function calculatePresentationPrintFit(
  * Le clone imprimable vit directement dans body : aucun ancestor (workspace
  * fixe, main avec overflow:hidden, viewport du dialogue d'impression) ne
  * peut rogner une portion de la mosaïque. Les dimensions restent celles de
- * la capture de l'écran, avec un ajustement uniforme sur la feuille 16:9.
+ * la capture de l'écran, avec un ajustement uniforme sur la feuille A4 paysage.
  *
  * Cette surface ne participe pas à React ni à l'accessibilité écran. On
  * retire ids/testids du clone pour conserver l'unicité des sélecteurs.
