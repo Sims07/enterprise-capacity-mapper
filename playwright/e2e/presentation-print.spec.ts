@@ -1,14 +1,21 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync, unlinkSync } from 'node:fs';
 import { expect, test } from '../fixtures';
+import {
+  PRESENTATION_PRINT_A4_MM,
+  PRESENTATION_PRINT_PAGE,
+} from '../../src/adapters/browser/presentationPrintLayout';
 
-const PRINT_PAGE = { widthInches: 16, heightInches: 9 } as const;
 const CSS_PIXELS_PER_INCH = 96;
 const PDF_POINTS_PER_INCH = 72;
+const MILLIMETERS_PER_INCH = 25.4;
+const PRINT_PAPER = PRESENTATION_PRINT_PAGE;
+const PRINT_PAPER_MM = PRESENTATION_PRINT_A4_MM;
 
-const PRINT_VIEWPORT = {
-  width: PRINT_PAGE.widthInches * CSS_PIXELS_PER_INCH,
-  height: PRINT_PAGE.heightInches * CSS_PIXELS_PER_INCH,
+// La fenêtre de présentation reste en 16:9, le papier d'impression est A4.
+const SCREEN_VIEWPORT = {
+  width: 16 * CSS_PIXELS_PER_INCH,
+  height: 9 * CSS_PIXELS_PER_INCH,
 };
 
 function verifyPresentationPdf(pdf: Buffer) {
@@ -21,9 +28,9 @@ function verifyPresentationPdf(pdf: Buffer) {
   expect(pageDictionaries).toHaveLength(1);
 
   const mediaBox = contents.match(/\/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]/);
-  expect(mediaBox, 'Le PDF doit déclarer les dimensions de la diapositive').not.toBeNull();
-  expect(Number(mediaBox![1])).toBeCloseTo(PRINT_PAGE.widthInches * PDF_POINTS_PER_INCH, 0);
-  expect(Number(mediaBox![2])).toBeCloseTo(PRINT_PAGE.heightInches * PDF_POINTS_PER_INCH, 0);
+  expect(mediaBox, 'Le PDF doit déclarer une vraie feuille A4 paysage').not.toBeNull();
+  expect(Number(mediaBox![1])).toBeCloseTo(PRINT_PAPER_MM.width / MILLIMETERS_PER_INCH * PDF_POINTS_PER_INCH, 0);
+  expect(Number(mediaBox![2])).toBeCloseTo(PRINT_PAPER_MM.height / MILLIMETERS_PER_INCH * PDF_POINTS_PER_INCH, 0);
 }
 
 
@@ -73,11 +80,11 @@ function assertBannerColorsInRenderedPdf(
   const width = Number(widthString);
   const height = Number(heightString);
   const pixelOffset = header![0].length;
-  // Un papier A4 conserve son ratio : la diapositive 16:9 est centrée
-  // avec du blanc au-dessus et en dessous, jamais rognée latéralement.
-  const scale = Math.min(width / PRINT_VIEWPORT.width, height / PRINT_VIEWPORT.height);
-  const horizontalMargin = (width - PRINT_VIEWPORT.width * scale) / 2;
-  const verticalMargin = (height - PRINT_VIEWPORT.height * scale) / 2;
+  // Le rendu PDF et le DOM utilisent le même papier A4 : pas de seconde
+  // réduction vers une feuille d'une autre taille dans le pilote Windows.
+  const scale = Math.min(width / PRINT_PAPER.width, height / PRINT_PAPER.height);
+  const horizontalMargin = (width - PRINT_PAPER.width * scale) / 2;
+  const verticalMargin = (height - PRINT_PAPER.height * scale) / 2;
   for (const probe of probes) {
     const x = Math.round(horizontalMargin + probe.x * scale);
     const y = Math.round(verticalMargin + probe.y * scale);
@@ -126,8 +133,8 @@ async function readFirstRowBannerProbes(
   });
 }
 
-test('imprime une diapositive 16:9 identique à la disposition projetée', async ({ page }, testInfo) => {
-  await page.setViewportSize(PRINT_VIEWPORT);
+test('imprime une présentation 16:9 pleine largeur sur une feuille A4 paysage', async ({ page }, testInfo) => {
+  await page.setViewportSize(SCREEN_VIEWPORT);
   await page.goto('/?view=presentation');
 
   const map = page.getByTestId('capability-map');
@@ -177,17 +184,33 @@ test('imprime une diapositive 16:9 identique à la disposition projetée', async
       title: domain.querySelector('.domain-banner')?.textContent?.trim(),
     };
   });
-  expect(printed).toEqual(screen);
+  const expectedScale = Math.min(
+    PRINT_PAPER.width / screen.width,
+    PRINT_PAPER.height / screen.height,
+  );
+  expect(printed.width).toBeCloseTo(screen.width * expectedScale, 0);
+  expect(printed.height).toBeCloseTo(screen.height * expectedScale, 0);
+  expect(printed.firstX).toBeCloseTo(screen.firstX * expectedScale, 0);
+  expect(printed.firstY).toBeCloseTo(screen.firstY * expectedScale, 0);
+  expect(printed.firstWidth).toBeCloseTo(screen.firstWidth * expectedScale, 0);
+  expect(printed.firstHeight).toBeCloseTo(screen.firstHeight * expectedScale, 0);
+  expect(printed.domainSurface).toBe(screen.domainSurface);
+  expect(printed.title).toBe(screen.title);
   const paper = await sheet.boundingBox();
+  const mapBounds = await printedMap.boundingBox();
   expect(paper).not.toBeNull();
-  expect(paper!.width).toBe(PRINT_VIEWPORT.width);
-  expect(paper!.height).toBe(PRINT_VIEWPORT.height);
+  expect(mapBounds).not.toBeNull();
+  expect(paper!.width).toBeCloseTo(PRINT_PAPER.width, 0);
+  expect(paper!.height).toBeCloseTo(PRINT_PAPER.height, 0);
+  expect(mapBounds!.x - paper!.x).toBeCloseTo((paper!.width - printed.width) / 2, 0);
+  expect(mapBounds!.y - paper!.y).toBeCloseTo((paper!.height - printed.height) / 2, 0);
+  expect(printed.width / paper!.width, 'La carte doit remplir la largeur A4').toBeGreaterThan(0.99);
   await expect(page.locator('.presentation-exit-bar')).toBeHidden();
   await expect(page.locator('.presentation-focus-overlay')).toBeHidden();
   expect(await printedMap.evaluate(element => getComputedStyle(element).printColorAdjust)).toBe('exact');
 
   const pdf = await page.pdf({
-    path: testInfo.outputPath('presentation-16-9.pdf'),
+    path: testInfo.outputPath('presentation-a4-paysage.pdf'),
     preferCSSPageSize: true,
     printBackground: true,
   });
@@ -205,7 +228,7 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     'Gestion des anomalies',
   ];
 
-  await page.setViewportSize(PRINT_VIEWPORT);
+  await page.setViewportSize(SCREEN_VIEWPORT);
   await page.goto('/');
   await expect.poll(() => page.evaluate(
     () => localStorage.getItem('enterprise-capacity-mapper:model:v3'),
@@ -352,8 +375,9 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     '.presentation-app-preview:visible, .presentation-app-compact:visible, .presentation-app-inline-count:visible',
   ).first()).toBeVisible();
 
-  const bannerProbes16 = await readFirstRowBannerProbes(sheet);
-  expect(bannerProbes16).toHaveLength(columnCount);
+  const bannerProbes = await readFirstRowBannerProbes(sheet);
+  expect(bannerProbes).toHaveLength(columnCount);
+  expect(bannerProbes[2].x, 'La troisième colonne doit atteindre la droite de la page').toBeGreaterThan(PRINT_PAPER.width * 0.7);
   const pdfPath = testInfo.outputPath('presentation-dense-applications.pdf');
   const pdf = await page.pdf({
     path: pdfPath,
@@ -361,12 +385,12 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
     printBackground: true,
   });
   verifyPresentationPdf(pdf);
-  assertBannerColorsInRenderedPdf(pdfPath, testInfo.outputPath('presentation-16-9-pixels'), bannerProbes16);
+  assertBannerColorsInRenderedPdf(pdfPath, testInfo.outputPath('presentation-a4-css-pixels'), bannerProbes);
   inspectPdfOutput(pdfPath, [
     'Services de santé et parcours usager',
     'Domaine métier 2',
     'Domaine métier 20',
-  ], testInfo.outputPath('presentation-16-9-rendue'));
+  ], testInfo.outputPath('presentation-a4-css-rendue'));
 
   // Régression observée par l'utilisateur : aperçu d'impression en feuille A4
   // et fenêtre plus étroite que la diapositive. Les N0 ne doivent plus être
@@ -406,11 +430,11 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(pageCoverage.rightmost).toBeLessThanOrEqual(pageCoverage.pageRight + pageTolerancePx);
   expect(pageCoverage.topmost).toBeGreaterThanOrEqual(pageCoverage.pageTop - pageTolerancePx);
   expect(pageCoverage.bottommost).toBeLessThanOrEqual(pageCoverage.pageBottom + pageTolerancePx);
-  expect(pageCoverage.sheetWidth).toBe(PRINT_VIEWPORT.width);
-  expect(pageCoverage.sheetHeight).toBe(PRINT_VIEWPORT.height);
+  expect(pageCoverage.sheetWidth).toBeCloseTo(PRINT_PAPER.width, 0);
+  expect(pageCoverage.sheetHeight).toBeCloseTo(PRINT_PAPER.height, 0);
 
-  // Un navigateur peut imposer un papier A4 malgré @page 16:9.
-  // Le contenu doit alors être réduit en bloc, jamais tronqué.
+  // Même si l'imprimante impose son format A4, le PDF conserve le cadrage
+  // exact du DOM et toute la surface du papier, sans seconde réduction.
   const bannerProbesA4 = await readFirstRowBannerProbes(sheet);
   expect(bannerProbesA4).toHaveLength(columnCount);
   const a4PdfPath = testInfo.outputPath('presentation-papier-a4.pdf');
@@ -424,10 +448,10 @@ test('conserve tous les N0 et les aperçus applicatifs dans le PDF d’une grand
   expect(a4Pdf.subarray(0, 5).toString('ascii')).toBe('%PDF-');
   const a4PageDictionaries = a4Pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? [];
   expect(a4PageDictionaries).toHaveLength(1);
-  assertBannerColorsInRenderedPdf(a4PdfPath, testInfo.outputPath('presentation-a4-pixels'), bannerProbesA4);
+  assertBannerColorsInRenderedPdf(a4PdfPath, testInfo.outputPath('presentation-imprimante-a4-pixels'), bannerProbesA4);
   inspectPdfOutput(a4PdfPath, [
     'Services de santé et parcours usager',
     'Domaine métier 2',
     'Domaine métier 20',
-  ], testInfo.outputPath('presentation-a4-rendue'));
+  ], testInfo.outputPath('presentation-imprimante-a4-rendue'));
 });
