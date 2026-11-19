@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calculatePresentationPrintFit, PRESENTATION_PRINT_PAGE } from './presentationPrintLayout.ts';
 
 describe('cadrage PDF de la présentation', () => {
-  it('conserve une mosaïque 16:9 à sa taille originale', () => {
+  it('imprime sans réduction une présentation déjà au ratio A4 paysage', () => {
     expect(calculatePresentationPrintFit(PRESENTATION_PRINT_PAGE)).toEqual({
       scale: 1,
       offsetX: 0,
@@ -10,7 +10,17 @@ describe('cadrage PDF de la présentation', () => {
     });
   });
 
-  it('réduit uniformément sans aplatir les proportions du plan projeté', () => {
+  it('exploite toute la largeur A4 pour une présentation 16:9 sans la déformer', () => {
+    const screen = { width: 1536, height: 864 };
+    const fit = calculatePresentationPrintFit(screen)!;
+    expect(fit.scale).toBeCloseTo(PRESENTATION_PRINT_PAGE.width / screen.width);
+    expect(fit.offsetX).toBeCloseTo(0);
+    expect(fit.offsetY).toBeGreaterThan(0);
+    expect(screen.width * fit.scale).toBeCloseTo(PRESENTATION_PRINT_PAGE.width);
+    expect(screen.height * fit.scale + 2 * fit.offsetY).toBeCloseTo(PRESENTATION_PRINT_PAGE.height);
+  });
+
+  it('réduit uniformément les présentations panoramiques sans aplatir leur contenu', () => {
     const screen = { width: 1800, height: 1000 };
     const fit = calculatePresentationPrintFit(screen)!;
     expect(fit.scale).toBeCloseTo(PRESENTATION_PRINT_PAGE.width / screen.width);

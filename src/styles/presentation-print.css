@@ -1,10 +1,15 @@
-/* La projection PDF est une diapositive 16:9, pas une fenêtre réduite
-   dans une feuille bureautique. Valeurs physiques explicites : 16 × 9 pouces
-   (1536 × 864 pixels CSS à 96 dpi), quel que soit le viewport d'origine. */
+/* La projection imprimée est une vraie feuille A4 paysage, plutôt qu'une
+   diapositive 16:9 artificielle que le pilote Windows/Edge réduit à nouveau.
+   Le cadrage vectoriel de la mosaïque est préservé sans rognage ni étirement. */
 @media print {
   @page {
-    size: 16in 9in;
+    size: A4 landscape;
     margin: 0;
+  }
+
+  :root {
+    --presentation-print-paper-width: 297mm;
+    --presentation-print-paper-height: 210mm;
   }
 
   html,
@@ -18,8 +23,8 @@
   .app.mosaic-presentation-mode {
     position: relative;
     box-sizing: border-box;
-    width: 16in;
-    height: 9in;
+    width: var(--presentation-print-paper-width);
+    height: var(--presentation-print-paper-height);
     min-height: 0;
     margin: 0;
     padding: 0;
@@ -129,7 +134,7 @@
 /*
  * L'impression ne doit jamais réutiliser le main / workspace du navigateur :
  * leurs dimensions calculées depuis le viewport du dialogue d'impression
- * peuvent être plus étroites que la page 16:9 et rogner la dernière colonne.
+ * peuvent être plus étroites que la page A4 et rogner la dernière colonne.
  */
 .presentation-print-sheet {
   display: none !important;
@@ -145,13 +150,13 @@
     position: relative !important;
     inset: auto !important;
     box-sizing: border-box !important;
-    width: 16in !important;
-    height: 9in !important;
+    width: var(--presentation-print-paper-width) !important;
+    height: var(--presentation-print-paper-height) !important;
     min-height: 0 !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     background: var(--map-canvas-bg) !important;
     break-before: auto;
     break-after: auto;
